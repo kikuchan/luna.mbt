@@ -1,0 +1,78 @@
+name: check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          path: ui.mbt
+
+      # Checkout js.mbt dependency (required for mizchi/js)
+      - uses: actions/checkout@v4
+        with:
+          repository: mizchi/js.mbt
+          path: js.mbt
+          fetch-depth: 1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install dependencies for ui.mbt
+        run: cd ui.mbt && pnpm install
+
+      - name: Install dependencies for js.mbt
+        run: cd js.mbt && pnpm install
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "pnpm"
+          cache-dependency-path: |
+            ui.mbt/pnpm-lock.yaml
+            js.mbt/pnpm-lock.yaml
+
+      - name: Setup Moon
+        uses: illusory0x0/setup-moonbit@v0.1.0
+        with:
+          version: stable
+
+      - name: moon version
+        run: moon version --all
+
+      - name: Install module dependencies for js.mbt
+        run: |
+          cd js.mbt
+          moon update
+          moon install
+
+      - name: Install module dependencies for ui.mbt
+        run: |
+          cd ui.mbt
+          moon update
+          moon install
+
+      - name: moon check
+        run: cd ui.mbt && moon check --deny-warn
+
+      - name: moon info
+        run: |
+          cd ui.mbt
+          moon info --target js
+          git diff --exit-code
+
+      - name: moon test
+        run: cd ui.mbt && moon test --target js
+        env:
+          NODE_OPTIONS: "--experimental-wasm-modules --no-warnings=ExperimentalWarnings"
