@@ -58,7 +58,7 @@ pub fn vtext(content : String) -> Node {
 
 ///|
 /// Create a dynamic text VNode
-pub fn vtext_dyn(content : () -> String) -> Node {
+pub fn text_dyn(content : () -> String) -> Node {
   DynamicText(content)
 }
 

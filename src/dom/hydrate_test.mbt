@@ -66,7 +66,7 @@ test "hydrate element with text" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([], [@ui.vtext("Content")])
+  let vnode = @element.div([], [@ui.vtext("Content")])
   let html = @ssr.render_to_string(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -78,7 +78,7 @@ test "hydrate element with class" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([@element.vclass("test-class")], [@ui.vtext("Styled")])
+  let vnode = @element.div([@element.class("test-class")], [@ui.vtext("Styled")])
   let html = @ssr.render_to_string(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -90,7 +90,7 @@ test "hydrate nested elements" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([], [@element.vspan([], [@ui.vtext("Nested")])])
+  let vnode = @element.div([], [@element.span([], [@ui.vtext("Nested")])])
   let html = @ssr.render_to_string(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -107,7 +107,7 @@ test "hydrate dynamic text with hydration markers" {
   defer cleanup()
   let container = create_container()
   let count = @ui.signal(42)
-  let vnode = @ui.vtext_dyn(fn() { count.get().to_string() })
+  let vnode = @ui.text_dyn(fn() { count.get().to_string() })
 
   // SSR with hydration markers
   let html = @ssr.render_to_string_with_hydration(vnode)
@@ -129,7 +129,7 @@ test "hydrate element with click handler" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click me"),
   ])
 
@@ -149,8 +149,16 @@ test "hydrate dynamic class" {
   defer cleanup()
   let container = create_container()
   let active = @ui.signal(false)
-  let vnode = @element.vdiv(
-    [@element.vclass_dyn(fn() { if active.get() { "active" } else { "inactive" } })],
+  let vnode = @element.div(
+    [
+      @element.class_dyn(fn() {
+        if active.get() {
+          "active"
+        } else {
+          "inactive"
+        }
+      }),
+    ],
     [@ui.vtext("Toggle")],
   )
   let html = @ssr.render_to_string_with_hydration(vnode)
@@ -221,7 +229,7 @@ test "hydrate for loop" {
     let arr = items.get()
     let result : Array[@ui.Node] = []
     for i = 0; i < arr.length(); i = i + 1 {
-      result.push(@element.vli([], [@ui.vtext(arr[i])]))
+      result.push(@element.li([], [@ui.vtext(arr[i])]))
     }
     result
   })
@@ -253,7 +261,7 @@ test "hydrate detects missing element" {
   let logger = StringBuilder::new()
 
   // VNode expects a button with handler
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Button"),
   ])
 
@@ -281,7 +289,7 @@ test "hydrate recovers on mismatch" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([@element.vclass("expected")], [@ui.vtext("Expected")])
+  let vnode = @element.div([@element.class("expected")], [@ui.vtext("Expected")])
 
   // Wrong HTML
   set_inner_html(container, "<span>Wrong</span>")
@@ -313,7 +321,7 @@ test "hydrate success on correct HTML" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([], [@ui.vtext("Correct")])
+  let vnode = @element.div([], [@ui.vtext("Correct")])
 
   // Correct SSR HTML
   let html = @ssr.render_to_string(vnode)
@@ -339,20 +347,22 @@ test "hydrate complex page structure" {
   let logger = StringBuilder::new()
   let count = @ui.signal(0)
   let items = @ui.signal(["Item 1", "Item 2"])
-  let vnode = @element.vdiv([@element.vclass("app")], [
-    @element.vh1([], [@ui.vtext("Title")]),
-    @element.vp([], [@ui.vtext_dyn(fn() { "Count: " + count.get().to_string() })]),
-    @element.vul([], [
+  let vnode = @element.div([@element.class("app")], [
+    @element.h1([], [@ui.vtext("Title")]),
+    @element.p([], [@ui.text_dyn(fn() { "Count: " + count.get().to_string() })]),
+    @element.ul([], [
       @ui.vfor(fn() {
         let arr = items.get()
         let result : Array[@ui.Node] = []
         for i = 0; i < arr.length(); i = i + 1 {
-          result.push(@element.vli([], [@ui.vtext(arr[i])]))
+          result.push(@element.li([], [@ui.vtext(arr[i])]))
         }
         result
       }),
     ]),
-    @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("Click")]),
+    @element.button([@element.on_click(@ui.event_handler())], [
+      @ui.vtext("Click"),
+    ]),
   ])
   let html = @ssr.render_to_string_with_hydration(vnode)
   set_inner_html(container, html)
@@ -388,7 +398,7 @@ test "hydrate component" {
   defer cleanup()
   let container = create_container()
   fn greeting(name : String) -> @ui.Node {
-    @element.vdiv([], [@ui.vtext("Hello, " + name + "!")])
+    @element.div([], [@ui.vtext("Hello, " + name + "!")])
   }
 
   let vnode = @ui.vcomponent(fn() { greeting("World") })
@@ -419,9 +429,11 @@ test "hydrate deeply nested structure" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([], [
-    @element.vdiv([], [
-      @element.vdiv([], [@element.vdiv([], [@element.vspan([], [@ui.vtext("Deep")])])]),
+  let vnode = @element.div([], [
+    @element.div([], [
+      @element.div([], [
+        @element.div([], [@element.span([], [@ui.vtext("Deep")])]),
+      ]),
     ]),
   ])
   let html = @ssr.render_to_string(vnode)
@@ -458,7 +470,7 @@ test "hydrate with logger captures mismatch warning" {
   let logger = StringBuilder::new()
 
   // VNode expects a button with handler
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Button"),
   ])
 
@@ -481,7 +493,7 @@ test "hydrate with logger captures strict mode mismatch" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   set_inner_html(container, "<div>Wrong</div>")
@@ -506,7 +518,7 @@ test "hydrate with logger no output on success" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([], [@ui.vtext("Content")])
+  let vnode = @element.div([], [@ui.vtext("Content")])
   let html = @ssr.render_to_string(vnode)
   set_inner_html(container, html)
   let result = hydrate(container, vnode, logger~)
@@ -528,7 +540,7 @@ test "hydrate logger contains element info" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Submit"),
   ])
   set_inner_html(container, "<input type=\"text\" />")
@@ -548,7 +560,7 @@ test "hydrate without logger outputs to console" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Button"),
   ])
   // Wrong HTML - will trigger mismatch without logger
@@ -570,17 +582,16 @@ test "hydrate multiple mismatches joined with semicolon" {
   let logger = StringBuilder::new()
   // Two buttons with handlers - both need data-hk
   let vnode = @ui.vfragment([
-    @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("A")]),
-    @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("B")]),
+    @element.button([@element.on_click(@ui.event_handler())], [@ui.vtext("A")]),
+    @element.button([@element.on_click(@ui.event_handler())], [@ui.vtext("B")]),
   ])
   // Wrong HTML - neither button has data-hk
   set_inner_html(container, "<div>Wrong</div>")
   let result = hydrate(container, vnode, recover_on_mismatch=false, logger~)
   match result {
-    Mismatch(msg) => {
+    Mismatch(msg) =>
       // Should contain both mismatches joined
       assert_true(msg.contains("data-hk"))
-    }
     _ => assert_true(true)
   }
 }
@@ -592,17 +603,16 @@ test "hydrate tag mismatch with correct data-hk" {
   let container = create_container()
   let logger = StringBuilder::new()
   // Expect a button
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   // HTML has a span with correct data-hk but wrong tag
   set_inner_html(container, "<span data-hk=\"0\">Wrong tag</span>")
   let result = hydrate(container, vnode, recover_on_mismatch=false, logger~)
   match result {
-    Mismatch(msg) => {
+    Mismatch(msg) =>
       // Should mention tag mismatch
       assert_true(msg.contains("mismatch") || msg.contains("expected"))
-    }
     _ => assert_true(true)
   }
 }
@@ -613,7 +623,7 @@ test "hydrate dynamic attribute value" {
   defer cleanup()
   let container = create_container()
   let value_sig = @ui.signal("initial")
-  let vnode = @element.vinput([@element.vvalue_dyn(fn() { value_sig.get() })])
+  let vnode = @element.input([@element.value_dyn(fn() { value_sig.get() })])
   let html = @ssr.render_to_string_with_hydration(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -630,9 +640,10 @@ test "hydrate dynamic attribute general" {
   defer cleanup()
   let container = create_container()
   let title_sig = @ui.signal("Title 1")
-  let vnode = @element.vdiv([@element.vattr_dyn("title", fn() { title_sig.get() })], [
-    @ui.vtext("Content"),
-  ])
+  let vnode = @element.div(
+    [@element.attr_dyn("title", fn() { title_sig.get() })],
+    [@ui.vtext("Content")],
+  )
   let html = @ssr.render_to_string_with_hydration(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -648,10 +659,14 @@ test "hydrate dynamic attribute removal" {
   defer cleanup()
   let container = create_container()
   let show_title = @ui.signal(true)
-  let vnode = @element.vdiv(
+  let vnode = @element.div(
     [
-      @element.vattr_dyn("title", fn() {
-        if show_title.get() { "My Title" } else { "__remove__" }
+      @element.attr_dyn("title", fn() {
+        if show_title.get() {
+          "My Title"
+        } else {
+          "__remove__"
+        }
       }),
     ],
     [@ui.vtext("Content")],
@@ -671,8 +686,8 @@ test "hydrate dynamic style" {
   defer cleanup()
   let container = create_container()
   let color_sig = @ui.signal("red")
-  let vnode = @element.vdiv(
-    [@element.vstyle_dyn(fn() { [("color", color_sig.get())] })],
+  let vnode = @element.div(
+    [@element.style_dyn(fn() { [("color", color_sig.get())] })],
     [@ui.vtext("Styled")],
   )
   let html = @ssr.render_to_string_with_hydration(vnode)
@@ -689,7 +704,9 @@ test "render_vnode directly" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([@element.vclass("test")], [@ui.vtext("Direct render")])
+  let vnode = @element.div([@element.class("test")], [
+    @ui.vtext("Direct render"),
+  ])
   // Use render_vnode directly (not hydrate)
   render_vnode(container, vnode)
   assert_true(get_inner_html(container).contains("Direct render"))
@@ -701,11 +718,7 @@ test "render_vnode_to_dom with fragment" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @ui.vfragment([
-    @ui.vtext("A"),
-    @ui.vtext("B"),
-    @ui.vtext("C"),
-  ])
+  let vnode = @ui.vfragment([@ui.vtext("A"), @ui.vtext("B"), @ui.vtext("C")])
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   assert_eq(get_inner_html(container), "ABC")
@@ -783,7 +796,9 @@ test "render_vnode_to_dom with static style" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vdiv([@element.vstyle([("color", "red")])], [@ui.vtext("Styled")])
+  let vnode = @element.div([@element.style([("color", "red")])], [
+    @ui.vtext("Styled"),
+  ])
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   assert_true(get_inner_html(container).contains("Styled"))
@@ -795,8 +810,8 @@ test "render_vnode_to_dom with dynamic style" {
   defer cleanup()
   let container = create_container()
   let color = @ui.signal("green")
-  let vnode = @element.vdiv(
-    [@element.vstyle_dyn(fn() { [("backgroundColor", color.get())] })],
+  let vnode = @element.div(
+    [@element.style_dyn(fn() { [("backgroundColor", color.get())] })],
     [@ui.vtext("Dynamic styled")],
   )
   let dom_node = render_vnode_to_dom(vnode)
@@ -813,7 +828,7 @@ test "render_vnode_to_dom with VDynamic attribute" {
   defer cleanup()
   let container = create_container()
   let href = @ui.signal("/page1")
-  let vnode = @element.va([@element.vattr_dyn("href", fn() { href.get() })], [
+  let vnode = @element.a([@element.attr_dyn("href", fn() { href.get() })], [
     @ui.vtext("Link"),
   ])
   let dom_node = render_vnode_to_dom(vnode)
@@ -829,7 +844,7 @@ test "render_vnode_to_dom with static attribute value" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.vinput([@element.vvalue("test-value")])
+  let vnode = @element.input([@element.value("test-value")])
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   assert_true(get_inner_html(container).contains("input"))

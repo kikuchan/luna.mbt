@@ -380,7 +380,6 @@ test "create_root disposes all effects" {
   let effect_count = { val: 0 }
   let cleanup_count = { val: 0 }
   let dispose_ref : Ref[(() -> Unit)?] = { val: None }
-
   create_root(fn(dispose) {
     dispose_ref.val = Some(dispose)
 
@@ -395,6 +394,7 @@ test "create_root disposes all effects" {
       effect_count.val = effect_count.val + 1
       on_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
     })
+
   })
 
   // Both effects ran once
@@ -425,18 +425,16 @@ test "nested create_root disposes correctly" {
   let outer_cleanup = { val: 0 }
   let inner_cleanup = { val: 0 }
   let dispose_ref : Ref[(() -> Unit)?] = { val: None }
-
   create_root(fn(dispose_outer) {
     dispose_ref.val = Some(dispose_outer)
-
     let _ = effect(fn() {
       on_cleanup(fn() { outer_cleanup.val = outer_cleanup.val + 1 })
     })
-
     create_root(fn(_dispose_inner) {
       let _ = effect(fn() {
         on_cleanup(fn() { inner_cleanup.val = inner_cleanup.val + 1 })
       })
+
     })
   })
 
@@ -445,7 +443,6 @@ test "nested create_root disposes correctly" {
     Some(dispose) => dispose()
     None => ()
   }
-
   assert_eq(outer_cleanup.val, 1)
   assert_eq(inner_cleanup.val, 1)
 }
@@ -453,12 +450,8 @@ test "nested create_root disposes correctly" {
 ///|
 test "get_owner returns owner inside create_root" {
   assert_true(get_owner() is None)
-
   let has_owner_inside = { val: false }
-  create_root(fn(_) {
-    has_owner_inside.val = get_owner() is Some(_)
-  })
-
+  create_root(fn(_) { has_owner_inside.val = get_owner() is Some(_) })
   assert_true(has_owner_inside.val)
   assert_true(get_owner() is None)
 }
@@ -466,10 +459,7 @@ test "get_owner returns owner inside create_root" {
 ///|
 test "run_with_owner preserves owner context" {
   let owner_ref : Ref[Owner?] = { val: None }
-
-  create_root(fn(_) {
-    owner_ref.val = get_owner()
-  })
+  create_root(fn(_) { owner_ref.val = get_owner() })
 
   // Outside root, no owner
   assert_true(get_owner() is None)
@@ -477,11 +467,10 @@ test "run_with_owner preserves owner context" {
   // Run with saved owner
   let has_owner_inside = { val: false }
   match owner_ref.val {
-    Some(owner) => {
+    Some(owner) =>
       run_with_owner(owner, fn() {
         has_owner_inside.val = get_owner() is Some(_)
       })
-    }
     None => ()
   }
   assert_true(has_owner_inside.val)
@@ -491,14 +480,12 @@ test "run_with_owner preserves owner context" {
 test "on_mount runs without tracking" {
   let sig = Signal::new(0)
   let mount_count = { val: 0 }
-
   create_root(fn(_) {
     on_mount(fn() {
       let _ = sig.get() // Should not create dependency
       mount_count.val = mount_count.val + 1
     })
   })
-
   assert_eq(mount_count.val, 1)
 
   // Signal change should not re-run on_mount
@@ -518,7 +505,6 @@ test "Signal::clear_subscribers clears all subscribers" {
     let _ = sig.get()
     count.val = count.val + 1
   })
-
   assert_eq(count.val, 1)
 
   // Clear all subscribers
@@ -534,17 +520,15 @@ test "Signal::clear_subscribers clears all subscribers" {
 test "Signal::subscriber_count returns correct count" {
   let sig = Signal::new(0)
   assert_eq(sig.subscriber_count(), 0)
-
   let _ = effect(fn() {
     let _ = sig.get()
-  })
 
+  })
   assert_eq(sig.subscriber_count(), 1)
-
   let _ = effect(fn() {
     let _ = sig.get()
-  })
 
+  })
   assert_eq(sig.subscriber_count(), 2)
 }
 
@@ -557,7 +541,6 @@ test "Signal::remove_subscriber removes specific subscriber" {
   // Create two effects
   let _ = on(sig, fn(_) { count1.val = count1.val + 1 })
   let _ = on(sig, fn(_) { count2.val = count2.val + 1 })
-
   assert_eq(sig.subscriber_count(), 2)
 
   // Both effects respond
@@ -590,9 +573,7 @@ test "Signal::filter filters values by predicate" {
 ///|
 test "Signal::filter_map filters and maps values" {
   let sig = Signal::new(0)
-  let filtered = sig.filter_map(fn(n) {
-    if n > 0 { Some(n * 2) } else { None }
-  })
+  let filtered = sig.filter_map(fn(n) { if n > 0 { Some(n * 2) } else { None } })
 
   // Initially None since 0 is not > 0
   assert_eq(filtered.peek(), None)
@@ -608,15 +589,11 @@ test "combine3 combines three signals" {
   let b = Signal::new(2)
   let c = Signal::new(3)
   let sum = combine3(a, b, c, fn(x, y, z) { x + y + z })
-
   assert_eq(sum(), 6)
-
   a.set(10)
   assert_eq(sum(), 15)
-
   b.set(20)
   assert_eq(sum(), 33)
-
   c.set(30)
   assert_eq(sum(), 60)
 }
@@ -628,12 +605,9 @@ test "combine4 combines four signals" {
   let c = Signal::new(3)
   let d = Signal::new(4)
   let sum = combine4(a, b, c, d, fn(w, x, y, z) { w + x + y + z })
-
   assert_eq(sum(), 10)
-
   a.set(10)
   assert_eq(sum(), 19)
-
   d.set(40)
   assert_eq(sum(), 55)
 }
@@ -647,13 +621,11 @@ test "effect_with_cleanup runs cleanup function" {
   let sig = Signal::new(0)
   let cleanup_count = { val: 0 }
   let effect_count = { val: 0 }
-
   let dispose = effect_with_cleanup(fn() {
     let _ = sig.get()
     effect_count.val = effect_count.val + 1
     Some(fn() { cleanup_count.val = cleanup_count.val + 1 })
   })
-
   assert_eq(effect_count.val, 1)
   assert_eq(cleanup_count.val, 0)
 
@@ -671,7 +643,6 @@ test "effect_with_cleanup runs cleanup function" {
 test "effect_when only runs when condition is true" {
   let condition = Signal::new(false)
   let count = { val: 0 }
-
   let _ = effect_when(fn() { condition.get() }, fn() {
     count.val = count.val + 1
   })
@@ -687,10 +658,7 @@ test "effect_when only runs when condition is true" {
 ///|
 test "effect_once runs only once and disposes" {
   let count = { val: 0 }
-
-  effect_once(fn() {
-    count.val = count.val + 1
-  })
+  effect_once(fn() { count.val = count.val + 1 })
 
   // Effect ran once
   assert_eq(count.val, 1)
@@ -704,7 +672,6 @@ test "effect_once runs only once and disposes" {
 test "watch_immediate calls callback with initial value" {
   let sig = Signal::new(42)
   let values : Array[(Int, Int?)] = []
-
   let _ = watch_immediate(fn() { sig.get() }, fn(new_val, old_val) {
     values.push((new_val, old_val))
   })
@@ -725,7 +692,6 @@ test "watch_immediate calls callback with initial value" {
 test "watch_immediate does not call for same value" {
   let sig = Signal::new(5)
   let call_count = { val: 0 }
-
   let _ = watch_immediate(fn() { sig.get() }, fn(_new, _old) {
     call_count.val = call_count.val + 1
   })
@@ -750,7 +716,6 @@ test "watch_immediate does not call for same value" {
 test "computed is alias for memo" {
   let sig = Signal::new(5)
   let doubled = computed(fn() { sig.get() * 2 })
-
   assert_eq(doubled(), 10)
   sig.set(7)
   assert_eq(doubled(), 14)
@@ -764,12 +729,10 @@ test "computed is alias for memo" {
 test "vtext_sig creates dynamic text from signal" {
   let sig = Signal::new(42)
   let node = vtext_sig(sig)
-
   match node {
     DynamicText(getter) => assert_eq(getter(), "42")
     _ => assert_true(false)
   }
-
   sig.set(100)
   match node {
     DynamicText(getter) => assert_eq(getter(), "100")
@@ -779,7 +742,7 @@ test "vtext_sig creates dynamic text from signal" {
 
 ///|
 test "va creates anchor element" {
-  let node = @element.va([@element.vhref("https://example.com")], [vtext("Link")])
+  let node = @element.a([@element.href("https://example.com")], [vtext("Link")])
   match node {
     Element(el) => {
       assert_eq(el.tag, "a")
@@ -792,7 +755,9 @@ test "va creates anchor element" {
 
 ///|
 test "vform creates form element" {
-  let node = @element.vform([@element.vid("myform")], [@element.vinput([@element.vtype("text")])])
+  let node = @element.form([@element.id("myform")], [
+    @element.input([@element.type_("text")]),
+  ])
   match node {
     Element(el) => {
       assert_eq(el.tag, "form")
@@ -805,18 +770,16 @@ test "vform creates form element" {
 
 ///|
 test "vlabel creates label element" {
-  let node = @element.vlabel([@element.vattr("for", "input1")], [vtext("Name:")])
+  let node = @element.label([@element.attr("for", "input1")], [vtext("Name:")])
   match node {
-    Element(el) => {
-      assert_eq(el.tag, "label")
-    }
+    Element(el) => assert_eq(el.tag, "label")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vh2 creates h2 element" {
-  let node = @element.vh2([], [vtext("Section")])
+  let node = @element.h2([], [vtext("Section")])
   match node {
     Element(el) => assert_eq(el.tag, "h2")
     _ => assert_true(false)
@@ -825,7 +788,7 @@ test "vh2 creates h2 element" {
 
 ///|
 test "vh3 creates h3 element" {
-  let node = @element.vh3([], [vtext("Subsection")])
+  let node = @element.h3([], [vtext("Subsection")])
   match node {
     Element(el) => assert_eq(el.tag, "h3")
     _ => assert_true(false)
@@ -834,7 +797,7 @@ test "vh3 creates h3 element" {
 
 ///|
 test "vol creates ol element" {
-  let node = @element.vol([], [@element.vli([], [vtext("Item 1")])])
+  let node = @element.ol([], [@element.li([], [vtext("Item 1")])])
   match node {
     Element(el) => assert_eq(el.tag, "ol")
     _ => assert_true(false)
@@ -843,7 +806,7 @@ test "vol creates ol element" {
 
 ///|
 test "vimg creates img element" {
-  let node = @element.vimg([@element.vsrc("/image.png"), @element.valt("An image")])
+  let node = @element.img([@element.src("/image.png"), @element.alt("An image")])
   match node {
     Element(el) => {
       assert_eq(el.tag, "img")
@@ -857,7 +820,7 @@ test "vimg creates img element" {
 ///|
 test "vattr_dyn creates dynamic attribute" {
   let getter = fn() { "dynamic-value" }
-  let (key, attr) = @element.vattr_dyn("data-test", getter)
+  let (key, attr) = @element.attr_dyn("data-test", getter)
   assert_eq(key, "data-test")
   match attr {
     VDynamic(g) => assert_eq(g(), "dynamic-value")
@@ -867,7 +830,7 @@ test "vattr_dyn creates dynamic attribute" {
 
 ///|
 test "vvalue creates value attribute" {
-  let (key, attr) = @element.vvalue("test-value")
+  let (key, attr) = @element.value("test-value")
   assert_eq(key, "value")
   match attr {
     VStatic(v) => assert_eq(v, "test-value")
@@ -877,7 +840,7 @@ test "vvalue creates value attribute" {
 
 ///|
 test "vvalue_dyn creates dynamic value attribute" {
-  let (key, attr) = @element.vvalue_dyn(fn() { "dynamic" })
+  let (key, attr) = @element.value_dyn(fn() { "dynamic" })
   assert_eq(key, "value")
   match attr {
     VDynamic(g) => assert_eq(g(), "dynamic")
@@ -888,7 +851,7 @@ test "vvalue_dyn creates dynamic value attribute" {
 ///|
 test "von_input creates input handler" {
   let handler = event_handler()
-  let (key, attr) = @element.von_input(handler)
+  let (key, attr) = @element.on_input(handler)
   assert_eq(key, "onInput")
   match attr {
     VHandler(_) => assert_true(true)
@@ -899,7 +862,7 @@ test "von_input creates input handler" {
 ///|
 test "von_change creates change handler" {
   let handler = event_handler()
-  let (key, attr) = @element.von_change(handler)
+  let (key, attr) = @element.on_change(handler)
   assert_eq(key, "onChange")
   match attr {
     VHandler(_) => assert_true(true)
@@ -910,7 +873,7 @@ test "von_change creates change handler" {
 ///|
 test "von_submit creates submit handler" {
   let handler = event_handler()
-  let (key, attr) = @element.von_submit(handler)
+  let (key, attr) = @element.on_submit(handler)
   assert_eq(key, "onSubmit")
   match attr {
     VHandler(_) => assert_true(true)
@@ -921,7 +884,7 @@ test "von_submit creates submit handler" {
 ///|
 test "vstyle_dyn creates dynamic style attribute" {
   let styles = fn() { [("color", "red"), ("margin", "10px")] }
-  let (key, attr) = @element.vstyle_dyn(styles)
+  let (key, attr) = @element.style_dyn(styles)
   assert_eq(key, "style")
   match attr {
     VDynamicStyle(g) => assert_eq(g().length(), 2)
@@ -937,12 +900,12 @@ test "vstyle_dyn creates dynamic style attribute" {
 test "Owner::dispose early return when already disposed" {
   let cleanup_count = { val: 0 }
   let dispose_ref : Ref[(() -> Unit)?] = { val: None }
-
   create_root(fn(dispose) {
     dispose_ref.val = Some(dispose)
     let _ = effect(fn() {
       on_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
     })
+
   })
 
   // First dispose
@@ -968,12 +931,9 @@ test "select returns element at index" {
   let items = Signal::new([10, 20, 30, 40])
   let index = Signal::new(1)
   let selected = select(items, index)
-
   assert_eq(selected(), Some(20))
-
   index.set(0)
   assert_eq(selected(), Some(10))
-
   index.set(3)
   assert_eq(selected(), Some(40))
 }
@@ -983,9 +943,7 @@ test "select returns None for out of bounds" {
   let items = Signal::new([10, 20, 30])
   let index = Signal::new(5)
   let selected = select(items, index)
-
   assert_eq(selected(), None)
-
   index.set(-1)
   assert_eq(selected(), None)
 }
@@ -994,9 +952,7 @@ test "select returns None for out of bounds" {
 test "Signal::to_getter creates read-only getter" {
   let sig = Signal::new(42)
   let getter = sig.to_getter()
-
   assert_eq(getter(), 42)
-
   sig.set(100)
   assert_eq(getter(), 100)
 }
@@ -1006,12 +962,9 @@ test "flatten flattens nested signals" {
   let inner = Signal::new(10)
   let outer = Signal::new(inner)
   let flattened = flatten(outer)
-
   assert_eq(flattened(), 10)
-
   inner.set(20)
   assert_eq(flattened(), 20)
-
   let new_inner = Signal::new(30)
   outer.set(new_inner)
   assert_eq(flattened(), 30)
@@ -1022,10 +975,9 @@ test "Signal::remove_subscriber iterates through multiple subscribers" {
   let sig = Signal::new(0)
 
   // Create three subscribers
-  let _ = on(sig, fn(_) {})
-  let _ = on(sig, fn(_) {})
-  let unsub3 = on(sig, fn(_) {})
-
+  let _ = on(sig, fn(_) {  })
+  let _ = on(sig, fn(_) {  })
+  let unsub3 = on(sig, fn(_) {  })
   assert_eq(sig.subscriber_count(), 3)
 
   // Remove the third subscriber - this should iterate through first two

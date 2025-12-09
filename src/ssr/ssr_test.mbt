@@ -15,49 +15,52 @@ test "render escaped text" {
 
 ///|
 test "render simple element" {
-  let node = @element.vdiv([], [])
+  let node = @element.div([], [])
   let html = render_to_string(node)
   assert_eq(html, "<div></div>")
 }
 
 ///|
 test "render element with text child" {
-  let node = @element.vdiv([], [@ui.vtext("Hello")])
+  let node = @element.div([], [@ui.vtext("Hello")])
   let html = render_to_string(node)
   assert_eq(html, "<div>Hello</div>")
 }
 
 ///|
 test "render element with class" {
-  let node = @element.vdiv([@element.vclass("container")], [])
+  let node = @element.div([@element.class("container")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div class=\"container\"></div>")
 }
 
 ///|
 test "render element with multiple attrs" {
-  let node = @element.vdiv([@element.vid("main"), @element.vclass("container")], [])
+  let node = @element.div([@element.id("main"), @element.class("container")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div id=\"main\" class=\"container\"></div>")
 }
 
 ///|
 test "render nested elements" {
-  let node = @element.vdiv([], [@element.vspan([], [@ui.vtext("nested")])])
+  let node = @element.div([], [@element.span([], [@ui.vtext("nested")])])
   let html = render_to_string(node)
   assert_eq(html, "<div><span>nested</span></div>")
 }
 
 ///|
 test "render void element" {
-  let node = @element.vinput([@element.vtype("text"), @element.vplaceholder("Enter name")])
+  let node = @element.input([
+    @element.type_("text"),
+    @element.placeholder("Enter name"),
+  ])
   let html = render_to_string(node)
   assert_eq(html, "<input type=\"text\" placeholder=\"Enter name\" />")
 }
 
 ///|
 test "render br and hr" {
-  let node = @ui.vfragment([@element.vbr(), @element.vhr()])
+  let node = @ui.vfragment([@element.br(), @element.hr()])
   let html = render_to_string(node)
   assert_eq(html, "<br /><hr />")
 }
@@ -72,7 +75,7 @@ test "render fragment" {
 ///|
 test "render dynamic text" {
   let count = 42
-  let node = @ui.vtext_dyn(fn() { "Count: " + count.to_string() })
+  let node = @ui.text_dyn(fn() { "Count: " + count.to_string() })
   let html = render_to_string(node)
   assert_eq(html, "Count: 42")
 }
@@ -80,8 +83,8 @@ test "render dynamic text" {
 ///|
 test "render dynamic attribute" {
   let active = true
-  let node = @element.vdiv(
-    [@element.vclass_dyn(fn() { if active { "active" } else { "inactive" } })],
+  let node = @element.div(
+    [@element.class_dyn(fn() { if active { "active" } else { "inactive" } })],
     [],
   )
   let html = render_to_string(node)
@@ -90,21 +93,24 @@ test "render dynamic attribute" {
 
 ///|
 test "render style attribute" {
-  let node = @element.vdiv([@element.vstyle([("color", "red"), ("fontSize", "16px")])], [])
+  let node = @element.div(
+    [@element.style([("color", "red"), ("fontSize", "16px")])],
+    [],
+  )
   let html = render_to_string(node)
   assert_eq(html, "<div style=\"color: red; font-size: 16px\"></div>")
 }
 
 ///|
 test "render disabled attribute true" {
-  let node = @element.vbutton([@element.vdisabled(true)], [@ui.vtext("Submit")])
+  let node = @element.button([@element.disabled(true)], [@ui.vtext("Submit")])
   let html = render_to_string(node)
   assert_eq(html, "<button disabled>Submit</button>")
 }
 
 ///|
 test "render disabled attribute false" {
-  let node = @element.vbutton([@element.vdisabled(false)], [@ui.vtext("Submit")])
+  let node = @element.button([@element.disabled(false)], [@ui.vtext("Submit")])
   let html = render_to_string(node)
   assert_eq(html, "<button>Submit</button>")
 }
@@ -131,7 +137,7 @@ test "render for list" {
   let node = @ui.vfor(fn() {
     let result : Array[@ui.Node] = []
     for i = 0; i < items.length(); i = i + 1 {
-      result.push(@element.vli([], [@ui.vtext(items[i])]))
+      result.push(@element.li([], [@ui.vtext(items[i])]))
     }
     result
   })
@@ -142,7 +148,7 @@ test "render for list" {
 ///|
 test "render component" {
   fn greeting(name : String) -> @ui.Node {
-    @element.vdiv([], [@ui.vtext("Hello, " + name + "!")])
+    @element.div([], [@ui.vtext("Hello, " + name + "!")])
   }
 
   let node = @ui.vcomponent(fn() { greeting("World") })
@@ -152,8 +158,8 @@ test "render component" {
 
 ///|
 test "handlers are not rendered" {
-  let node = @element.vbutton(
-    [@element.von_click(@ui.event_handler()), @element.vclass("btn")],
+  let node = @element.button(
+    [@element.on_click(@ui.event_handler()), @element.class("btn")],
     [@ui.vtext("Click me")],
   )
   let html = render_to_string(node)
@@ -163,7 +169,7 @@ test "handlers are not rendered" {
 
 ///|
 test "escape attribute value" {
-  let node = @element.vdiv([@element.vattr("data-value", "a\"b&c")], [])
+  let node = @element.div([@element.attr("data-value", "a\"b&c")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div data-value=\"a&quot;b&amp;c\"></div>")
 }
@@ -171,14 +177,14 @@ test "escape attribute value" {
 ///|
 test "render with hydration markers for dynamic text" {
   let count = 5
-  let node = @ui.vtext_dyn(fn() { count.to_string() })
+  let node = @ui.text_dyn(fn() { count.to_string() })
   let html = render_to_string_with_hydration(node)
   assert_eq(html, "<!--t:0-->5<!--/t-->")
 }
 
 ///|
 test "render with hydration markers for element with handler" {
-  let node = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let node = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   let html = render_to_string_with_hydration(node)
@@ -205,19 +211,24 @@ test "complex page render" {
   let title = "My App"
   let count = 0
   let items = ["Item 1", "Item 2"]
-  let page = @element.vdiv([@element.vclass("app")], [
-    @element.vh1([], [@ui.vtext(title)]),
-    @element.vp([], [@ui.vtext("Count: "), @ui.vtext_dyn(fn() { count.to_string() })]),
-    @element.vul([], [
+  let page = @element.div([@element.class("app")], [
+    @element.h1([], [@ui.vtext(title)]),
+    @element.p([], [
+      @ui.vtext("Count: "),
+      @ui.text_dyn(fn() { count.to_string() }),
+    ]),
+    @element.ul([], [
       @ui.vfor(fn() {
         let result : Array[@ui.Node] = []
         for i = 0; i < items.length(); i = i + 1 {
-          result.push(@element.vli([], [@ui.vtext(items[i])]))
+          result.push(@element.li([], [@ui.vtext(items[i])]))
         }
         result
       }),
     ]),
-    @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("Increment")]),
+    @element.button([@element.on_click(@ui.event_handler())], [
+      @ui.vtext("Increment"),
+    ]),
   ])
   let html = render_to_string(page)
   assert_true(html.contains("<h1>My App</h1>"))
@@ -246,14 +257,14 @@ test "render text with double quote" {
 
 ///|
 test "render void elements img" {
-  let node = @element.vimg([@element.vsrc("/image.png")])
+  let node = @element.img([@element.src("/image.png")])
   let html = render_to_string(node)
   assert_eq(html, "<img src=\"/image.png\" />")
 }
 
 ///|
 test "render void element col" {
-  let node = @ui.vnode("col", [@element.vattr("span", "2")], [])
+  let node = @ui.vnode("col", [@element.attr("span", "2")], [])
   let html = render_to_string(node)
   assert_eq(html, "<col span=\"2\" />")
 }
@@ -267,49 +278,49 @@ test "render void element wbr" {
 
 ///|
 test "render void element area" {
-  let node = @ui.vnode("area", [@element.vattr("shape", "rect")], [])
+  let node = @ui.vnode("area", [@element.attr("shape", "rect")], [])
   let html = render_to_string(node)
   assert_eq(html, "<area shape=\"rect\" />")
 }
 
 ///|
 test "render void element base" {
-  let node = @ui.vnode("base", [@element.vhref("/")], [])
+  let node = @ui.vnode("base", [@element.href("/")], [])
   let html = render_to_string(node)
   assert_eq(html, "<base href=\"/\" />")
 }
 
 ///|
 test "render void element link" {
-  let node = @ui.vnode("link", [@element.vattr("rel", "stylesheet")], [])
+  let node = @ui.vnode("link", [@element.attr("rel", "stylesheet")], [])
   let html = render_to_string(node)
   assert_eq(html, "<link rel=\"stylesheet\" />")
 }
 
 ///|
 test "render void element meta" {
-  let node = @ui.vnode("meta", [@element.vattr("charset", "utf-8")], [])
+  let node = @ui.vnode("meta", [@element.attr("charset", "utf-8")], [])
   let html = render_to_string(node)
   assert_eq(html, "<meta charset=\"utf-8\" />")
 }
 
 ///|
 test "render void element embed" {
-  let node = @ui.vnode("embed", [@element.vsrc("/video.swf")], [])
+  let node = @ui.vnode("embed", [@element.src("/video.swf")], [])
   let html = render_to_string(node)
   assert_eq(html, "<embed src=\"/video.swf\" />")
 }
 
 ///|
 test "render void element track" {
-  let node = @ui.vnode("track", [@element.vattr("kind", "subtitles")], [])
+  let node = @ui.vnode("track", [@element.attr("kind", "subtitles")], [])
   let html = render_to_string(node)
   assert_eq(html, "<track kind=\"subtitles\" />")
 }
 
 ///|
 test "render void element source" {
-  let node = @ui.vnode("source", [@element.vsrc("/audio.mp3")], [])
+  let node = @ui.vnode("source", [@element.src("/audio.mp3")], [])
   let html = render_to_string(node)
   assert_eq(html, "<source src=\"/audio.mp3\" />")
 }
@@ -324,8 +335,8 @@ test "render non-void element with length 7" {
 
 ///|
 test "render dynamic style" {
-  let node = @element.vdiv(
-    [@element.vstyle_dyn(fn() { [("color", "blue"), ("margin", "10px")] })],
+  let node = @element.div(
+    [@element.style_dyn(fn() { [("color", "blue"), ("margin", "10px")] })],
     [],
   )
   let html = render_to_string(node)
@@ -334,7 +345,7 @@ test "render dynamic style" {
 
 ///|
 test "render empty dynamic style" {
-  let node = @element.vdiv([@element.vstyle_dyn(fn() { [] })], [])
+  let node = @element.div([@element.style_dyn(fn() { [] })], [])
   let html = render_to_string(node)
   assert_eq(html, "<div></div>")
 }

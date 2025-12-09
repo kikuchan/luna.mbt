@@ -54,10 +54,9 @@ test "exp: repair missing static text" {
       // Should have created text node
       assert_eq(exp_get_inner_html(container), "Hello World")
     }
-    Clean => {
+    Clean =>
       // Also acceptable if text was added
       assert_eq(exp_get_inner_html(container), "Hello World")
-    }
     Failed(_) => assert_true(false)
   }
 }
@@ -91,10 +90,9 @@ test "exp: repair missing element with handler" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton(
-    [@element.von_click(@ui.event_handler())],
-    [@ui.vtext("Click me")],
-  )
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
+    @ui.vtext("Click me"),
+  ])
   // Empty container
   exp_set_inner_html(container, "")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -117,7 +115,7 @@ test "exp: repair tag mismatch with data-hk" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Submit"),
   ])
   // Wrong tag (span instead of button) but correct data-hk
@@ -146,7 +144,9 @@ test "exp: repair class attribute mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([@element.vclass("correct-class")], [@ui.vtext("Content")])
+  let vnode = @element.div([@element.class("correct-class")], [
+    @ui.vtext("Content"),
+  ])
   // Wrong class
   exp_set_inner_html(container, "<div class=\"wrong-class\">Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -168,7 +168,7 @@ test "exp: repair id attribute mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([@element.vid("correct-id")], [@ui.vtext("Content")])
+  let vnode = @element.div([@element.id("correct-id")], [@ui.vtext("Content")])
   // Wrong id
   exp_set_inner_html(container, "<div id=\"wrong-id\">Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -190,10 +190,9 @@ test "exp: repair missing attribute" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv(
-    [@element.vattr("data-testid", "my-test")],
-    [@ui.vtext("Content")],
-  )
+  let vnode = @element.div([@element.attr("data-testid", "my-test")], [
+    @ui.vtext("Content"),
+  ])
   // No attribute
   exp_set_inner_html(container, "<div>Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -219,7 +218,7 @@ test "exp: repair missing dynamic text markers" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let count = @ui.signal(42)
-  let vnode = @ui.vtext_dyn(fn() { "Count: " + count.get().to_string() })
+  let vnode = @ui.text_dyn(fn() { "Count: " + count.get().to_string() })
   // No markers
   exp_set_inner_html(container, "")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -244,7 +243,7 @@ test "exp: repair dynamic text with existing marker but missing text node" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let name = @ui.signal("Alice")
-  let vnode = @ui.vtext_dyn(fn() { name.get() })
+  let vnode = @ui.text_dyn(fn() { name.get() })
   // Has marker but no text node after it
   exp_set_inner_html(container, "<!--t:0--><!--/t-->")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -269,7 +268,7 @@ test "exp: dynamic attribute setup works after repair" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let title = @ui.signal("Title 1")
-  let vnode = @element.vdiv([@element.vattr_dyn("title", fn() { title.get() })], [
+  let vnode = @element.div([@element.attr_dyn("title", fn() { title.get() })], [
     @ui.vtext("Hover me"),
   ])
   // Element exists but wrong structure
@@ -293,8 +292,8 @@ test "exp: dynamic style setup works after repair" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let bg = @ui.signal("red")
-  let vnode = @element.vdiv(
-    [@element.vstyle_dyn(fn() { [("backgroundColor", bg.get())] })],
+  let vnode = @element.div(
+    [@element.style_dyn(fn() { [("backgroundColor", bg.get())] })],
     [@ui.vtext("Styled")],
   )
   // Element exists
@@ -377,7 +376,7 @@ test "exp: repair missing for markers" {
     let arr = items.get()
     let result : Array[@ui.Node] = []
     for i = 0; i < arr.length(); i = i + 1 {
-      result.push(@element.vli([], [@ui.vtext(arr[i])]))
+      result.push(@element.li([], [@ui.vtext(arr[i])]))
     }
     result
   })
@@ -406,9 +405,7 @@ test "exp: repair for item count mismatch - too few items" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @ui.vfor(fn() {
-    [@ui.vtext("A"), @ui.vtext("B"), @ui.vtext("C")]
-  })
+  let vnode = @ui.vfor(fn() { [@ui.vtext("A"), @ui.vtext("B"), @ui.vtext("C")] })
   // Only 1 item in DOM
   exp_set_inner_html(container, "<!--f:0-->X<!--/f-->")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -456,8 +453,10 @@ test "exp: repair deeply nested missing element" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([], [
-    @element.vdiv([], [@element.vdiv([], [@element.vspan([], [@ui.vtext("Deep")])])]),
+  let vnode = @element.div([], [
+    @element.div([], [
+      @element.div([], [@element.span([], [@ui.vtext("Deep")])]),
+    ]),
   ])
   // Only outer div
   exp_set_inner_html(container, "<div></div>")
@@ -467,9 +466,7 @@ test "exp: repair deeply nested missing element" {
       assert_true(repairs.length() > 0)
       assert_true(exp_get_inner_html(container).contains("Deep"))
     }
-    Clean => {
-      assert_true(exp_get_inner_html(container).contains("Deep"))
-    }
+    Clean => assert_true(exp_get_inner_html(container).contains("Deep"))
     Failed(_) => assert_true(false)
   }
 }
@@ -504,9 +501,9 @@ test "exp: repair component render" {
   fn counter_component(initial : Int) -> @ui.Node {
     let count = @ui.signal(initial)
     let _ = count // suppress unused warning
-    @element.vdiv([], [
-      @ui.vtext_dyn(fn() { "Count: " + count.get().to_string() }),
-      @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("+")]),
+    @element.div([], [
+      @ui.text_dyn(fn() { "Count: " + count.get().to_string() }),
+      @element.button([@element.on_click(@ui.event_handler())], [@ui.vtext("+")]),
     ])
   }
 
@@ -532,7 +529,7 @@ test "exp: fallback succeeds when normal hydration works" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([], [@ui.vtext("Content")])
+  let vnode = @element.div([], [@ui.vtext("Content")])
   let html = @ssr.render_to_string(vnode)
   exp_set_inner_html(container, html)
   let result = hydrate_with_fallback(container, vnode, logger~)
@@ -548,19 +545,19 @@ test "exp: fallback recovers from complete mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   // Completely wrong HTML
   exp_set_inner_html(container, "<table><tr><td>Wrong</td></tr></table>")
   let result = hydrate_with_fallback(container, vnode, logger~)
   match result {
-    @dom.Recovered(msg) => {
+    @dom.Recovered(msg) =>
       assert_true(
-        msg.contains("Experimental") || msg.contains("repaired") ||
+        msg.contains("Experimental") ||
+        msg.contains("repaired") ||
         msg.contains("cleanly"),
       )
-    }
     @dom.Success => assert_true(true)
     @dom.Mismatch(_) => assert_true(true)
   }
@@ -572,7 +569,7 @@ test "exp: fallback with logger captures both phases" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Submit"),
   ])
   // Wrong HTML
@@ -627,9 +624,9 @@ test "exp: handle multiple dynamic elements" {
   let logger = StringBuilder::new()
   let a = @ui.signal("A")
   let b = @ui.signal("B")
-  let vnode = @element.vdiv([], [
-    @ui.vtext_dyn(fn() { a.get() }),
-    @ui.vtext_dyn(fn() { b.get() }),
+  let vnode = @element.div([], [
+    @ui.text_dyn(fn() { a.get() }),
+    @ui.text_dyn(fn() { b.get() }),
   ])
   exp_set_inner_html(container, "<div></div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -652,8 +649,8 @@ test "exp: handle static style attribute" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv(
-    [@element.vstyle([("color", "red"), ("fontSize", "16px")])],
+  let vnode = @element.div(
+    [@element.style([("color", "red"), ("fontSize", "16px")])],
     [@ui.vtext("Styled")],
   )
   exp_set_inner_html(container, "<div>Styled</div>")
@@ -672,10 +669,9 @@ test "exp: handle event handler attachment" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton(
-    [@element.von_click(@ui.event_handler())],
-    [@ui.vtext("Click")],
-  )
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
+    @ui.vtext("Click"),
+  ])
   // Correct HTML with data-hk
   exp_set_inner_html(container, "<button data-hk=\"0\">Click</button>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -698,7 +694,7 @@ test "report: clean hydration returns clean report" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([], [@ui.vtext("Content")])
+  let vnode = @element.div([], [@ui.vtext("Content")])
   let html = @ssr.render_to_string(vnode)
   exp_set_inner_html(container, html)
   let report = experimental_hydrate_with_report(container, vnode, logger~)
@@ -745,7 +741,7 @@ test "report: element missing has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   exp_set_inner_html(container, "")
@@ -764,7 +760,7 @@ test "report: tag mismatch has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vbutton([@element.von_click(@ui.event_handler())], [
+  let vnode = @element.button([@element.on_click(@ui.event_handler())], [
     @ui.vtext("Click"),
   ])
   exp_set_inner_html(container, "<span data-hk=\"0\">Click</span>")
@@ -784,7 +780,7 @@ test "report: attribute mismatch has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([@element.vclass("expected")], [@ui.vtext("Content")])
+  let vnode = @element.div([@element.class("expected")], [@ui.vtext("Content")])
   exp_set_inner_html(container, "<div class=\"wrong\">Content</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -803,7 +799,7 @@ test "report: dynamic text marker missing has correct repair type" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let sig = @ui.signal("Dynamic")
-  let vnode = @ui.vtext_dyn(fn() { sig.get() })
+  let vnode = @ui.text_dyn(fn() { sig.get() })
   exp_set_inner_html(container, "")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -848,7 +844,9 @@ test "report: for item count mismatch has correct repair type" {
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
   assert_true(report.has_repair_type(repair_type_for_item_count_mismatch()))
-  let repairs = report.get_repairs_by_type(repair_type_for_item_count_mismatch())
+  let repairs = report.get_repairs_by_type(
+    repair_type_for_item_count_mismatch(),
+  )
   assert_true(repairs.length() > 0)
   let repair = repairs[0]
   assert_eq(repair.get_expected(), "3")
@@ -876,9 +874,7 @@ test "report: node path tracks hierarchy" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([], [
-    @element.vspan([], [@ui.vtext("Wrong content")]),
-  ])
+  let vnode = @element.div([], [@element.span([], [@ui.vtext("Wrong content")])])
   exp_set_inner_html(container, "<div><span>Different</span></div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   if not(report.is_clean()) {
@@ -886,7 +882,9 @@ test "report: node path tracks hierarchy" {
     if repairs.length() > 0 {
       let path = repairs[0].get_node_path()
       // Path should contain the hierarchy
-      assert_true(path.contains("div") || path.contains("span") || path.contains("#text"))
+      assert_true(
+        path.contains("div") || path.contains("span") || path.contains("#text"),
+      )
     }
   }
 }
@@ -898,9 +896,11 @@ test "report: multiple repairs tracked" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   // Multiple things wrong
-  let vnode = @element.vdiv([@element.vclass("expected")], [
+  let vnode = @element.div([@element.class("expected")], [
     @ui.vtext("Wrong"),
-    @element.vbutton([@element.von_click(@ui.event_handler())], [@ui.vtext("Click")]),
+    @element.button([@element.on_click(@ui.event_handler())], [
+      @ui.vtext("Click"),
+    ]),
   ])
   exp_set_inner_html(container, "<div class=\"wrong\">Different</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
@@ -915,7 +915,7 @@ test "report: get_repairs returns all repair infos" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @element.vdiv([@element.vclass("test")], [@ui.vtext("Hello")])
+  let vnode = @element.div([@element.class("test")], [@ui.vtext("Hello")])
   exp_set_inner_html(container, "<div class=\"wrong\">World</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   let repairs = report.get_repairs()
@@ -933,10 +933,12 @@ test "report: filter repairs by type returns correct subset" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   // Create scenario with attribute mismatch
-  let vnode = @element.vdiv([@element.vid("expected-id")], [@ui.vtext("Content")])
+  let vnode = @element.div([@element.id("expected-id")], [@ui.vtext("Content")])
   exp_set_inner_html(container, "<div id=\"wrong-id\">Content</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
-  let attr_repairs = report.get_repairs_by_type(repair_type_attribute_mismatch())
+  let attr_repairs = report.get_repairs_by_type(
+    repair_type_attribute_mismatch(),
+  )
   let text_repairs = report.get_repairs_by_type(repair_type_text_missing())
   // Should have attribute mismatch but not text missing
   assert_true(attr_repairs.length() > 0)
