@@ -9,36 +9,12 @@ pub enum HydrationResult {
 }
 
 ///|
-/// Hydration options for controlling behavior
-pub struct HydrationOptions {
-  /// If true, re-render on mismatch instead of failing
-  recover_on_mismatch : Bool
-  /// If true, log warnings
-  warn_on_mismatch : Bool
-  /// Optional logger for capturing warnings (if None, uses console)
-  logger : StringBuilder?
-}
-
-///|
-/// Create hydration options with labeled arguments
-pub fn HydrationOptions::new(
-  recover_on_mismatch? : Bool,
-  warn_on_mismatch? : Bool,
-  logger? : StringBuilder,
-) -> HydrationOptions {
-  {
-    recover_on_mismatch: recover_on_mismatch.unwrap_or(true),
-    warn_on_mismatch: warn_on_mismatch.unwrap_or(true),
-    logger,
-  }
-}
-
-///|
-/// Hydration context to track current position in DOM
+/// Hydration context to track current position in DOM and options
 priv struct HydrationContext {
   mut current_id : Int
   mismatches : Array[String]
-  options : HydrationOptions
+  recover_on_mismatch : Bool
+  warn_on_mismatch : Bool
   logger : StringBuilder?
 }
 
@@ -71,7 +47,7 @@ fn get_text_content(node : @js_dom.Node) -> String {
 ///|
 /// The container should already have server-rendered HTML with hydration markers
 pub fn hydrate(container : @js_dom.Element, node : @ui.VNode) -> Unit {
-  let _ = hydrate_with_options(container, node, HydrationOptions::new())
+  let _ = hydrate_with_options(container, node)
 
 }
 
@@ -80,13 +56,17 @@ pub fn hydrate(container : @js_dom.Element, node : @ui.VNode) -> Unit {
 pub fn hydrate_with_options(
   container : @js_dom.Element,
   node : @ui.VNode,
-  options : HydrationOptions,
+  recover_on_mismatch? : Bool,
+  warn_on_mismatch? : Bool,
+  logger? : StringBuilder,
 ) -> HydrationResult {
-  let logger = options.logger
+  let recover = recover_on_mismatch.unwrap_or(true)
+  let warn = warn_on_mismatch.unwrap_or(true)
   let ctx : HydrationContext = {
     current_id: 0,
     mismatches: [],
-    options,
+    recover_on_mismatch: recover,
+    warn_on_mismatch: warn,
     logger,
   }
   hydrate_node(container.as_node(), node, ctx)
@@ -102,10 +82,10 @@ pub fn hydrate_with_options(
           acc + "; " + msg
         }
       })
-    if options.warn_on_mismatch {
+    if warn {
       warn_hydration(logger, "Hydration mismatch detected: " + mismatch_msg)
     }
-    if options.recover_on_mismatch {
+    if recover {
       // Recovery: clear and re-render
       warn_hydration(logger, "Recovering by re-rendering...")
       container.as_node().setTextContent("")

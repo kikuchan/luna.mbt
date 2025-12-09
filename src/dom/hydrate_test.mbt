@@ -253,7 +253,7 @@ test "hydrate_with_options detects missing element" {
   set_inner_html(container, "<span>Wrong element</span>")
 
   // Hydrate with strict options
-  let result = hydrate_with_options(container, vnode, HydrationOptions::new(recover_on_mismatch=false))
+  let result = hydrate_with_options(container, vnode, recover_on_mismatch=false)
 
   // Should detect mismatch
   match result {
@@ -276,7 +276,6 @@ test "hydrate_with_options recovers on mismatch" {
   let result = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(),
   )
 
   // Should recover
@@ -309,7 +308,7 @@ test "hydrate_with_options success on correct HTML" {
   let result = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(recover_on_mismatch=false),
+    recover_on_mismatch=false,
   )
 
   // Should succeed
@@ -475,7 +474,7 @@ test "hydrate with logger captures mismatch warning" {
   let _ = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(logger=logger),
+    logger=logger,
   )
 
   // Logger should contain mismatch warning
@@ -501,7 +500,8 @@ test "hydrate with logger captures strict mode mismatch" {
   let result = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(recover_on_mismatch=false, logger=logger),
+    recover_on_mismatch=false,
+    logger=logger,
   )
 
   // Should return Mismatch
@@ -531,7 +531,7 @@ test "hydrate with logger no output on success" {
   let result = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(logger=logger),
+    logger=logger,
   )
 
   // Should succeed
@@ -561,7 +561,8 @@ test "hydrate logger contains element info" {
   let _ = hydrate_with_options(
     container,
     vnode,
-    HydrationOptions::new(recover_on_mismatch=false, logger=logger),
+    recover_on_mismatch=false,
+    logger=logger,
   )
 
   let log_output = logger.to_string()
