@@ -216,40 +216,82 @@ pub fn disabled_dyn(getter : () -> Bool) -> (String, AttrValue) {
   ("disabled", Dynamic(fn() { if getter() { "true" } else { "false" } }))
 }
 
+// Type-safe event handlers using mizchi/js/browser/dom event types
+
 ///|
-/// Create an onClick handler
-pub fn on_click(handler : Handler) -> (String, AttrValue) {
-  ("onClick", Handler(handler))
+/// Create an onClick handler with typed MouseEvent
+pub fn on_click(handler : (@js_dom.MouseEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onClick", Handler(wrapper))
 }
 
 ///|
-/// Create an onInput handler
-pub fn on_input(handler : Handler) -> (String, AttrValue) {
-  ("onInput", Handler(handler))
+/// Create an onInput handler with typed InputEvent
+pub fn on_input(handler : (@js_dom.InputEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onInput", Handler(wrapper))
 }
 
 ///|
-/// Create an onChange handler
-pub fn on_change(handler : Handler) -> (String, AttrValue) {
-  ("onChange", Handler(handler))
+/// Create an onChange handler with typed ChangeEvent
+pub fn on_change(handler : (@js_dom.ChangeEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onChange", Handler(wrapper))
 }
 
 ///|
-/// Create an onSubmit handler
-pub fn on_submit(handler : Handler) -> (String, AttrValue) {
-  ("onSubmit", Handler(handler))
+/// Create an onSubmit handler with typed FormEvent
+pub fn on_submit(handler : (@js_dom.FormEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onSubmit", Handler(wrapper))
 }
 
 ///|
-/// Create an onKeyDown handler
-pub fn on_key_down(handler : Handler) -> (String, AttrValue) {
-  ("onKeyDown", Handler(handler))
+/// Create an onKeyDown handler with typed KeyboardEvent
+pub fn on_key_down(
+  handler : (@js_dom.KeyboardEvent) -> Unit,
+) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onKeyDown", Handler(wrapper))
 }
 
 ///|
-/// Create an onKeyUp handler
-pub fn on_key_up(handler : Handler) -> (String, AttrValue) {
-  ("onKeyUp", Handler(handler))
+/// Create an onKeyUp handler with typed KeyboardEvent
+pub fn on_key_up(handler : (@js_dom.KeyboardEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onKeyUp", Handler(wrapper))
+}
+
+///|
+/// Create an onFocus handler with typed FocusEvent
+pub fn on_focus(handler : (@js_dom.FocusEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onFocus", Handler(wrapper))
+}
+
+///|
+/// Create an onBlur handler with typed FocusEvent
+pub fn on_blur(handler : (@js_dom.FocusEvent) -> Unit) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onBlur", Handler(wrapper))
+}
+
+///|
+/// Create an onMouseEnter handler with typed MouseEvent
+pub fn on_mouse_enter(
+  handler : (@js_dom.MouseEvent) -> Unit,
+) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onMouseEnter", Handler(wrapper))
+}
+
+///|
+/// Create an onMouseLeave handler with typed MouseEvent
+pub fn on_mouse_leave(
+  handler : (@js_dom.MouseEvent) -> Unit,
+) -> (String, AttrValue) {
+  let wrapper : (@core.Any) -> Unit = fn(e) { handler(e.cast()) }
+  ("onMouseLeave", Handler(wrapper))
 }
 
 ///|

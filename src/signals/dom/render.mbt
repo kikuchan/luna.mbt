@@ -3,7 +3,7 @@
 ///|
 /// Create a reactive text node that updates when the content changes
 pub fn text_node(content : () -> String) -> Node {
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let initial = content()
   let node = doc.createTextNode(initial)
 
@@ -38,7 +38,7 @@ pub fn create_element(
   attrs : Array[(String, AttrValue)],
   children : Array[Node],
 ) -> Node {
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let elem = doc.createElement(tag)
 
   // Apply attributes
@@ -57,7 +57,7 @@ pub fn create_element(
 ///|
 /// Apply a single attribute to an element
 fn apply_attribute(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   name : String,
   value : AttrValue,
 ) -> Unit {
@@ -86,7 +86,7 @@ fn apply_attribute(
 ///|
 /// Apply a static attribute value
 fn apply_static_attr(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   name : String,
   value : String,
 ) -> Unit {
@@ -111,7 +111,7 @@ fn apply_static_attr(
 ///|
 /// Apply an event handler
 fn apply_event_handler(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   name : String,
   handler : (@core.Any) -> Unit,
 ) -> Unit {
@@ -150,7 +150,7 @@ fn apply_event_handler(
 ///|
 /// Apply style object
 fn apply_style_object(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   styles : Array[(String, String)],
 ) -> Unit {
   let style_prop : @core.Any = elem.as_any()._get("style")
@@ -168,7 +168,7 @@ pub fn mount(container : Element, n : Node) -> Unit {
 
 ///|
 /// Mount to a jsdom container (for tests)
-pub fn mount_to(container : @jsdom.Element, n : Node) -> Unit {
+pub fn mount_to(container : @js_dom.Element, n : Node) -> Unit {
   container.as_node().appendChild(n.to_jsdom()) |> ignore
 }
 
@@ -180,7 +180,7 @@ pub fn clear(container : Element) -> Unit {
 
 ///|
 /// Clear a jsdom container (for tests)
-pub fn clear_jsdom(container : @jsdom.Element) -> Unit {
+pub fn clear_jsdom(container : @js_dom.Element) -> Unit {
   container.as_node().setTextContent("")
 }
 
@@ -193,7 +193,7 @@ pub fn render(container : Element, n : Node) -> Unit {
 
 ///|
 /// Render to a jsdom container (for tests)
-pub fn render_to(container : @jsdom.Element, n : Node) -> Unit {
+pub fn render_to(container : @js_dom.Element, n : Node) -> Unit {
   clear_jsdom(container)
   mount_to(container, n)
 }
@@ -201,9 +201,9 @@ pub fn render_to(container : @jsdom.Element, n : Node) -> Unit {
 ///|
 /// Conditional rendering - shows content when condition is true
 pub fn show(when : () -> Bool, render_fn : () -> Node) -> Node {
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let placeholder = doc.createComment("show")
-  let mut current_node : @jsdom.Node? = None
+  let mut current_node : @js_dom.Node? = None
   let _ = @signals.effect(fn() {
     let should_show = when()
     match (should_show, current_node) {
@@ -239,9 +239,9 @@ pub fn[T] for_each(
   items : () -> Array[T],
   render_item : (T, Int) -> Node,
 ) -> Node {
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createDocumentFragment()
-  let mut current_nodes : Array[@jsdom.Node] = []
+  let mut current_nodes : Array[@js_dom.Node] = []
   let _ = @signals.effect(fn() {
     let new_items = items()
 

@@ -5,7 +5,7 @@
   "import": [
     "mizchi/ui/signals",
     "mizchi/js/core",
-    { "path": "mizchi/js/browser/dom", "alias": "jsdom" },
+    { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
     "mizchi/js/web/event",
     "mizchi/js/builtins/global"
   ],

@@ -79,13 +79,11 @@ fn create_todo_app() -> (
         placeholder("What needs to be done?"),
         value_dyn(fn() { input_text.get() }),
         on_input(fn(e) {
-          let target : @core.Any = e._get("target")
-          let value : String = target._get("value").cast()
-          input_text.set(value)
+          let target : @js_dom.HTMLInputElement = e.target() |> @core.identity
+          input_text.set(target.value)
         }),
         on_key_down(fn(e) {
-          let key : String = e._get("key").cast()
-          if key == "Enter" {
+          if e.key == "Enter" {
             add_todo()
           }
         }),
@@ -140,7 +138,7 @@ fn create_todo_app() -> (
 ///|
 test "Todo app renders initial state" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.getElementById("root").unwrap_or(doc.createElement("div"))
   let (app, _todos, _input) = create_todo_app()
   render_to(container, app)
@@ -165,7 +163,7 @@ test "Todo app renders initial state" {
 ///|
 test "Todo app adds new todo" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
   let (app, todos, input_text) = create_todo_app()
   render_to(container, app)
@@ -186,7 +184,7 @@ test "Todo app adds new todo" {
 ///|
 test "Todo app toggles todo completion" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
   let (app, todos, _input) = create_todo_app()
   render_to(container, app)
@@ -219,7 +217,7 @@ test "Todo app toggles todo completion" {
 ///|
 test "Todo app deletes todo" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
   let (app, todos, _input) = create_todo_app()
   render_to(container, app)
@@ -252,7 +250,7 @@ test "Todo app deletes todo" {
 ///|
 test "Todo app reactive text updates" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
   let count = @signals.signal(0)
   let counter_div = div([id("counter")], [text_sig(count)])
@@ -275,7 +273,7 @@ test "Todo app reactive text updates" {
 ///|
 test "Todo app reactive class updates" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
   let is_active = @signals.signal(false)
   let elem = div(
@@ -631,7 +629,7 @@ test "Fine-grained: tree structure with independent branches" {
 ///|
 test "Fine-grained: DOM text nodes update independently" {
   @global_jsdom.register()
-  let doc = @jsdom.document()
+  let doc = @js_dom.document()
   let container = doc.createElement("div")
 
   // Three independent signals for text content

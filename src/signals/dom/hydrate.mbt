@@ -8,7 +8,7 @@ priv struct HydrationContext {
 
 ///|
 /// Helper to get text content with default
-fn get_text_content(node : @jsdom.Node) -> String {
+fn get_text_content(node : @js_dom.Node) -> String {
   let data : @core.Any = node.as_any()._get("data")
   data.cast()
 }
@@ -17,7 +17,7 @@ fn get_text_content(node : @jsdom.Node) -> String {
 
 ///|
 /// The container should already have server-rendered HTML with hydration markers
-pub fn hydrate(container : @jsdom.Element, node : @signals.VNode) -> Unit {
+pub fn hydrate(container : @js_dom.Element, node : @signals.VNode) -> Unit {
   let ctx : HydrationContext = { current_id: 0 }
   hydrate_node(container.as_node(), node, ctx)
 }
@@ -25,7 +25,7 @@ pub fn hydrate(container : @jsdom.Element, node : @signals.VNode) -> Unit {
 ///|
 /// Internal: Hydrate a single node
 fn hydrate_node(
-  parent : @jsdom.Node,
+  parent : @js_dom.Node,
   node : @signals.VNode,
   ctx : HydrationContext,
 ) -> Unit {
@@ -88,8 +88,8 @@ fn hydrate_node(
 
 ///|
 /// Find element with data-hk="id" attribute
-fn find_element_by_hk(id : Int) -> @jsdom.Element? {
-  let doc = @jsdom.document()
+fn find_element_by_hk(id : Int) -> @js_dom.Element? {
+  let doc = @js_dom.document()
   let selector = "[data-hk=\"" + id.to_string() + "\"]"
   doc.querySelector(selector)
 }
@@ -97,7 +97,7 @@ fn find_element_by_hk(id : Int) -> @jsdom.Element? {
 ///|
 /// Hydrate dynamic text node
 fn hydrate_dynamic_text(
-  parent : @jsdom.Node,
+  parent : @js_dom.Node,
   id : Int,
   getter : () -> String,
 ) -> Unit {
@@ -131,7 +131,7 @@ fn hydrate_dynamic_text(
 ///|
 /// Hydrate element attributes and handlers
 fn hydrate_element(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   attrs : Array[(String, @signals.VAttr)],
 ) -> Unit {
   for i = 0; i < attrs.length(); i = i + 1 {
@@ -216,7 +216,7 @@ fn extract_event_name(name : String) -> String {
 ///|
 /// Hydrate conditional show
 fn hydrate_show(
-  parent : @jsdom.Node,
+  parent : @js_dom.Node,
   id : Int,
   cond : () -> Bool,
   child_fn : () -> @signals.VNode,
@@ -226,7 +226,7 @@ fn hydrate_show(
 
   // Find the show marker
   let children = parent.childNodes()
-  let mut start_marker : @jsdom.Node? = None
+  let mut start_marker : @js_dom.Node? = None
   for i = 0; i < children.length(); i = i + 1 {
     let child = children[i]
     if child.nodeType() == 8 { // Comment node
@@ -239,7 +239,7 @@ fn hydrate_show(
   }
   match start_marker {
     Some(marker) => {
-      let current_nodes : Array[@jsdom.Node] = []
+      let current_nodes : Array[@js_dom.Node] = []
 
       // Collect nodes between markers
       let mut sibling = marker.nextSibling()
@@ -300,7 +300,7 @@ fn hydrate_show(
 ///|
 /// Hydrate child nodes with VNode
 fn hydrate_child_nodes(
-  nodes : Array[@jsdom.Node],
+  nodes : Array[@js_dom.Node],
   node : @signals.VNode,
   ctx : HydrationContext,
 ) -> Unit {
@@ -340,7 +340,7 @@ fn hydrate_child_nodes(
 ///|
 /// Hydrate for loop
 fn hydrate_for(
-  parent : @jsdom.Node,
+  parent : @js_dom.Node,
   id : Int,
   render_fn : () -> Array[@signals.VNode],
   ctx : HydrationContext,
@@ -349,8 +349,8 @@ fn hydrate_for(
 
   // Find the for marker
   let children = parent.childNodes()
-  let mut start_marker : @jsdom.Node? = None
-  let mut end_marker : @jsdom.Node? = None
+  let mut start_marker : @js_dom.Node? = None
+  let mut end_marker : @js_dom.Node? = None
   for i = 0; i < children.length(); i = i + 1 {
     let child = children[i]
     if child.nodeType() == 8 { // Comment node
@@ -370,7 +370,7 @@ fn hydrate_for(
   }
   match (start_marker, end_marker) {
     (Some(start), Some(end)) => {
-      let current_nodes : Array[@jsdom.Node] = []
+      let current_nodes : Array[@js_dom.Node] = []
 
       // Collect nodes between markers
       let mut sibling = start.nextSibling()
@@ -424,8 +424,8 @@ fn hydrate_for(
 
 ///|
 /// Render VNode to DOM node (for client-side rendering after hydration)
-pub fn render_vnode_to_dom(node : @signals.VNode) -> @jsdom.Node {
-  let doc = @jsdom.document()
+pub fn render_vnode_to_dom(node : @signals.VNode) -> @js_dom.Node {
+  let doc = @js_dom.document()
   match node {
     @signals.VText(content) => doc.createTextNode(content).as_node()
     @signals.VDynamicText(getter) => {
@@ -463,7 +463,7 @@ pub fn render_vnode_to_dom(node : @signals.VNode) -> @jsdom.Node {
     }
     @signals.VShow(condition=cond, child=child_fn) => {
       let placeholder = doc.createComment("show")
-      let mut current_node : @jsdom.Node? = None
+      let mut current_node : @js_dom.Node? = None
       let _ = @signals.effect(fn() {
         let should_show = cond()
         match (should_show, current_node) {
@@ -493,7 +493,7 @@ pub fn render_vnode_to_dom(node : @signals.VNode) -> @jsdom.Node {
     @signals.VFor(render=render_fn) => {
       let container = doc.createDocumentFragment()
       let container_node = container.as_node()
-      let current_nodes : Array[@jsdom.Node] = []
+      let current_nodes : Array[@js_dom.Node] = []
       let _ = @signals.effect(fn() {
         let new_items = render_fn()
 
@@ -523,7 +523,7 @@ pub fn render_vnode_to_dom(node : @signals.VNode) -> @jsdom.Node {
 ///|
 /// Apply VAttr to DOM element
 fn apply_vattr(
-  elem : @jsdom.Element,
+  elem : @js_dom.Element,
   name : String,
   value : @signals.VAttr,
 ) -> Unit {
@@ -583,7 +583,7 @@ fn apply_vattr(
 
 ///|
 /// Convenience function: render VNode to DOM and mount
-pub fn render_vnode(container : @jsdom.Element, node : @signals.VNode) -> Unit {
+pub fn render_vnode(container : @js_dom.Element, node : @signals.VNode) -> Unit {
   container.as_node().setTextContent("")
   let dom_node = render_vnode_to_dom(node)
   container.as_node().appendChild(dom_node) |> ignore
