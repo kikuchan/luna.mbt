@@ -310,3 +310,214 @@ test "portable HTML with multiple states" {
   assert_true(html.contains("[10]"))
   assert_true(html.contains("[\"Buy milk\",false]"))
 }
+
+// =============================================================================
+// JSON Parsing Edge Case Tests (for coverage)
+// =============================================================================
+
+///|
+test "ResumableState from_json nested array" {
+  match ResumableState::from_json("[[1,2],[3,4]]") {
+    Some(state) => {
+      assert_eq(state.values.length(), 2)
+      match state.get(0) {
+        Some(Arr(arr)) => {
+          assert_eq(arr.length(), 2)
+          match arr[0] {
+            Int(n) => assert_eq(n, 1)
+            _ => assert_true(false)
+          }
+        }
+        _ => assert_true(false)
+      }
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState from_json string with quotes" {
+  match ResumableState::from_json("[\"hello \\\"world\\\"\"]") {
+    Some(state) => assert_eq(state.get_string(0), Some("hello \"world\""))
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState from_json string with carriage return" {
+  match ResumableState::from_json("[\"line1\\rline2\"]") {
+    Some(state) => assert_eq(state.get_string(0), Some("line1\rline2"))
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState from_json string with tab" {
+  match ResumableState::from_json("[\"col1\\tcol2\"]") {
+    Some(state) => assert_eq(state.get_string(0), Some("col1\tcol2"))
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState to_json string with special chars" {
+  let state = ResumableState::new()
+  let _ = state.register_string("line1\rline2")
+  assert_eq(state.to_json(), "[\"line1\\rline2\"]")
+}
+
+///|
+test "ResumableState to_json string with quotes" {
+  let state = ResumableState::new()
+  let _ = state.register_string("say \"hello\"")
+  assert_eq(state.to_json(), "[\"say \\\"hello\\\"\"]")
+}
+
+///|
+test "ResumableState to_json string with tab" {
+  let state = ResumableState::new()
+  let _ = state.register_string("col1\tcol2")
+  assert_eq(state.to_json(), "[\"col1\\tcol2\"]")
+}
+
+///|
+test "ResumableState get_int returns None for wrong type" {
+  match ResumableState::from_json("[\"not an int\"]") {
+    Some(state) => assert_eq(state.get_int(0), None)
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState get_string returns None for wrong type" {
+  match ResumableState::from_json("[42]") {
+    Some(state) => assert_eq(state.get_string(0), None)
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState get_bool returns None for wrong type" {
+  match ResumableState::from_json("[\"not a bool\"]") {
+    Some(state) => assert_eq(state.get_bool(0), None)
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState get_float returns None for wrong type" {
+  match ResumableState::from_json("[\"not a float\"]") {
+    Some(state) => assert_eq(state.get_float(0), None)
+    None => assert_true(false)
+  }
+}
+
+// =============================================================================
+// HTML Escape/Unescape Tests (for coverage)
+// =============================================================================
+
+///|
+test "state_to_script_tag escapes special HTML chars" {
+  let state = ResumableState::new()
+  let _ = state.register_string("<script>alert('xss')</script>")
+  let tag = state_to_script_tag(state)
+  // Should escape < and > characters
+  assert_true(tag.contains("\\u003c"))
+  assert_true(tag.contains("\\u003e"))
+}
+
+///|
+test "extract_state_from_html unescapes special chars" {
+  // HTML with escaped JSON containing < > &
+  let html = "<div>content</div><script type=\"application/json\" data-resumable-state>[\"\\u003cscript\\u003e\"]</script>"
+  match extract_state_from_html(html) {
+    Some(json) => assert_eq(json, "[\"<script>\"]")
+    None => assert_true(false)
+  }
+}
+
+///|
+test "extract_state_from_html unescape ampersand" {
+  let html = "<div>content</div><script type=\"application/json\" data-resumable-state>[\"foo\\u0026bar\"]</script>"
+  match extract_state_from_html(html) {
+    Some(json) => assert_eq(json, "[\"foo&bar\"]")
+    None => assert_true(false)
+  }
+}
+
+///|
+test "state embedding roundtrip with special chars" {
+  let state = ResumableState::new()
+  let _ = state.register_string("<div>&</div>")
+  let tag = state_to_script_tag(state)
+
+  // Simulate extraction
+  let html = "<body>" + tag + "</body>"
+  match parse_state_from_html(html) {
+    Some(restored) => assert_eq(restored.get_string(0), Some("<div>&</div>"))
+    None => assert_true(false)
+  }
+}
+
+
+// =============================================================================
+// JSON Parser Edge Cases (for coverage)
+// =============================================================================
+
+///|
+test "ResumableState from_json invalid returns None" {
+  // Invalid JSON - not an array
+  assert_true(ResumableState::from_json("{}") is None)
+
+  // Invalid JSON - unclosed array
+  assert_true(ResumableState::from_json("[1,2,") is None)
+
+  // Invalid JSON - empty string
+  assert_true(ResumableState::from_json("") is None)
+}
+
+///|
+test "ResumableState from_json with whitespace" {
+  match ResumableState::from_json("[ 1 , 2 , 3 ]") {
+    Some(state) => {
+      assert_eq(state.values.length(), 3)
+      assert_eq(state.get_int(0), Some(1))
+      assert_eq(state.get_int(1), Some(2))
+      assert_eq(state.get_int(2), Some(3))
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState from_json with tabs and newlines" {
+  match ResumableState::from_json("[\n\t1,\n\t2\n]") {
+    Some(state) => {
+      assert_eq(state.values.length(), 2)
+      assert_eq(state.get_int(0), Some(1))
+      assert_eq(state.get_int(1), Some(2))
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "ResumableState from_json invalid character returns None" {
+  // Invalid JSON - unexpected character
+  assert_true(ResumableState::from_json("[!]") is None)
+}
+
+///|
+test "ResumableState to_json string with backslash" {
+  let state = ResumableState::new()
+  let _ = state.register_string("path\\to\\file")
+  assert_eq(state.to_json(), "[\"path\\\\to\\\\file\"]")
+}
+
+///|
+test "ResumableState from_json string with backslash" {
+  match ResumableState::from_json("[\"path\\\\to\\\\file\"]") {
+    Some(state) => assert_eq(state.get_string(0), Some("path\\to\\file"))
+    None => assert_true(false)
+  }
+}

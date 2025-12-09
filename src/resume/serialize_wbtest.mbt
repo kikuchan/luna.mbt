@@ -115,3 +115,65 @@ test "full resumable signal flow" {
     None => assert_true(false)
   }
 }
+
+// =============================================================================
+// Serializable from_state_value Edge Cases (for coverage)
+// =============================================================================
+
+///|
+test "Serializable Int from wrong type returns None" {
+  let value : StateValue = Str("not an int")
+  let result : Int? = Serializable::from_state_value(value)
+  assert_eq(result, None)
+}
+
+///|
+test "Serializable String from wrong type returns None" {
+  let value : StateValue = Int(42)
+  let result : String? = Serializable::from_state_value(value)
+  assert_eq(result, None)
+}
+
+///|
+test "Serializable Bool from wrong type returns None" {
+  let value : StateValue = Int(42)
+  let result : Bool? = Serializable::from_state_value(value)
+  assert_eq(result, None)
+}
+
+///|
+test "Serializable Double from wrong type returns None" {
+  let value : StateValue = Int(42)
+  let result : Double? = Serializable::from_state_value(value)
+  assert_eq(result, None)
+}
+
+///|
+test "restore_signal returns false for wrong type" {
+  let state = ResumableState::new()
+  let _ = state.register_string("not an int")
+  let sig = @ui.signal(0)
+  let result = restore_signal(state, sig, 0)
+  assert_eq(result, false)
+  // Signal should still have initial value
+  assert_eq(sig.peek(), 0)
+}
+
+///|
+test "restore_signal returns false for missing id" {
+  let state = ResumableState::new()
+  let sig = @ui.signal(42)
+  let result = restore_signal(state, sig, 999)
+  assert_eq(result, false)
+  // Signal should still have initial value
+  assert_eq(sig.peek(), 42)
+}
+
+///|
+test "resume_signal uses initial for wrong type" {
+  let state = ResumableState::new()
+  let _ = state.register_string("not an int")
+  let sig : @ui.Signal[Int] = resume_signal(state, 0, 42)
+  // Should use initial value since type doesn't match
+  assert_eq(sig.peek(), 42)
+}
