@@ -127,13 +127,14 @@ fn hydrate_node(
         hydrate_node(parent, children[i], ctx)
       }
     @ui.VElement(elem) => {
-      let id = ctx.current_id
-      ctx.current_id = id + 1
-
-      // Check if this element needs hydration
+      // Check if this element needs hydration (has handlers or dynamic attrs)
       let needs_hydration = @ui.has_dynamic_content(elem.attrs)
-      if needs_hydration {
-        // Find element by data-hk attribute
+
+      // Find the DOM element
+      let dom_elem_opt : @js_dom.Element? = if needs_hydration {
+        // For elements with dynamic content, find by data-hk attribute
+        let id = ctx.current_id
+        ctx.current_id = id + 1
         match find_element_by_hk(id) {
           Some(dom_elem) => {
             // Verify tag matches
@@ -151,8 +152,9 @@ fn hydrate_node(
             }
             // Attach event handlers and dynamic attributes
             hydrate_element(dom_elem, elem.attrs)
+            Some(dom_elem)
           }
-          None =>
+          None => {
             ctx.mismatches.push(
               "Element not found: expected <" +
               elem.tag +
@@ -160,19 +162,21 @@ fn hydrate_node(
               id.to_string() +
               "\"",
             )
+            None
+          }
         }
+      } else {
+        // For static elements, find by traversing from parent
+        find_child_element_by_tag(parent, elem.tag)
       }
 
       // Hydrate children
-      match find_element_by_hk(id) {
+      match dom_elem_opt {
         Some(dom_elem) =>
           for i = 0; i < elem.children.length(); i = i + 1 {
             hydrate_node(dom_elem.as_node(), elem.children[i], ctx)
           }
-        None =>
-          // If no hk attribute, try to find by tag
-          // This is a fallback for elements without handlers
-          ()
+        None => ()
       }
     }
     @ui.VShow(condition=cond, child=child_fn) => {
@@ -196,6 +200,23 @@ fn find_element_by_hk(id : Int) -> @js_dom.Element? {
   let doc = @js_dom.document()
   let selector = "[data-hk=\"" + id.to_string() + "\"]"
   doc.querySelector(selector)
+}
+
+///|
+/// Find first child element with matching tag name
+fn find_child_element_by_tag(parent : @js_dom.Node, tag : String) -> @js_dom.Element? {
+  let children = parent.childNodes()
+  let upper_tag = tag.to_upper()
+  for i = 0; i < children.length(); i = i + 1 {
+    let child = children[i]
+    if child.nodeType() == 1 { // Element node
+      let elem : @js_dom.Element = child.as_any().cast()
+      if elem.tagName() == upper_tag {
+        return Some(elem)
+      }
+    }
+  }
+  None
 }
 
 ///|

@@ -10,7 +10,8 @@
     "mizchi/js/builtins/global"
   ],
   "test-import": [
-    "mizchi/js/npm/global_jsdom"
+    "mizchi/js/npm/global_jsdom",
+    "mizchi/ui/ssr"
   ],
   "link": {
     "js": {
