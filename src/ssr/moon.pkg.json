@@ -1,0 +1,14 @@
+{
+  "import": [
+    "mizchi/ui"
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "render_to_string",
+        "render_to_string_with_hydration"
+      ],
+      "format": "esm"
+    }
+  }
+}
