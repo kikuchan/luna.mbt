@@ -310,7 +310,8 @@ fn update_dom_props(
 
     // Skip event handlers (will be handled separately in the future)
     if old_key.length() >= 2 {
-      if old_key.get(0) == Some('o') && old_key.get(1) == Some('n') {
+      // Check if starts with "on"
+      if old_key.code_unit_at(0) == "o".code_unit_at(0) && old_key.code_unit_at(1) == "n".code_unit_at(0) {
         continue // Event handlers
       }
     }

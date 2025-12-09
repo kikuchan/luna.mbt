@@ -332,3 +332,100 @@ test "bench: realistic card component" (b : @bench.T) {
     )
   })
 }
+
+// =============================================================================
+// Large Scale Benchmarks
+// =============================================================================
+
+///|
+/// Benchmark: Create list of 100 items
+test "bench: create list of 100 items" (b : @bench.T) {
+  b.bench(name="vdom_100_items", fn() {
+    let items : Array[JSVNode] = []
+    for i = 0; i < 100; i = i + 1 {
+      items.push(el("li", [], [text("Item " + i.to_string())]))
+    }
+    b.keep((el("ul", [], items) : JSVNode))
+  })
+}
+
+///|
+/// Benchmark: Create list of 1000 items
+test "bench: create list of 1000 items" (b : @bench.T) {
+  b.bench(name="vdom_1000_items", fn() {
+    let items : Array[JSVNode] = []
+    for i = 0; i < 1000; i = i + 1 {
+      items.push(el("li", [], [text("Item " + i.to_string())]))
+    }
+    b.keep((el("ul", [], items) : JSVNode))
+  })
+}
+
+///|
+/// Benchmark: Create nested tree 10 levels deep
+test "bench: create nested tree 10 levels" (b : @bench.T) {
+  b.bench(name="vdom_nested_10_levels", fn() {
+    b.keep(
+      (
+        div([], [
+          div([], [
+            div([], [
+              div([], [
+                div([], [
+                  div([], [
+                    div([], [div([], [div([], [div([], [text("Deep")])])])]),
+                  ]),
+                ]),
+              ]),
+            ]),
+          ]),
+        ]) : JSVNode),
+    )
+  })
+}
+
+///|
+/// Benchmark: Create 100 divs with props
+test "bench: create 100 divs with props" (b : @bench.T) {
+  b.bench(name="vdom_100_divs_with_props", fn() {
+    let items : Array[JSVNode] = []
+    for i = 0; i < 100; i = i + 1 {
+      items.push(
+        div(
+          [class_name("item"), id("item-" + i.to_string()), data_("data-index", i.to_string())],
+          [text("Content " + i.to_string())],
+        ),
+      )
+    }
+    b.keep((div([], items) : JSVNode))
+  })
+}
+
+///|
+/// Benchmark: Create fragment with 100 children
+test "bench: create fragment with 100 children" (b : @bench.T) {
+  b.bench(name="vdom_fragment_100", fn() {
+    let items : Array[JSVNode] = []
+    for i = 0; i < 100; i = i + 1 {
+      items.push(span([], [text(i.to_string())]))
+    }
+    b.keep((fragment(items) : JSVNode))
+  })
+}
+
+///|
+/// Benchmark: Create complex tree with 100 card components
+test "bench: create 100 card components" (b : @bench.T) {
+  b.bench(name="vdom_100_cards", fn() {
+    let cards : Array[JSVNode] = []
+    for i = 0; i < 100; i = i + 1 {
+      cards.push(
+        div([class_name("card")], [
+          div([class_name("card-header")], [h3([], [text("Card " + i.to_string())])]),
+          div([class_name("card-body")], [p([], [text("Content")])]),
+        ]),
+      )
+    }
+    b.keep((div([class_name("card-list")], cards) : JSVNode))
+  })
+}
