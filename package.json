@@ -7,6 +7,10 @@
     "test:watch": "vitest",
     "test:browser": "vitest run --config vitest.browser.config.ts",
     "test:moon": "moon test --target js",
+    "test:e2e": "playwright test --config e2e/playwright.config.mts",
+    "test:e2e:loader": "playwright test --config e2e/playwright.config.mts --project=loader",
+    "test:e2e:embedding": "playwright test --config e2e/playwright.config.mts --project=embedding",
+    "test:e2e:ui": "playwright test --config e2e/playwright.config.mts --ui",
     "build": "moon build --target js",
     "check": "moon check",
     "check-minify": "moon build src/js_api --target js && terser target/js/release/build/js_api/js_api.js --module --minify --mangle",
@@ -31,6 +35,7 @@
   },
   "devDependencies": {
     "0x": "^6.0.0",
+    "@playwright/test": "^1.57.0",
     "@types/bun": "^1.3.4",
     "@types/node": "^24.10.2",
     "@vitest/browser": "^4.0.15",
@@ -40,6 +45,7 @@
     "jsdom": "^27.0.1",
     "playwright": "^1.57.0",
     "terser": "^5.44.1",
+    "tsx": "^4.21.0",
     "vite": "8.0.0-beta.1",
     "vitest": "^4.0.15"
   },

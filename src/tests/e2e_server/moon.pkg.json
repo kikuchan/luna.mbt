@@ -1,0 +1,17 @@
+{
+  "import": [
+    "mizchi/js",
+    "mizchi/js/core",
+    "mizchi/js/web/http",
+    "mizchi/npm_typed/hono",
+    "mizchi/ui/embedding"
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "create_app"
+      ],
+      "format": "esm"
+    }
+  }
+}
