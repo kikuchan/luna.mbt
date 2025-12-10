@@ -1,0 +1,27 @@
+{
+  "name": "@mizchi/ui-loader",
+  "version": "0.1.0",
+  "description": "Resumable loader for ui.mbt SSR hydration",
+  "type": "module",
+  "main": "loader.js",
+  "exports": {
+    ".": "./loader.js",
+    "./min": "./loader.min.js"
+  },
+  "files": [
+    "loader.js",
+    "loader.min.js"
+  ],
+  "scripts": {
+    "minify": "terser loader.js --module --compress --mangle -o loader.min.js"
+  },
+  "keywords": [
+    "moonbit",
+    "ui",
+    "ssr",
+    "hydration",
+    "resumable"
+  ],
+  "author": "mizchi",
+  "license": "MIT"
+}

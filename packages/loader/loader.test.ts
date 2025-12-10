@@ -1,10 +1,13 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
-import "global-jsdom/register";
+import { describe, test, expect, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load the loader script
-const loaderCode = await Bun.file(
-  new URL("./loader.js", import.meta.url)
-).text();
+const loaderCode = readFileSync(join(__dirname, "loader.js"), "utf-8");
 
 describe("Resumable Loader", () => {
   beforeEach(() => {

@@ -1,5 +1,4 @@
-import { describe, test, expect, beforeAll } from "bun:test";
-import "global-jsdom/register";
+import { describe, test, expect } from "vitest";
 
 import {
   div,
