@@ -11,7 +11,7 @@ test "dom_render_simple_text" (b : @bench.T) {
   @global_jsdom.register()
   let node = @ui.vtext("Hello, World!")
   b.bench(name="dom_render_simple_text", fn() {
-    b.keep(render_vnode_to_dom(node))
+    b.keep(@dom.render_vnode_to_dom(node))
   })
 }
 
@@ -20,7 +20,7 @@ test "dom_render_simple_element" (b : @bench.T) {
   @global_jsdom.register()
   let node = @ui.vnode("div", [], [@ui.vtext("Hello")])
   b.bench(name="dom_render_simple_element", fn() {
-    b.keep(render_vnode_to_dom(node))
+    b.keep(@dom.render_vnode_to_dom(node))
   })
 }
 
@@ -33,7 +33,7 @@ test "dom_render_element_with_attrs" (b : @bench.T) {
     [@ui.vtext("Content")],
   )
   b.bench(name="dom_render_element_with_attrs", fn() {
-    b.keep(render_vnode_to_dom(node))
+    b.keep(@dom.render_vnode_to_dom(node))
   })
 }
 
@@ -55,7 +55,7 @@ test "dom_render_nested_3" (b : @bench.T) {
       ),
     ],
   )
-  b.bench(name="dom_render_nested_3", fn() { b.keep(render_vnode_to_dom(node)) })
+  b.bench(name="dom_render_nested_3", fn() { b.keep(@dom.render_vnode_to_dom(node)) })
 }
 
 ///|
@@ -84,7 +84,7 @@ test "dom_render_nested_5" (b : @bench.T) {
       ),
     ],
   )
-  b.bench(name="dom_render_nested_5", fn() { b.keep(render_vnode_to_dom(node)) })
+  b.bench(name="dom_render_nested_5", fn() { b.keep(@dom.render_vnode_to_dom(node)) })
 }
 
 // =============================================================================
@@ -104,14 +104,14 @@ fn create_list_node(count : Int) -> @ui.Node {
 test "dom_render_list_10" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_list_node(10)
-  b.bench(name="dom_render_list_10", fn() { b.keep(render_vnode_to_dom(node)) })
+  b.bench(name="dom_render_list_10", fn() { b.keep(@dom.render_vnode_to_dom(node)) })
 }
 
 ///|
 test "dom_render_list_100" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_list_node(100)
-  b.bench(name="dom_render_list_100", fn() { b.keep(render_vnode_to_dom(node)) })
+  b.bench(name="dom_render_list_100", fn() { b.keep(@dom.render_vnode_to_dom(node)) })
 }
 
 // =============================================================================
@@ -123,7 +123,7 @@ test "dom_reactive_text_update" (b : @bench.T) {
   @global_jsdom.register()
   let count = @ui.signal(0)
   let node = @ui.text_dyn(fn() { count.get().to_string() })
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_reactive_text_update", fn() {
     i = i + 1
@@ -140,7 +140,7 @@ test "dom_reactive_attr_update" (b : @bench.T) {
     [("class", @ui.attr_dynamic(fn() { if active.get() { "on" } else { "off" } }))],
     [@ui.vtext("Toggle")],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   b.bench(name="dom_reactive_attr_update", fn() {
     active.update(fn(b) { not(b) })
   })
@@ -160,7 +160,7 @@ test "dom_reactive_style_update" (b : @bench.T) {
     ],
     [],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 100
   b.bench(name="dom_reactive_style_update", fn() {
     i = i + 1
@@ -182,7 +182,7 @@ test "dom_show_toggle" (b : @bench.T) {
   )
   let doc = @js_dom.document()
   let container = doc.createElement("div")
-  let dom = render_vnode_to_dom(node)
+  let dom = @dom.render_vnode_to_dom(node)
   container.appendChild(dom) |> ignore
   b.bench(name="dom_show_toggle", fn() {
     visible.update(fn(v) { not(v) })
@@ -202,7 +202,7 @@ test "dom_for_list_update" (b : @bench.T) {
   })
   let doc = @js_dom.document()
   let container = doc.createElement("div")
-  let dom = render_vnode_to_dom(node)
+  let dom = @dom.render_vnode_to_dom(node)
   container.appendChild(dom) |> ignore
   let mut i = 0
   b.bench(name="dom_for_list_update", fn() {
@@ -236,7 +236,7 @@ test "dom_component_counter" (b : @bench.T) {
       ),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_component_counter", fn() {
     i = i + 1
@@ -259,7 +259,7 @@ test "dom_batched_updates" (b : @bench.T) {
       @ui.text_dyn(fn() { c.get().to_string() }),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_batched_3_updates", fn() {
     i = i + 1
@@ -290,7 +290,7 @@ test "dom_shallow_update_root" (b : @bench.T) {
       @ui.vnode("p", [], [@ui.vtext("Static content 3")]),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_shallow_update_root", fn() {
     i = i + 1
@@ -314,7 +314,7 @@ test "dom_shallow_update_siblings" (b : @bench.T) {
       @ui.vnode("span", [], [@ui.text_dyn(fn() { c.get() })]),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_shallow_update_siblings", fn() {
     i = i + 1
@@ -348,7 +348,7 @@ test "dom_deep_update_3_levels" (b : @bench.T) {
       ),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_deep_update_3_levels", fn() {
     i = i + 1
@@ -390,7 +390,7 @@ test "dom_deep_update_5_levels" (b : @bench.T) {
       ),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_deep_update_5_levels", fn() {
     i = i + 1
@@ -424,7 +424,7 @@ test "dom_deep_update_multi_depth" (b : @bench.T) {
       ),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_deep_update_multi_depth", fn() {
     i = i + 1
@@ -448,7 +448,7 @@ test "dom_wide_shallow_10" (b : @bench.T) {
     children.push(@ui.vnode("span", [], [@ui.text_dyn(fn() { sig.get().to_string() })]))
   }
   let node = @ui.vnode("div", [], children)
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut iter = 0
   b.bench(name="dom_wide_shallow_10", fn() {
     iter = iter + 1
@@ -472,7 +472,7 @@ test "dom_wide_shallow_50" (b : @bench.T) {
     children.push(@ui.vnode("span", [], [@ui.text_dyn(fn() { sig.get().to_string() })]))
   }
   let node = @ui.vnode("div", [], children)
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut iter = 0
   b.bench(name="dom_wide_shallow_50", fn() {
     iter = iter + 1
@@ -498,7 +498,7 @@ test "dom_derived_shallow" (b : @bench.T) {
       @ui.vnode("span", [], [@ui.text_dyn(fn() { derived().to_string() })]),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_derived_shallow", fn() {
     i = i + 1
@@ -524,7 +524,7 @@ test "dom_derived_deep_chain" (b : @bench.T) {
       @ui.vnode("span", [], [@ui.text_dyn(fn() { derived3().to_string() })]),
     ],
   )
-  let _ = render_vnode_to_dom(node)
+  let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_derived_deep_chain", fn() {
     i = i + 1
@@ -547,7 +547,7 @@ test "dom_conditional_shallow" (b : @bench.T) {
   )
   let doc = @js_dom.document()
   let container = doc.createElement("div")
-  let dom = render_vnode_to_dom(node)
+  let dom = @dom.render_vnode_to_dom(node)
   container.appendChild(dom) |> ignore
   b.bench(name="dom_conditional_shallow", fn() {
     show_a.update(fn(v) { not(v) })
@@ -589,7 +589,7 @@ test "dom_conditional_deep" (b : @bench.T) {
   )
   let doc = @js_dom.document()
   let container = doc.createElement("div")
-  let dom = render_vnode_to_dom(node)
+  let dom = @dom.render_vnode_to_dom(node)
   container.appendChild(dom) |> ignore
   b.bench(name="dom_conditional_deep", fn() {
     visible.update(fn(v) { not(v) })

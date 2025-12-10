@@ -7,10 +7,10 @@
 // =============================================================================
 
 ///|
-fn setup_container_with_html(html : String) -> @js_dom.Element {
+fn setup_fixable_container(html : String) -> @js_dom.Element {
   let doc = @js_dom.document()
   let container = doc.createElement("div")
-  js_set_inner_html(container, html)
+  fixable_set_inner_html(container, html)
   match doc.body() {
     Some(body) => body.appendChild(container.as_node()) |> ignore
     None => ()
@@ -19,7 +19,7 @@ fn setup_container_with_html(html : String) -> @js_dom.Element {
 }
 
 ///|
-extern "js" fn js_set_inner_html(elem : @js_dom.Element, html : String) -> Unit =
+extern "js" fn fixable_set_inner_html(elem : @js_dom.Element, html : String) -> Unit =
   #| (elem, html) => { elem.innerHTML = html; }
 
 // =============================================================================
@@ -33,8 +33,8 @@ test "fixable_clean_simple" (b : @bench.T) {
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_simple", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -55,8 +55,8 @@ test "fixable_clean_nested" (b : @bench.T) {
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_nested", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -76,8 +76,8 @@ test "fixable_clean_list_50" (b : @bench.T) {
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_list_50", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -93,8 +93,8 @@ test "fixable_repair_text_mismatch" (b : @bench.T) {
   let html = "<div>Different Text</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_mismatch", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -106,8 +106,8 @@ test "fixable_repair_text_missing" (b : @bench.T) {
   let html = "<div></div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_missing", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -127,8 +127,8 @@ test "fixable_repair_element_missing" (b : @bench.T) {
   let html = ""
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_element_missing", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -148,8 +148,8 @@ test "fixable_repair_attr_mismatch" (b : @bench.T) {
   let html = "<div class=\"wrong-class\">Content</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_attr_mismatch", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -166,8 +166,8 @@ test "fixable_repair_dynamic_text_marker" (b : @bench.T) {
   let html = "Count: 42"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_dynamic_text_marker", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -187,8 +187,8 @@ test "fixable_repair_show_marker" (b : @bench.T) {
   let html = "<div>Visible</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_show_marker", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -207,8 +207,8 @@ test "fixable_repair_for_marker" (b : @bench.T) {
   let html = "<li>a</li><li>b</li><li>c</li>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_for_marker", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -227,8 +227,8 @@ test "fixable_repair_for_item_count" (b : @bench.T) {
   let html = "<!--f:0--><li>a</li><li>b</li><!--/f-->"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_for_item_count", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -268,8 +268,8 @@ test "fixable_repair_multiple_cards" (b : @bench.T) {
   let html = "<div class=\"wrong-container\"><div class=\"card\"><h3>Card 0</h3><p>Old Content</p></div></div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_multiple_cards", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
   })
 }
 
@@ -284,8 +284,8 @@ test "fixable_with_report_clean" (b : @bench.T) {
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_clean", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate_with_report(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger=logger))
   })
 }
 
@@ -300,8 +300,8 @@ test "fixable_with_report_repairs" (b : @bench.T) {
   let html = "<div class=\"wrong\">Wrong</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_repairs", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(experimental_hydrate_with_report(container, node, logger=logger))
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger=logger))
   })
 }
 
@@ -310,14 +310,14 @@ test "fixable_with_report_repairs" (b : @bench.T) {
 // =============================================================================
 
 ///|
-test "fixable_hydrate_with_fallback" (b : @bench.T) {
+test "fixable_@fixable.hydrate_with_fallback" (b : @bench.T) {
   @global_jsdom.register()
   let node = @ui.vnode("div", [], [@ui.vtext("Content")])
   // Intentionally mismatched HTML to trigger fallback
   let html = "<span>Wrong tag</span>"
   let logger = StringBuilder::new()
-  b.bench(name="fixable_hydrate_with_fallback", fn() {
-    let container = setup_container_with_html(html)
-    b.keep(hydrate_with_fallback(container, node, logger=logger))
+  b.bench(name="fixable_@fixable.hydrate_with_fallback", fn() {
+    let container = setup_fixable_container(html)
+    b.keep(@fixable.hydrate_with_fallback(container, node, logger=logger))
   })
 }

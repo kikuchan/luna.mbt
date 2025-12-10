@@ -4,15 +4,13 @@
   ],
   "import": [
     "mizchi/ui",
+    { "path": "mizchi/ui/ssr", "alias": "ssr" },
+    { "path": "mizchi/ui/js/dom", "alias": "dom" },
+    { "path": "mizchi/ui/js/dom/fixable", "alias": "fixable" },
     "mizchi/js/core",
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
     "mizchi/js/web/event",
     "mizchi/js/builtins/global",
-    "mizchi/ui/js/dom"
-  ],
-  "test-import": [
-    "mizchi/js/npm/global_jsdom",
-    "mizchi/ui/ssr",
-    "mizchi/ui/element"
+    "mizchi/js/npm/global_jsdom"
   ]
 }
