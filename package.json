@@ -10,7 +10,10 @@
     "build": "moon build --target js",
     "check": "moon check",
     "check-minify": "moon build src/js_api --target js && terser target/js/release/build/js_api/js_api.js --module --minify --mangle",
-    "minify:loader": "terser packages/loader/loader.js --module --compress --mangle -o packages/loader/loader.min.js"
+    "minify:loader": "terser packages/loader/loader.js --module --compress --mangle -o packages/loader/loader.min.js",
+    "bench": "node bench/run.js",
+    "bench:happydom": "node bench/run-happydom.js",
+    "bench:flame": "rm -rf *.0x && 0x -o bench/run.js"
   },
   "keywords": [
     "moonbit",
@@ -27,11 +30,13 @@
     "hono": "^4.7.0"
   },
   "devDependencies": {
+    "0x": "^6.0.0",
     "@types/bun": "^1.3.4",
     "@types/node": "^24.10.2",
     "@vitest/browser": "^4.0.15",
     "@vitest/browser-playwright": "^4.0.15",
     "global-jsdom": "^27.0.0",
+    "happy-dom": "^20.0.11",
     "jsdom": "^27.0.1",
     "playwright": "^1.57.0",
     "terser": "^5.44.1",

@@ -12,12 +12,14 @@ export default defineConfig({
     },
     include: [
       "packages/**/*.test.ts",
+      "packages/**/*.bench.ts",
     ],
     exclude: [
       "node_modules/**",
       ".mooncakes/**",
       // Exclude tests that use Node.js-specific features
       "src/resume/**",
+      "packages/loader/**",
     ],
   },
 });
