@@ -8,7 +8,7 @@ test: test-moonbit test-node
 test-moonbit:
     moon test src --target all
     moon test src/ssr --target all
-    moon test src/dom --target js
+    moon test src/js/dom --target js
 
 # Run Node.js tests
 test-node: build
