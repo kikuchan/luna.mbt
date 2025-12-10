@@ -66,23 +66,13 @@ fn[T] Signal::notify(self : Signal[T]) -> Unit {
 ///|
 /// Clear all subscribers (for cleanup)
 pub fn[T] Signal::clear_subscribers(self : Signal[T]) -> Unit {
-  while self.subscribers.length() > 0 {
-    self.subscribers.pop() |> ignore
-  }
+  self.subscribers.clear()
 }
 
 ///|
 /// Remove a specific subscriber by ID
 pub fn[T] Signal::remove_subscriber(self : Signal[T], id : Int) -> Unit {
-  let mut i = 0
-  while i < self.subscribers.length() {
-    if self.subscribers[i].id == id {
-      let _ = self.subscribers.remove(i)
-
-    } else {
-      i = i + 1
-    }
-  }
+  self.subscribers.retain(fn(s) { s.id != id })
 }
 
 ///|

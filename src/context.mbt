@@ -69,27 +69,12 @@ pub fn Owner::dispose(self : Owner) -> Unit {
     (self.cleanups[i])()
   }
   // Clear arrays
-  while self.children.length() > 0 {
-    self.children.pop() |> ignore
-  }
-  while self.disposers.length() > 0 {
-    self.disposers.pop() |> ignore
-  }
-  while self.cleanups.length() > 0 {
-    self.cleanups.pop() |> ignore
-  }
+  self.children.clear()
+  self.disposers.clear()
+  self.cleanups.clear()
   // Remove from parent's children
   match self.parent {
-    Some(p) => {
-      let mut i = 0
-      while i < p.children.length() {
-        if p.children[i].id == self.id {
-          let _ = p.children.remove(i)
-          break
-        }
-        i = i + 1
-      }
-    }
+    Some(p) => p.children.retain(fn(child) { child.id != self.id })
     None => ()
   }
 }

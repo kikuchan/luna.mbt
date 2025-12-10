@@ -10,12 +10,11 @@ priv struct EffectState {
 ///|
 /// Run all cleanup functions
 fn run_cleanups(cleanups : Array[() -> Unit]) -> Unit {
-  while cleanups.length() > 0 {
-    match cleanups.pop() {
-      Some(cleanup) => cleanup()
-      None => ()
-    }
+  // Run in reverse order (LIFO)
+  for i = cleanups.length() - 1; i >= 0; i = i - 1 {
+    (cleanups[i])()
   }
+  cleanups.clear()
 }
 
 ///| Create an effect that runs immediately and re-runs when dependencies change
