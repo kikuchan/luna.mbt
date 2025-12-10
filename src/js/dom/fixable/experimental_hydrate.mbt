@@ -300,6 +300,97 @@ fn log_repair_detailed(
 }
 
 // =============================================================================
+// Heuristics Configuration
+// =============================================================================
+
+/// Threshold for node count difference ratio to trigger full re-render
+/// If DOM has less than this ratio of expected nodes, fallback to full render
+let min_node_ratio : Double = 0.3
+
+/// Maximum node count for experimental hydration
+/// Above this, always use full render (O(n²) becomes too expensive)
+/// Benchmark results show experimental_hydrate is ~4-12x slower than full render,
+/// so we use a conservative threshold.
+let max_hydration_nodes : Int = 50
+
+// =============================================================================
+// Heuristics Helper Functions
+// =============================================================================
+
+///|
+/// Count total nodes in a VNode tree
+fn count_vnode_nodes(node : @ui.Node) -> Int {
+  match node {
+    @ui.Text(_) => 1
+    @ui.DynamicText(_) => 1
+    @ui.Fragment(children) => {
+      let mut count = 0
+      for child in children {
+        count = count + count_vnode_nodes(child)
+      }
+      count
+    }
+    @ui.Element(elem) => {
+      let mut count = 1
+      for child in elem.children {
+        count = count + count_vnode_nodes(child)
+      }
+      count
+    }
+    @ui.Show(child=child_fn, ..) => 1 + count_vnode_nodes(child_fn())
+    @ui.For(render=render_fn) => {
+      let items = render_fn()
+      let mut count = 1
+      for item in items {
+        count = count + count_vnode_nodes(item)
+      }
+      count
+    }
+    @ui.Component(render=render_fn) => 1 + count_vnode_nodes(render_fn())
+  }
+}
+
+///|
+/// Count total nodes in DOM subtree
+fn count_dom_nodes(node : @js_dom.Node) -> Int {
+  let mut count = 1
+  let children = node.childNodes()
+  for i in 0..<children.length() {
+    count = count + count_dom_nodes(children[i])
+  }
+  count
+}
+
+///|
+/// Check if heuristics suggest fallback to full render
+fn should_fallback_to_full_render(
+  container : @js_dom.Element,
+  node : @ui.Node,
+) -> Bool {
+  let vnode_count = count_vnode_nodes(node)
+
+  // If expected VNode tree is too large, always fallback
+  if vnode_count > max_hydration_nodes {
+    return true
+  }
+
+  let dom_count = count_dom_nodes(container.as_node())
+
+  // If DOM has very few nodes compared to expected, fallback
+  // (likely completely mismatched structure)
+  if dom_count == 0 {
+    return true
+  }
+
+  let ratio = dom_count.to_double() / vnode_count.to_double()
+  if ratio < min_node_ratio {
+    return true
+  }
+
+  false
+}
+
+// =============================================================================
 // Helper functions (local copies from hydrate.mbt for package isolation)
 // =============================================================================
 
@@ -459,6 +550,65 @@ pub fn experimental_hydrate(
     Clean
   } else {
     Repaired(ctx.repairs)
+  }
+}
+
+///|
+/// Smart hydration result type
+pub enum SmartHydrateResult {
+  /// Hydration succeeded (either clean or repaired)
+  Hydrated(ExperimentalHydrationResult)
+  /// Fell back to full render due to heuristics
+  FellBackToFullRender(String)
+}
+
+///|
+/// Smart hydration that uses heuristics to decide between repair and full re-render.
+/// This is the recommended entry point for production use.
+///
+/// Heuristics applied:
+/// - If VNode tree has more than 100 nodes, always use full render
+/// - If DOM has less than 30% of expected nodes, use full render
+///
+/// Returns SmartHydrateResult indicating the strategy used.
+pub fn smart_hydrate(
+  container : @js_dom.Element,
+  node : @ui.Node,
+  logger? : StringBuilder,
+) -> SmartHydrateResult {
+  // Check heuristics first
+  if should_fallback_to_full_render(container, node) {
+    let vnode_count = count_vnode_nodes(node)
+    let dom_count = count_dom_nodes(container.as_node())
+    let reason = if vnode_count > max_hydration_nodes {
+      "VNode tree too large (" + vnode_count.to_string() + " > " + max_hydration_nodes.to_string() + ")"
+    } else {
+      "DOM/VNode ratio too low (" + dom_count.to_string() + "/" + vnode_count.to_string() + ")"
+    }
+
+    // Log fallback
+    let log_msg = "[SmartHydrate] Falling back to full render: " + reason
+    match logger {
+      Some(sb) => {
+        sb.write_string(log_msg)
+        sb.write_string("\n")
+      }
+      None => {
+        let global = @global.global_this()
+        let console = global["console"]
+        console._call("log", [@core.any(log_msg)]) |> ignore
+      }
+    }
+
+    // Clear and full render
+    container.as_node().setTextContent("")
+    let dom_node = @dom.render_vnode_to_dom(node)
+    container.as_node().appendChild(dom_node) |> ignore
+    FellBackToFullRender(reason)
+  } else {
+    // Use experimental hydration
+    let result = experimental_hydrate(container, node, logger?=logger)
+    Hydrated(result)
   }
 }
 

@@ -6,15 +6,31 @@
 // Helper Functions
 // =============================================================================
 
+// Global container reused across benchmarks to prevent memory leak
+let hydrate_bench_container : Ref[@js_dom.Element?] = { val: None }
+
+///|
+fn get_or_create_hydrate_container() -> @js_dom.Element {
+  match hydrate_bench_container.val {
+    Some(c) => c
+    None => {
+      let doc = @js_dom.document()
+      let container = doc.createElement("div")
+      container.setAttribute("id", "hydrate-bench-container")
+      match doc.body() {
+        Some(body) => body.appendChild(container.as_node()) |> ignore
+        None => ()
+      }
+      hydrate_bench_container.val = Some(container)
+      container
+    }
+  }
+}
+
 ///|
 fn setup_hydrate_container(html : String) -> @js_dom.Element {
-  let doc = @js_dom.document()
-  let container = doc.createElement("div")
+  let container = get_or_create_hydrate_container()
   hydrate_set_inner_html(container, html)
-  match doc.body() {
-    Some(body) => body.appendChild(container.as_node()) |> ignore
-    None => ()
-  }
   container
 }
 
