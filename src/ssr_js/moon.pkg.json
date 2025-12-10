@@ -1,0 +1,13 @@
+{
+  "import": [
+    "mizchi/ui",
+    "mizchi/ui/ssr",
+    {
+      "path": "mizchi/js/core",
+      "alias": "js"
+    }
+  ],
+  "test-import": [
+    "mizchi/ui/element"
+  ]
+}
