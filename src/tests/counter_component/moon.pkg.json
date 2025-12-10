@@ -3,7 +3,7 @@
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
     "mizchi/kaguya/element",
-    "mizchi/kaguya/ssr"
+    "mizchi/kaguya/server/ssr"
   ],
   "link": {
     "js": {

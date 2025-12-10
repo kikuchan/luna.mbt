@@ -6,7 +6,7 @@
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
     {
-      "path": "mizchi/kaguya/ssr",
+      "path": "mizchi/kaguya/server/ssr",
       "alias": "ssr_core"
     },
     {

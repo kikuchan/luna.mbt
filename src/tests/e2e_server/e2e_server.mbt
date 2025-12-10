@@ -235,7 +235,7 @@ async fn create_embedding_app() -> App {
   let _ = app.get(
     "/minimal",
     async fn(c : Ctx) -> @http.Response {
-      let embed_html = @embedding.generate_minimal_embed(
+      let embed_html = @embed.generate_minimal_embed(
         "counter-1",
         "/components/counter.js",
         "{\"count\":42}",
@@ -253,7 +253,7 @@ async fn create_embedding_app() -> App {
   let _ = app.get(
     "/standalone",
     async fn(c : Ctx) -> @http.Response {
-      let embed_html = @embedding.generate_standalone_embed(
+      let embed_html = @embed.generate_standalone_embed(
         "greeting-1",
         "/components/greeting.js",
         "/kg-loader-v1.js",
@@ -272,7 +272,7 @@ async fn create_embedding_app() -> App {
   let _ = app.get(
     "/lazy",
     async fn(c : Ctx) -> @http.Response {
-      let embed_html = @embedding.generate_lazy_embed(
+      let embed_html = @embed.generate_lazy_embed(
         "lazy-counter",
         "/components/counter.js",
         "{\"count\":100}",
@@ -291,7 +291,7 @@ async fn create_embedding_app() -> App {
     "/xss-safety",
     async fn(c : Ctx) -> @http.Response {
       let dangerous_state = "{\"message\":\"<script>alert(1)</script>\",\"html\":\"</script><script>\"}"
-      let embed_html = @embedding.generate_minimal_embed(
+      let embed_html = @embed.generate_minimal_embed(
         "xss-test",
         "/components/greeting.js",
         dangerous_state,
@@ -309,7 +309,7 @@ async fn create_embedding_app() -> App {
   let _ = app.get(
     "/state-script",
     async fn(c : Ctx) -> @http.Response {
-      let state_script = @embedding.generate_state_script(
+      let state_script = @embed.generate_state_script(
         "counter-state",
         "{\"count\":999}",
       )

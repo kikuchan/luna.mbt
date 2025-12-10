@@ -7,7 +7,7 @@
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
     "mizchi/kaguya/element",
-    "mizchi/kaguya/ssr",
+    "mizchi/kaguya/server/ssr",
     "mizchi/kaguya/runtime/js/framework",
     "mizchi/js/core"
   ]

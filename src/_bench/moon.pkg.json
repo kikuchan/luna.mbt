@@ -5,7 +5,7 @@
   "import": [
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
-    { "path": "mizchi/kaguya/ssr", "alias": "ssr" },
+    { "path": "mizchi/kaguya/server/ssr", "alias": "ssr" },
     { "path": "mizchi/kaguya/runtime/js/dom", "alias": "dom" },
     { "path": "mizchi/kaguya/runtime/js/dom/fixable", "alias": "fixable" },
     "mizchi/js/core",

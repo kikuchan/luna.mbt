@@ -5,7 +5,7 @@
   "import": [
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
-    "mizchi/kaguya/ssr",
+    "mizchi/kaguya/server/ssr",
     "mizchi/js/core",
     "mizchi/npm_typed/hono"
   ]

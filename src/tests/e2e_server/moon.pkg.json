@@ -4,7 +4,7 @@
     "mizchi/js/core",
     "mizchi/js/web/http",
     "mizchi/npm_typed/hono",
-    "mizchi/kaguya/embedding"
+    "mizchi/kaguya/server/embed"
   ],
   "link": {
     "js": {
