@@ -1,13 +1,29 @@
 ///| VNode - DOM-independent virtual node representation for SSR
 
 ///|
-/// Event handler type (opaque for SSR, actual handler in DOM)
-pub struct EventHandler(Unit)
+/// Event handler type - wraps a callback function
+/// For SSR: noop function. For DOM: actual event handler
+pub struct EventHandler {
+  /// The callback function (no-arg for simplicity, event can be captured via closure)
+  callback : () -> Unit
+}
 
 ///|
-/// Create a placeholder event handler (for SSR testing)
+/// Create a placeholder event handler (for SSR - creates noop function)
 pub fn event_handler() -> EventHandler {
-  EventHandler(())
+  { callback: fn() { () } }
+}
+
+///|
+/// Create an event handler from a simple callback
+pub fn handler_from_callback(f : () -> Unit) -> EventHandler {
+  { callback: f }
+}
+
+///|
+/// Get the callback function
+pub fn EventHandler::get_callback(self : EventHandler) -> () -> Unit {
+  self.callback
 }
 
 ///|

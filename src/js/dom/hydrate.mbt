@@ -159,11 +159,13 @@ fn hydrate_node(
       // Check if this element needs hydration (has handlers or dynamic attrs)
       let needs_hydration = @ui.has_dynamic_content(elem.attrs)
 
+      // Always increment id to match SSR counter
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+
       // Find the DOM element
       let dom_elem_opt : @js_dom.Element? = if needs_hydration {
         // For elements with dynamic content, find by data-hk attribute
-        let id = ctx.current_id
-        ctx.current_id = id + 1
         match find_element_by_hk(ctx.container, id) {
           Some(dom_elem) => {
             // Verify tag matches
@@ -317,8 +319,10 @@ fn hydrate_element(
       @ui.VHandler(handler) => {
         // Attach event handler
         let event_name = extract_event_name(name)
-        let handler_any : @core.Any = @core.any(handler)
-        elem.as_event_target().addEventListener(event_name, handler_any.cast())
+        let callback = handler.get_callback()
+        // Wrap callback to ignore event argument
+        let wrapper : (@core.Any) -> Unit = fn(_event) { callback() }
+        elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
       }
       @ui.VStyle(_) =>
         // Static style already rendered

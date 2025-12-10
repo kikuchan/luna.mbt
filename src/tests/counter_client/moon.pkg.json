@@ -1,0 +1,18 @@
+{
+  "supported-targets": ["js"],
+  "import": [
+    "mizchi/ui",
+    { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
+    { "path": "mizchi/ui/js/dom", "alias": "dom" },
+    "mizchi/js/core",
+    { "path": "mizchi/ui/tests/counter_component", "alias": "counter_component" }
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "hydrate"
+      ],
+      "format": "esm"
+    }
+  }
+}

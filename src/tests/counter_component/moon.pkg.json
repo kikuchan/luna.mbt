@@ -1,0 +1,16 @@
+{
+  "import": [
+    "mizchi/ui",
+    "mizchi/ui/element",
+    "mizchi/ui/ssr"
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "render_counter_html",
+        "serialize_state"
+      ],
+      "format": "esm"
+    }
+  }
+}

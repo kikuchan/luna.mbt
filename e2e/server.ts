@@ -18,6 +18,30 @@ const rootDir = join(__dirname, "..");
 const loaderPath = join(rootDir, "packages", "loader", "kg-loader-v1.js");
 const loaderCode = readFileSync(loaderPath, "utf-8");
 
+// Import MoonBit counter_component module for SSR
+const counterComponentPath = join(
+  rootDir,
+  "target",
+  "js",
+  "release",
+  "build",
+  "tests",
+  "counter_component",
+  "counter_component.js"
+);
+
+// Import MoonBit counter_client module path for client hydration
+const counterClientPath = join(
+  rootDir,
+  "target",
+  "js",
+  "release",
+  "build",
+  "tests",
+  "counter_client",
+  "counter_client.js"
+);
+
 // Import MoonBit e2e_server module
 const e2eServerPath = join(
   rootDir,
@@ -50,7 +74,7 @@ app.get("/kg-loader-v1.js", (c) => {
   });
 });
 
-// Component hydration scripts
+// Component hydration scripts (legacy JS version)
 app.get("/components/counter.js", (c) => {
   const code = `
 export function hydrate(el, state, id) {
@@ -79,6 +103,14 @@ export function hydrate(el, state, id) {
   render();
 }
 `;
+  return c.body(code, 200, {
+    "Content-Type": "application/javascript",
+  });
+});
+
+// MoonBit counter client module (compiled from counter_client/hydrate.mbt)
+app.get("/components/counter-mbt.js", async (c) => {
+  const code = readFileSync(counterClientPath, "utf-8");
   return c.body(code, 200, {
     "Content-Type": "application/javascript",
   });
@@ -127,6 +159,60 @@ export function hydrate(el, state, id) {
 // API endpoints
 app.get("/api/state/user", (c) => {
   return c.json({ name: "Alice", email: "alice@example.com" });
+});
+
+// Idempotent hydration test route
+// Uses MoonBit SSR for initial render, MoonBit hydrate for client
+app.get("/test/idempotent-hydrate", async (c) => {
+  const counterComponent = await import(counterComponentPath);
+  const count = 5;
+  const ssrHtml = counterComponent.render_counter_html(count);
+  const stateJson = counterComponent.serialize_state(count);
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Idempotent Hydration Test</title>
+  <script type="module" src="/kg-loader-v1.js"></script>
+</head>
+<body>
+  <h1>Idempotent Hydration Test</h1>
+  <p>Initial count: ${count}</p>
+
+  <!-- SSR content with kg attributes for loader -->
+  <div id="counter"
+       kg:id="counter-1"
+       kg:url="/components/counter-mbt.js"
+       kg:trigger="load"
+       kg:state='${stateJson}'>${ssrHtml}</div>
+
+  <!-- Debug info -->
+  <div id="debug">
+    <h3>SSR Output (before hydration):</h3>
+    <pre id="ssr-html"></pre>
+    <h3>DOM after hydration:</h3>
+    <pre id="hydrated-html"></pre>
+  </div>
+
+  <script type="module">
+    // Capture SSR HTML before hydration
+    const ssrHtml = document.getElementById('counter').innerHTML;
+    document.getElementById('ssr-html').textContent = ssrHtml;
+
+    // Wait for hydration and capture DOM after
+    const checkHydration = setInterval(() => {
+      const counter = document.getElementById('counter');
+      if (counter.hasAttribute('data-hydrated')) {
+        clearInterval(checkHydration);
+        document.getElementById('hydrated-html').textContent = counter.innerHTML;
+      }
+    }, 50);
+  </script>
+</body>
+</html>`;
+
+  return c.html(html);
 });
 
 // Mount MoonBit Hono app

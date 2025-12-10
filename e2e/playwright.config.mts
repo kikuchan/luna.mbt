@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node ${join(__dirname, "server.ts")}`,
+    command: `node --import tsx ${join(__dirname, "server.ts")}`,
     url: "http://127.0.0.1:3456",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",

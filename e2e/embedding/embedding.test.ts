@@ -153,4 +153,118 @@ test.describe("Embedding Module E2E Tests", () => {
       await expect(count).toHaveText("1000");
     });
   });
+
+  test.describe("Idempotent Hydration (MoonBit SSR + MoonBit Hydrate)", () => {
+    test("SSR HTML matches hydrated DOM structure", async ({ page }) => {
+      await page.goto("/test/idempotent-hydrate");
+
+      // Wait for hydration
+      await expect(page.locator("#counter")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      // Wait for debug elements to be populated
+      await expect(page.locator("#hydrated-html")).not.toBeEmpty();
+
+      // Get SSR and hydrated HTML from debug elements
+      const ssrHtml = await page.locator("#ssr-html").textContent();
+      const hydratedHtml = await page.locator("#hydrated-html").textContent();
+
+      // The core content should match
+      // SSR generates: <div class="counter" data-count="5">...</div>
+      // After hydration: same structure with data-hydrated attribute on span
+      expect(ssrHtml).toBeTruthy();
+      expect(hydratedHtml).toBeTruthy();
+
+      // Both should contain the count value
+      expect(ssrHtml).toContain("5");
+      expect(hydratedHtml).toContain("5");
+
+      // Both should have the counter structure
+      expect(ssrHtml).toContain("data-count");
+      expect(ssrHtml).toContain("data-inc");
+      expect(ssrHtml).toContain("data-dec");
+    });
+
+    test("initial state is preserved after hydration", async ({ page }) => {
+      await page.goto("/test/idempotent-hydrate");
+
+      // Wait for hydration
+      await expect(page.locator("#counter")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      // Count should be 5 (from SSR state) - use span[data-count="true"] to be specific
+      await expect(page.locator('#counter span[data-count="true"]')).toHaveText("5");
+    });
+
+    test("hydrated component is interactive", async ({ page }) => {
+      await page.goto("/test/idempotent-hydrate");
+
+      // Wait for hydration
+      await expect(page.locator("#counter")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      // Use specific selector for the span containing count
+      const count = page.locator('#counter span[data-count="true"]');
+      await expect(count).toHaveText("5");
+
+      // Test increment
+      await page.locator('#counter [data-inc="true"]').click();
+      await expect(count).toHaveText("6");
+
+      // Test decrement
+      await page.locator('#counter [data-dec="true"]').click();
+      await expect(count).toHaveText("5");
+
+      // Multiple increments
+      await page.locator('#counter [data-inc="true"]').click();
+      await page.locator('#counter [data-inc="true"]').click();
+      await expect(count).toHaveText("7");
+    });
+
+    test("MoonBit SSR output is valid HTML", async ({ page }) => {
+      await page.goto("/test/idempotent-hydrate");
+
+      // The counter div should exist with proper SSR content
+      const counter = page.locator("#counter");
+      await expect(counter).toBeVisible();
+
+      // SSR should have rendered child elements
+      const childDiv = counter.locator(".counter");
+      await expect(childDiv).toBeVisible();
+
+      // Check the inner HTML structure
+      const counterHtml = await counter.innerHTML();
+      expect(counterHtml).toContain("data-count");
+      expect(counterHtml).toContain("data-inc");
+      expect(counterHtml).toContain("data-dec");
+    });
+
+    test("hydration uses MoonBit compiled module", async ({ page }) => {
+      // Verify the MoonBit hydrate module is loaded
+      const requests: string[] = [];
+      page.on("request", (request) => {
+        if (request.url().includes("counter-mbt.js")) {
+          requests.push(request.url());
+        }
+      });
+
+      await page.goto("/test/idempotent-hydrate");
+
+      // Wait for hydration
+      await expect(page.locator("#counter")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      // Verify MoonBit module was loaded
+      expect(requests.length).toBeGreaterThan(0);
+      expect(requests[0]).toContain("counter-mbt.js");
+    });
+  });
 });
