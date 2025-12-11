@@ -10,8 +10,7 @@
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" }
   ],
   "test-import": [
-    "mizchi/npm_typed/global_jsdom",
-    { "path": "mizchi/kaguya/element", "alias": "el" }
+    "mizchi/npm_typed/global_jsdom"
   ],
   "link": {
     "js": {

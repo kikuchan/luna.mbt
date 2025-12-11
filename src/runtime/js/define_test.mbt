@@ -6,11 +6,11 @@ test "register: basic custom element" {
   // Register a simple counter component
   register("test-counter-1", fn(_host) {
     let count = @signal.signal(0)
-    @el.div(
+    @kaguya.div(
       [],
       [
-        @el.span([], [@kaguya.text_dyn(fn() { count.get().to_string() })]),
-        @el.button([@el.id("inc")], [@kaguya.vtext("+")]),
+        @kaguya.span([], [@kaguya.text_dyn(fn() { count.get().to_string() })]),
+        @kaguya.button([@kaguya.id("inc")], [@kaguya.vtext("+")]),
       ],
     )
   })
@@ -38,11 +38,11 @@ test "register_with_attrs: observed attributes become signals" {
       Some(s) => s
       None => @signal.signal("")
     }
-    @el.div(
+    @kaguya.div(
       [],
       [
-        @el.span(
-          [@el.id("greeting")],
+        @kaguya.span(
+          [@kaguya.id("greeting")],
           [@kaguya.text_dyn(fn() { "Hello, " + name_sig.get() + "!" })],
         ),
       ],

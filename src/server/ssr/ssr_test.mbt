@@ -15,44 +15,44 @@ test "render escaped text" {
 
 ///|
 test "render simple element" {
-  let node = @element.div([], [])
+  let node = @kaguya.div([], [])
   let html = render_to_string(node)
   assert_eq(html, "<div></div>")
 }
 
 ///|
 test "render element with text child" {
-  let node = @element.div([], [@kaguya.vtext("Hello")])
+  let node = @kaguya.div([], [@kaguya.vtext("Hello")])
   let html = render_to_string(node)
   assert_eq(html, "<div>Hello</div>")
 }
 
 ///|
 test "render element with class" {
-  let node = @element.div([@element.class("container")], [])
+  let node = @kaguya.div([@kaguya.class("container")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div class=\"container\"></div>")
 }
 
 ///|
 test "render element with multiple attrs" {
-  let node = @element.div([@element.id("main"), @element.class("container")], [])
+  let node = @kaguya.div([@kaguya.id("main"), @kaguya.class("container")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div id=\"main\" class=\"container\"></div>")
 }
 
 ///|
 test "render nested elements" {
-  let node = @element.div([], [@element.span([], [@kaguya.vtext("nested")])])
+  let node = @kaguya.div([], [@kaguya.span([], [@kaguya.vtext("nested")])])
   let html = render_to_string(node)
   assert_eq(html, "<div><span>nested</span></div>")
 }
 
 ///|
 test "render void element" {
-  let node = @element.input([
-    @element.type_("text"),
-    @element.placeholder("Enter name"),
+  let node = @kaguya.input([
+    @kaguya.type_("text"),
+    @kaguya.placeholder("Enter name"),
   ])
   let html = render_to_string(node)
   assert_eq(html, "<input type=\"text\" placeholder=\"Enter name\" />")
@@ -60,7 +60,7 @@ test "render void element" {
 
 ///|
 test "render br and hr" {
-  let node = @kaguya.vfragment([@element.br(), @element.hr()])
+  let node = @kaguya.vfragment([@kaguya.br(), @kaguya.hr()])
   let html = render_to_string(node)
   assert_eq(html, "<br /><hr />")
 }
@@ -83,8 +83,8 @@ test "render dynamic text" {
 ///|
 test "render dynamic attribute" {
   let active = true
-  let node = @element.div(
-    [@element.class_dyn(fn() { if active { "active" } else { "inactive" } })],
+  let node = @kaguya.div(
+    [@kaguya.class_dyn(fn() { if active { "active" } else { "inactive" } })],
     [],
   )
   let html = render_to_string(node)
@@ -93,21 +93,21 @@ test "render dynamic attribute" {
 
 ///|
 test "render style attribute" {
-  let node = @element.div([@element.style("color: red; font-size: 16px")], [])
+  let node = @kaguya.div([@kaguya.style("color: red; font-size: 16px")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div style=\"color: red; font-size: 16px\"></div>")
 }
 
 ///|
 test "render disabled attribute true" {
-  let node = @element.button([@element.disabled(true)], [@kaguya.vtext("Submit")])
+  let node = @kaguya.button([@kaguya.disabled(true)], [@kaguya.vtext("Submit")])
   let html = render_to_string(node)
   assert_eq(html, "<button disabled>Submit</button>")
 }
 
 ///|
 test "render disabled attribute false" {
-  let node = @element.button([@element.disabled(false)], [@kaguya.vtext("Submit")])
+  let node = @kaguya.button([@kaguya.disabled(false)], [@kaguya.vtext("Submit")])
   let html = render_to_string(node)
   assert_eq(html, "<button>Submit</button>")
 }
@@ -134,7 +134,7 @@ test "render for list" {
   let node = @kaguya.vfor(fn() {
     let result : Array[@kaguya.Node] = []
     for i = 0; i < items.length(); i = i + 1 {
-      result.push(@element.li([], [@kaguya.vtext(items[i])]))
+      result.push(@kaguya.li([], [@kaguya.vtext(items[i])]))
     }
     result
   })
@@ -145,7 +145,7 @@ test "render for list" {
 ///|
 test "render component" {
   fn greeting(name : String) -> @kaguya.Node {
-    @element.div([], [@kaguya.vtext("Hello, " + name + "!")])
+    @kaguya.div([], [@kaguya.vtext("Hello, " + name + "!")])
   }
 
   let node = @kaguya.vcomponent(fn() { greeting("World") })
@@ -155,8 +155,8 @@ test "render component" {
 
 ///|
 test "handlers are not rendered" {
-  let node = @element.button(
-    [@element.on_click(@kaguya.event_handler()), @element.class("btn")],
+  let node = @kaguya.button(
+    [@kaguya.on_click(@kaguya.event_handler()), @kaguya.class("btn")],
     [@kaguya.vtext("Click me")],
   )
   let html = render_to_string(node)
@@ -166,7 +166,7 @@ test "handlers are not rendered" {
 
 ///|
 test "escape attribute value" {
-  let node = @element.div([@element.attr("data-value", "a\"b&c")], [])
+  let node = @kaguya.div([@kaguya.attr("data-value", "a\"b&c")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div data-value=\"a&quot;b&amp;c\"></div>")
 }
@@ -181,7 +181,7 @@ test "render with hydration markers for dynamic text" {
 
 ///|
 test "render with hydration markers for element with handler" {
-  let node = @element.button([@element.on_click(@kaguya.event_handler())], [
+  let node = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
     @kaguya.vtext("Click"),
   ])
   let html = render_to_string_with_hydration(node)
@@ -208,22 +208,22 @@ test "complex page render" {
   let title = "My App"
   let count = 0
   let items = ["Item 1", "Item 2"]
-  let page = @element.div([@element.class("app")], [
-    @element.h1([], [@kaguya.vtext(title)]),
-    @element.p([], [
+  let page = @kaguya.div([@kaguya.class("app")], [
+    @kaguya.h1([], [@kaguya.vtext(title)]),
+    @kaguya.p([], [
       @kaguya.vtext("Count: "),
       @kaguya.text_dyn(fn() { count.to_string() }),
     ]),
-    @element.ul([], [
+    @kaguya.ul([], [
       @kaguya.vfor(fn() {
         let result : Array[@kaguya.Node] = []
         for i = 0; i < items.length(); i = i + 1 {
-          result.push(@element.li([], [@kaguya.vtext(items[i])]))
+          result.push(@kaguya.li([], [@kaguya.vtext(items[i])]))
         }
         result
       }),
     ]),
-    @element.button([@element.on_click(@kaguya.event_handler())], [
+    @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
       @kaguya.vtext("Increment"),
     ]),
   ])
@@ -254,14 +254,14 @@ test "render text with double quote" {
 
 ///|
 test "render void elements img" {
-  let node = @element.img([@element.src("/image.png")])
+  let node = @kaguya.img([@kaguya.src("/image.png")])
   let html = render_to_string(node)
   assert_eq(html, "<img src=\"/image.png\" />")
 }
 
 ///|
 test "render void element col" {
-  let node = @kaguya.vnode("col", [@element.attr("span", "2")], [])
+  let node = @kaguya.vnode("col", [@kaguya.attr("span", "2")], [])
   let html = render_to_string(node)
   assert_eq(html, "<col span=\"2\" />")
 }
@@ -275,49 +275,49 @@ test "render void element wbr" {
 
 ///|
 test "render void element area" {
-  let node = @kaguya.vnode("area", [@element.attr("shape", "rect")], [])
+  let node = @kaguya.vnode("area", [@kaguya.attr("shape", "rect")], [])
   let html = render_to_string(node)
   assert_eq(html, "<area shape=\"rect\" />")
 }
 
 ///|
 test "render void element base" {
-  let node = @kaguya.vnode("base", [@element.href("/")], [])
+  let node = @kaguya.vnode("base", [@kaguya.href("/")], [])
   let html = render_to_string(node)
   assert_eq(html, "<base href=\"/\" />")
 }
 
 ///|
 test "render void element link" {
-  let node = @kaguya.vnode("link", [@element.attr("rel", "stylesheet")], [])
+  let node = @kaguya.vnode("link", [@kaguya.attr("rel", "stylesheet")], [])
   let html = render_to_string(node)
   assert_eq(html, "<link rel=\"stylesheet\" />")
 }
 
 ///|
 test "render void element meta" {
-  let node = @kaguya.vnode("meta", [@element.attr("charset", "utf-8")], [])
+  let node = @kaguya.vnode("meta", [@kaguya.attr("charset", "utf-8")], [])
   let html = render_to_string(node)
   assert_eq(html, "<meta charset=\"utf-8\" />")
 }
 
 ///|
 test "render void element embed" {
-  let node = @kaguya.vnode("embed", [@element.src("/video.swf")], [])
+  let node = @kaguya.vnode("embed", [@kaguya.src("/video.swf")], [])
   let html = render_to_string(node)
   assert_eq(html, "<embed src=\"/video.swf\" />")
 }
 
 ///|
 test "render void element track" {
-  let node = @kaguya.vnode("track", [@element.attr("kind", "subtitles")], [])
+  let node = @kaguya.vnode("track", [@kaguya.attr("kind", "subtitles")], [])
   let html = render_to_string(node)
   assert_eq(html, "<track kind=\"subtitles\" />")
 }
 
 ///|
 test "render void element source" {
-  let node = @kaguya.vnode("source", [@element.src("/audio.mp3")], [])
+  let node = @kaguya.vnode("source", [@kaguya.src("/audio.mp3")], [])
   let html = render_to_string(node)
   assert_eq(html, "<source src=\"/audio.mp3\" />")
 }
@@ -332,8 +332,8 @@ test "render non-void element with length 7" {
 
 ///|
 test "render dynamic style" {
-  let node = @element.div(
-    [@element.style_dyn(fn() { "color: blue; margin: 10px" })],
+  let node = @kaguya.div(
+    [@kaguya.style_dyn(fn() { "color: blue; margin: 10px" })],
     [],
   )
   let html = render_to_string(node)
@@ -342,7 +342,7 @@ test "render dynamic style" {
 
 ///|
 test "render empty dynamic style" {
-  let node = @element.div([@element.style_dyn(fn() { "" })], [])
+  let node = @kaguya.div([@kaguya.style_dyn(fn() { "" })], [])
   let html = render_to_string(node)
   // Empty string results in empty style attribute (no quotes needed)
   assert_eq(html, "<div style></div>")

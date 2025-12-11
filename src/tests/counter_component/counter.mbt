@@ -14,24 +14,24 @@ pub fn render_counter(
   on_inc : @kaguya.EventHandler,
   on_dec : @kaguya.EventHandler,
 ) -> @kaguya.Node {
-  @element.div(
+  @kaguya.div(
     [
       ("class", @kaguya.attr_static("counter")),
       ("data-count", @kaguya.attr_dynamic(fn() { count_sig.get().to_string() })),
     ],
     [
-      @element.span(
+      @kaguya.span(
         [("data-count", @kaguya.attr_static("true"))],
         [@kaguya.text_dyn(fn() { count_sig.get().to_string() })],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-inc", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(on_inc)),
         ],
         [@kaguya.vtext("+1")],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-dec", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(on_dec)),

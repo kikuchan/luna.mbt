@@ -13,7 +13,6 @@
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    "mizchi/kaguya/server/ssr",
-    "mizchi/kaguya/element"
+    "mizchi/kaguya/server/ssr"
   ]
 }

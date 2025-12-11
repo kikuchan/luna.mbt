@@ -13,8 +13,5 @@
       "path": "mizchi/js/core",
       "alias": "js"
     }
-  ],
-  "test-import": [
-    "mizchi/kaguya/element"
   ]
 }

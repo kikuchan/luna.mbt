@@ -33,18 +33,18 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @core.Any) -> Unit {
     double_sig.set(count_sig.get() * 2)
   })
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.span(
+      @kaguya.span(
         [("data-count", @kaguya.attr_static("true"))],
         [@kaguya.text_dyn(fn() { count_sig.get().to_string() })],
       ),
-      @element.span(
+      @kaguya.span(
         [("data-double", @kaguya.attr_static("true"))],
         [@kaguya.text_dyn(fn() { double_sig.get().to_string() })],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-inc", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -53,7 +53,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @core.Any) -> Unit {
         ],
         [@kaguya.vtext("+1")],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-dec", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -62,7 +62,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @core.Any) -> Unit {
         ],
         [@kaguya.vtext("-1")],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-reset", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -86,10 +86,10 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
   let active = @signal.signal(js_getBool(state, "active"))
   let color = @signal.signal(js_getString(state, "color"))
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.div(
+      @kaguya.div(
         [
           ("data-box", @kaguya.attr_static("true")),
           ("class", @kaguya.attr_dynamic(fn() {
@@ -103,7 +103,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
           if active.get() { "Active" } else { "Inactive" }
         })],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-toggle", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -112,7 +112,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
         ],
         [@kaguya.vtext("Toggle Active")],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-red", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -121,7 +121,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
         ],
         [@kaguya.vtext("Red")],
       ),
-      @element.button(
+      @kaguya.button(
         [
           ("data-blue", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -144,10 +144,10 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
 pub fn hydrate_show_toggle(el : @js_dom.Element, state : @core.Any) -> Unit {
   let visible = @signal.signal(js_getBool(state, "visible"))
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.button(
+      @kaguya.button(
         [
           ("data-toggle", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -161,7 +161,7 @@ pub fn hydrate_show_toggle(el : @js_dom.Element, state : @core.Any) -> Unit {
       @kaguya.vshow(
         fn() { visible.get() },
         fn() {
-          @element.div(
+          @kaguya.div(
             [("data-content", @kaguya.attr_static("true")), ("class", @kaguya.attr_static("content-box"))],
             [@kaguya.vtext("This content is conditionally shown")],
           )
@@ -183,13 +183,13 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
   // Store the pending input value separately since we need to capture it at add time
   let pending_input : Ref[String] = { val: "" }
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.div(
+      @kaguya.div(
         [("class", @kaguya.attr_static("input-row"))],
         [
-          @element.input(
+          @kaguya.input(
             [
               ("data-input", @kaguya.attr_static("true")),
               ("type", @kaguya.attr_static("text")),
@@ -198,7 +198,7 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
               // This is a limitation - the hydration system uses VHandler which is () -> Unit
             ],
           ),
-          @element.button(
+          @kaguya.button(
             [
               ("data-add", @kaguya.attr_static("true")),
               ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -218,11 +218,11 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
           ),
         ],
       ),
-      @element.span(
+      @kaguya.span(
         [("data-count", @kaguya.attr_static("true"))],
         [@kaguya.text_dyn(fn() { items.get().length().to_string() + " items" })],
       ),
-      @element.ul(
+      @kaguya.ul(
         [("data-list", @kaguya.attr_static("true"))],
         [
           @kaguya.vfor(fn() {
@@ -232,11 +232,11 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
               let item = current_items[i]
               let index = i
               result.push(
-                @element.li(
+                @kaguya.li(
                   [("data-item", @kaguya.attr_static(index.to_string()))],
                   [
-                    @element.span([], [@kaguya.vtext(item)]),
-                    @element.button(
+                    @kaguya.span([], [@kaguya.vtext(item)]),
+                    @kaguya.button(
                       [
                         ("data-remove", @kaguya.attr_static(index.to_string())),
                         ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -277,10 +277,10 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @core.Any) -> Unit {
   let dblclick_count = @signal.signal(0)
   let hover_state = @signal.signal("none")
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.div(
+      @kaguya.div(
         [
           ("data-click-area", @kaguya.attr_static("true")),
           ("class", @kaguya.attr_static("click-area")),
@@ -300,14 +300,14 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @core.Any) -> Unit {
         ],
         [@kaguya.vtext("Click or double-click me")],
       ),
-      @element.div(
+      @kaguya.div(
         [],
         [
-          @element.span([("data-clicks", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Clicks: " + click_count.get().to_string() })]),
+          @kaguya.span([("data-clicks", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Clicks: " + click_count.get().to_string() })]),
           @kaguya.vtext(" | "),
-          @element.span([("data-dblclicks", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Double-clicks: " + dblclick_count.get().to_string() })]),
+          @kaguya.span([("data-dblclicks", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Double-clicks: " + dblclick_count.get().to_string() })]),
           @kaguya.vtext(" | "),
-          @element.span([("data-hover", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Hover: " + hover_state.get() })]),
+          @kaguya.span([("data-hover", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Hover: " + hover_state.get() })]),
         ],
       ),
     ],
@@ -325,20 +325,20 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @core.Any) -> Unit {
   let text_value = @signal.signal(js_getString(state, "text"))
   let submitted = @signal.signal("")
 
-  let vnode = @element.div(
+  let vnode = @kaguya.div(
     [],
     [
-      @element.div(
+      @kaguya.div(
         [("data-form", @kaguya.attr_static("true"))],
         [
-          @element.input(
+          @kaguya.input(
             [
               ("data-text-input", @kaguya.attr_static("true")),
               ("type", @kaguya.attr_static("text")),
               ("value", @kaguya.attr_dynamic(fn() { text_value.get() })),
             ],
           ),
-          @element.button(
+          @kaguya.button(
             [
               ("data-submit", @kaguya.attr_static("true")),
               ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -347,7 +347,7 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @core.Any) -> Unit {
             ],
             [@kaguya.vtext("Submit")],
           ),
-          @element.button(
+          @kaguya.button(
             [
               ("data-clear", @kaguya.attr_static("true")),
               ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -356,7 +356,7 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @core.Any) -> Unit {
             ],
             [@kaguya.vtext("Clear")],
           ),
-          @element.button(
+          @kaguya.button(
             [
               ("data-set-hello", @kaguya.attr_static("true")),
               ("onClick", @kaguya.attr_handler(@kaguya.handler_from_callback(fn() {
@@ -367,16 +367,16 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @core.Any) -> Unit {
           ),
         ],
       ),
-      @element.div(
+      @kaguya.div(
         [],
         [
-          @element.span([("data-preview", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Preview: " + text_value.get() })]),
+          @kaguya.span([("data-preview", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Preview: " + text_value.get() })]),
         ],
       ),
-      @element.div(
+      @kaguya.div(
         [],
         [
-          @element.span([("data-submitted", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Submitted: " + submitted.get() })]),
+          @kaguya.span([("data-submitted", @kaguya.attr_static("true"))], [@kaguya.text_dyn(fn() { "Submitted: " + submitted.get() })]),
         ],
       ),
     ],

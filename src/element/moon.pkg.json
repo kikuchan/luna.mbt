@@ -1,6 +1,0 @@
-{
-  "import": [
-    "mizchi/kaguya",
-    "mizchi/kaguya/signal"
-  ]
-}

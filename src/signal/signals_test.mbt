@@ -742,7 +742,7 @@ test "vtext_sig creates dynamic text from signal" {
 
 ///|
 test "va creates anchor element" {
-  let node = @element.a([@element.href("https://example.com")], [@kaguya.vtext("Link")])
+  let node = @kaguya.a([@kaguya.href("https://example.com")], [@kaguya.vtext("Link")])
   match node {
     @kaguya.Element(el) => {
       assert_eq(el.tag, "a")
@@ -755,8 +755,8 @@ test "va creates anchor element" {
 
 ///|
 test "vform creates form element" {
-  let node = @element.form([@element.id("myform")], [
-    @element.input([@element.type_("text")]),
+  let node = @kaguya.form([@kaguya.id("myform")], [
+    @kaguya.input([@kaguya.type_("text")]),
   ])
   match node {
     @kaguya.Element(el) => {
@@ -770,7 +770,7 @@ test "vform creates form element" {
 
 ///|
 test "vlabel creates label element" {
-  let node = @element.label([@element.attr("for", "input1")], [@kaguya.vtext("Name:")])
+  let node = @kaguya.label([@kaguya.attr("for", "input1")], [@kaguya.vtext("Name:")])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "label")
     _ => assert_true(false)
@@ -779,7 +779,7 @@ test "vlabel creates label element" {
 
 ///|
 test "vh2 creates h2 element" {
-  let node = @element.h2([], [@kaguya.vtext("Section")])
+  let node = @kaguya.h2([], [@kaguya.vtext("Section")])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "h2")
     _ => assert_true(false)
@@ -788,7 +788,7 @@ test "vh2 creates h2 element" {
 
 ///|
 test "vh3 creates h3 element" {
-  let node = @element.h3([], [@kaguya.vtext("Subsection")])
+  let node = @kaguya.h3([], [@kaguya.vtext("Subsection")])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "h3")
     _ => assert_true(false)
@@ -797,7 +797,7 @@ test "vh3 creates h3 element" {
 
 ///|
 test "vol creates ol element" {
-  let node = @element.ol([], [@element.li([], [@kaguya.vtext("Item 1")])])
+  let node = @kaguya.ol([], [@kaguya.li([], [@kaguya.vtext("Item 1")])])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "ol")
     _ => assert_true(false)
@@ -806,7 +806,7 @@ test "vol creates ol element" {
 
 ///|
 test "vimg creates img element" {
-  let node = @element.img([@element.src("/image.png"), @element.alt("An image")])
+  let node = @kaguya.img([@kaguya.src("/image.png"), @kaguya.alt("An image")])
   match node {
     @kaguya.Element(el) => {
       assert_eq(el.tag, "img")
@@ -820,7 +820,7 @@ test "vimg creates img element" {
 ///|
 test "vattr_dyn creates dynamic attribute" {
   let getter = fn() { "dynamic-value" }
-  let (key, attr) = @element.attr_dyn("data-test", getter)
+  let (key, attr) = @kaguya.attr_dyn("data-test", getter)
   assert_eq(key, "data-test")
   match attr {
     @kaguya.VDynamic(g) => assert_eq(g(), "dynamic-value")
@@ -830,7 +830,7 @@ test "vattr_dyn creates dynamic attribute" {
 
 ///|
 test "vvalue creates value attribute" {
-  let (key, attr) = @element.value("test-value")
+  let (key, attr) = @kaguya.value("test-value")
   assert_eq(key, "value")
   match attr {
     @kaguya.VStatic(v) => assert_eq(v, "test-value")
@@ -840,7 +840,7 @@ test "vvalue creates value attribute" {
 
 ///|
 test "vvalue_dyn creates dynamic value attribute" {
-  let (key, attr) = @element.value_dyn(fn() { "dynamic" })
+  let (key, attr) = @kaguya.value_dyn(fn() { "dynamic" })
   assert_eq(key, "value")
   match attr {
     @kaguya.VDynamic(g) => assert_eq(g(), "dynamic")
@@ -851,7 +851,7 @@ test "vvalue_dyn creates dynamic value attribute" {
 ///|
 test "von_input creates input handler" {
   let handler = @kaguya.event_handler()
-  let (key, attr) = @element.on_input(handler)
+  let (key, attr) = @kaguya.on_input(handler)
   assert_eq(key, "onInput")
   match attr {
     @kaguya.VHandler(_) => assert_true(true)
@@ -862,7 +862,7 @@ test "von_input creates input handler" {
 ///|
 test "von_change creates change handler" {
   let handler = @kaguya.event_handler()
-  let (key, attr) = @element.on_change(handler)
+  let (key, attr) = @kaguya.on_change(handler)
   assert_eq(key, "onChange")
   match attr {
     @kaguya.VHandler(_) => assert_true(true)
@@ -873,7 +873,7 @@ test "von_change creates change handler" {
 ///|
 test "von_submit creates submit handler" {
   let handler = @kaguya.event_handler()
-  let (key, attr) = @element.on_submit(handler)
+  let (key, attr) = @kaguya.on_submit(handler)
   assert_eq(key, "onSubmit")
   match attr {
     @kaguya.VHandler(_) => assert_true(true)
@@ -884,7 +884,7 @@ test "von_submit creates submit handler" {
 ///|
 test "vstyle_dyn creates dynamic style attribute" {
   let style_getter = fn() { "color: red; margin: 10px" }
-  let (key, attr) = @element.style_dyn(style_getter)
+  let (key, attr) = @kaguya.style_dyn(style_getter)
   assert_eq(key, "style")
   match attr {
     @kaguya.VDynamic(g) => assert_eq(g(), "color: red; margin: 10px")

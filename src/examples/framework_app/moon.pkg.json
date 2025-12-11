@@ -6,7 +6,6 @@
   "import": [
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
-    "mizchi/kaguya/element",
     "mizchi/kaguya/server/ssr",
     "mizchi/kaguya/framework",
     "mizchi/js/core"

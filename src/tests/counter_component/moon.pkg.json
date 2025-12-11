@@ -2,7 +2,6 @@
   "import": [
     "mizchi/kaguya",
     "mizchi/kaguya/signal",
-    "mizchi/kaguya/element",
     "mizchi/kaguya/server/ssr"
   ],
   "link": {

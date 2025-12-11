@@ -5,7 +5,6 @@
     "mizchi/kaguya/signal",
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
     { "path": "mizchi/kaguya/browser", "alias": "dom" },
-    "mizchi/kaguya/element",
     "mizchi/js/core"
   ],
   "link": {
