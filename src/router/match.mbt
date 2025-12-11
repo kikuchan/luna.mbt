@@ -115,16 +115,7 @@ fn try_match(
     return None
   }
 
-  // パラメータがない場合は完全一致
-  if param_names.length() == 0 {
-    if pattern == path {
-      return Some([])
-    } else {
-      return None
-    }
-  }
-
-  // パラメータを収集
+  // パラメータを収集しながらセグメントを比較
   let params : Array[(String, String)] = []
   let mut param_idx = 0
 

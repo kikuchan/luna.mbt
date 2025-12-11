@@ -318,3 +318,206 @@ test "RouterContext::not_found" {
   assert_eq!(ctx.route_meta.title, "Not Found")
   assert_eq!(ctx.params.length(), 0)
 }
+
+// =============================================================================
+// SSR-Specific Tests
+// =============================================================================
+
+test "ServerRouter API routes GET/POST distinction" {
+  let routes : Array[Route] = [
+    Path("/api", [
+      Get(path="/users", title="Get Users", meta=[]),
+      Post(path="/users", title="Create User", meta=[]),
+      Path("/users", [
+        Param("id", key="id", title="", meta=[]),
+        Get(path="", title="Get User", meta=[]),
+        Post(path="", title="Update User", meta=[]),
+      ], title="", meta=[]),
+    ], title="", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  // 同じパスでも kind で区別される
+  let routes_list = router.get_routes()
+  assert_eq!(routes_list.length(), 4)
+
+  // GET /api/users
+  let get_users = routes_list[0]
+  assert_eq!(get_users.pattern, "/api/users")
+  assert_eq!(get_users.kind, GetApi)
+  assert_eq!(get_users.title, "Get Users")
+
+  // POST /api/users
+  let post_users = routes_list[1]
+  assert_eq!(post_users.pattern, "/api/users")
+  assert_eq!(post_users.kind, PostApi)
+  assert_eq!(post_users.title, "Create User")
+}
+
+test "ServerRouter meta information preserved" {
+  let routes : Array[Route] = [
+    Page(
+      path="/",
+      title="Home",
+      meta=[("description", "Welcome to our site"), ("og:title", "Home Page")],
+    ),
+    Page(
+      path="/about",
+      title="About Us",
+      meta=[("description", "About our company"), ("robots", "index,follow")],
+    ),
+  ]
+  let router = ServerRouter::new(routes)
+
+  let home = router.resolve("/")
+  guard home is Some(ctx) else { fail!("Expected Some") }
+  assert_eq!(ctx.route_meta.title, "Home")
+  assert_eq!(ctx.route_meta.meta.length(), 2)
+  assert_eq!(ctx.route_meta.meta[0], ("description", "Welcome to our site"))
+  assert_eq!(ctx.route_meta.meta[1], ("og:title", "Home Page"))
+
+  let about = router.resolve("/about")
+  guard about is Some(ctx2) else { fail!("Expected Some") }
+  assert_eq!(ctx2.route_meta.meta.length(), 2)
+  assert_eq!(ctx2.route_meta.meta[0], ("description", "About our company"))
+}
+
+test "ServerRouter from_compiled" {
+  let routes : Array[Route] = [
+    Page(path="/", title="Home", meta=[]),
+    Page(path="/about", title="About", meta=[]),
+  ]
+  let compiled = compile_routes(routes)
+
+  // コンパイル済みルートから作成
+  let router = ServerRouter::from_compiled(compiled)
+  assert_eq!(router.length(), 2)
+
+  let home = router.resolve("/")
+  guard home is Some(ctx) else { fail!("Expected Some") }
+  assert_eq!(ctx.route_meta.title, "Home")
+}
+
+test "ServerRouter trailing slash normalization" {
+  let routes : Array[Route] = [
+    Page(path="/about", title="About", meta=[]),
+    Page(path="/contact", title="Contact", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  // 末尾スラッシュあり/なしの両方でマッチ
+  let about1 = router.resolve("/about")
+  guard about1 is Some(ctx1) else { fail!("Expected Some") }
+  assert_eq!(ctx1.route_meta.title, "About")
+
+  let about2 = router.resolve("/about/")
+  guard about2 is Some(ctx2) else { fail!("Expected Some") }
+  assert_eq!(ctx2.route_meta.title, "About")
+}
+
+test "ServerRouter multiple params in path" {
+  let routes : Array[Route] = [
+    Path("/users", [
+      Param("user_id", key="user_id", title="", meta=[]),
+      Path("/posts", [
+        Param("post_id", key="post_id", title="", meta=[]),
+        Path("/comments", [
+          Param("comment_id", key="comment_id", title="", meta=[]),
+          Page(path="", title="Comment Detail", meta=[]),
+        ], title="", meta=[]),
+      ], title="", meta=[]),
+    ], title="", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  let ctx = router.resolve("/users/1/posts/2/comments/3")
+  guard ctx is Some(c) else { fail!("Expected Some") }
+  assert_eq!(c.get_param("user_id"), Some("1"))
+  assert_eq!(c.get_param("post_id"), Some("2"))
+  assert_eq!(c.get_param("comment_id"), Some("3"))
+  assert_eq!(c.route_meta.title, "Comment Detail")
+}
+
+test "ServerRouter RouteKind in context" {
+  let routes : Array[Route] = [
+    Page(path="/", title="Home", meta=[]),
+    Get(path="/api/data", title="Get Data", meta=[]),
+    Post(path="/api/data", title="Post Data", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  let page = router.resolve("/")
+  guard page is Some(p) else { fail!("Expected Some") }
+  assert_eq!(p.kind, Page)
+
+  // Note: match_url returns first match, GET comes before POST in compilation
+  let api = router.match_url("/api/data")
+  guard api is Some(a) else { fail!("Expected Some") }
+  assert_eq!(a.route.kind, GetApi)
+}
+
+test "ServerRouter empty path segment handling" {
+  let routes : Array[Route] = [
+    Path("/api", [
+      Path("/v1", [
+        Page(path="/health", title="Health Check", meta=[]),
+      ], title="", meta=[]),
+    ], title="", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  // 正常なパス
+  let health = router.resolve("/api/v1/health")
+  guard health is Some(h) else { fail!("Expected Some") }
+  assert_eq!(h.route_meta.title, "Health Check")
+
+  // 重複スラッシュがあっても正規化される
+  let health2 = router.resolve("/api//v1/health")
+  guard health2 is Some(h2) else { fail!("Expected Some") }
+  assert_eq!(h2.route_meta.title, "Health Check")
+}
+
+test "ServerRouter query string edge cases" {
+  let routes : Array[Route] = [
+    Page(path="/search", title="Search", meta=[]),
+  ]
+  let router = ServerRouter::new(routes)
+
+  // 空のクエリパラメータ
+  let empty_value = router.resolve("/search?q=")
+  guard empty_value is Some(ev) else { fail!("Expected Some") }
+  assert_eq!(ev.get_query("q"), Some(""))
+
+  // クエリなしの?
+  let empty_query = router.resolve("/search?")
+  guard empty_query is Some(eq) else { fail!("Expected Some") }
+  assert_eq!(eq.path, "/search")
+
+  // 複数の同名パラメータ（最初のものが取得される）
+  let multi = router.resolve("/search?q=first&q=second")
+  guard multi is Some(m) else { fail!("Expected Some") }
+  assert_eq!(m.get_query("q"), Some("first"))
+}
+
+test "RouterContext::new with defaults" {
+  let ctx = RouterContext::new(path="/test")
+  assert_eq!(ctx.path, "/test")
+  assert_eq!(ctx.params.length(), 0)
+  assert_eq!(ctx.query.length(), 0)
+  assert_eq!(ctx.route_meta.title, "")
+  assert_eq!(ctx.kind, Page)
+}
+
+test "RouterContext::new with all params" {
+  let ctx = RouterContext::new(
+    path="/users/123",
+    params=[("id", "123")],
+    query=[("page", "1")],
+    route_meta={ title: "User Detail", meta: [("robots", "noindex")] },
+    kind=Page,
+  )
+  assert_eq!(ctx.path, "/users/123")
+  assert_eq!(ctx.get_param("id"), Some("123"))
+  assert_eq!(ctx.get_query("page"), Some("1"))
+  assert_eq!(ctx.route_meta.title, "User Detail")
+}
