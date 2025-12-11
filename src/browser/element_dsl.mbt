@@ -47,124 +47,60 @@ fn AttrVal::to_attr_value(self : AttrVal) -> AttrValue {
 }
 
 // =============================================================================
-// HandlerMap - Event handlers collection
+// HandlerMap - Event handlers collection (JS FFI optimized)
 // =============================================================================
 
 ///|
-/// Event handlers collection - use with `on()` function
-pub struct HandlerMap {
-  click : ((@js_dom.MouseEvent) -> Unit)?
-  dblclick : ((@js_dom.MouseEvent) -> Unit)?
-  input : ((@js_dom.InputEvent) -> Unit)?
-  change : ((@js_dom.ChangeEvent) -> Unit)?
-  submit : ((@js_dom.FormEvent) -> Unit)?
-  keydown : ((@js_dom.KeyboardEvent) -> Unit)?
-  keyup : ((@js_dom.KeyboardEvent) -> Unit)?
-  keypress : ((@js_dom.KeyboardEvent) -> Unit)?
-  focus : ((@js_dom.FocusEvent) -> Unit)?
-  blur : ((@js_dom.FocusEvent) -> Unit)?
-  mouseenter : ((@js_dom.MouseEvent) -> Unit)?
-  mouseleave : ((@js_dom.MouseEvent) -> Unit)?
-  mouseover : ((@js_dom.MouseEvent) -> Unit)?
-  mouseout : ((@js_dom.MouseEvent) -> Unit)?
-  mousedown : ((@js_dom.MouseEvent) -> Unit)?
-  mouseup : ((@js_dom.MouseEvent) -> Unit)?
-}
+/// Event handlers collection - opaque JS object
+/// Internally stores { onClick?: fn, onInput?: fn, ... }
+pub type HandlerMap
 
 ///|
 /// Create a HandlerMap with optional event handlers
-pub fn on(
-  click? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  dblclick? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  input? : ((@js_dom.InputEvent) -> Unit)? = None,
-  change? : ((@js_dom.ChangeEvent) -> Unit)? = None,
-  submit? : ((@js_dom.FormEvent) -> Unit)? = None,
-  keydown? : ((@js_dom.KeyboardEvent) -> Unit)? = None,
-  keyup? : ((@js_dom.KeyboardEvent) -> Unit)? = None,
-  keypress? : ((@js_dom.KeyboardEvent) -> Unit)? = None,
-  focus? : ((@js_dom.FocusEvent) -> Unit)? = None,
-  blur? : ((@js_dom.FocusEvent) -> Unit)? = None,
-  mouseenter? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  mouseleave? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  mouseover? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  mouseout? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  mousedown? : ((@js_dom.MouseEvent) -> Unit)? = None,
-  mouseup? : ((@js_dom.MouseEvent) -> Unit)? = None,
-) -> HandlerMap {
-  {
-    click,
-    dblclick,
-    input,
-    change,
-    submit,
-    keydown,
-    keyup,
-    keypress,
-    focus,
-    blur,
-    mouseenter,
-    mouseleave,
-    mouseover,
-    mouseout,
-    mousedown,
-    mouseup,
-  }
-}
+/// Uses JS FFI to create a plain object directly, avoiding MoonBit struct overhead
+pub extern "js" fn on(
+  click? : ((@js_dom.MouseEvent) -> Unit)?,
+  dblclick? : ((@js_dom.MouseEvent) -> Unit)?,
+  input? : ((@js_dom.InputEvent) -> Unit)?,
+  change? : ((@js_dom.ChangeEvent) -> Unit)?,
+  submit? : ((@js_dom.FormEvent) -> Unit)?,
+  keydown? : ((@js_dom.KeyboardEvent) -> Unit)?,
+  keyup? : ((@js_dom.KeyboardEvent) -> Unit)?,
+  keypress? : ((@js_dom.KeyboardEvent) -> Unit)?,
+  focus? : ((@js_dom.FocusEvent) -> Unit)?,
+  blur? : ((@js_dom.FocusEvent) -> Unit)?,
+  mouseenter? : ((@js_dom.MouseEvent) -> Unit)?,
+  mouseleave? : ((@js_dom.MouseEvent) -> Unit)?,
+  mouseover? : ((@js_dom.MouseEvent) -> Unit)?,
+  mouseout? : ((@js_dom.MouseEvent) -> Unit)?,
+  mousedown? : ((@js_dom.MouseEvent) -> Unit)?,
+  mouseup? : ((@js_dom.MouseEvent) -> Unit)?,
+) -> HandlerMap =
+  #|(click, dblclick, input, change, submit, keydown, keyup, keypress, focus, blur, mouseenter, mouseleave, mouseover, mouseout, mousedown, mouseup) => {
+  #|  const m = {};
+  #|  if (click) m.onClick = click;
+  #|  if (dblclick) m.onDblclick = dblclick;
+  #|  if (input) m.onInput = input;
+  #|  if (change) m.onChange = change;
+  #|  if (submit) m.onSubmit = submit;
+  #|  if (keydown) m.onKeydown = keydown;
+  #|  if (keyup) m.onKeyup = keyup;
+  #|  if (keypress) m.onKeypress = keypress;
+  #|  if (focus) m.onFocus = focus;
+  #|  if (blur) m.onBlur = blur;
+  #|  if (mouseenter) m.onMouseenter = mouseenter;
+  #|  if (mouseleave) m.onMouseleave = mouseleave;
+  #|  if (mouseover) m.onMouseover = mouseover;
+  #|  if (mouseout) m.onMouseout = mouseout;
+  #|  if (mousedown) m.onMousedown = mousedown;
+  #|  if (mouseup) m.onMouseup = mouseup;
+  #|  return m;
+  #|}
 
 ///|
-/// Convert HandlerMap to Array of attribute tuples
-pub fn HandlerMap::to_attrs(self : HandlerMap) -> Array[(String, AttrValue)] {
-  let attrs : Array[(String, AttrValue)] = []
-  if self.click is Some(h) {
-    attrs.push(("onClick", Handler(h |> @core.identity)))
-  }
-  if self.dblclick is Some(h) {
-    attrs.push(("onDblclick", Handler(h |> @core.identity)))
-  }
-  if self.input is Some(h) {
-    attrs.push(("onInput", Handler(h |> @core.identity)))
-  }
-  if self.change is Some(h) {
-    attrs.push(("onChange", Handler(h |> @core.identity)))
-  }
-  if self.submit is Some(h) {
-    attrs.push(("onSubmit", Handler(h |> @core.identity)))
-  }
-  if self.keydown is Some(h) {
-    attrs.push(("onKeydown", Handler(h |> @core.identity)))
-  }
-  if self.keyup is Some(h) {
-    attrs.push(("onKeyup", Handler(h |> @core.identity)))
-  }
-  if self.keypress is Some(h) {
-    attrs.push(("onKeypress", Handler(h |> @core.identity)))
-  }
-  if self.focus is Some(h) {
-    attrs.push(("onFocus", Handler(h |> @core.identity)))
-  }
-  if self.blur is Some(h) {
-    attrs.push(("onBlur", Handler(h |> @core.identity)))
-  }
-  if self.mouseenter is Some(h) {
-    attrs.push(("onMouseenter", Handler(h |> @core.identity)))
-  }
-  if self.mouseleave is Some(h) {
-    attrs.push(("onMouseleave", Handler(h |> @core.identity)))
-  }
-  if self.mouseover is Some(h) {
-    attrs.push(("onMouseover", Handler(h |> @core.identity)))
-  }
-  if self.mouseout is Some(h) {
-    attrs.push(("onMouseout", Handler(h |> @core.identity)))
-  }
-  if self.mousedown is Some(h) {
-    attrs.push(("onMousedown", Handler(h |> @core.identity)))
-  }
-  if self.mouseup is Some(h) {
-    attrs.push(("onMouseup", Handler(h |> @core.identity)))
-  }
-  attrs
-}
+/// Convert HandlerMap to Array of attribute tuples using JS Object.entries
+extern "js" fn HandlerMap::to_attrs(self : HandlerMap) -> Array[(String, AttrValue)] =
+  #|(m) => Object.entries(m).map(([k, v]) => ({ _0: k, _1: { $tag: 2, _0: v } }))
 
 
 // =============================================================================
