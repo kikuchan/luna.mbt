@@ -23,7 +23,7 @@ pub fn[T : Show] text_from_signal(sig : @signal.Signal[T]) -> Node {
 
 ///|
 /// Reactive attribute value type
-pub enum AttrValue {
+pub(all) enum AttrValue {
   Static(String)
   Dynamic(() -> String)
   Handler((@core.Any) -> Unit)

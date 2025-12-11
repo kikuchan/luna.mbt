@@ -66,6 +66,18 @@ const browserComponentsPath = join(
   "browser_components.js"
 );
 
+// Import MoonBit router_csr module for CSR router tests
+const routerCsrPath = join(
+  rootDir,
+  "target",
+  "js",
+  "release",
+  "build",
+  "tests",
+  "router_csr",
+  "router_csr.js"
+);
+
 // Promisify MoonBit async callback
 function promisifyMoonBit<T>(fn: (cont: (v: T) => void, err: (e: Error) => void) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -176,6 +188,14 @@ app.get("/api/state/user", (c) => {
 // MoonBit browser_components module for browser tests
 app.get("/components/browser-components.js", async (c) => {
   const code = readFileSync(browserComponentsPath, "utf-8");
+  return c.body(code, 200, {
+    "Content-Type": "application/javascript",
+  });
+});
+
+// MoonBit router_csr module for CSR router tests
+app.get("/components/router-csr.js", async (c) => {
+  const code = readFileSync(routerCsrPath, "utf-8");
   return c.body(code, 200, {
     "Content-Type": "application/javascript",
   });
@@ -324,6 +344,37 @@ app.get("/browser/input-binding", (c) => {
   );
   return c.html(html);
 });
+
+// CSR Router test routes
+// Wildcard route handler for CSR Router SPA
+const csrRouterHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CSR Router Demo</title>
+  <style>
+    nav { margin-bottom: 20px; }
+    nav a { margin-right: 10px; color: blue; text-decoration: underline; cursor: pointer; }
+    [data-content] { padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>CSR Router Demo</h1>
+  <div id="app"></div>
+  <script type="module">
+    import { mount_router_app } from '/components/router-csr.js';
+    mount_router_app();
+  </script>
+</body>
+</html>`;
+
+// CSR Router routes - serve the same HTML for all SPA routes
+// The MoonBit router handles client-side routing
+app.get("/csr-router/home", (c) => c.html(csrRouterHtml));
+app.get("/csr-router/about", (c) => c.html(csrRouterHtml));
+app.get("/csr-router/contact", (c) => c.html(csrRouterHtml));
+app.get("/csr-router/posts/:id", (c) => c.html(csrRouterHtml));
+app.get("/csr-router/unknown/*", (c) => c.html(csrRouterHtml));
 
 // Idempotent hydration test route
 // Uses MoonBit SSR for initial render, MoonBit hydrate for client

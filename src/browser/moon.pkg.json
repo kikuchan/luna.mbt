@@ -8,6 +8,10 @@
       "alias": "kaguya"
     },
     "mizchi/kaguya/core/signal",
+    {
+      "path": "mizchi/kaguya/router",
+      "alias": "router"
+    },
     "mizchi/js/core",
     {
       "path": "mizchi/js/browser/dom",
