@@ -30,27 +30,27 @@ fn counter_example() -> @dom.Node {
 
   @dom.div(
     class="counter-example",
-    children=[
-      @dom.h2(children=[@dom.text("Counter Example")]),
-      @dom.p(children=[@dom.text_dyn(fn() { "Count: " + count.get().to_string() })]),
-      @dom.p(children=[@dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
-      @dom.p(children=[
+    [
+      @dom.h2([@dom.text("Counter Example")]),
+      @dom.p([@dom.text_dyn(fn() { "Count: " + count.get().to_string() })]),
+      @dom.p([@dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
+      @dom.p([
         @dom.text_dyn(fn() { if is_even() { "Even" } else { "Odd" } }),
       ]),
       @dom.div(
         class="buttons",
-        children=[
+        [
           @dom.button(
             on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n - 1 }) })),
-            children=[@dom.text("-")],
+            [@dom.text("-")],
           ),
           @dom.button(
             on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n + 1 }) })),
-            children=[@dom.text("+")],
+            [@dom.text("+")],
           ),
           @dom.button(
             on=@dom.on(click=Some(fn(_) { count.set(0) })),
-            children=[@dom.text("Reset")],
+            [@dom.text("Reset")],
           ),
         ],
       ),
@@ -69,8 +69,8 @@ fn input_example() -> @dom.Node {
 
   @dom.div(
     class="input-example",
-    children=[
-      @dom.h2(children=[@dom.text("Input Example")]),
+    [
+      @dom.h2([@dom.text("Input Example")]),
       @dom.input(
         type_="text",
         placeholder="Type something...",
@@ -82,10 +82,10 @@ fn input_example() -> @dom.Node {
           }),
         ),
       ),
-      @dom.p(children=[
+      @dom.p([
         @dom.text_dyn(fn() { "Characters: " + char_count().to_string() }),
       ]),
-      @dom.p(children=[@dom.text_dyn(fn() { "You typed: " + text.get() })]),
+      @dom.p([@dom.text_dyn(fn() { "You typed: " + text.get() })]),
     ],
   )
 }
@@ -107,26 +107,26 @@ fn effect_example() -> @dom.Node {
 
   @dom.div(
     class="effect-example",
-    children=[
-      @dom.h2(children=[@dom.text("Effect Example")]),
-      @dom.p(children=[
+    [
+      @dom.h2([@dom.text("Effect Example")]),
+      @dom.p([
         @dom.text_dyn(fn() {
           let status = if active.get() { "Active" } else { "Inactive" }
           "Status: " + status
         }),
       ]),
-      @dom.p(children=[
+      @dom.p([
         @dom.text_dyn(fn() { "Ticks: " + ticks.get().to_string() }),
       ]),
       @dom.button(
         on=@dom.on(click=Some(fn(_) { active.update(fn(b) { not(b) }) })),
-        children=[
+        [
           @dom.text_dyn(fn() { if active.get() { "Stop" } else { "Start" } }),
         ],
       ),
       @dom.button(
         on=@dom.on(click=Some(fn(_) { ticks.update(fn(n) { n + 1 }) })),
-        children=[@dom.text("Tick")],
+        [@dom.text("Tick")],
       ),
     ],
   )
@@ -150,21 +150,21 @@ fn batch_example() -> @dom.Node {
 
   @dom.div(
     class="batch-example",
-    children=[
-      @dom.h2(children=[@dom.text("Batch Example")]),
-      @dom.p(children=[
+    [
+      @dom.h2([@dom.text("Batch Example")]),
+      @dom.p([
         @dom.text_dyn(fn() {
           "a=" + a.get().to_string() + ", b=" + b.get().to_string()
         }),
       ]),
-      @dom.p(children=[
+      @dom.p([
         @dom.text_dyn(fn() {
           "Effect ran: " + update_count.get().to_string() + " times"
         }),
       ]),
       @dom.div(
         class="buttons",
-        children=[
+        [
           @dom.button(
             on=@dom.on(
               click=Some(fn(_) {
@@ -172,7 +172,7 @@ fn batch_example() -> @dom.Node {
                 b.update(fn(n) { n + 1 })
               }),
             ),
-            children=[@dom.text("Update (no batch)")],
+            [@dom.text("Update (no batch)")],
           ),
           @dom.button(
             on=@dom.on(
@@ -183,7 +183,7 @@ fn batch_example() -> @dom.Node {
                 })
               }),
             ),
-            children=[@dom.text("Update (batched)")],
+            [@dom.text("Update (batched)")],
           ),
         ],
       ),
@@ -205,10 +205,10 @@ fn combine_example() -> @dom.Node {
 
   @dom.div(
     class="combine-example",
-    children=[
-      @dom.h2(children=[@dom.text("Combine Example")]),
-      @dom.div(children=[
-        @dom.label(children=[@dom.text("First Name: ")]),
+    [
+      @dom.h2([@dom.text("Combine Example")]),
+      @dom.div([
+        @dom.label([@dom.text("First Name: ")]),
         @dom.input(
           type_="text",
           on=@dom.on(
@@ -219,8 +219,8 @@ fn combine_example() -> @dom.Node {
           ),
         ),
       ]),
-      @dom.div(children=[
-        @dom.label(children=[@dom.text("Last Name: ")]),
+      @dom.div([
+        @dom.label([@dom.text("Last Name: ")]),
         @dom.input(
           type_="text",
           on=@dom.on(
@@ -231,7 +231,7 @@ fn combine_example() -> @dom.Node {
           ),
         ),
       ]),
-      @dom.p(children=[@dom.text_dyn(fn() { "Full Name: " + full_name() })]),
+      @dom.p([@dom.text_dyn(fn() { "Full Name: " + full_name() })]),
     ],
   )
 }
@@ -247,8 +247,8 @@ fn style_example() -> @dom.Node {
 
   @dom.div(
     class="style-example",
-    children=[
-      @dom.h2(children=[@dom.text("Style Example")]),
+    [
+      @dom.h2([@dom.text("Style Example")]),
       @dom.create_element(
         "div",
         [
@@ -270,8 +270,8 @@ fn style_example() -> @dom.Node {
         ],
         [],
       ),
-      @dom.div(children=[
-        @dom.label(children=[@dom.text("Hue: ")]),
+      @dom.div([
+        @dom.label([@dom.text("Hue: ")]),
         @dom.create_element(
           "input",
           [
@@ -293,8 +293,8 @@ fn style_example() -> @dom.Node {
           [],
         ),
       ]),
-      @dom.div(children=[
-        @dom.label(children=[@dom.text("Size: ")]),
+      @dom.div([
+        @dom.label([@dom.text("Size: ")]),
         @dom.create_element(
           "input",
           [
@@ -330,11 +330,11 @@ fn conditional_example() -> @dom.Node {
 
   @dom.div(
     class="conditional-example",
-    children=[
-      @dom.h2(children=[@dom.text("Conditional Example")]),
+    [
+      @dom.h2([@dom.text("Conditional Example")]),
       @dom.button(
         on=@dom.on(click=Some(fn(_) { show_message.update(fn(b) { not(b) }) })),
-        children=[
+        [
           @dom.text_dyn(fn() {
             if show_message.get() {
               "Hide Message"
@@ -350,7 +350,7 @@ fn conditional_example() -> @dom.Node {
           @dom.div(
             class="message",
             style=[("padding", "10px"), ("backgroundColor", "#e0f7fa")],
-            children=[@dom.text("Hello! This message is conditionally rendered.")],
+            [@dom.text("Hello! This message is conditionally rendered.")],
           )
         },
       ),
@@ -378,9 +378,9 @@ fn owner_example() -> @dom.Node {
 
   @dom.div(
     class="owner-example",
-    children=[
-      @dom.h2(children=[@dom.text("Owner Example")]),
-      @dom.p(children=[
+    [
+      @dom.h2([@dom.text("Owner Example")]),
+      @dom.p([
         @dom.text("Click to create a scoped reactive context that auto-disposes"),
       ]),
       @dom.button(
@@ -403,11 +403,11 @@ fn owner_example() -> @dom.Node {
             })
           }),
         ),
-        children=[@dom.text("Run Owner Demo")],
+        [@dom.text("Run Owner Demo")],
       ),
       @dom.button(
         on=@dom.on(click=Some(fn(_) { log_messages.set("") })),
-        children=[@dom.text("Clear Log")],
+        [@dom.text("Clear Log")],
       ),
       @dom.div(
         style=[
@@ -417,7 +417,7 @@ fn owner_example() -> @dom.Node {
           ("backgroundColor", "#f5f5f5"),
           ("minHeight", "100px"),
         ],
-        children=[@dom.text_dyn(fn() { log_messages.get() })],
+        [@dom.text_dyn(fn() { log_messages.get() })],
       ),
     ],
   )
@@ -495,8 +495,8 @@ fn todo_example() -> @dom.Node {
 
   @dom.div(
     class="todo-example",
-    children=[
-      @dom.h2(children=[@dom.text("Todo List Example")]),
+    [
+      @dom.h2([@dom.text("Todo List Example")]),
       @dom.form(
         on=@dom.on(
           submit=Some(fn(e) {
@@ -504,7 +504,7 @@ fn todo_example() -> @dom.Node {
             add_todo()
           }),
         ),
-        children=[
+        [
           @dom.input(
             type_="text",
             placeholder="Add a todo...",
@@ -522,7 +522,7 @@ fn todo_example() -> @dom.Node {
           ),
         ],
       ),
-      @dom.p(children=[
+      @dom.p([
         @dom.text_dyn(fn() {
           completed_count().to_string() +
           "/" +
@@ -530,7 +530,7 @@ fn todo_example() -> @dom.Node {
           " completed"
         }),
       ]),
-      @dom.ul(children=[
+      @dom.ul([
         @dom.for_each(
           fn() { todos.get() },
           fn(todo, _index) {
@@ -561,12 +561,12 @@ fn todo_example() -> @dom.Node {
                 @dom.span(
                   style=[("cursor", "pointer")],
                   on=@dom.on(click=Some(fn(_) { toggle_todo(todo_id) })),
-                  children=[@dom.text(todo.text)],
+                  [@dom.text(todo.text)],
                 ),
                 @dom.button(
                   style=[("marginLeft", "10px")],
                   on=@dom.on(click=Some(fn(_) { remove_todo(todo_id) })),
-                  children=[@dom.text("x")],
+                  [@dom.text("x")],
                 ),
               ],
             )
@@ -594,9 +594,9 @@ fn main {
       let app = @dom.div(
         class="app",
         style=[("padding", "20px"), ("maxWidth", "800px"), ("margin", "0 auto")],
-        children=[
-          @dom.h1(children=[@dom.text("@mizchi/ui Examples")]),
-          @dom.p(children=[
+        [
+          @dom.h1([@dom.text("@mizchi/ui Examples")]),
+          @dom.p([
             @dom.text(
               "A collection of examples demonstrating the reactive UI library.",
             ),

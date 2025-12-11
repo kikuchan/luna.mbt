@@ -70,13 +70,13 @@ fn create_todo_app() -> (
   // Build the UI
   let app = div(
     class="todo-app",
-    children=[
+    [
       // Header
-      h1(children=[text("Todo App")]),
+      h1([text("Todo App")]),
       // Input form
       div(
         class="input-section",
-        children=[
+        [
           create_element(
             "input",
             [
@@ -108,7 +108,7 @@ fn create_todo_app() -> (
           button(
             id="add-btn",
             on=on(click=Some(fn(_) { add_todo() })),
-            children=[text("Add")],
+            [text("Add")],
           ),
         ],
       ),
@@ -139,12 +139,12 @@ fn create_todo_app() -> (
                   span(
                     class="todo-text",
                     on=on(click=Some(fn(_) { toggle_todo(todo.id) })),
-                    children=[text(todo.text)],
+                    [text(todo.text)],
                   ),
                   button(
                     class="delete-btn",
                     on=on(click=Some(fn(_) { delete_todo(todo.id) })),
-                    children=[text("×")],
+                    [text("×")],
                   ),
                 ],
               )
@@ -155,7 +155,7 @@ fn create_todo_app() -> (
       // Stats
       div(
         id="stats",
-        children=[
+        [
           text_dyn(fn() {
             let items = todos.get()
             let total = items.length()
@@ -296,7 +296,7 @@ test "Todo app reactive text updates" {
   let doc = @js_dom.document()
   let container = doc.createElement("div")
   let count = @signal.signal(0)
-  let counter_div = div(id="counter", children=[text_sig(count)])
+  let counter_div = div(id="counter", [text_sig(count)])
   render_to(container, counter_div)
 
   // Initial value
@@ -715,10 +715,10 @@ test "Fine-grained: DOM text nodes update independently" {
   // Build DOM structure
   let profile = div(
     class="profile",
-    children=[
-      div(class="name", children=[name_text]),
-      div(class="age", children=[age_text]),
-      div(class="city", children=[city_text]),
+    [
+      div(class="name", [name_text]),
+      div(class="age", [age_text]),
+      div(class="city", [city_text]),
     ],
   )
   render_to(container, profile)

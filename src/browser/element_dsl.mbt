@@ -228,7 +228,7 @@ pub fn div(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("div", build_props(id, class, style, on, attrs), children)
 }
@@ -241,7 +241,7 @@ pub fn span(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("span", build_props(id, class, style, on, attrs), children)
 }
@@ -254,7 +254,7 @@ pub fn p(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("p", build_props(id, class, style, on, attrs), children)
 }
@@ -268,7 +268,7 @@ pub fn button(
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   disabled? : Bool,
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   match disabled {
@@ -287,7 +287,7 @@ pub fn a(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   match href {
@@ -340,7 +340,7 @@ pub fn textarea(
   attrs? : Array[(String, AttrVal)],
   placeholder? : String,
   disabled? : Bool,
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   match placeholder {
@@ -362,7 +362,7 @@ pub fn form(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("form", build_props(id, class, style, on, attrs), children)
 }
@@ -376,7 +376,7 @@ pub fn label(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   match for_ {
@@ -394,7 +394,7 @@ pub fn h1(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("h1", build_props(id, class, style, on, attrs), children)
 }
@@ -407,7 +407,7 @@ pub fn h2(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("h2", build_props(id, class, style, on, attrs), children)
 }
@@ -420,7 +420,7 @@ pub fn h3(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("h3", build_props(id, class, style, on, attrs), children)
 }
@@ -433,7 +433,7 @@ pub fn ul(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("ul", build_props(id, class, style, on, attrs), children)
 }
@@ -446,7 +446,7 @@ pub fn ol(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("ol", build_props(id, class, style, on, attrs), children)
 }
@@ -459,7 +459,7 @@ pub fn li(
   style? : Array[(String, String)],
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
-  children~ : Array[Node] = [],
+  children : Array[Node],
 ) -> Node {
   create_element("li", build_props(id, class, style, on, attrs), children)
 }
