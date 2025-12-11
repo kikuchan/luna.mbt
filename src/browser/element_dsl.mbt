@@ -159,26 +159,6 @@ pub fn HandlerMap::to_attrs(self : HandlerMap) -> Array[(String, AttrValue)] {
   attrs
 }
 
-///|
-/// Empty handlers (no events)
-pub let no_handlers : HandlerMap = {
-  click: None,
-  dblclick: None,
-  input: None,
-  change: None,
-  submit: None,
-  keydown: None,
-  keyup: None,
-  keypress: None,
-  focus: None,
-  blur: None,
-  mouseenter: None,
-  mouseleave: None,
-  mouseover: None,
-  mouseout: None,
-  mousedown: None,
-  mouseup: None,
-}
 
 // =============================================================================
 // Internal: Build props from DSL parameters
@@ -230,12 +210,12 @@ fn build_props(
 ///|
 /// Create a div element
 pub fn div(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("div", build_props(id, class, style, on, attrs), children)
 }
@@ -243,12 +223,12 @@ pub fn div(
 ///|
 /// Create a span element
 pub fn span(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("span", build_props(id, class, style, on, attrs), children)
 }
@@ -256,12 +236,12 @@ pub fn span(
 ///|
 /// Create a p element
 pub fn p(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("p", build_props(id, class, style, on, attrs), children)
 }
@@ -269,13 +249,13 @@ pub fn p(
 ///|
 /// Create a button element
 pub fn button(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  disabled~ : Bool = false,
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  disabled? : Bool = false,
+  children? : Array[Node] = [],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if disabled {
@@ -287,13 +267,13 @@ pub fn button(
 ///|
 /// Create an anchor element
 pub fn a(
-  href~ : String = "",
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  href? : String = "",
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if href != "" {
@@ -305,15 +285,15 @@ pub fn a(
 ///|
 /// Create an input element
 pub fn input(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  type_~ : String = "",
-  value~ : String = "",
-  placeholder~ : String = "",
-  disabled~ : Bool = false,
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  type_? : String = "",
+  value? : String = "",
+  placeholder? : String = "",
+  disabled? : Bool = false,
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if type_ != "" {
@@ -334,14 +314,14 @@ pub fn input(
 ///|
 /// Create a textarea element
 pub fn textarea(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  placeholder~ : String = "",
-  disabled~ : Bool = false,
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  placeholder? : String = "",
+  disabled? : Bool = false,
+  children? : Array[Node] = [],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if placeholder != "" {
@@ -356,12 +336,12 @@ pub fn textarea(
 ///|
 /// Create a form element
 pub fn form(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("form", build_props(id, class, style, on, attrs), children)
 }
@@ -369,13 +349,13 @@ pub fn form(
 ///|
 /// Create a label element
 pub fn label(
-  for_~ : String = "",
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  for_? : String = "",
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if for_ != "" {
@@ -387,12 +367,12 @@ pub fn label(
 ///|
 /// Create h1 element
 pub fn h1(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("h1", build_props(id, class, style, on, attrs), children)
 }
@@ -400,12 +380,12 @@ pub fn h1(
 ///|
 /// Create h2 element
 pub fn h2(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("h2", build_props(id, class, style, on, attrs), children)
 }
@@ -413,12 +393,12 @@ pub fn h2(
 ///|
 /// Create h3 element
 pub fn h3(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("h3", build_props(id, class, style, on, attrs), children)
 }
@@ -426,12 +406,12 @@ pub fn h3(
 ///|
 /// Create ul element
 pub fn ul(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("ul", build_props(id, class, style, on, attrs), children)
 }
@@ -439,12 +419,12 @@ pub fn ul(
 ///|
 /// Create ol element
 pub fn ol(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("ol", build_props(id, class, style, on, attrs), children)
 }
@@ -452,12 +432,12 @@ pub fn ol(
 ///|
 /// Create li element
 pub fn li(
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
-  children~ : Array[Node] = [],
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
+  children? : Array[Node] = [],
 ) -> Node {
   create_element("li", build_props(id, class, style, on, attrs), children)
 }
@@ -465,13 +445,13 @@ pub fn li(
 ///|
 /// Create img element
 pub fn img(
-  src~ : String = "",
-  alt~ : String = "",
-  id~ : String = "",
-  class~ : String = "",
-  style~ : Array[(String, String)] = [],
-  on~ : HandlerMap = no_handlers,
-  attrs~ : Array[(String, AttrVal)] = [],
+  src? : String = "",
+  alt? : String = "",
+  id? : String = "",
+  class? : String = "",
+  style? : Array[(String, String)] = [],
+  on? : HandlerMap = on(),
+  attrs? : Array[(String, AttrVal)] = [],
 ) -> Node {
   let props = build_props(id, class, style, on, attrs)
   if src != "" {
