@@ -2,15 +2,18 @@
 default: test
 
 # Run all tests (MoonBit + Node)
-test: test-moonbit test-vitest test-browser
+test: test-moonbit test-vitest test-browser test-playwright
 
 test-browser: build
     pnpm test:browser
 
+test-playwright: build
+    pnpm test:e2e
+
 # Run MoonBit tests
 test-moonbit:
     moon test --target js
-    moon test --target all src/signal
+    moon test --target all src/core/signal
 
 # Run Node.js tests (vitest)
 test-vitest: build

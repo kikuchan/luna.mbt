@@ -3,7 +3,7 @@
     "mizchi/js/core",
     "mizchi/js/web/http",
     "mizchi/npm_typed/hono",
-    "mizchi/kaguya/framework"
+    { "path": "mizchi/kaguya/app", "alias": "framework" }
   ],
   "link": {
     "js": {

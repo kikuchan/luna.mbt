@@ -14,24 +14,28 @@ pub fn render_counter(
   on_inc : @kaguya.EventHandler,
   on_dec : @kaguya.EventHandler,
 ) -> @kaguya.Node {
-  @kaguya.div(
+  @kaguya.vnode(
+    "div",
     [
       ("class", @kaguya.attr_static("counter")),
       ("data-count", @kaguya.attr_dynamic(fn() { count_sig.get().to_string() })),
     ],
     [
-      @kaguya.span(
+      @kaguya.vnode(
+        "span",
         [("data-count", @kaguya.attr_static("true"))],
         [@kaguya.text_dyn(fn() { count_sig.get().to_string() })],
       ),
-      @kaguya.button(
+      @kaguya.vnode(
+        "button",
         [
           ("data-inc", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(on_inc)),
         ],
         [@kaguya.vtext("+1")],
       ),
-      @kaguya.button(
+      @kaguya.vnode(
+        "button",
         [
           ("data-dec", @kaguya.attr_static("true")),
           ("onClick", @kaguya.attr_handler(on_dec)),
@@ -50,7 +54,7 @@ pub fn render_counter_html(count : Int) -> String {
   let sig = @signal.signal(count)
   let noop = @kaguya.event_handler()
   let vnode = render_counter(sig, noop, noop)
-  @ssr.render_to_string_with_hydration(vnode)
+  @renderer.render_to_string_with_hydration(vnode)
 }
 
 ///|

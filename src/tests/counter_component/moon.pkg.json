@@ -1,8 +1,11 @@
 {
   "import": [
-    "mizchi/kaguya",
-    "mizchi/kaguya/signal",
-    "mizchi/kaguya/server/ssr"
+    {
+      "path": "mizchi/kaguya/core",
+      "alias": "kaguya"
+    },
+    "mizchi/kaguya/core/signal",
+    { "path": "mizchi/kaguya/server/renderer", "alias": "renderer" }
   ],
   "link": {
     "js": {

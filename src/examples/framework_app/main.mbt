@@ -7,19 +7,21 @@
 ///|
 /// Home page component
 fn home_page(_ctx : @framework.Ctx) -> @kaguya.Node {
-  @kaguya.div([@kaguya.class("container")], [
-    @kaguya.h1([], [@kaguya.vtext("Welcome to MoonBit Framework")]),
-    @kaguya.p([], [
+  @kaguya.vnode("div", [("class", @kaguya.attr_static("container"))], [
+    @kaguya.vnode("h1", [], [@kaguya.vtext("Welcome to MoonBit Framework")]),
+    @kaguya.vnode("p", [], [
       @kaguya.vtext("A SSR-first web framework built on Hono and ui.mbt"),
     ]),
-    @kaguya.div([@kaguya.class("nav")], [
-      @kaguya.ul([], [
-        @kaguya.li([], [@kaguya.a([@kaguya.href("/")], [@kaguya.vtext("Home")])]),
-        @kaguya.li([], [
-          @kaguya.a([@kaguya.href("/about")], [@kaguya.vtext("About")]),
+    @kaguya.vnode("div", [("class", @kaguya.attr_static("nav"))], [
+      @kaguya.vnode("ul", [], [
+        @kaguya.vnode("li", [], [
+          @kaguya.vnode("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("Home")]),
         ]),
-        @kaguya.li([], [
-          @kaguya.a([@kaguya.href("/counter")], [@kaguya.vtext("Counter Demo")]),
+        @kaguya.vnode("li", [], [
+          @kaguya.vnode("a", [("href", @kaguya.attr_static("/about"))], [@kaguya.vtext("About")]),
+        ]),
+        @kaguya.vnode("li", [], [
+          @kaguya.vnode("a", [("href", @kaguya.attr_static("/counter"))], [@kaguya.vtext("Counter Demo")]),
         ]),
       ]),
     ]),
@@ -29,13 +31,13 @@ fn home_page(_ctx : @framework.Ctx) -> @kaguya.Node {
 ///|
 /// About page component
 fn about_page(_ctx : @framework.Ctx) -> @kaguya.Node {
-  @kaguya.div([@kaguya.class("container")], [
-    @kaguya.h1([], [@kaguya.vtext("About")]),
-    @kaguya.p([], [@kaguya.vtext("This is a demonstration of SSR with MoonBit.")]),
-    @kaguya.p([], [
+  @kaguya.vnode("div", [("class", @kaguya.attr_static("container"))], [
+    @kaguya.vnode("h1", [], [@kaguya.vtext("About")]),
+    @kaguya.vnode("p", [], [@kaguya.vtext("This is a demonstration of SSR with MoonBit.")]),
+    @kaguya.vnode("p", [], [
       @kaguya.vtext("The HTML is rendered on the server using ui.mbt VNodes."),
     ]),
-    @kaguya.a([@kaguya.href("/")], [@kaguya.vtext("← Back to Home")]),
+    @kaguya.vnode("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("← Back to Home")]),
   ])
 }
 
@@ -43,20 +45,20 @@ fn about_page(_ctx : @framework.Ctx) -> @kaguya.Node {
 /// Counter page with reactive state (demonstrates hydration markers)
 fn counter_page(_ctx : @framework.Ctx) -> @kaguya.Node {
   let count = @signal.signal(0)
-  @kaguya.div([@kaguya.class("container")], [
-    @kaguya.h1([], [@kaguya.vtext("Counter Demo")]),
-    @kaguya.p([], [
+  @kaguya.vnode("div", [("class", @kaguya.attr_static("container"))], [
+    @kaguya.vnode("h1", [], [@kaguya.vtext("Counter Demo")]),
+    @kaguya.vnode("p", [], [
       @kaguya.vtext("This page demonstrates reactive state with hydration markers."),
     ]),
-    @kaguya.div([@kaguya.class("counter")], [
-      @kaguya.span([], [@kaguya.vtext("Count: ")]),
-      @kaguya.span([], [@kaguya.text_dyn(fn() { count.get().to_string() })]),
+    @kaguya.vnode("div", [("class", @kaguya.attr_static("counter"))], [
+      @kaguya.vnode("span", [], [@kaguya.vtext("Count: ")]),
+      @kaguya.vnode("span", [], [@kaguya.text_dyn(fn() { count.get().to_string() })]),
     ]),
-    @kaguya.div([@kaguya.class("buttons")], [
-      @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [@kaguya.vtext("-")]),
-      @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [@kaguya.vtext("+")]),
+    @kaguya.vnode("div", [("class", @kaguya.attr_static("buttons"))], [
+      @kaguya.vnode("button", [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))], [@kaguya.vtext("-")]),
+      @kaguya.vnode("button", [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))], [@kaguya.vtext("+")]),
     ]),
-    @kaguya.a([@kaguya.href("/")], [@kaguya.vtext("← Back to Home")]),
+    @kaguya.vnode("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("← Back to Home")]),
   ])
 }
 

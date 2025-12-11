@@ -1,8 +1,0 @@
-{
-  "import": [
-    "mizchi/kaguya/signal"
-  ],
-  "test-import": [
-    "mizchi/kaguya/server/ssr"
-  ]
-}

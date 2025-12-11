@@ -1,0 +1,8 @@
+{
+  "import": [
+    { "path": "mizchi/kaguya/core", "alias": "kaguya" }
+  ],
+  "test-import": [
+    "mizchi/kaguya/core/signal"
+  ]
+}

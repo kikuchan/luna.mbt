@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": ".",
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "*.ts",
+    "*.tsx",
+    "tests/dom.test.ts",
+    "tests/jsx-runtime.test.tsx",
+    "tests/signals.test.ts",
+    "tests/move-before.bench.ts",
+    "tests/tsx-syntax.test.tsx"
+  ]
+}

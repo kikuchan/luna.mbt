@@ -1,0 +1,15 @@
+{
+  "import": [
+    { "path": "mizchi/kaguya/core", "alias": "kaguya" },
+    "mizchi/kaguya/core/signal"
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "render_to_string",
+        "render_to_string_with_hydration"
+      ],
+      "format": "esm"
+    }
+  }
+}

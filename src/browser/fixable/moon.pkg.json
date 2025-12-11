@@ -3,16 +3,25 @@
     "js"
   ],
   "import": [
-    "mizchi/kaguya",
-    "mizchi/kaguya/signal",
+    {
+      "path": "mizchi/kaguya/core",
+      "alias": "kaguya"
+    },
+    "mizchi/kaguya/core/signal",
     "mizchi/js/core",
-    { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
+    {
+      "path": "mizchi/js/browser/dom",
+      "alias": "js_dom"
+    },
     "mizchi/js/web/event",
     "mizchi/js/builtins/global",
-    { "path": "mizchi/kaguya/browser", "alias": "dom" }
+    {
+      "path": "mizchi/kaguya/browser",
+      "alias": "dom"
+    }
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    "mizchi/kaguya/server/ssr"
+    "mizchi/kaguya/server/renderer"
   ]
 }

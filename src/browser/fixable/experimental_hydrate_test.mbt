@@ -90,9 +90,11 @@ test "exp: repair missing element with handler" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Click me"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Click me")],
+  )
   // Empty container
   exp_set_inner_html(container, "")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -115,9 +117,11 @@ test "exp: repair tag mismatch with data-hk" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Submit"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Submit")],
+  )
   // Wrong tag (span instead of button) but correct data-hk
   exp_set_inner_html(container, "<span data-hk=\"0\">Submit</span>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -144,9 +148,11 @@ test "exp: repair class attribute mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([@kaguya.class("correct-class")], [
-    @kaguya.vtext("Content"),
-  ])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("class", @kaguya.attr_static("correct-class"))],
+    [@kaguya.vtext("Content")],
+  )
   // Wrong class
   exp_set_inner_html(container, "<div class=\"wrong-class\">Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -168,7 +174,11 @@ test "exp: repair id attribute mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([@kaguya.id("correct-id")], [@kaguya.vtext("Content")])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("id", @kaguya.attr_static("correct-id"))],
+    [@kaguya.vtext("Content")],
+  )
   // Wrong id
   exp_set_inner_html(container, "<div id=\"wrong-id\">Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -190,9 +200,11 @@ test "exp: repair missing attribute" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([@kaguya.attr("data-testid", "my-test")], [
-    @kaguya.vtext("Content"),
-  ])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("data-testid", @kaguya.attr_static("my-test"))],
+    [@kaguya.vtext("Content")],
+  )
   // No attribute
   exp_set_inner_html(container, "<div>Content</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -268,9 +280,11 @@ test "exp: dynamic attribute setup works after repair" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let title = @signal.signal("Title 1")
-  let vnode = @kaguya.div([@kaguya.attr_dyn("title", fn() { title.get() })], [
-    @kaguya.vtext("Hover me"),
-  ])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("title", @kaguya.attr_dynamic(fn() { title.get() }))],
+    [@kaguya.vtext("Hover me")],
+  )
   // Element exists but wrong structure
   exp_set_inner_html(container, "<div>Hover me</div>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -292,8 +306,14 @@ test "exp: dynamic style setup works after repair" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let bg = @signal.signal("red")
-  let vnode = @kaguya.div(
-    [@kaguya.style_dyn(fn() { "background-color: " + bg.get() })],
+  let vnode = @kaguya.vnode(
+    "div",
+    [
+      (
+        "style",
+        @kaguya.attr_dynamic_style(fn() { "background-color: " + bg.get() }),
+      ),
+    ],
     [@kaguya.vtext("Styled")],
   )
   // Element exists
@@ -350,7 +370,9 @@ test "exp: repair show with condition initially false" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let visible = @signal.signal(false)
-  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() { @kaguya.vtext("Hidden") })
+  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.vtext("Hidden")
+  })
   exp_set_inner_html(container, "")
   let result = experimental_hydrate(container, vnode, logger~)
   match result {
@@ -376,7 +398,7 @@ test "exp: repair missing for markers" {
     let arr = items.get()
     let result : Array[@kaguya.Node] = []
     for i = 0; i < arr.length(); i = i + 1 {
-      result.push(@kaguya.li([], [@kaguya.vtext(arr[i])]))
+      result.push(@kaguya.vnode("li", [], [@kaguya.vtext(arr[i])]))
     }
     result
   })
@@ -405,7 +427,9 @@ test "exp: repair for item count mismatch - too few items" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vfor(fn() { [@kaguya.vtext("A"), @kaguya.vtext("B"), @kaguya.vtext("C")] })
+  let vnode = @kaguya.vfor(fn() {
+    [@kaguya.vtext("A"), @kaguya.vtext("B"), @kaguya.vtext("C")]
+  })
   // Only 1 item in DOM
   exp_set_inner_html(container, "<!--f:0-->X<!--/f-->")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -453,9 +477,11 @@ test "exp: repair deeply nested missing element" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([], [
-    @kaguya.div([], [
-      @kaguya.div([], [@kaguya.span([], [@kaguya.vtext("Deep")])]),
+  let vnode = @kaguya.vnode("div", [], [
+    @kaguya.vnode("div", [], [
+      @kaguya.vnode("div", [], [
+        @kaguya.vnode("span", [], [@kaguya.vtext("Deep")]),
+      ]),
     ]),
   ])
   // Only outer div
@@ -501,9 +527,13 @@ test "exp: repair component render" {
   fn counter_component(initial : Int) -> @kaguya.Node {
     let count = @signal.signal(initial)
     let _ = count // suppress unused warning
-    @kaguya.div([], [
+    @kaguya.vnode("div", [], [
       @kaguya.text_dyn(fn() { "Count: " + count.get().to_string() }),
-      @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [@kaguya.vtext("+")]),
+      @kaguya.vnode(
+        "button",
+        [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+        [@kaguya.vtext("+")],
+      ),
     ])
   }
 
@@ -529,8 +559,8 @@ test "exp: fallback succeeds when normal hydration works" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([], [@kaguya.vtext("Content")])
-  let html = @ssr.render_to_string(vnode)
+  let vnode = @kaguya.vnode("div", [], [@kaguya.vtext("Content")])
+  let html = @renderer.render_to_string(vnode)
   exp_set_inner_html(container, html)
   let result = hydrate_with_fallback(container, vnode, logger~)
   match result {
@@ -545,9 +575,11 @@ test "exp: fallback recovers from complete mismatch" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Click"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Click")],
+  )
   // Completely wrong HTML
   exp_set_inner_html(container, "<table><tr><td>Wrong</td></tr></table>")
   let result = hydrate_with_fallback(container, vnode, logger~)
@@ -569,9 +601,11 @@ test "exp: fallback with logger captures both phases" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Submit"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Submit")],
+  )
   // Wrong HTML
   exp_set_inner_html(container, "<input type=\"text\" />")
   let _ = hydrate_with_fallback(container, vnode, logger~)
@@ -624,7 +658,7 @@ test "exp: handle multiple dynamic elements" {
   let logger = StringBuilder::new()
   let a = @signal.signal("A")
   let b = @signal.signal("B")
-  let vnode = @kaguya.div([], [
+  let vnode = @kaguya.vnode("div", [], [
     @kaguya.text_dyn(fn() { a.get() }),
     @kaguya.text_dyn(fn() { b.get() }),
   ])
@@ -649,8 +683,9 @@ test "exp: handle static style attribute" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div(
-    [@kaguya.style("color: red; font-size: 16px")],
+  let vnode = @kaguya.vnode(
+    "div",
+    [("style", @kaguya.attr_style("color: red; font-size: 16px"))],
     [@kaguya.vtext("Styled")],
   )
   exp_set_inner_html(container, "<div>Styled</div>")
@@ -669,9 +704,11 @@ test "exp: handle event handler attachment" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Click"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Click")],
+  )
   // Correct HTML with data-hk
   exp_set_inner_html(container, "<button data-hk=\"0\">Click</button>")
   let result = experimental_hydrate(container, vnode, logger~)
@@ -694,8 +731,8 @@ test "report: clean hydration returns clean report" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([], [@kaguya.vtext("Content")])
-  let html = @ssr.render_to_string(vnode)
+  let vnode = @kaguya.vnode("div", [], [@kaguya.vtext("Content")])
+  let html = @renderer.render_to_string(vnode)
   exp_set_inner_html(container, html)
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_true(report.is_clean())
@@ -741,9 +778,11 @@ test "report: element missing has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Click"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Click")],
+  )
   exp_set_inner_html(container, "")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -760,9 +799,11 @@ test "report: tag mismatch has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-    @kaguya.vtext("Click"),
-  ])
+  let vnode = @kaguya.vnode(
+    "button",
+    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+    [@kaguya.vtext("Click")],
+  )
   exp_set_inner_html(container, "<span data-hk=\"0\">Click</span>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -780,7 +821,11 @@ test "report: attribute mismatch has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([@kaguya.class("expected")], [@kaguya.vtext("Content")])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("class", @kaguya.attr_static("expected"))],
+    [@kaguya.vtext("Content")],
+  )
   exp_set_inner_html(container, "<div class=\"wrong\">Content</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -813,7 +858,9 @@ test "report: show marker missing has correct repair type" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let visible = @signal.signal(true)
-  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() { @kaguya.vtext("Content") })
+  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.vtext("Content")
+  })
   exp_set_inner_html(container, "")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -839,7 +886,9 @@ test "report: for item count mismatch has correct repair type" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vfor(fn() { [@kaguya.vtext("A"), @kaguya.vtext("B"), @kaguya.vtext("C")] })
+  let vnode = @kaguya.vfor(fn() {
+    [@kaguya.vtext("A"), @kaguya.vtext("B"), @kaguya.vtext("C")]
+  })
   exp_set_inner_html(container, "<!--f:0-->X<!--/f-->")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -860,7 +909,9 @@ test "report: show content missing has correct repair type" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let visible = @signal.signal(true)
-  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() { @kaguya.vtext("Content") })
+  let vnode = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.vtext("Content")
+  })
   // Markers exist but no content
   exp_set_inner_html(container, "<!--s:0--><!--/s-->")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
@@ -874,7 +925,9 @@ test "report: node path tracks hierarchy" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([], [@kaguya.span([], [@kaguya.vtext("Wrong content")])])
+  let vnode = @kaguya.vnode("div", [], [
+    @kaguya.vnode("span", [], [@kaguya.vtext("Wrong content")]),
+  ])
   exp_set_inner_html(container, "<div><span>Different</span></div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   if not(report.is_clean()) {
@@ -896,12 +949,18 @@ test "report: multiple repairs tracked" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   // Multiple things wrong
-  let vnode = @kaguya.div([@kaguya.class("expected")], [
-    @kaguya.vtext("Wrong"),
-    @kaguya.button([@kaguya.on_click(@kaguya.event_handler())], [
-      @kaguya.vtext("Click"),
-    ]),
-  ])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("class", @kaguya.attr_static("expected"))],
+    [
+      @kaguya.vtext("Wrong"),
+      @kaguya.vnode(
+        "button",
+        [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
+        [@kaguya.vtext("Click")],
+      ),
+    ],
+  )
   exp_set_inner_html(container, "<div class=\"wrong\">Different</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -915,7 +974,9 @@ test "report: get_repairs returns all repair infos" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.div([@kaguya.class("test")], [@kaguya.vtext("Hello")])
+  let vnode = @kaguya.vnode("div", [("class", @kaguya.attr_static("test"))], [
+    @kaguya.vtext("Hello"),
+  ])
   exp_set_inner_html(container, "<div class=\"wrong\">World</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   let repairs = report.get_repairs()
@@ -933,7 +994,11 @@ test "report: filter repairs by type returns correct subset" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   // Create scenario with attribute mismatch
-  let vnode = @kaguya.div([@kaguya.id("expected-id")], [@kaguya.vtext("Content")])
+  let vnode = @kaguya.vnode(
+    "div",
+    [("id", @kaguya.attr_static("expected-id"))],
+    [@kaguya.vtext("Content")],
+  )
   exp_set_inner_html(container, "<div id=\"wrong-id\">Content</div>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   let attr_repairs = report.get_repairs_by_type(
