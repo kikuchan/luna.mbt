@@ -66,7 +66,11 @@
         "style",
         "style_dyn:styleDyn",
         "attr",
-        "attr_dyn:attrDyn"
+        "attr_dyn:attrDyn",
+        "create_element:createElement",
+        "jsx",
+        "jsxs",
+        "fragment:Fragment"
       ],
       "format": "esm"
     }

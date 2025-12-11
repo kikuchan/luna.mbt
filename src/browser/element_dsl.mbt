@@ -554,3 +554,41 @@ pub fn attr_style(styles : Array[(String, String)]) -> AttrValue {
 pub fn attr_dynamic_style(getter : () -> Array[(String, String)]) -> AttrValue {
   DynamicStyle(getter)
 }
+
+// =============================================================================
+// JSX Runtime - For TSX/JSX compatibility
+// =============================================================================
+
+///|
+/// JSX runtime: jsx function (maps directly to create_element)
+/// Usage in TSX: <div class="foo">children</div>
+pub fn jsx(
+  tag : String,
+  attrs : Array[(String, AttrValue)],
+  children : Array[Node],
+) -> Node {
+  create_element(tag, attrs, children)
+}
+
+///|
+/// JSX runtime: jsxs function (same as jsx, for static children)
+pub fn jsxs(
+  tag : String,
+  attrs : Array[(String, AttrValue)],
+  children : Array[Node],
+) -> Node {
+  create_element(tag, attrs, children)
+}
+
+///|
+/// JSX runtime: Fragment (returns children as-is wrapped in a container)
+pub fn fragment(children : Array[Node]) -> Node {
+  // Return a document fragment or first child
+  // For simplicity, wrap in a span with no attributes
+  // In production, this should return a proper fragment
+  match children.length() {
+    0 => create_element("span", [], [])
+    1 => children[0]
+    _ => create_element("span", [], children)
+  }
+}
