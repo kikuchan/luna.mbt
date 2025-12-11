@@ -52,12 +52,13 @@ fn AttrVal::to_attr_value(self : AttrVal) -> AttrValue {
 
 ///|
 /// Event handlers collection - opaque JS object
-/// Internally stores { onClick?: fn, onInput?: fn, ... }
+/// Internally stores { click?: fn, input?: fn, ... } (lowercase event names)
 pub type HandlerMap
 
 ///|
 /// Create a HandlerMap with optional event handlers
 /// Uses JS FFI to create a plain object directly, avoiding MoonBit struct overhead
+/// Event names are stored in lowercase (DOM standard) to avoid conversion overhead
 pub extern "js" fn on(
   click? : ((@js_dom.MouseEvent) -> Unit)?,
   dblclick? : ((@js_dom.MouseEvent) -> Unit)?,
@@ -78,30 +79,32 @@ pub extern "js" fn on(
 ) -> HandlerMap =
   #|(click, dblclick, input, change, submit, keydown, keyup, keypress, focus, blur, mouseenter, mouseleave, mouseover, mouseout, mousedown, mouseup) => {
   #|  const m = {};
-  #|  if (click) m.onClick = click;
-  #|  if (dblclick) m.onDblclick = dblclick;
-  #|  if (input) m.onInput = input;
-  #|  if (change) m.onChange = change;
-  #|  if (submit) m.onSubmit = submit;
-  #|  if (keydown) m.onKeydown = keydown;
-  #|  if (keyup) m.onKeyup = keyup;
-  #|  if (keypress) m.onKeypress = keypress;
-  #|  if (focus) m.onFocus = focus;
-  #|  if (blur) m.onBlur = blur;
-  #|  if (mouseenter) m.onMouseenter = mouseenter;
-  #|  if (mouseleave) m.onMouseleave = mouseleave;
-  #|  if (mouseover) m.onMouseover = mouseover;
-  #|  if (mouseout) m.onMouseout = mouseout;
-  #|  if (mousedown) m.onMousedown = mousedown;
-  #|  if (mouseup) m.onMouseup = mouseup;
+  #|  if (click) m.click = click;
+  #|  if (dblclick) m.dblclick = dblclick;
+  #|  if (input) m.input = input;
+  #|  if (change) m.change = change;
+  #|  if (submit) m.submit = submit;
+  #|  if (keydown) m.keydown = keydown;
+  #|  if (keyup) m.keyup = keyup;
+  #|  if (keypress) m.keypress = keypress;
+  #|  if (focus) m.focus = focus;
+  #|  if (blur) m.blur = blur;
+  #|  if (mouseenter) m.mouseenter = mouseenter;
+  #|  if (mouseleave) m.mouseleave = mouseleave;
+  #|  if (mouseover) m.mouseover = mouseover;
+  #|  if (mouseout) m.mouseout = mouseout;
+  #|  if (mousedown) m.mousedown = mousedown;
+  #|  if (mouseup) m.mouseup = mouseup;
   #|  return m;
   #|}
 
 ///|
 /// Convert HandlerMap to Array of attribute tuples using JS Object.entries
-extern "js" fn HandlerMap::to_attrs(self : HandlerMap) -> Array[(String, AttrValue)] =
+/// Keys are already lowercase event names, tag 2 = Handler variant
+extern "js" fn HandlerMap::to_attrs(
+  self : HandlerMap,
+) -> Array[(String, AttrValue)] =
   #|(m) => Object.entries(m).map(([k, v]) => ({ _0: k, _1: { $tag: 2, _0: v } }))
-
 
 // =============================================================================
 // Internal: Build props from DSL parameters
@@ -118,21 +121,18 @@ fn build_props(
   let result : Array[(String, AttrValue)] = []
 
   // id
-  match id {
-    Some(v) => result.push(("id", Static(v)))
-    None => ()
+  if id is Some(v) {
+    result.push(("id", Static(v)))
   }
 
   // class
-  match class {
-    Some(v) => result.push(("className", Static(v)))
-    None => ()
+  if class is Some(v) {
+    result.push(("className", Static(v)))
   }
 
   // style
-  match style {
-    Some(styles) => result.push(("style", StyleObj(styles)))
-    None => ()
+  if style is Some(styles) {
+    result.push(("style", StyleObj(styles)))
   }
 
   // event handlers
@@ -148,12 +148,11 @@ fn build_props(
 
   // additional attrs
   match attrs {
-    Some(extra) => {
+    Some(extra) =>
       for pair in extra {
         let (key, val) = pair
         result.push((key, val.to_attr_value()))
       }
-    }
     None => ()
   }
   result
