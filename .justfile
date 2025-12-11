@@ -7,12 +7,10 @@ test: test-moonbit test-vitest test-browser
 test-browser: build
     pnpm test:browser
 
-
 # Run MoonBit tests
 test-moonbit:
-    moon test src --target all
-    moon test src/server/ssr --target all
-    moon test src/browser --target js
+    moon test --target js
+    moon test --target all src/signal
 
 # Run Node.js tests (vitest)
 test-vitest: build

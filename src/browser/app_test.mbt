@@ -838,3 +838,4 @@ test "Fine-grained: memo prevents unnecessary recomputation" {
   assert_eq(doubled(), 40)
   // Memo recomputed once for the new value
 }
+

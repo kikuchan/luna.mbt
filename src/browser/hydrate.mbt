@@ -632,11 +632,33 @@ pub fn render_vnode_to_dom(node : @kaguya.Node) -> @js_dom.Node {
       placeholder
     }
     @kaguya.For(render=render_fn) => {
-      let container = doc.createDocumentFragment()
-      let container_node = container.as_node()
+      // Use a comment as a placeholder/marker for where to insert items
+      let placeholder = doc.createComment("for")
       let current_nodes : Array[@js_dom.Node] = []
+      let is_first_render : Ref[Bool] = { val: true }
+
+      // Create a fragment for initial render
+      let fragment = doc.createDocumentFragment()
+      let fragment_node = fragment.as_node()
+
+      // Initial render
+      let initial_items = render_fn()
+      for item in initial_items {
+        let rendered = render_vnode_to_dom(item)
+        current_nodes.push(rendered)
+        fragment_node.appendChild(rendered) |> ignore
+      }
+      // Append placeholder at end
+      fragment_node.appendChild(placeholder) |> ignore
+
+      // Set up effect for updates (skip first run since we already rendered)
       let _ = @signal.effect(fn() {
         let new_items = render_fn()
+
+        if is_first_render.val {
+          is_first_render.val = false
+          return
+        }
 
         // Remove old nodes
         for node in current_nodes {
@@ -646,13 +668,20 @@ pub fn render_vnode_to_dom(node : @kaguya.Node) -> @js_dom.Node {
           }
         }
         current_nodes.clear()
-        for item in new_items {
-          let rendered = render_vnode_to_dom(item)
-          current_nodes.push(rendered)
-          container_node.appendChild(rendered) |> ignore
+
+        // Insert new items before the placeholder
+        match placeholder.parentNode() {
+          Some(parent) => {
+            for item in new_items {
+              let rendered = render_vnode_to_dom(item)
+              current_nodes.push(rendered)
+              parent.insertBefore(rendered, Some(placeholder)) |> ignore
+            }
+          }
+          None => ()
         }
       })
-      container_node
+      fragment_node
     }
     @kaguya.Component(render=render_fn) => render_vnode_to_dom(render_fn())
   }
@@ -691,8 +720,10 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr) -> U
     }
     @kaguya.VHandler(handler) => {
       let event_name = extract_event_name(name)
-      let handler_any : @core.Any = @core.any(handler)
-      elem.as_event_target().addEventListener(event_name, handler_any.cast())
+      let callback = handler.get_callback()
+      // Wrap callback to ignore event argument
+      let wrapper : (@core.Any) -> Unit = fn(_event) { callback() }
+      elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
     }
   }
 }

@@ -41,10 +41,12 @@
     const state = await parseState(el);
     S[id] = state;
 
-    // Import module and call hydrate
+    // Import module and call hydrate function
+    // Supports kg:export attribute to specify which function to call
     try {
       const mod = await import(url);
-      const fn = mod.hydrate || mod.default;
+      const exportName = el.getAttribute('kg:export');
+      const fn = exportName ? mod[exportName] : (mod.hydrate || mod.default);
       if (fn) fn(el, state, id);
     } catch (e) {
       console.error(`[kg-loader] Failed to hydrate ${id}:`, e);
