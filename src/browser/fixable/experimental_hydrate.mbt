@@ -529,23 +529,6 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr) -> U
       let handler_any : @core.Any = @core.any(handler)
       elem.as_event_target().addEventListener(event_name, handler_any.cast())
     }
-    @kaguya.VStyle(styles) => {
-      let style_prop : @core.Any = elem.as_any()._get("style")
-      for style in styles {
-        let (prop, val) = style
-        style_prop._set(prop, @core.any(val)) |> ignore
-      }
-    }
-    @kaguya.VDynamicStyle(getter) => {
-      let _ = @signal.effect(fn() {
-        let styles = getter()
-        let style_prop : @core.Any = elem.as_any()._get("style")
-        for style in styles {
-          let (prop, val) = style
-          style_prop._set(prop, @core.any(val)) |> ignore
-        }
-      })
-    }
   }
 }
 
@@ -1008,23 +991,6 @@ fn repair_attributes(
         let event_name = extract_event_name(name)
         let handler_any : @core.Any = @core.any(handler)
         elem.as_event_target().addEventListener(event_name, handler_any.cast())
-      }
-      @kaguya.VStyle(styles) => {
-        let style_prop : @core.Any = elem.as_any()._get("style")
-        for j = 0; j < styles.length(); j = j + 1 {
-          let (prop, val) = styles[j]
-          style_prop._set(prop, @core.any(val)) |> ignore
-        }
-      }
-      @kaguya.VDynamicStyle(getter) => {
-        let _ = @signal.effect(fn() {
-          let styles = getter()
-          let style_prop : @core.Any = elem.as_any()._get("style")
-          for j = 0; j < styles.length(); j = j + 1 {
-            let (prop, val) = styles[j]
-            style_prop._set(prop, @core.any(val)) |> ignore
-          }
-        })
       }
     }
   }

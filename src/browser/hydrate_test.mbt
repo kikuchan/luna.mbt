@@ -687,7 +687,7 @@ test "hydrate dynamic style" {
   let container = create_container()
   let color_sig = @signal.signal("red")
   let vnode = @element.div(
-    [@element.style_dyn(fn() { [("color", color_sig.get())] })],
+    [@element.style_dyn(fn() { "color: " + color_sig.get() })],
     [@kaguya.vtext("Styled")],
   )
   let html = @ssr.render_to_string_with_hydration(vnode)
@@ -796,7 +796,7 @@ test "render_vnode_to_dom with static style" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @element.div([@element.style([("color", "red")])], [
+  let vnode = @element.div([@element.style("color: red")], [
     @kaguya.vtext("Styled"),
   ])
   let dom_node = render_vnode_to_dom(vnode)
@@ -811,7 +811,7 @@ test "render_vnode_to_dom with dynamic style" {
   let container = create_container()
   let color = @signal.signal("green")
   let vnode = @element.div(
-    [@element.style_dyn(fn() { [("backgroundColor", color.get())] })],
+    [@element.style_dyn(fn() { "background-color: " + color.get() })],
     [@kaguya.vtext("Dynamic styled")],
   )
   let dom_node = render_vnode_to_dom(vnode)

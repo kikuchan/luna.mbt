@@ -93,10 +93,7 @@ test "render dynamic attribute" {
 
 ///|
 test "render style attribute" {
-  let node = @element.div(
-    [@element.style([("color", "red"), ("fontSize", "16px")])],
-    [],
-  )
+  let node = @element.div([@element.style("color: red; font-size: 16px")], [])
   let html = render_to_string(node)
   assert_eq(html, "<div style=\"color: red; font-size: 16px\"></div>")
 }
@@ -336,7 +333,7 @@ test "render non-void element with length 7" {
 ///|
 test "render dynamic style" {
   let node = @element.div(
-    [@element.style_dyn(fn() { [("color", "blue"), ("margin", "10px")] })],
+    [@element.style_dyn(fn() { "color: blue; margin: 10px" })],
     [],
   )
   let html = render_to_string(node)
@@ -345,7 +342,8 @@ test "render dynamic style" {
 
 ///|
 test "render empty dynamic style" {
-  let node = @element.div([@element.style_dyn(fn() { [] })], [])
+  let node = @element.div([@element.style_dyn(fn() { "" })], [])
   let html = render_to_string(node)
-  assert_eq(html, "<div></div>")
+  // Empty string results in empty style attribute (no quotes needed)
+  assert_eq(html, "<div style></div>")
 }

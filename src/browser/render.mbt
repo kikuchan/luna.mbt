@@ -27,8 +27,6 @@ pub enum AttrValue {
   Static(String)
   Dynamic(() -> String)
   Handler((@core.Any) -> Unit)
-  StyleObj(Array[(String, String)])
-  DynamicStyle(() -> Array[(String, String)])
 }
 
 ///|
@@ -62,24 +60,25 @@ fn apply_attribute(
   value : AttrValue,
 ) -> Unit {
   match value {
-    Static(s) => apply_static_attr(elem, name, s)
+    Static(s) =>
+      if name == "style" {
+        apply_style_string(elem, s)
+      } else {
+        apply_static_attr(elem, name, s)
+      }
     Dynamic(getter) => {
       // Set up effect to update attribute when value changes
       let _ = @signal.effect(fn() {
         let new_value = getter()
-        apply_static_attr(elem, name, new_value)
+        if name == "style" {
+          apply_style_string(elem, new_value)
+        } else {
+          apply_static_attr(elem, name, new_value)
+        }
       })
 
     }
     Handler(handler) => apply_event_handler(elem, name, handler)
-    StyleObj(styles) => apply_style_object(elem, styles)
-    DynamicStyle(getter) => {
-      let _ = @signal.effect(fn() {
-        let styles = getter()
-        apply_style_object(elem, styles)
-      })
-
-    }
   }
 }
 
@@ -119,16 +118,9 @@ extern "js" fn apply_event_handler(
   #|(elem, name, handler) => elem.addEventListener(name, handler)
 
 ///|
-/// Apply style object
-fn apply_style_object(
-  elem : @js_dom.Element,
-  styles : Array[(String, String)],
-) -> Unit {
-  let style_prop : @core.Any = elem.as_any()._get("style")
-  for i = 0; i < styles.length(); i = i + 1 {
-    let (prop, value) = styles[i]
-    style_prop._set(prop, @core.any(value)) |> ignore
-  }
+/// Apply style string (e.g. "color: red; margin: 10px")
+fn apply_style_string(elem : @js_dom.Element, style : String) -> Unit {
+  elem.setAttribute("style", style)
 }
 
 ///|

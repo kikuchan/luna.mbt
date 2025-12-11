@@ -155,7 +155,7 @@ test "dom_reactive_style_update" (b : @bench.T) {
     [
       (
         "style",
-        @kaguya.attr_dynamic_style(fn() { [("width", width.get().to_string() + "px")] }),
+        @kaguya.attr_dynamic_style(fn() { "width: " + width.get().to_string() + "px" }),
       ),
     ],
     [],

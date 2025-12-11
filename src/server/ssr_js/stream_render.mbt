@@ -185,36 +185,6 @@ fn render_attrs_to_sb(sb : StringBuilder, attrs : Array[(String, @kaguya.Attr)])
         }
       }
       VHandler(_) => () // Skip handlers
-      VStyle(styles) =>
-        if styles.length() > 0 {
-          sb.write_string(" style=\"")
-          for i = 0; i < styles.length(); i = i + 1 {
-            if i > 0 {
-              sb.write_string("; ")
-            }
-            let (prop, val) = styles[i]
-            sb.write_string(prop)
-            sb.write_string(": ")
-            sb.write_string(val)
-          }
-          sb.write_char('"')
-        }
-      VDynamicStyle(getter) => {
-        let styles = getter()
-        if styles.length() > 0 {
-          sb.write_string(" style=\"")
-          for i = 0; i < styles.length(); i = i + 1 {
-            if i > 0 {
-              sb.write_string("; ")
-            }
-            let (prop, val) = styles[i]
-            sb.write_string(prop)
-            sb.write_string(": ")
-            sb.write_string(val)
-          }
-          sb.write_char('"')
-        }
-      }
     }
   }
 }

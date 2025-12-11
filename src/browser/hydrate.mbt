@@ -324,21 +324,6 @@ fn hydrate_element(
         let wrapper : (@core.Any) -> Unit = fn(_event) { callback() }
         elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
       }
-      @kaguya.VStyle(_) =>
-        // Static style already rendered
-        ()
-      @kaguya.VDynamicStyle(getter) => {
-        // Set up effect to update style
-        let _ = @signal.effect(fn() {
-          let styles = getter()
-          let style_prop : @core.Any = elem.as_any()._get("style")
-          for style in styles {
-            let (prop, val) = style
-            style_prop._set(prop, @core.any(val)) |> ignore
-          }
-        })
-
-      }
     }
   }
 }
@@ -708,24 +693,6 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr) -> U
       let event_name = extract_event_name(name)
       let handler_any : @core.Any = @core.any(handler)
       elem.as_event_target().addEventListener(event_name, handler_any.cast())
-    }
-    @kaguya.VStyle(styles) => {
-      let style_prop : @core.Any = elem.as_any()._get("style")
-      for style in styles {
-        let (prop, val) = style
-        style_prop._set(prop, @core.any(val)) |> ignore
-      }
-    }
-    @kaguya.VDynamicStyle(getter) => {
-      let _ = @signal.effect(fn() {
-        let styles = getter()
-        let style_prop : @core.Any = elem.as_any()._get("style")
-        for style in styles {
-          let (prop, val) = style
-          style_prop._set(prop, @core.any(val)) |> ignore
-        }
-      })
-
     }
   }
 }

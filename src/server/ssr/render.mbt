@@ -88,51 +88,6 @@ fn escape_attr_to(sb : StringBuilder, s : String) -> Unit {
 }
 
 ///|
-/// Convert style array to CSS string and write to StringBuilder
-fn style_to_sb(sb : StringBuilder, styles : Array[(String, String)]) -> Unit {
-  for i = 0; i < styles.length(); i = i + 1 {
-    let (prop, value) = styles[i]
-    if i > 0 {
-      sb.write_string("; ")
-    }
-    // Convert camelCase to kebab-case
-    camel_to_kebab_to(sb, prop)
-    sb.write_string(": ")
-    sb.write_string(value)
-  }
-}
-
-///|
-/// Check if string has uppercase letters (needs camelCase conversion)
-fn needs_kebab_convert(s : String) -> Bool {
-  for char in s {
-    if char >= 'A' && char <= 'Z' {
-      return true
-    }
-  }
-  false
-}
-
-///|
-/// Convert camelCase to kebab-case and write to StringBuilder
-fn camel_to_kebab_to(sb : StringBuilder, s : String) -> Unit {
-  // Fast path: already kebab-case or lowercase
-  if not(needs_kebab_convert(s)) {
-    sb.write_string(s)
-    return
-  }
-  // Slow path: convert camelCase to kebab-case
-  for char in s {
-    if char >= 'A' && char <= 'Z' {
-      sb.write_char('-')
-      sb.write_char((char.to_int() + 32).unsafe_to_char())
-    } else {
-      sb.write_char(char)
-    }
-  }
-}
-
-///|
 /// Render attributes to StringBuilder
 fn render_attrs_to(
   sb : StringBuilder,
@@ -173,20 +128,6 @@ fn render_attrs_to(
       VHandler(_) =>
         // Event handlers are not rendered in SSR
         ()
-      VStyle(styles) =>
-        if styles.length() > 0 {
-          sb.write_string(" style=\"")
-          style_to_sb(sb, styles)
-          sb.write_char('"')
-        }
-      VDynamicStyle(getter) => {
-        let styles = getter()
-        if styles.length() > 0 {
-          sb.write_string(" style=\"")
-          style_to_sb(sb, styles)
-          sb.write_char('"')
-        }
-      }
     }
   }
 }
@@ -331,7 +272,7 @@ fn has_dynamic_content(attrs : Array[(String, @kaguya.Attr)]) -> Bool {
   for attr in attrs {
     let (_, value) = attr
     match value {
-      VDynamic(_) | VHandler(_) | VDynamicStyle(_) => return true
+      VDynamic(_) | VHandler(_) => return true
       _ => ()
     }
   }

@@ -32,8 +32,6 @@ pub enum Attr {
   VStatic(String)
   VDynamic(() -> String)
   VHandler(EventHandler)
-  VStyle(Array[(String, String)])
-  VDynamicStyle(() -> Array[(String, String)])
 }
 
 ///|
@@ -114,7 +112,7 @@ pub fn has_dynamic_content(attrs : Array[(String, Attr)]) -> Bool {
   for attr in attrs {
     let (_, value) = attr
     match value {
-      VDynamic(_) | VHandler(_) | VDynamicStyle(_) => return true
+      VDynamic(_) | VHandler(_) => return true
       _ => ()
     }
   }
@@ -142,13 +140,13 @@ pub fn attr_handler(handler : EventHandler) -> Attr {
 }
 
 ///|
-/// Create a style attribute value
-pub fn attr_style(styles : Array[(String, String)]) -> Attr {
-  VStyle(styles)
+/// Create a style attribute value (string form, e.g. "color: red; margin: 10px")
+pub fn attr_style(style : String) -> Attr {
+  VStatic(style)
 }
 
 ///|
 /// Create a dynamic style attribute value
-pub fn attr_dynamic_style(getter : () -> Array[(String, String)]) -> Attr {
-  VDynamicStyle(getter)
+pub fn attr_dynamic_style(getter : () -> String) -> Attr {
+  VDynamic(getter)
 }

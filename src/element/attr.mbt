@@ -115,13 +115,13 @@ pub fn on_submit(handler : @kaguya.EventHandler) -> (String, @kaguya.Attr) {
 }
 
 ///|
-/// Create a style attribute
-pub fn style(styles : Array[(String, String)]) -> (String, @kaguya.Attr) {
-  ("style", @kaguya.attr_style(styles))
+/// Create a style attribute (string form, e.g. "color: red; margin: 10px")
+pub fn style(value : String) -> (String, @kaguya.Attr) {
+  ("style", @kaguya.attr_style(value))
 }
 
 ///|
 /// Create a dynamic style attribute
-pub fn style_dyn(getter : () -> Array[(String, String)]) -> (String, @kaguya.Attr) {
+pub fn style_dyn(getter : () -> String) -> (String, @kaguya.Attr) {
   ("style", @kaguya.attr_dynamic_style(getter))
 }

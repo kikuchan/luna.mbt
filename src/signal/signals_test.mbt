@@ -883,11 +883,11 @@ test "von_submit creates submit handler" {
 
 ///|
 test "vstyle_dyn creates dynamic style attribute" {
-  let styles = fn() { [("color", "red"), ("margin", "10px")] }
-  let (key, attr) = @element.style_dyn(styles)
+  let style_getter = fn() { "color: red; margin: 10px" }
+  let (key, attr) = @element.style_dyn(style_getter)
   assert_eq(key, "style")
   match attr {
-    @kaguya.VDynamicStyle(g) => assert_eq(g().length(), 2)
+    @kaguya.VDynamic(g) => assert_eq(g(), "color: red; margin: 10px")
     _ => assert_true(false)
   }
 }

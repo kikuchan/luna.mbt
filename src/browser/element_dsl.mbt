@@ -130,7 +130,7 @@ extern "js" fn HandlerMap::to_attrs(
 fn build_props(
   id : String?,
   class : String?,
-  style : Array[(String, String)]?,
+  style : String?,
   on : HandlerMap?,
   attrs : Array[(String, AttrVal)]?,
 ) -> Array[(String, AttrValue)] {
@@ -146,9 +146,9 @@ fn build_props(
     result.push(("className", Static(v)))
   }
 
-  // style
-  if style is Some(styles) {
-    result.push(("style", StyleObj(styles)))
+  // style (now a simple string like "color: red; margin: 10px")
+  if style is Some(s) {
+    result.push(("style", Static(s)))
   }
 
   // event handlers
@@ -183,7 +183,7 @@ fn build_props(
 pub fn div(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -196,7 +196,7 @@ pub fn div(
 pub fn span(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -209,7 +209,7 @@ pub fn span(
 pub fn p(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -222,7 +222,7 @@ pub fn p(
 pub fn button(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   disabled? : Bool,
@@ -242,7 +242,7 @@ pub fn a(
   href? : String,
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -260,7 +260,7 @@ pub fn a(
 pub fn input(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   type_? : String,
@@ -293,7 +293,7 @@ pub fn input(
 pub fn textarea(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   placeholder? : String,
@@ -317,7 +317,7 @@ pub fn textarea(
 pub fn form(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -331,7 +331,7 @@ pub fn label(
   for_? : String,
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -349,7 +349,7 @@ pub fn label(
 pub fn h1(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -362,7 +362,7 @@ pub fn h1(
 pub fn h2(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -375,7 +375,7 @@ pub fn h2(
 pub fn h3(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -388,7 +388,7 @@ pub fn h3(
 pub fn ul(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -401,7 +401,7 @@ pub fn ul(
 pub fn ol(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -414,7 +414,7 @@ pub fn ol(
 pub fn li(
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
   children : Array[Node],
@@ -429,7 +429,7 @@ pub fn img(
   alt? : String,
   id? : String,
   class? : String,
-  style? : Array[(String, String)],
+  style? : String,
   on? : HandlerMap,
   attrs? : Array[(String, AttrVal)],
 ) -> Node {
@@ -502,15 +502,15 @@ pub fn attr_handler(handler : (@core.Any) -> Unit) -> AttrValue {
 }
 
 ///|
-/// Create a static style object
-pub fn attr_style(styles : Array[(String, String)]) -> AttrValue {
-  StyleObj(styles)
+/// Create a static style attribute (string form, e.g. "color: red; margin: 10px")
+pub fn attr_style(style : String) -> AttrValue {
+  Static(style)
 }
 
 ///|
-/// Create a dynamic style
-pub fn attr_dynamic_style(getter : () -> Array[(String, String)]) -> AttrValue {
-  DynamicStyle(getter)
+/// Create a dynamic style attribute
+pub fn attr_dynamic_style(getter : () -> String) -> AttrValue {
+  Dynamic(getter)
 }
 
 // =============================================================================

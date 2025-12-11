@@ -255,16 +255,13 @@ fn style_example() -> @dom.Node {
           (
             "style",
             @dom.attr_dynamic_style(fn() {
-              [
-                ("width", size.get().to_string() + "px"),
-                ("height", size.get().to_string() + "px"),
-                (
-                  "backgroundColor",
-                  "hsl(" + hue.get().to_string() + ", 70%, 50%)",
-                ),
-                ("transition", "all 0.3s ease"),
-                ("borderRadius", "8px"),
-              ]
+              "width: " +
+              size.get().to_string() +
+              "px; height: " +
+              size.get().to_string() +
+              "px; background-color: hsl(" +
+              hue.get().to_string() +
+              ", 70%, 50%); transition: all 0.3s ease; border-radius: 8px"
             }),
           ),
         ],
@@ -349,7 +346,7 @@ fn conditional_example() -> @dom.Node {
         fn() {
           @dom.div(
             class="message",
-            style=[("padding", "10px"), ("backgroundColor", "#e0f7fa")],
+            style="padding: 10px; background-color: #e0f7fa",
             [@dom.text("Hello! This message is conditionally rendered.")],
           )
         },
@@ -410,13 +407,7 @@ fn owner_example() -> @dom.Node {
         [@dom.text("Clear Log")],
       ),
       @dom.div(
-        style=[
-          ("whiteSpace", "pre-wrap"),
-          ("fontFamily", "monospace"),
-          ("padding", "10px"),
-          ("backgroundColor", "#f5f5f5"),
-          ("minHeight", "100px"),
-        ],
+        style="white-space: pre-wrap; font-family: monospace; padding: 10px; background-color: #f5f5f5; min-height: 100px",
         [@dom.text_dyn(fn() { log_messages.get() })],
       ),
     ],
@@ -550,21 +541,21 @@ fn todo_example() -> @dom.Node {
                       }
                     }
                     if is_completed {
-                      [("textDecoration", "line-through"), ("opacity", "0.6")]
+                      "text-decoration: line-through; opacity: 0.6"
                     } else {
-                      [("textDecoration", "none"), ("opacity", "1")]
+                      "text-decoration: none; opacity: 1"
                     }
                   }),
                 ),
               ],
               [
                 @dom.span(
-                  style=[("cursor", "pointer")],
+                  style="cursor: pointer",
                   on=@dom.on(click=Some(fn(_) { toggle_todo(todo_id) })),
                   [@dom.text(todo.text)],
                 ),
                 @dom.button(
-                  style=[("marginLeft", "10px")],
+                  style="margin-left: 10px",
                   on=@dom.on(click=Some(fn(_) { remove_todo(todo_id) })),
                   [@dom.text("x")],
                 ),
@@ -593,7 +584,7 @@ fn main {
     Some(el) => {
       let app = @dom.div(
         class="app",
-        style=[("padding", "20px"), ("maxWidth", "800px"), ("margin", "0 auto")],
+        style="padding: 20px; max-width: 800px; margin: 0 auto",
         [
           @dom.h1([@dom.text("@mizchi/ui Examples")]),
           @dom.p([

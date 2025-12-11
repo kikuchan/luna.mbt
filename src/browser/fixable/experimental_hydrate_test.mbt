@@ -293,7 +293,7 @@ test "exp: dynamic style setup works after repair" {
   let logger = StringBuilder::new()
   let bg = @signal.signal("red")
   let vnode = @element.div(
-    [@element.style_dyn(fn() { [("backgroundColor", bg.get())] })],
+    [@element.style_dyn(fn() { "background-color: " + bg.get() })],
     [@kaguya.vtext("Styled")],
   )
   // Element exists
@@ -650,7 +650,7 @@ test "exp: handle static style attribute" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let vnode = @element.div(
-    [@element.style([("color", "red"), ("fontSize", "16px")])],
+    [@element.style("color: red; font-size: 16px")],
     [@kaguya.vtext("Styled")],
   )
   exp_set_inner_html(container, "<div>Styled</div>")
