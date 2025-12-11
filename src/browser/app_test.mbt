@@ -68,66 +68,109 @@ fn create_todo_app() -> (
   }
 
   // Build the UI
-  let app = div([class("todo-app")], [
-    // Header
-    h1([], [text("Todo App")]),
-    // Input form
-    div([class("input-section")], [
-      input([
-        id("todo-input"),
-        type_("text"),
-        placeholder("What needs to be done?"),
-        value_dyn(fn() { input_text.get() }),
-        on_input(fn(e) {
-          let target : @js_dom.HTMLInputElement = e.target() |> @core.identity
-          input_text.set(target.value)
-        }),
-        on_key_down(fn(e) {
-          if e.key == "Enter" {
-            add_todo()
-          }
-        }),
-      ]),
-      button([id("add-btn"), on_click(fn(_e) { add_todo() })], [text("Add")]),
-    ]),
-    // Todo list
-    ul([id("todo-list")], [
-      for_each(() => todos.get(), (todo, _idx) => li(
-        [
-          class_name_dyn(() => if todo.completed {
-            "todo-item completed"
-          } else {
-            "todo-item"
-          }),
-          attr("data-id", todo.id.to_string()),
-        ],
-        [
-          span(
-            [class("todo-text"), on_click(fn(_e) { toggle_todo(todo.id) })],
-            [text(todo.text)],
+  let app = div(
+    class="todo-app",
+    children=[
+      // Header
+      h1(children=[text("Todo App")]),
+      // Input form
+      div(
+        class="input-section",
+        children=[
+          create_element(
+            "input",
+            [
+              ("id", attr_static("todo-input")),
+              ("type", attr_static("text")),
+              ("placeholder", attr_static("What needs to be done?")),
+              ("value", attr_dynamic(fn() { input_text.get() })),
+              (
+                "onInput",
+                attr_handler(fn(e : @core.Any) {
+                  let target : @js_dom.HTMLInputElement = e
+                    ._call("target", [])
+                    .cast()
+                  input_text.set(target.value)
+                }),
+              ),
+              (
+                "onKeydown",
+                attr_handler(fn(e : @core.Any) {
+                  let key : String = e._get("key").cast()
+                  if key == "Enter" {
+                    add_todo()
+                  }
+                }),
+              ),
+            ],
+            [],
           ),
           button(
-            [class("delete-btn"), on_click(fn(_e) { delete_todo(todo.id) })],
-            [text("×")],
+            id="add-btn",
+            on=on(click=Some(fn(_) { add_todo() })),
+            children=[text("Add")],
           ),
         ],
-      )),
-    ]),
-    // Stats
-    div([id("stats")], [
-      text_dyn(fn() {
-        let items = todos.get()
-        let total = items.length()
-        let mut completed = 0
-        for i = 0; i < items.length(); i = i + 1 {
-          if items[i].completed {
-            completed = completed + 1
-          }
-        }
-        "\{total} items, \{completed} completed"
-      }),
-    ]),
-  ])
+      ),
+      // Todo list
+      create_element(
+        "ul",
+        [("id", attr_static("todo-list"))],
+        [
+          for_each(
+            fn() { todos.get() },
+            fn(todo, _idx) {
+              create_element(
+                "li",
+                [
+                  (
+                    "className",
+                    attr_dynamic(fn() {
+                      if todo.completed {
+                        "todo-item completed"
+                      } else {
+                        "todo-item"
+                      }
+                    }),
+                  ),
+                  ("data-id", attr_static(todo.id.to_string())),
+                ],
+                [
+                  span(
+                    class="todo-text",
+                    on=on(click=Some(fn(_) { toggle_todo(todo.id) })),
+                    children=[text(todo.text)],
+                  ),
+                  button(
+                    class="delete-btn",
+                    on=on(click=Some(fn(_) { delete_todo(todo.id) })),
+                    children=[text("×")],
+                  ),
+                ],
+              )
+            },
+          ),
+        ],
+      ),
+      // Stats
+      div(
+        id="stats",
+        children=[
+          text_dyn(fn() {
+            let items = todos.get()
+            let total = items.length()
+            let mut completed = 0
+            for i = 0; i < items.length(); i = i + 1 {
+              if items[i].completed {
+                completed = completed + 1
+              }
+            }
+            "\{total} items, \{completed} completed"
+          }),
+        ],
+      ),
+    ],
+  )
   (app, todos, input_text)
 }
 
@@ -253,7 +296,7 @@ test "Todo app reactive text updates" {
   let doc = @js_dom.document()
   let container = doc.createElement("div")
   let count = @signal.signal(0)
-  let counter_div = div([id("counter")], [text_sig(count)])
+  let counter_div = div(id="counter", children=[text_sig(count)])
   render_to(container, counter_div)
 
   // Initial value
@@ -276,16 +319,20 @@ test "Todo app reactive class updates" {
   let doc = @js_dom.document()
   let container = doc.createElement("div")
   let is_active = @signal.signal(false)
-  let elem = div(
+  let elem = create_element(
+    "div",
     [
-      id("toggle-elem"),
-      class_name_dyn(fn() {
-        if is_active.get() {
-          "active"
-        } else {
-          "inactive"
-        }
-      }),
+      ("id", attr_static("toggle-elem")),
+      (
+        "className",
+        attr_dynamic(fn() {
+          if is_active.get() {
+            "active"
+          } else {
+            "inactive"
+          }
+        }),
+      ),
     ],
     [],
   )
@@ -666,11 +713,14 @@ test "Fine-grained: DOM text nodes update independently" {
   }
 
   // Build DOM structure
-  let profile = div([class("profile")], [
-    div([class("name")], [name_text]),
-    div([class("age")], [age_text]),
-    div([class("city")], [city_text]),
-  ])
+  let profile = div(
+    class="profile",
+    children=[
+      div(class="name", children=[name_text]),
+      div(class="age", children=[age_text]),
+      div(class="city", children=[city_text]),
+    ],
+  )
   render_to(container, profile)
 
   // Initial state

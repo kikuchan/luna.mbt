@@ -24,53 +24,33 @@ fn console_log(msg : String) -> Unit {
 
 ///|
 fn counter_example() -> @dom.Node {
-  // Create a signal for count state
   let count = @signal.signal(0)
-
-  // Create computed values
   let doubled = @signal.memo(fn() { count.get() * 2 })
   let is_even = @signal.memo(fn() { count.get() % 2 == 0 })
 
-  // Create the UI
   @dom.div(
-    [@dom.class("counter-example")],
-    [
-      @dom.h2([], [@dom.text("Counter Example")]),
-      // Display count with reactive text
-      @dom.p([], [@dom.text_dyn(fn() { "Count: " + count.get().to_string() })]),
-      @dom.p([], [@dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
-      @dom.p([], [
-        @dom.text_dyn(fn() {
-          if is_even() {
-            "Even"
-          } else {
-            "Odd"
-          }
-        }),
+    class="counter-example",
+    children=[
+      @dom.h2(children=[@dom.text("Counter Example")]),
+      @dom.p(children=[@dom.text_dyn(fn() { "Count: " + count.get().to_string() })]),
+      @dom.p(children=[@dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
+      @dom.p(children=[
+        @dom.text_dyn(fn() { if is_even() { "Even" } else { "Odd" } }),
       ]),
-      // Buttons with typed click handlers
       @dom.div(
-        [@dom.class("buttons")],
-        [
+        class="buttons",
+        children=[
           @dom.button(
-            [
-              @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                count.update(fn(n) { n - 1 })
-              }),
-            ],
-            [@dom.text("-")],
+            on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n - 1 }) })),
+            children=[@dom.text("-")],
           ),
           @dom.button(
-            [
-              @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                count.update(fn(n) { n + 1 })
-              }),
-            ],
-            [@dom.text("+")],
+            on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n + 1 }) })),
+            children=[@dom.text("+")],
           ),
           @dom.button(
-            [@dom.on_click(fn(_e : @js_dom.MouseEvent) { count.set(0) })],
-            [@dom.text("Reset")],
+            on=@dom.on(click=Some(fn(_) { count.set(0) })),
+            children=[@dom.text("Reset")],
           ),
         ],
       ),
@@ -88,23 +68,24 @@ fn input_example() -> @dom.Node {
   let char_count = @signal.memo(fn() { text.get().length() })
 
   @dom.div(
-    [@dom.class("input-example")],
-    [
-      @dom.h2([], [@dom.text("Input Example")]),
-      @dom.input([
-        @dom.type_("text"),
-        @dom.placeholder("Type something..."),
-        @dom.value_dyn(fn() { text.get() }),
-        @dom.on_input(fn(e : @js_dom.InputEvent) {
-          let target : @core.Any = e.target() |> @core.identity
-          let value : String = target._get("value").cast()
-          text.set(value)
-        }),
-      ]),
-      @dom.p([], [
+    class="input-example",
+    children=[
+      @dom.h2(children=[@dom.text("Input Example")]),
+      @dom.input(
+        type_="text",
+        placeholder="Type something...",
+        on=@dom.on(
+          input=Some(fn(e) {
+            let target : @core.Any = e.target() |> @core.identity
+            let value : String = target._get("value").cast()
+            text.set(value)
+          }),
+        ),
+      ),
+      @dom.p(children=[
         @dom.text_dyn(fn() { "Characters: " + char_count().to_string() }),
       ]),
-      @dom.p([], [@dom.text_dyn(fn() { "You typed: " + text.get() })]),
+      @dom.p(children=[@dom.text_dyn(fn() { "You typed: " + text.get() })]),
     ],
   )
 }
@@ -118,50 +99,34 @@ fn effect_example() -> @dom.Node {
   let active = @signal.signal(false)
   let ticks = @signal.signal(0)
 
-  // Effect that logs on change
   let _ = @signal.effect(fn() {
     let is_active = active.get()
     console_log("Active state changed: " + is_active.to_string())
-    // Register cleanup for this effect
     @signal.on_cleanup(fn() { console_log("Cleaning up effect") })
   })
 
   @dom.div(
-    [@dom.class("effect-example")],
-    [
-      @dom.h2([], [@dom.text("Effect Example")]),
-      @dom.p([], [
+    class="effect-example",
+    children=[
+      @dom.h2(children=[@dom.text("Effect Example")]),
+      @dom.p(children=[
         @dom.text_dyn(fn() {
           let status = if active.get() { "Active" } else { "Inactive" }
           "Status: " + status
         }),
       ]),
-      @dom.p([], [
+      @dom.p(children=[
         @dom.text_dyn(fn() { "Ticks: " + ticks.get().to_string() }),
       ]),
       @dom.button(
-        [
-          @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-            active.update(fn(b) { not(b) })
-          }),
-        ],
-        [
-          @dom.text_dyn(fn() {
-            if active.get() {
-              "Stop"
-            } else {
-              "Start"
-            }
-          }),
+        on=@dom.on(click=Some(fn(_) { active.update(fn(b) { not(b) }) })),
+        children=[
+          @dom.text_dyn(fn() { if active.get() { "Stop" } else { "Start" } }),
         ],
       ),
       @dom.button(
-        [
-          @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-            ticks.update(fn(n) { n + 1 })
-          }),
-        ],
-        [@dom.text("Tick")],
+        on=@dom.on(click=Some(fn(_) { ticks.update(fn(n) { n + 1 }) })),
+        children=[@dom.text("Tick")],
       ),
     ],
   )
@@ -177,7 +142,6 @@ fn batch_example() -> @dom.Node {
   let b = @signal.signal(0)
   let update_count = @signal.signal(0)
 
-  // Effect that counts updates
   let _ = @signal.effect(fn() {
     let _ = a.get()
     let _ = b.get()
@@ -185,43 +149,41 @@ fn batch_example() -> @dom.Node {
   })
 
   @dom.div(
-    [@dom.class("batch-example")],
-    [
-      @dom.h2([], [@dom.text("Batch Example")]),
-      @dom.p([], [
+    class="batch-example",
+    children=[
+      @dom.h2(children=[@dom.text("Batch Example")]),
+      @dom.p(children=[
         @dom.text_dyn(fn() {
           "a=" + a.get().to_string() + ", b=" + b.get().to_string()
         }),
       ]),
-      @dom.p([], [
+      @dom.p(children=[
         @dom.text_dyn(fn() {
           "Effect ran: " + update_count.get().to_string() + " times"
         }),
       ]),
       @dom.div(
-        [@dom.class("buttons")],
-        [
+        class="buttons",
+        children=[
           @dom.button(
-            [
-              @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                // Without batch - effect runs twice
+            on=@dom.on(
+              click=Some(fn(_) {
                 a.update(fn(n) { n + 1 })
                 b.update(fn(n) { n + 1 })
               }),
-            ],
-            [@dom.text("Update (no batch)")],
+            ),
+            children=[@dom.text("Update (no batch)")],
           ),
           @dom.button(
-            [
-              @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                // With batch - effect runs once
+            on=@dom.on(
+              click=Some(fn(_) {
                 @signal.batch(fn() {
                   a.update(fn(n) { n + 1 })
                   b.update(fn(n) { n + 1 })
                 })
               }),
-            ],
-            [@dom.text("Update (batched)")],
+            ),
+            children=[@dom.text("Update (batched)")],
           ),
         ],
       ),
@@ -237,43 +199,39 @@ fn batch_example() -> @dom.Node {
 fn combine_example() -> @dom.Node {
   let first_name = @signal.signal("John")
   let last_name = @signal.signal("Doe")
-
-  // Combine two signals
-  let full_name = @signal.combine2(first_name, last_name, fn(f, l) { f + " " + l })
+  let full_name = @signal.combine2(first_name, last_name, fn(f, l) {
+    f + " " + l
+  })
 
   @dom.div(
-    [@dom.class("combine-example")],
-    [
-      @dom.h2([], [@dom.text("Combine Example")]),
-      @dom.div(
-        [],
-        [
-          @dom.label([], [@dom.text("First Name: ")]),
-          @dom.input([
-            @dom.type_("text"),
-            @dom.value_dyn(fn() { first_name.get() }),
-            @dom.on_input(fn(e : @js_dom.InputEvent) {
+    class="combine-example",
+    children=[
+      @dom.h2(children=[@dom.text("Combine Example")]),
+      @dom.div(children=[
+        @dom.label(children=[@dom.text("First Name: ")]),
+        @dom.input(
+          type_="text",
+          on=@dom.on(
+            input=Some(fn(e) {
               let target : @core.Any = e.target() |> @core.identity
               first_name.set(target._get("value").cast())
             }),
-          ]),
-        ],
-      ),
-      @dom.div(
-        [],
-        [
-          @dom.label([], [@dom.text("Last Name: ")]),
-          @dom.input([
-            @dom.type_("text"),
-            @dom.value_dyn(fn() { last_name.get() }),
-            @dom.on_input(fn(e : @js_dom.InputEvent) {
+          ),
+        ),
+      ]),
+      @dom.div(children=[
+        @dom.label(children=[@dom.text("Last Name: ")]),
+        @dom.input(
+          type_="text",
+          on=@dom.on(
+            input=Some(fn(e) {
               let target : @core.Any = e.target() |> @core.identity
               last_name.set(target._get("value").cast())
             }),
-          ]),
-        ],
-      ),
-      @dom.p([], [@dom.text_dyn(fn() { "Full Name: " + full_name() })]),
+          ),
+        ),
+      ]),
+      @dom.p(children=[@dom.text_dyn(fn() { "Full Name: " + full_name() })]),
     ],
   )
 }
@@ -288,66 +246,76 @@ fn style_example() -> @dom.Node {
   let size = @signal.signal(100)
 
   @dom.div(
-    [@dom.class("style-example")],
-    [
-      @dom.h2([], [@dom.text("Style Example")]),
-      @dom.div(
+    class="style-example",
+    children=[
+      @dom.h2(children=[@dom.text("Style Example")]),
+      @dom.create_element(
+        "div",
         [
-          @dom.style_dyn(fn() {
-            [
-              ("width", size.get().to_string() + "px"),
-              ("height", size.get().to_string() + "px"),
-              (
-                "backgroundColor",
-                "hsl(" + hue.get().to_string() + ", 70%, 50%)",
-              ),
-              ("transition", "all 0.3s ease"),
-              ("borderRadius", "8px"),
-            ]
-          }),
-        ],
-        [],
-      ),
-      @dom.div(
-        [],
-        [
-          @dom.label([], [@dom.text("Hue: ")]),
-          @dom.input([
-            @dom.type_("range"),
-            @dom.attr("min", "0"),
-            @dom.attr("max", "360"),
-            @dom.value_dyn(fn() { hue.get().to_string() }),
-            @dom.on_input(fn(e : @js_dom.InputEvent) {
-              let target : @core.Any = e.target() |> @core.identity
-              let value : String = target._get("value").cast()
-              match @global.parseInt(value) {
-                Some(n) => hue.set(n)
-                None => ()
-              }
+          (
+            "style",
+            @dom.attr_dynamic_style(fn() {
+              [
+                ("width", size.get().to_string() + "px"),
+                ("height", size.get().to_string() + "px"),
+                (
+                  "backgroundColor",
+                  "hsl(" + hue.get().to_string() + ", 70%, 50%)",
+                ),
+                ("transition", "all 0.3s ease"),
+                ("borderRadius", "8px"),
+              ]
             }),
-          ]),
+          ),
         ],
-      ),
-      @dom.div(
         [],
-        [
-          @dom.label([], [@dom.text("Size: ")]),
-          @dom.input([
-            @dom.type_("range"),
-            @dom.attr("min", "50"),
-            @dom.attr("max", "200"),
-            @dom.value_dyn(fn() { size.get().to_string() }),
-            @dom.on_input(fn(e : @js_dom.InputEvent) {
-              let target : @core.Any = e.target() |> @core.identity
-              let value : String = target._get("value").cast()
-              match @global.parseInt(value) {
-                Some(n) => size.set(n)
-                None => ()
-              }
-            }),
-          ]),
-        ],
       ),
+      @dom.div(children=[
+        @dom.label(children=[@dom.text("Hue: ")]),
+        @dom.create_element(
+          "input",
+          [
+            ("type", @dom.attr_static("range")),
+            ("min", @dom.attr_static("0")),
+            ("max", @dom.attr_static("360")),
+            (
+              "onInput",
+              @dom.attr_handler(fn(e : @core.Any) {
+                let target : @core.Any = e._call("target", [])
+                let value : String = target._get("value").cast()
+                match @global.parseInt(value) {
+                  Some(n) => hue.set(n)
+                  None => ()
+                }
+              }),
+            ),
+          ],
+          [],
+        ),
+      ]),
+      @dom.div(children=[
+        @dom.label(children=[@dom.text("Size: ")]),
+        @dom.create_element(
+          "input",
+          [
+            ("type", @dom.attr_static("range")),
+            ("min", @dom.attr_static("50")),
+            ("max", @dom.attr_static("200")),
+            (
+              "onInput",
+              @dom.attr_handler(fn(e : @core.Any) {
+                let target : @core.Any = e._call("target", [])
+                let value : String = target._get("value").cast()
+                match @global.parseInt(value) {
+                  Some(n) => size.set(n)
+                  None => ()
+                }
+              }),
+            ),
+          ],
+          [],
+        ),
+      ]),
     ],
   )
 }
@@ -361,16 +329,12 @@ fn conditional_example() -> @dom.Node {
   let show_message = @signal.signal(true)
 
   @dom.div(
-    [@dom.class("conditional-example")],
-    [
-      @dom.h2([], [@dom.text("Conditional Example")]),
+    class="conditional-example",
+    children=[
+      @dom.h2(children=[@dom.text("Conditional Example")]),
       @dom.button(
-        [
-          @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-            show_message.update(fn(b) { not(b) })
-          }),
-        ],
-        [
+        on=@dom.on(click=Some(fn(_) { show_message.update(fn(b) { not(b) }) })),
+        children=[
           @dom.text_dyn(fn() {
             if show_message.get() {
               "Hide Message"
@@ -384,11 +348,9 @@ fn conditional_example() -> @dom.Node {
         fn() { show_message.get() },
         fn() {
           @dom.div(
-            [
-              @dom.class("message"),
-              @dom.style([("padding", "10px"), ("backgroundColor", "#e0f7fa")]),
-            ],
-            [@dom.text("Hello! This message is conditionally rendered.")],
+            class="message",
+            style=[("padding", "10px"), ("backgroundColor", "#e0f7fa")],
+            children=[@dom.text("Hello! This message is conditionally rendered.")],
           )
         },
       ),
@@ -415,15 +377,15 @@ fn owner_example() -> @dom.Node {
   }
 
   @dom.div(
-    [@dom.class("owner-example")],
-    [
-      @dom.h2([], [@dom.text("Owner Example")]),
-      @dom.p([], [
+    class="owner-example",
+    children=[
+      @dom.h2(children=[@dom.text("Owner Example")]),
+      @dom.p(children=[
         @dom.text("Click to create a scoped reactive context that auto-disposes"),
       ]),
       @dom.button(
-        [
-          @dom.on_click(fn(_e : @js_dom.MouseEvent) {
+        on=@dom.on(
+          click=Some(fn(_) {
             add_log("Creating root...")
             @signal.create_root(fn(dispose) {
               add_log("Inside root - setting up effect")
@@ -432,35 +394,30 @@ fn owner_example() -> @dom.Node {
                 let val = counter.get()
                 add_log("Effect: counter = " + val.to_string())
               })
-              // Simulate some updates
               counter.set(1)
               counter.set(2)
-              // Dispose to clean up all effects
               add_log("Disposing root...")
               dispose()
-              // This won't trigger the effect
               counter.set(3)
               add_log("Set counter to 3 (after dispose)")
             })
           }),
-        ],
-        [@dom.text("Run Owner Demo")],
+        ),
+        children=[@dom.text("Run Owner Demo")],
       ),
       @dom.button(
-        [@dom.on_click(fn(_e : @js_dom.MouseEvent) { log_messages.set("") })],
-        [@dom.text("Clear Log")],
+        on=@dom.on(click=Some(fn(_) { log_messages.set("") })),
+        children=[@dom.text("Clear Log")],
       ),
       @dom.div(
-        [
-          @dom.style([
-            ("whiteSpace", "pre-wrap"),
-            ("fontFamily", "monospace"),
-            ("padding", "10px"),
-            ("backgroundColor", "#f5f5f5"),
-            ("minHeight", "100px"),
-          ]),
+        style=[
+          ("whiteSpace", "pre-wrap"),
+          ("fontFamily", "monospace"),
+          ("padding", "10px"),
+          ("backgroundColor", "#f5f5f5"),
+          ("minHeight", "100px"),
         ],
-        [@dom.text_dyn(fn() { log_messages.get() })],
+        children=[@dom.text_dyn(fn() { log_messages.get() })],
       ),
     ],
   )
@@ -483,7 +440,6 @@ fn todo_example() -> @dom.Node {
   let input_text = @signal.signal("")
   let next_id = @signal.signal(1)
 
-  // Computed stats
   let total = @signal.memo(fn() { todos.get().length() })
   let completed_count = @signal.memo(fn() {
     let items = todos.get()
@@ -538,32 +494,35 @@ fn todo_example() -> @dom.Node {
   }
 
   @dom.div(
-    [@dom.class("todo-example")],
-    [
-      @dom.h2([], [@dom.text("Todo List Example")]),
-      // Input form
+    class="todo-example",
+    children=[
+      @dom.h2(children=[@dom.text("Todo List Example")]),
       @dom.form(
-        [
-          @dom.on_submit(fn(e : @js_dom.FormEvent) {
+        on=@dom.on(
+          submit=Some(fn(e) {
             e.preventDefault()
             add_todo()
           }),
-        ],
-        [
-          @dom.input([
-            @dom.type_("text"),
-            @dom.placeholder("Add a todo..."),
-            @dom.value_dyn(fn() { input_text.get() }),
-            @dom.on_input(fn(e : @js_dom.InputEvent) {
-              let target : @core.Any = e.target() |> @core.identity
-              input_text.set(target._get("value").cast())
-            }),
-          ]),
-          @dom.button([@dom.type_("submit")], [@dom.text("Add")]),
+        ),
+        children=[
+          @dom.input(
+            type_="text",
+            placeholder="Add a todo...",
+            on=@dom.on(
+              input=Some(fn(e) {
+                let target : @core.Any = e.target() |> @core.identity
+                input_text.set(target._get("value").cast())
+              }),
+            ),
+          ),
+          @dom.create_element(
+            "button",
+            [("type", @dom.attr_static("submit"))],
+            [@dom.text("Add")],
+          ),
         ],
       ),
-      // Stats
-      @dom.p([], [
+      @dom.p(children=[
         @dom.text_dyn(fn() {
           completed_count().to_string() +
           "/" +
@@ -571,17 +530,17 @@ fn todo_example() -> @dom.Node {
           " completed"
         }),
       ]),
-      // Todo list
-      @dom.ul(
-        [],
-        [
-          @dom.for_each(
-            fn() { todos.get() },
-            fn(todo, _index) {
-              let todo_id = todo.id
-              @dom.li(
-                [
-                  @dom.style_dyn(fn() {
+      @dom.ul(children=[
+        @dom.for_each(
+          fn() { todos.get() },
+          fn(todo, _index) {
+            let todo_id = todo.id
+            @dom.create_element(
+              "li",
+              [
+                (
+                  "style",
+                  @dom.attr_dynamic_style(fn() {
                     let items = todos.get()
                     let mut is_completed = false
                     for i = 0; i < items.length(); i = i + 1 {
@@ -596,32 +555,24 @@ fn todo_example() -> @dom.Node {
                       [("textDecoration", "none"), ("opacity", "1")]
                     }
                   }),
-                ],
-                [
-                  @dom.span(
-                    [
-                      @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                        toggle_todo(todo_id)
-                      }),
-                      @dom.style([("cursor", "pointer")]),
-                    ],
-                    [@dom.text(todo.text)],
-                  ),
-                  @dom.button(
-                    [
-                      @dom.on_click(fn(_e : @js_dom.MouseEvent) {
-                        remove_todo(todo_id)
-                      }),
-                      @dom.style([("marginLeft", "10px")]),
-                    ],
-                    [@dom.text("x")],
-                  ),
-                ],
-              )
-            },
-          ),
-        ],
-      ),
+                ),
+              ],
+              [
+                @dom.span(
+                  style=[("cursor", "pointer")],
+                  on=@dom.on(click=Some(fn(_) { toggle_todo(todo_id) })),
+                  children=[@dom.text(todo.text)],
+                ),
+                @dom.button(
+                  style=[("marginLeft", "10px")],
+                  on=@dom.on(click=Some(fn(_) { remove_todo(todo_id) })),
+                  children=[@dom.text("x")],
+                ),
+              ],
+            )
+          },
+        ),
+      ]),
     ],
   )
 }
@@ -636,24 +587,16 @@ fn main {
   console_log("@mizchi/ui Sample Application")
   console_log("==============================")
 
-  // Get the app container from document
   let doc = @js_dom.document()
   let container = doc.getElementById("app")
   match container {
     Some(el) => {
-      // Build the main app
       let app = @dom.div(
-        [
-          @dom.class("app"),
-          @dom.style([
-            ("padding", "20px"),
-            ("maxWidth", "800px"),
-            ("margin", "0 auto"),
-          ]),
-        ],
-        [
-          @dom.h1([], [@dom.text("@mizchi/ui Examples")]),
-          @dom.p([], [
+        class="app",
+        style=[("padding", "20px"), ("maxWidth", "800px"), ("margin", "0 auto")],
+        children=[
+          @dom.h1(children=[@dom.text("@mizchi/ui Examples")]),
+          @dom.p(children=[
             @dom.text(
               "A collection of examples demonstrating the reactive UI library.",
             ),
