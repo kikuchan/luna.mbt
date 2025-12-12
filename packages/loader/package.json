@@ -1,7 +1,7 @@
 {
-  "name": "@mizchi/kaguya-loader",
+  "name": "@mizchi/luna-loader",
   "version": "0.1.0",
-  "description": "Island loader for Kaguya SSR hydration",
+  "description": "Island loader for Luna SSR hydration",
   "type": "module",
   "main": "loader.js",
   "exports": {
@@ -19,7 +19,7 @@
     "minify:v1": "terser kg-loader-v1.js --module --compress --mangle -o kg-loader-v1.min.js"
   },
   "keywords": [
-    "kaguya",
+    "luna",
     "moonbit",
     "island",
     "ssr",

@@ -11,7 +11,7 @@
 ///|
 test "dom_render_simple_text" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vtext("Hello, World!")
+  let node = @luna.vtext("Hello, World!")
   b.bench(name="dom_render_simple_text", fn() {
     b.keep(@dom.render_vnode_to_dom(node))
   })
@@ -20,7 +20,7 @@ test "dom_render_simple_text" (b : @bench.T) {
 ///|
 test "dom_render_simple_element" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
+  let node = @luna.h("div", [], [@luna.vtext("Hello")])
   b.bench(name="dom_render_simple_element", fn() {
     b.keep(@dom.render_vnode_to_dom(node))
   })
@@ -29,13 +29,13 @@ test "dom_render_simple_element" (b : @bench.T) {
 ///|
 test "dom_render_element_with_attrs" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
-      ("class", @kaguya.attr_static("container")),
-      ("id", @kaguya.attr_static("main")),
+      ("class", @luna.attr_static("container")),
+      ("id", @luna.attr_static("main")),
     ],
-    [@kaguya.vtext("Content")],
+    [@luna.vtext("Content")],
   )
   b.bench(name="dom_render_element_with_attrs", fn() {
     b.keep(@dom.render_vnode_to_dom(node))
@@ -49,8 +49,8 @@ test "dom_render_element_with_attrs" (b : @bench.T) {
 ///|
 test "dom_render_nested_3" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [@kaguya.h("p", [], [@kaguya.vtext("Nested")])]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [@luna.h("p", [], [@luna.vtext("Nested")])]),
   ])
   b.bench(name="dom_render_nested_3", fn() {
     b.keep(@dom.render_vnode_to_dom(node))
@@ -60,10 +60,10 @@ test "dom_render_nested_3" (b : @bench.T) {
 ///|
 test "dom_render_nested_5" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("article", [], [
-        @kaguya.h("div", [], [@kaguya.h("span", [], [@kaguya.vtext("Deep")])]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("article", [], [
+        @luna.h("div", [], [@luna.h("span", [], [@luna.vtext("Deep")])]),
       ]),
     ]),
   ])
@@ -77,12 +77,12 @@ test "dom_render_nested_5" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_list_node(count : Int) -> @kaguya.Node[@core.Any] {
-  let items : Array[@kaguya.Node[@core.Any]] = []
+fn create_list_node(count : Int) -> @luna.Node[@core.Any] {
+  let items : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < count; i = i + 1 {
-    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
-  @kaguya.h("ul", [], items)
+  @luna.h("ul", [], items)
 }
 
 ///|
@@ -111,7 +111,7 @@ test "dom_render_list_100" (b : @bench.T) {
 test "dom_reactive_text_update" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(0)
-  let node = @kaguya.text_dyn(fn() { count.get().to_string() })
+  let node = @luna.text_dyn(fn() { count.get().to_string() })
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
   b.bench(name="dom_reactive_text_update", fn() {
@@ -124,15 +124,15 @@ test "dom_reactive_text_update" (b : @bench.T) {
 test "dom_reactive_attr_update" (b : @bench.T) {
   @global_jsdom.register()
   let active = @signal.signal(false)
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
     [
       (
         "class",
-        @kaguya.attr_dynamic(fn() { if active.get() { "on" } else { "off" } }),
+        @luna.attr_dynamic(fn() { if active.get() { "on" } else { "off" } }),
       ),
     ],
-    [@kaguya.vtext("Toggle")],
+    [@luna.vtext("Toggle")],
   )
   let _ = @dom.render_vnode_to_dom(node)
   b.bench(name="dom_reactive_attr_update", fn() {
@@ -144,12 +144,12 @@ test "dom_reactive_attr_update" (b : @bench.T) {
 test "dom_reactive_style_update" (b : @bench.T) {
   @global_jsdom.register()
   let width = @signal.signal(100)
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
       (
         "style",
-        @kaguya.attr_dynamic_style(fn() {
+        @luna.attr_dynamic_style(fn() {
           "width: " + width.get().to_string() + "px"
         }),
       ),
@@ -172,8 +172,8 @@ test "dom_reactive_style_update" (b : @bench.T) {
 test "dom_show_toggle" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.h("div", [], [@kaguya.vtext("Content")])
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.h("div", [], [@luna.vtext("Content")])
   })
   let doc = @js_dom.document()
   let container = doc.createElement("div")
@@ -190,8 +190,8 @@ test "dom_show_toggle" (b : @bench.T) {
 test "dom_for_list_update" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c"])
-  let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
+  let node = @luna.vfor(fn() {
+    items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
   let doc = @js_dom.document()
   let container = doc.createElement("div")
@@ -217,12 +217,12 @@ test "dom_component_counter" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(0)
   let doubled = @signal.memo(fn() { count.get() * 2 })
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [("id", @kaguya.attr_static("count"))], [
-      @kaguya.text_dyn(fn() { count.get().to_string() }),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [("id", @luna.attr_static("count"))], [
+      @luna.text_dyn(fn() { count.get().to_string() }),
     ]),
-    @kaguya.h("span", [("id", @kaguya.attr_static("doubled"))], [
-      @kaguya.text_dyn(fn() { doubled().to_string() }),
+    @luna.h("span", [("id", @luna.attr_static("doubled"))], [
+      @luna.text_dyn(fn() { doubled().to_string() }),
     ]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
@@ -239,10 +239,10 @@ test "dom_batched_updates" (b : @bench.T) {
   let a = @signal.signal(0)
   let b_ = @signal.signal(0)
   let c = @signal.signal(0)
-  let node = @kaguya.h("div", [], [
-    @kaguya.text_dyn(fn() { a.get().to_string() }),
-    @kaguya.text_dyn(fn() { b_.get().to_string() }),
-    @kaguya.text_dyn(fn() { c.get().to_string() }),
+  let node = @luna.h("div", [], [
+    @luna.text_dyn(fn() { a.get().to_string() }),
+    @luna.text_dyn(fn() { b_.get().to_string() }),
+    @luna.text_dyn(fn() { c.get().to_string() }),
   ])
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
@@ -265,11 +265,11 @@ test "dom_batched_updates" (b : @bench.T) {
 test "dom_shallow_update_root" (b : @bench.T) {
   @global_jsdom.register()
   let title = @signal.signal("Title")
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("h1", [], [@kaguya.text_dyn(fn() { title.get() })]),
-    @kaguya.h("p", [], [@kaguya.vtext("Static content 1")]),
-    @kaguya.h("p", [], [@kaguya.vtext("Static content 2")]),
-    @kaguya.h("p", [], [@kaguya.vtext("Static content 3")]),
+  let node = @luna.h("div", [], [
+    @luna.h("h1", [], [@luna.text_dyn(fn() { title.get() })]),
+    @luna.h("p", [], [@luna.vtext("Static content 1")]),
+    @luna.h("p", [], [@luna.vtext("Static content 2")]),
+    @luna.h("p", [], [@luna.vtext("Static content 3")]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
@@ -286,10 +286,10 @@ test "dom_shallow_update_siblings" (b : @bench.T) {
   let a = @signal.signal("A")
   let b_sig = @signal.signal("B")
   let c = @signal.signal("C")
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { a.get() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { b_sig.get() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { c.get() })]),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [], [@luna.text_dyn(fn() { a.get() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { b_sig.get() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { c.get() })]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
@@ -308,10 +308,10 @@ test "dom_shallow_update_siblings" (b : @bench.T) {
 test "dom_deep_update_3_levels" (b : @bench.T) {
   @global_jsdom.register()
   let deep_value = @signal.signal("Deep")
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("article", [], [
-        @kaguya.h("span", [], [@kaguya.text_dyn(fn() { deep_value.get() })]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("article", [], [
+        @luna.h("span", [], [@luna.text_dyn(fn() { deep_value.get() })]),
       ]),
     ]),
   ])
@@ -328,11 +328,11 @@ test "dom_deep_update_3_levels" (b : @bench.T) {
 test "dom_deep_update_5_levels" (b : @bench.T) {
   @global_jsdom.register()
   let deep_value = @signal.signal("Very Deep")
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("article", [], [
-        @kaguya.h("div", [], [
-          @kaguya.h("p", [], [@kaguya.text_dyn(fn() { deep_value.get() })]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("article", [], [
+        @luna.h("div", [], [
+          @luna.h("p", [], [@luna.text_dyn(fn() { deep_value.get() })]),
         ]),
       ]),
     ]),
@@ -352,11 +352,11 @@ test "dom_deep_update_multi_depth" (b : @bench.T) {
   let level1 = @signal.signal("L1")
   let level2 = @signal.signal("L2")
   let level3 = @signal.signal("L3")
-  let node = @kaguya.h("div", [], [
-    @kaguya.text_dyn(fn() { level1.get() }),
-    @kaguya.h("section", [], [
-      @kaguya.text_dyn(fn() { level2.get() }),
-      @kaguya.h("article", [], [@kaguya.text_dyn(fn() { level3.get() })]),
+  let node = @luna.h("div", [], [
+    @luna.text_dyn(fn() { level1.get() }),
+    @luna.h("section", [], [
+      @luna.text_dyn(fn() { level2.get() }),
+      @luna.h("article", [], [@luna.text_dyn(fn() { level3.get() })]),
     ]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
@@ -376,15 +376,15 @@ test "dom_deep_update_multi_depth" (b : @bench.T) {
 test "dom_wide_shallow_10" (b : @bench.T) {
   @global_jsdom.register()
   let signals : Array[@signal.Signal[Int]] = []
-  let children : Array[@kaguya.Node[@core.Any]] = []
+  let children : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < 10; i = i + 1 {
     let sig = @signal.signal(i)
     signals.push(sig)
     children.push(
-      @kaguya.h("span", [], [@kaguya.text_dyn(fn() { sig.get().to_string() })]),
+      @luna.h("span", [], [@luna.text_dyn(fn() { sig.get().to_string() })]),
     )
   }
-  let node = @kaguya.h("div", [], children)
+  let node = @luna.h("div", [], children)
   let _ = @dom.render_vnode_to_dom(node)
   let mut iter = 0
   b.bench(name="dom_wide_shallow_10", fn() {
@@ -402,15 +402,15 @@ test "dom_wide_shallow_10" (b : @bench.T) {
 test "dom_wide_shallow_50" (b : @bench.T) {
   @global_jsdom.register()
   let signals : Array[@signal.Signal[Int]] = []
-  let children : Array[@kaguya.Node[@core.Any]] = []
+  let children : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < 50; i = i + 1 {
     let sig = @signal.signal(i)
     signals.push(sig)
     children.push(
-      @kaguya.h("span", [], [@kaguya.text_dyn(fn() { sig.get().to_string() })]),
+      @luna.h("span", [], [@luna.text_dyn(fn() { sig.get().to_string() })]),
     )
   }
-  let node = @kaguya.h("div", [], children)
+  let node = @luna.h("div", [], children)
   let _ = @dom.render_vnode_to_dom(node)
   let mut iter = 0
   b.bench(name="dom_wide_shallow_50", fn() {
@@ -429,9 +429,9 @@ test "dom_derived_shallow" (b : @bench.T) {
   @global_jsdom.register()
   let base = @signal.signal(0)
   let derived = @signal.memo(fn() { base.get() * 2 })
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { base.get().to_string() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { derived().to_string() })]),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [], [@luna.text_dyn(fn() { base.get().to_string() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { derived().to_string() })]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
@@ -449,11 +449,11 @@ test "dom_derived_deep_chain" (b : @bench.T) {
   let derived1 = @signal.memo(fn() { base.get() + 1 })
   let derived2 = @signal.memo(fn() { derived1() * 2 })
   let derived3 = @signal.memo(fn() { derived2() + 10 })
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { base.get().to_string() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { derived1().to_string() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { derived2().to_string() })]),
-    @kaguya.h("span", [], [@kaguya.text_dyn(fn() { derived3().to_string() })]),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [], [@luna.text_dyn(fn() { base.get().to_string() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { derived1().to_string() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { derived2().to_string() })]),
+    @luna.h("span", [], [@luna.text_dyn(fn() { derived3().to_string() })]),
   ])
   let _ = @dom.render_vnode_to_dom(node)
   let mut i = 0
@@ -468,9 +468,9 @@ test "dom_derived_deep_chain" (b : @bench.T) {
 test "dom_conditional_shallow" (b : @bench.T) {
   @global_jsdom.register()
   let show_a = @signal.signal(true)
-  let node = @kaguya.h("div", [], [
-    @kaguya.vshow(fn() { show_a.get() }, fn() { @kaguya.vtext("A") }),
-    @kaguya.vshow(fn() { not(show_a.get()) }, fn() { @kaguya.vtext("B") }),
+  let node = @luna.h("div", [], [
+    @luna.vshow(fn() { show_a.get() }, fn() { @luna.vtext("A") }),
+    @luna.vshow(fn() { not(show_a.get()) }, fn() { @luna.vtext("B") }),
   ])
   let doc = @js_dom.document()
   let container = doc.createElement("div")
@@ -486,12 +486,12 @@ test "dom_conditional_shallow" (b : @bench.T) {
 test "dom_conditional_deep" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("article", [], [
-        @kaguya.vshow(fn() { visible.get() }, fn() {
-          @kaguya.h("div", [], [
-            @kaguya.h("p", [], [@kaguya.vtext("Deep conditional content")]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("article", [], [
+        @luna.vshow(fn() { visible.get() }, fn() {
+          @luna.h("div", [], [
+            @luna.h("p", [], [@luna.vtext("Deep conditional content")]),
           ])
         }),
       ]),

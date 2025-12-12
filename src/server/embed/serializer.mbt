@@ -107,7 +107,7 @@ pub fn escape_json_for_attr(json : String) -> String {
   sb.to_string()
 }
 
-/// Format state for kg:state attribute
+/// Format state for ln:state attribute
 /// Returns the attribute value based on StateConfig
 pub fn format_state_attr(state : StateConfig) -> String? {
   match state {

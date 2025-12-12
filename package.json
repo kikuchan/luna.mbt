@@ -1,5 +1,5 @@
 {
-  "name": "@mizchi/kaguya",
+  "name": "@mizchi/luna",
   "version": "0.1.0",
   "description": "MoonBit Island Architecture UI Framework",
   "scripts": {
@@ -21,7 +21,7 @@
     "bench:flame": "rm -rf *.0x && 0x -o bench/run.js"
   },
   "keywords": [
-    "kaguya",
+    "luna",
     "moonbit",
     "island",
     "signals",

@@ -1,5 +1,5 @@
 {
-  "name": "mizchi/kaguya",
+  "name": "mizchi/luna",
   "version": "0.1.0",
   "deps": {
     "moonbitlang/async": "0.14.2",
@@ -8,10 +8,10 @@
     "mizchi/npm_typed": "0.1.1"
   },
   "readme": "README.md",
-  "repository": "https://github.com/aspect-apps/kaguya",
+  "repository": "https://github.com/aspect-apps/luna",
   "license": "MIT",
   "keywords": [
-    "kaguya",
+    "luna",
     "ui",
     "vdom",
     "island",

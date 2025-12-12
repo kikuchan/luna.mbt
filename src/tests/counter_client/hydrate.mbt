@@ -27,31 +27,31 @@ pub fn hydrate(el : @js_dom.Element, state : @core.Any) -> Unit {
   let on_dec = @dom.browser_handler_from_callback(fn() { count_sig.update(fn(c) { c - 1 }) })
 
   // Build counter VNode for browser (with @core.Any event type)
-  let vnode : @kaguya.Node[@core.Any] = @kaguya.h(
+  let vnode : @luna.Node[@core.Any] = @luna.h(
     "div",
     [
-      ("class", @kaguya.attr_static("counter")),
-      ("data-count", @kaguya.attr_dynamic(fn() { count_sig.get().to_string() })),
+      ("class", @luna.attr_static("counter")),
+      ("data-count", @luna.attr_dynamic(fn() { count_sig.get().to_string() })),
     ],
     [
-      @kaguya.h("span", [("data-count", @kaguya.attr_static("true"))], [
-        @kaguya.text_dyn(fn() { count_sig.get().to_string() }),
+      @luna.h("span", [("data-count", @luna.attr_static("true"))], [
+        @luna.text_dyn(fn() { count_sig.get().to_string() }),
       ]),
-      @kaguya.h(
+      @luna.h(
         "button",
         [
-          ("data-inc", @kaguya.attr_static("true")),
-          ("onClick", @kaguya.attr_handler(on_inc)),
+          ("data-inc", @luna.attr_static("true")),
+          ("onClick", @luna.attr_handler(on_inc)),
         ],
-        [@kaguya.vtext("+1")],
+        [@luna.vtext("+1")],
       ),
-      @kaguya.h(
+      @luna.h(
         "button",
         [
-          ("data-dec", @kaguya.attr_static("true")),
-          ("onClick", @kaguya.attr_handler(on_dec)),
+          ("data-dec", @luna.attr_static("true")),
+          ("onClick", @luna.attr_handler(on_dec)),
         ],
-        [@kaguya.vtext("-1")],
+        [@luna.vtext("-1")],
       ),
     ],
   )

@@ -51,7 +51,7 @@ extern "js" fn fixable_set_inner_html(
 ///|
 test "fixable_clean_simple" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
+  let node = @luna.h("div", [], [@luna.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_simple", fn() {
@@ -63,9 +63,9 @@ test "fixable_clean_simple" (b : @bench.T) {
 ///|
 test "fixable_clean_nested" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("p", [], [@kaguya.vtext("Nested content")]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("p", [], [@luna.vtext("Nested content")]),
     ]),
   ])
   let html = @ssr.render_to_string(node)
@@ -77,12 +77,12 @@ test "fixable_clean_nested" (b : @bench.T) {
 }
 
 ///|
-fn create_fixable_list_node(count : Int) -> @kaguya.Node[@core.Any] {
-  let items : Array[@kaguya.Node[@core.Any]] = []
+fn create_fixable_list_node(count : Int) -> @luna.Node[@core.Any] {
+  let items : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < count; i = i + 1 {
-    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
-  @kaguya.h("ul", [], items)
+  @luna.h("ul", [], items)
 }
 
 ///|
@@ -104,7 +104,7 @@ test "fixable_clean_list_50" (b : @bench.T) {
 ///|
 test "fixable_repair_text_mismatch" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Expected Text")])
+  let node = @luna.h("div", [], [@luna.vtext("Expected Text")])
   let html = "<div>Different Text</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_mismatch", fn() {
@@ -116,7 +116,7 @@ test "fixable_repair_text_mismatch" (b : @bench.T) {
 ///|
 test "fixable_repair_text_missing" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Expected Text")])
+  let node = @luna.h("div", [], [@luna.vtext("Expected Text")])
   let html = "<div></div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_missing", fn() {
@@ -132,8 +132,8 @@ test "fixable_repair_text_missing" (b : @bench.T) {
 ///|
 test "fixable_repair_element_missing" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [], [@kaguya.vtext("Child")]),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [], [@luna.vtext("Child")]),
   ])
   let html = ""
   let logger = StringBuilder::new()
@@ -150,10 +150,10 @@ test "fixable_repair_element_missing" (b : @bench.T) {
 ///|
 test "fixable_repair_attr_mismatch" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
-    [("class", @kaguya.attr_static("expected-class"))],
-    [@kaguya.vtext("Content")],
+    [("class", @luna.attr_static("expected-class"))],
+    [@luna.vtext("Content")],
   )
   let html = "<div class=\"wrong-class\">Content</div>"
   let logger = StringBuilder::new()
@@ -171,7 +171,7 @@ test "fixable_repair_attr_mismatch" (b : @bench.T) {
 test "fixable_repair_dynamic_text_marker" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(42)
-  let node = @kaguya.text_dyn(fn() { "Count: " + count.get().to_string() })
+  let node = @luna.text_dyn(fn() { "Count: " + count.get().to_string() })
   let html = "Count: 42"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_dynamic_text_marker", fn() {
@@ -184,8 +184,8 @@ test "fixable_repair_dynamic_text_marker" (b : @bench.T) {
 test "fixable_repair_show_marker" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.h("div", [], [@kaguya.vtext("Visible")])
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.h("div", [], [@luna.vtext("Visible")])
   })
   let html = "<div>Visible</div>"
   let logger = StringBuilder::new()
@@ -199,8 +199,8 @@ test "fixable_repair_show_marker" (b : @bench.T) {
 test "fixable_repair_for_marker" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c"])
-  let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
+  let node = @luna.vfor(fn() {
+    items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
   let html = "<li>a</li><li>b</li><li>c</li>"
   let logger = StringBuilder::new()
@@ -214,8 +214,8 @@ test "fixable_repair_for_marker" (b : @bench.T) {
 test "fixable_repair_for_item_count" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c", "d", "e"])
-  let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
+  let node = @luna.vfor(fn() {
+    items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
   let html = "<!--f:0--><li>a</li><li>b</li><!--/f-->"
   let logger = StringBuilder::new()
@@ -230,13 +230,13 @@ test "fixable_repair_for_item_count" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_fixable_card(title : String, content : String) -> @kaguya.Node[@core.Any] {
-  @kaguya.h("div", [("class", @kaguya.attr_static("card"))], [
-    @kaguya.h("h3", [("class", @kaguya.attr_static("card-title"))], [
-      @kaguya.vtext(title),
+fn create_fixable_card(title : String, content : String) -> @luna.Node[@core.Any] {
+  @luna.h("div", [("class", @luna.attr_static("card"))], [
+    @luna.h("h3", [("class", @luna.attr_static("card-title"))], [
+      @luna.vtext(title),
     ]),
-    @kaguya.h("p", [("class", @kaguya.attr_static("card-content"))], [
-      @kaguya.vtext(content),
+    @luna.h("p", [("class", @luna.attr_static("card-content"))], [
+      @luna.vtext(content),
     ]),
   ])
 }
@@ -244,15 +244,15 @@ fn create_fixable_card(title : String, content : String) -> @kaguya.Node[@core.A
 ///|
 test "fixable_repair_multiple_cards" (b : @bench.T) {
   @global_jsdom.register()
-  let cards : Array[@kaguya.Node[@core.Any]] = []
+  let cards : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < 5; i = i + 1 {
     cards.push(
       create_fixable_card("Card " + i.to_string(), "Content " + i.to_string()),
     )
   }
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
-    [("class", @kaguya.attr_static("container"))],
+    [("class", @luna.attr_static("container"))],
     cards,
   )
   let html = "<div class=\"wrong-container\"><div class=\"card\"><h3>Card 0</h3><p>Old Content</p></div></div>"
@@ -270,7 +270,7 @@ test "fixable_repair_multiple_cards" (b : @bench.T) {
 ///|
 test "fixable_with_report_clean" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
+  let node = @luna.h("div", [], [@luna.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_clean", fn() {
@@ -282,8 +282,8 @@ test "fixable_with_report_clean" (b : @bench.T) {
 ///|
 test "fixable_with_report_repairs" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [("class", @kaguya.attr_static("expected"))], [
-    @kaguya.vtext("Expected"),
+  let node = @luna.h("div", [("class", @luna.attr_static("expected"))], [
+    @luna.vtext("Expected"),
   ])
   let html = "<div class=\"wrong\">Wrong</div>"
   let logger = StringBuilder::new()
@@ -296,7 +296,7 @@ test "fixable_with_report_repairs" (b : @bench.T) {
 ///|
 test "fixable_hydrate_with_fallback" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Content")])
+  let node = @luna.h("div", [], [@luna.vtext("Content")])
   let html = "<span>Wrong tag</span>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_hydrate_with_fallback", fn() {

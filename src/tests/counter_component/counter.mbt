@@ -15,34 +15,34 @@
 /// For client: pass actual callbacks that update the signal
 pub fn render_counter(
   count_sig : @signal.Signal[Int],
-  on_inc : @kaguya.EventHandler[Unit],
-  on_dec : @kaguya.EventHandler[Unit],
-) -> @kaguya.Node[Unit] {
-  @kaguya.h(
+  on_inc : @luna.EventHandler[Unit],
+  on_dec : @luna.EventHandler[Unit],
+) -> @luna.Node[Unit] {
+  @luna.h(
     "div",
     [
-      ("class", @kaguya.attr_static("counter")),
-      ("data-count", @kaguya.attr_dynamic(fn() { count_sig.get().to_string() })),
+      ("class", @luna.attr_static("counter")),
+      ("data-count", @luna.attr_dynamic(fn() { count_sig.get().to_string() })),
     ],
     [
-      @kaguya.h("span", [("data-count", @kaguya.attr_static("true"))], [
-        @kaguya.text_dyn(fn() { count_sig.get().to_string() }),
+      @luna.h("span", [("data-count", @luna.attr_static("true"))], [
+        @luna.text_dyn(fn() { count_sig.get().to_string() }),
       ]),
-      @kaguya.h(
+      @luna.h(
         "button",
         [
-          ("data-inc", @kaguya.attr_static("true")),
-          ("onClick", @kaguya.attr_handler(on_inc)),
+          ("data-inc", @luna.attr_static("true")),
+          ("onClick", @luna.attr_handler(on_inc)),
         ],
-        [@kaguya.vtext("+1")],
+        [@luna.vtext("+1")],
       ),
-      @kaguya.h(
+      @luna.h(
         "button",
         [
-          ("data-dec", @kaguya.attr_static("true")),
-          ("onClick", @kaguya.attr_handler(on_dec)),
+          ("data-dec", @luna.attr_static("true")),
+          ("onClick", @luna.attr_handler(on_dec)),
         ],
-        [@kaguya.vtext("-1")],
+        [@luna.vtext("-1")],
       ),
     ],
   )
@@ -54,7 +54,7 @@ pub fn render_counter(
 /// Uses render_to_string_with_hydration to add data-hk markers for client hydration
 pub fn render_counter_html(count : Int) -> String {
   let sig = @signal.signal(count)
-  let noop = @kaguya.event_handler()
+  let noop = @luna.event_handler()
   let vnode = render_counter(sig, noop, noop)
   @renderer.render_to_string_with_hydration(vnode)
 }

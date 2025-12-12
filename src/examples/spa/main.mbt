@@ -1,4 +1,4 @@
-///| SPA Sample Application demonstrating Kaguya features
+///| SPA Sample Application demonstrating Luna features
 
 ///|
 
@@ -362,7 +362,7 @@ fn todo_example() -> @dom.DomNode {
 ///|
 /// Main function - renders the sample app
 fn main {
-  console_log("Kaguya SPA Sample Application")
+  console_log("Luna SPA Sample Application")
   console_log("==============================")
   let doc = @js_dom.document()
   let container = doc.getElementById("app")
@@ -372,7 +372,7 @@ fn main {
         class="app",
         style="padding: 20px; max-width: 800px; margin: 0 auto;",
         [
-          @dom.h1([@dom.text("Kaguya Examples")]),
+          @dom.h1([@dom.text("Luna Examples")]),
           @dom.p([
             @dom.text(
               "A collection of examples demonstrating the reactive UI library.",

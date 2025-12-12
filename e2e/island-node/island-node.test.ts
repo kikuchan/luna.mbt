@@ -2,17 +2,17 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Island Node SSR E2E Tests", () => {
   test.describe("Basic SSR Output", () => {
-    test("renders island with kg:* attributes", async ({ page }) => {
+    test("renders island with ln:* attributes", async ({ page }) => {
       await page.goto("/island-node/basic-ssr");
 
       // Check that the island element exists with correct attributes
       const island = page.locator('[kg\\:id="counter-1"]');
       await expect(island).toBeVisible();
-      await expect(island).toHaveAttribute("kg:url", "/components/counter.js");
-      await expect(island).toHaveAttribute("kg:trigger", "load");
+      await expect(island).toHaveAttribute("ln:url", "/components/counter.js");
+      await expect(island).toHaveAttribute("ln:trigger", "load");
 
       // Check state attribute (entity-encoded JSON)
-      const state = await island.getAttribute("kg:state");
+      const state = await island.getAttribute("ln:state");
       expect(state).toBe('{"count":5}');
     });
 
@@ -56,10 +56,10 @@ test.describe("Island Node SSR E2E Tests", () => {
 
       // Check opening comment marker
       expect(html).toContain(
-        "<!--kg:island:counter-1 url=/components/counter.js trigger=load-->"
+        "<!--ln:island:counter-1 url=/components/counter.js trigger=load-->"
       );
       // Check closing comment marker
-      expect(html).toContain("<!--/kg:island:counter-1-->");
+      expect(html).toContain("<!--/ln:island:counter-1-->");
     });
   });
 
@@ -111,15 +111,15 @@ test.describe("Island Node SSR E2E Tests", () => {
 
       // Check trigger attribute values
       await expect(page.locator('[kg\\:id="load-1"]')).toHaveAttribute(
-        "kg:trigger",
+        "ln:trigger",
         "load"
       );
       await expect(page.locator('[kg\\:id="idle-1"]')).toHaveAttribute(
-        "kg:trigger",
+        "ln:trigger",
         "idle"
       );
       await expect(page.locator('[kg\\:id="visible-1"]')).toHaveAttribute(
-        "kg:trigger",
+        "ln:trigger",
         "visible"
       );
     });
@@ -137,8 +137,8 @@ test.describe("Island Node SSR E2E Tests", () => {
       await expect(inner).toBeVisible();
 
       // Check attributes
-      await expect(outer).toHaveAttribute("kg:url", "/components/counter.js");
-      await expect(inner).toHaveAttribute("kg:url", "/components/lazy.js");
+      await expect(outer).toHaveAttribute("ln:url", "/components/counter.js");
+      await expect(inner).toHaveAttribute("ln:url", "/components/lazy.js");
     });
 
     test("outer island hydrates and becomes interactive", async ({ page }) => {
@@ -184,10 +184,10 @@ test.describe("Island Node SSR E2E Tests", () => {
       const html = await response?.text();
 
       // Check both island markers
-      expect(html).toContain("<!--kg:island:outer-1");
-      expect(html).toContain("<!--/kg:island:outer-1-->");
-      expect(html).toContain("<!--kg:island:inner-1");
-      expect(html).toContain("<!--/kg:island:inner-1-->");
+      expect(html).toContain("<!--ln:island:outer-1");
+      expect(html).toContain("<!--/ln:island:outer-1-->");
+      expect(html).toContain("<!--ln:island:inner-1");
+      expect(html).toContain("<!--/ln:island:inner-1-->");
     });
   });
 
@@ -235,7 +235,7 @@ test.describe("Island Node SSR E2E Tests", () => {
 
       // Raw <script> inside state attribute should NOT be present
       // (it would allow attribute injection attacks)
-      expect(html).not.toMatch(/kg:state="[^"]*<script>/);
+      expect(html).not.toMatch(/ln:state="[^"]*<script>/);
     });
   });
 

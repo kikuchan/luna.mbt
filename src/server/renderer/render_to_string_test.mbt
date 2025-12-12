@@ -1,46 +1,46 @@
 ///|
 /// SSR Tests - Pure MoonBit
 test "render simple text" {
-  let node = @kaguya.vtext("Hello, World!")
+  let node = @luna.vtext("Hello, World!")
   let html = render_to_string(node)
   assert_eq(html, "Hello, World!")
 }
 
 ///|
 test "render escaped text" {
-  let node = @kaguya.vtext("<script>alert('xss')</script>")
+  let node = @luna.vtext("<script>alert('xss')</script>")
   let html = render_to_string(node)
   assert_eq(html, "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;")
 }
 
 ///|
 test "render simple element" {
-  let node = @kaguya.h("div", [], [])
+  let node = @luna.h("div", [], [])
   let html = render_to_string(node)
   assert_eq(html, "<div></div>")
 }
 
 ///|
 test "render element with text child" {
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
+  let node = @luna.h("div", [], [@luna.vtext("Hello")])
   let html = render_to_string(node)
   assert_eq(html, "<div>Hello</div>")
 }
 
 ///|
 test "render element with class" {
-  let node = @kaguya.h("div", [("class", @kaguya.attr_static("container"))], [])
+  let node = @luna.h("div", [("class", @luna.attr_static("container"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<div class=\"container\"></div>")
 }
 
 ///|
 test "render element with multiple attrs" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
-      ("id", @kaguya.attr_static("main")),
-      ("class", @kaguya.attr_static("container")),
+      ("id", @luna.attr_static("main")),
+      ("class", @luna.attr_static("container")),
     ],
     [],
   )
@@ -50,8 +50,8 @@ test "render element with multiple attrs" {
 
 ///|
 test "render nested elements" {
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("span", [], [@kaguya.vtext("nested")]),
+  let node = @luna.h("div", [], [
+    @luna.h("span", [], [@luna.vtext("nested")]),
   ])
   let html = render_to_string(node)
   assert_eq(html, "<div><span>nested</span></div>")
@@ -59,11 +59,11 @@ test "render nested elements" {
 
 ///|
 test "render void element" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "input",
     [
-      ("type", @kaguya.attr_static("text")),
-      ("placeholder", @kaguya.attr_static("Enter name")),
+      ("type", @luna.attr_static("text")),
+      ("placeholder", @luna.attr_static("Enter name")),
     ],
     [],
   )
@@ -73,9 +73,9 @@ test "render void element" {
 
 ///|
 test "render br and hr" {
-  let node = @kaguya.vfragment([
-    @kaguya.h("br", [], []),
-    @kaguya.h("hr", [], []),
+  let node = @luna.vfragment([
+    @luna.h("br", [], []),
+    @luna.h("hr", [], []),
   ])
   let html = render_to_string(node)
   assert_eq(html, "<br /><hr />")
@@ -83,10 +83,10 @@ test "render br and hr" {
 
 ///|
 test "render fragment" {
-  let node = @kaguya.vfragment([
-    @kaguya.vtext("A"),
-    @kaguya.vtext("B"),
-    @kaguya.vtext("C"),
+  let node = @luna.vfragment([
+    @luna.vtext("A"),
+    @luna.vtext("B"),
+    @luna.vtext("C"),
   ])
   let html = render_to_string(node)
   assert_eq(html, "ABC")
@@ -95,7 +95,7 @@ test "render fragment" {
 ///|
 test "render dynamic text" {
   let count = 42
-  let node = @kaguya.text_dyn(fn() { "Count: " + count.to_string() })
+  let node = @luna.text_dyn(fn() { "Count: " + count.to_string() })
   let html = render_to_string(node)
   assert_eq(html, "Count: 42")
 }
@@ -103,12 +103,12 @@ test "render dynamic text" {
 ///|
 test "render dynamic attribute" {
   let active = true
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
       (
         "class",
-        @kaguya.attr_dynamic(fn() { if active { "active" } else { "inactive" } }),
+        @luna.attr_dynamic(fn() { if active { "active" } else { "inactive" } }),
       ),
     ],
     [],
@@ -119,9 +119,9 @@ test "render dynamic attribute" {
 
 ///|
 test "render style attribute" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
-    [("style", @kaguya.attr_style("color: red; font-size: 16px"))],
+    [("style", @luna.attr_style("color: red; font-size: 16px"))],
     [],
   )
   let html = render_to_string(node)
@@ -130,8 +130,8 @@ test "render style attribute" {
 
 ///|
 test "render disabled attribute true" {
-  let node = @kaguya.h("button", [("disabled", @kaguya.attr_static(""))], [
-    @kaguya.vtext("Submit"),
+  let node = @luna.h("button", [("disabled", @luna.attr_static(""))], [
+    @luna.vtext("Submit"),
   ])
   let html = render_to_string(node)
   assert_eq(html, "<button disabled>Submit</button>")
@@ -139,7 +139,7 @@ test "render disabled attribute true" {
 
 ///|
 test "render disabled attribute false" {
-  let node = @kaguya.h("button", [], [@kaguya.vtext("Submit")])
+  let node = @luna.h("button", [], [@luna.vtext("Submit")])
   let html = render_to_string(node)
   assert_eq(html, "<button>Submit</button>")
 }
@@ -147,7 +147,7 @@ test "render disabled attribute false" {
 ///|
 test "render show when true" {
   let visible = true
-  let node = @kaguya.vshow(fn() { visible }, fn() { @kaguya.vtext("Visible!") })
+  let node = @luna.vshow(fn() { visible }, fn() { @luna.vtext("Visible!") })
   let html = render_to_string(node)
   assert_eq(html, "Visible!")
 }
@@ -155,7 +155,7 @@ test "render show when true" {
 ///|
 test "render show when false" {
   let visible = false
-  let node = @kaguya.vshow(fn() { visible }, fn() { @kaguya.vtext("Visible!") })
+  let node = @luna.vshow(fn() { visible }, fn() { @luna.vtext("Visible!") })
   let html = render_to_string(node)
   assert_eq(html, "<!--show-->")
 }
@@ -163,10 +163,10 @@ test "render show when false" {
 ///|
 test "render for list" {
   let items = ["A", "B", "C"]
-  let node = @kaguya.vfor(fn() {
-    let result : Array[@kaguya.Node[Unit]] = []
+  let node = @luna.vfor(fn() {
+    let result : Array[@luna.Node[Unit]] = []
     for i = 0; i < items.length(); i = i + 1 {
-      result.push(@kaguya.h("li", [], [@kaguya.vtext(items[i])]))
+      result.push(@luna.h("li", [], [@luna.vtext(items[i])]))
     }
     result
   })
@@ -176,24 +176,24 @@ test "render for list" {
 
 ///|
 test "render component" {
-  fn greeting(name : String) -> @kaguya.Node[Unit] {
-    @kaguya.h("div", [], [@kaguya.vtext("Hello, " + name + "!")])
+  fn greeting(name : String) -> @luna.Node[Unit] {
+    @luna.h("div", [], [@luna.vtext("Hello, " + name + "!")])
   }
 
-  let node = @kaguya.vcomponent(fn() { greeting("World") })
+  let node = @luna.vcomponent(fn() { greeting("World") })
   let html = render_to_string(node)
   assert_eq(html, "<div>Hello, World!</div>")
 }
 
 ///|
 test "handlers are not rendered" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
     [
-      ("onClick", @kaguya.attr_handler(@kaguya.event_handler())),
-      ("class", @kaguya.attr_static("btn")),
+      ("onClick", @luna.attr_handler(@luna.event_handler())),
+      ("class", @luna.attr_static("btn")),
     ],
-    [@kaguya.vtext("Click me")],
+    [@luna.vtext("Click me")],
   )
   let html = render_to_string(node)
   // Handler should not appear in output
@@ -202,7 +202,7 @@ test "handlers are not rendered" {
 
 ///|
 test "escape attribute value" {
-  let node = @kaguya.h("div", [("data-value", @kaguya.attr_static("a\"b&c"))], [])
+  let node = @luna.h("div", [("data-value", @luna.attr_static("a\"b&c"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<div data-value=\"a&quot;b&amp;c\"></div>")
 }
@@ -210,17 +210,17 @@ test "escape attribute value" {
 ///|
 test "render with hydration markers for dynamic text" {
   let count = 5
-  let node = @kaguya.text_dyn(fn() { count.to_string() })
+  let node = @luna.text_dyn(fn() { count.to_string() })
   let html = render_to_string_with_hydration(node)
   assert_eq(html, "<!--t:0-->5<!--/t-->")
 }
 
 ///|
 test "render with hydration markers for element with handler" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
-    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
-    [@kaguya.vtext("Click")],
+    [("onClick", @luna.attr_handler(@luna.event_handler()))],
+    [@luna.vtext("Click")],
   )
   let html = render_to_string_with_hydration(node)
   assert_eq(html, "<button data-hk=\"0\">Click</button>")
@@ -229,14 +229,14 @@ test "render with hydration markers for element with handler" {
 ///|
 test "render with hydration markers for show" {
   let visible = true
-  let node = @kaguya.vshow(fn() { visible }, fn() { @kaguya.vtext("Content") })
+  let node = @luna.vshow(fn() { visible }, fn() { @luna.vtext("Content") })
   let html = render_to_string_with_hydration(node)
   assert_eq(html, "<!--s:0-->Content<!--/s-->")
 }
 
 ///|
 test "render with hydration markers for list" {
-  let node = @kaguya.vfor(fn() { [@kaguya.vtext("A"), @kaguya.vtext("B")] })
+  let node = @luna.vfor(fn() { [@luna.vtext("A"), @luna.vtext("B")] })
   let html = render_to_string_with_hydration(node)
   assert_eq(html, "<!--f:0-->AB<!--/f-->")
 }
@@ -246,25 +246,25 @@ test "complex page render" {
   let title = "My App"
   let count = 0
   let items = ["Item 1", "Item 2"]
-  let page = @kaguya.h("div", [("class", @kaguya.attr_static("app"))], [
-    @kaguya.h("h1", [], [@kaguya.vtext(title)]),
-    @kaguya.h("p", [], [
-      @kaguya.vtext("Count: "),
-      @kaguya.text_dyn(fn() { count.to_string() }),
+  let page = @luna.h("div", [("class", @luna.attr_static("app"))], [
+    @luna.h("h1", [], [@luna.vtext(title)]),
+    @luna.h("p", [], [
+      @luna.vtext("Count: "),
+      @luna.text_dyn(fn() { count.to_string() }),
     ]),
-    @kaguya.h("ul", [], [
-      @kaguya.vfor(fn() {
-        let result : Array[@kaguya.Node[Unit]] = []
+    @luna.h("ul", [], [
+      @luna.vfor(fn() {
+        let result : Array[@luna.Node[Unit]] = []
         for i = 0; i < items.length(); i = i + 1 {
-          result.push(@kaguya.h("li", [], [@kaguya.vtext(items[i])]))
+          result.push(@luna.h("li", [], [@luna.vtext(items[i])]))
         }
         result
       }),
     ]),
-    @kaguya.h(
+    @luna.h(
       "button",
-      [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
-      [@kaguya.vtext("Increment")],
+      [("onClick", @luna.attr_handler(@luna.event_handler()))],
+      [@luna.vtext("Increment")],
     ),
   ])
   let html = render_to_string(page)
@@ -280,84 +280,84 @@ test "complex page render" {
 
 ///|
 test "render text with ampersand" {
-  let node = @kaguya.vtext("Tom & Jerry")
+  let node = @luna.vtext("Tom & Jerry")
   let html = render_to_string(node)
   assert_eq(html, "Tom &amp; Jerry")
 }
 
 ///|
 test "render text with double quote" {
-  let node = @kaguya.vtext("Say \"hello\"")
+  let node = @luna.vtext("Say \"hello\"")
   let html = render_to_string(node)
   assert_eq(html, "Say &quot;hello&quot;")
 }
 
 ///|
 test "render void elements img" {
-  let node = @kaguya.h("img", [("src", @kaguya.attr_static("/image.png"))], [])
+  let node = @luna.h("img", [("src", @luna.attr_static("/image.png"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<img src=\"/image.png\" />")
 }
 
 ///|
 test "render void element col" {
-  let node = @kaguya.h("col", [("span", @kaguya.attr_static("2"))], [])
+  let node = @luna.h("col", [("span", @luna.attr_static("2"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<col span=\"2\" />")
 }
 
 ///|
 test "render void element wbr" {
-  let node = @kaguya.h("wbr", [], [])
+  let node = @luna.h("wbr", [], [])
   let html = render_to_string(node)
   assert_eq(html, "<wbr />")
 }
 
 ///|
 test "render void element area" {
-  let node = @kaguya.h("area", [("shape", @kaguya.attr_static("rect"))], [])
+  let node = @luna.h("area", [("shape", @luna.attr_static("rect"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<area shape=\"rect\" />")
 }
 
 ///|
 test "render void element base" {
-  let node = @kaguya.h("base", [("href", @kaguya.attr_static("/"))], [])
+  let node = @luna.h("base", [("href", @luna.attr_static("/"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<base href=\"/\" />")
 }
 
 ///|
 test "render void element link" {
-  let node = @kaguya.h("link", [("rel", @kaguya.attr_static("stylesheet"))], [])
+  let node = @luna.h("link", [("rel", @luna.attr_static("stylesheet"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<link rel=\"stylesheet\" />")
 }
 
 ///|
 test "render void element meta" {
-  let node = @kaguya.h("meta", [("charset", @kaguya.attr_static("utf-8"))], [])
+  let node = @luna.h("meta", [("charset", @luna.attr_static("utf-8"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<meta charset=\"utf-8\" />")
 }
 
 ///|
 test "render void element embed" {
-  let node = @kaguya.h("embed", [("src", @kaguya.attr_static("/video.swf"))], [])
+  let node = @luna.h("embed", [("src", @luna.attr_static("/video.swf"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<embed src=\"/video.swf\" />")
 }
 
 ///|
 test "render void element track" {
-  let node = @kaguya.h("track", [("kind", @kaguya.attr_static("subtitles"))], [])
+  let node = @luna.h("track", [("kind", @luna.attr_static("subtitles"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<track kind=\"subtitles\" />")
 }
 
 ///|
 test "render void element source" {
-  let node = @kaguya.h("source", [("src", @kaguya.attr_static("/audio.mp3"))], [])
+  let node = @luna.h("source", [("src", @luna.attr_static("/audio.mp3"))], [])
   let html = render_to_string(node)
   assert_eq(html, "<source src=\"/audio.mp3\" />")
 }
@@ -365,19 +365,19 @@ test "render void element source" {
 ///|
 test "render non-void element with length 7" {
   // "section" has length 7, should not be void element
-  let node = @kaguya.h("section", [], [@kaguya.vtext("content")])
+  let node = @luna.h("section", [], [@luna.vtext("content")])
   let html = render_to_string(node)
   assert_eq(html, "<section>content</section>")
 }
 
 ///|
 test "render dynamic style" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
       (
         "style",
-        @kaguya.attr_dynamic_style(fn() { "color: blue; margin: 10px" }),
+        @luna.attr_dynamic_style(fn() { "color: blue; margin: 10px" }),
       ),
     ],
     [],
@@ -388,9 +388,9 @@ test "render dynamic style" {
 
 ///|
 test "render empty dynamic style" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
-    [("style", @kaguya.attr_dynamic_style(fn() { "" }))],
+    [("style", @luna.attr_dynamic_style(fn() { "" }))],
     [],
   )
   let html = render_to_string(node)
@@ -404,13 +404,13 @@ test "render empty dynamic style" {
 
 ///|
 test "render island basic" {
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "counter-1",
     "/components/counter.js",
     "{\"count\":5}",
     [
-      @kaguya.h("span", [("data-count", @kaguya.attr_static(""))], [
-        @kaguya.vtext("5"),
+      @luna.h("span", [("data-count", @luna.attr_static(""))], [
+        @luna.vtext("5"),
       ]),
     ],
   )
@@ -418,118 +418,118 @@ test "render island basic" {
   // Check comment markers
   assert_true(
     html.contains(
-      "<!--kg:island:counter-1 url=/components/counter.js trigger=load-->",
+      "<!--ln:island:counter-1 url=/components/counter.js trigger=load-->",
     ),
   )
-  assert_true(html.contains("<!--/kg:island:counter-1-->"))
-  // Check wrapper div with kg:* attributes
-  assert_true(html.contains("kg:id=\"counter-1\""))
-  assert_true(html.contains("kg:url=\"/components/counter.js\""))
-  assert_true(html.contains("kg:state=\"{&quot;count&quot;:5}\""))
-  assert_true(html.contains("kg:trigger=\"load\""))
+  assert_true(html.contains("<!--/ln:island:counter-1-->"))
+  // Check wrapper div with ln:* attributes
+  assert_true(html.contains("ln:id=\"counter-1\""))
+  assert_true(html.contains("ln:url=\"/components/counter.js\""))
+  assert_true(html.contains("ln:state=\"{&quot;count&quot;:5}\""))
+  assert_true(html.contains("ln:trigger=\"load\""))
   // Check children are rendered
   assert_true(html.contains("<span data-count>5</span>"))
 }
 
 ///|
 test "render island with idle trigger" {
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "lazy-1",
     "/components/lazy.js",
     "{}",
-    [@kaguya.vtext("Loading...")],
-    trigger=@kaguya.Idle,
+    [@luna.vtext("Loading...")],
+    trigger=@luna.Idle,
   )
   let html = render_to_string(node)
-  assert_true(html.contains("kg:trigger=\"idle\""))
+  assert_true(html.contains("ln:trigger=\"idle\""))
   assert_true(html.contains("trigger=idle-->"))
 }
 
 ///|
 test "render island with visible trigger" {
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "lazy-2",
     "/components/lazy.js",
     "{}",
-    [@kaguya.vtext("Loading...")],
-    trigger=@kaguya.Visible,
+    [@luna.vtext("Loading...")],
+    trigger=@luna.Visible,
   )
   let html = render_to_string(node)
-  assert_true(html.contains("kg:trigger=\"visible\""))
+  assert_true(html.contains("ln:trigger=\"visible\""))
   assert_true(html.contains("trigger=visible-->"))
 }
 
 ///|
 test "render island with media trigger" {
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "responsive-1",
     "/components/responsive.js",
     "{}",
-    [@kaguya.vtext("Content")],
-    trigger=@kaguya.Media("(min-width: 768px)"),
+    [@luna.vtext("Content")],
+    trigger=@luna.Media("(min-width: 768px)"),
   )
   let html = render_to_string(node)
-  assert_true(html.contains("kg:trigger=\"media:(min-width: 768px)\""))
+  assert_true(html.contains("ln:trigger=\"media:(min-width: 768px)\""))
   assert_true(html.contains("trigger=media:(min-width: 768px)-->"))
 }
 
 ///|
 test "render nested islands" {
-  let inner_island = @kaguya.visland(
+  let inner_island = @luna.visland(
     "inner-1",
     "/components/inner.js",
     "{\"value\":42}",
-    [@kaguya.vtext("Inner")],
+    [@luna.vtext("Inner")],
   )
-  let outer_island = @kaguya.visland("outer-1", "/components/outer.js", "{}", [
-    @kaguya.h("div", [], [inner_island]),
+  let outer_island = @luna.visland("outer-1", "/components/outer.js", "{}", [
+    @luna.h("div", [], [inner_island]),
   ])
   let html = render_to_string(outer_island)
   // Check both islands are present
-  assert_true(html.contains("kg:id=\"outer-1\""))
-  assert_true(html.contains("kg:id=\"inner-1\""))
-  assert_true(html.contains("<!--kg:island:outer-1"))
-  assert_true(html.contains("<!--kg:island:inner-1"))
-  assert_true(html.contains("<!--/kg:island:outer-1-->"))
-  assert_true(html.contains("<!--/kg:island:inner-1-->"))
+  assert_true(html.contains("ln:id=\"outer-1\""))
+  assert_true(html.contains("ln:id=\"inner-1\""))
+  assert_true(html.contains("<!--ln:island:outer-1"))
+  assert_true(html.contains("<!--ln:island:inner-1"))
+  assert_true(html.contains("<!--/ln:island:outer-1-->"))
+  assert_true(html.contains("<!--/ln:island:inner-1-->"))
 }
 
 ///|
 test "render island state escaping" {
   // State with special characters that need escaping
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "escape-1",
     "/components/test.js",
     "{\"text\":\"<script>alert(1)</script>\"}",
-    [@kaguya.vtext("Safe")],
+    [@luna.vtext("Safe")],
   )
   let html = render_to_string(node)
   // Ensure < and > are NOT in the attribute value (they should be entity-escaped)
   // The attribute value should have &lt; and &gt; or be safe
-  assert_true(not(html.contains("kg:state=\"{\"text\":\"<script>")))
+  assert_true(not(html.contains("ln:state=\"{\"text\":\"<script>")))
 }
 
 ///|
 test "render island with complex children" {
   let count = 3
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "complex-1",
     "/components/complex.js",
     "{\"items\":[\"a\",\"b\",\"c\"]}",
     [
-      @kaguya.h("h2", [], [@kaguya.vtext("Title")]),
-      @kaguya.h("ul", [], [
-        @kaguya.vfor(fn() {
-          let items : Array[@kaguya.Node[Unit]] = []
+      @luna.h("h2", [], [@luna.vtext("Title")]),
+      @luna.h("ul", [], [
+        @luna.vfor(fn() {
+          let items : Array[@luna.Node[Unit]] = []
           for i = 0; i < count; i = i + 1 {
             items.push(
-              @kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]),
+              @luna.h("li", [], [@luna.vtext("Item " + i.to_string())]),
             )
           }
           items
         }),
       ]),
-      @kaguya.vshow(fn() { true }, fn() { @kaguya.vtext("Visible text") }),
+      @luna.vshow(fn() { true }, fn() { @luna.vtext("Visible text") }),
     ],
   )
   let html = render_to_string(node)
@@ -542,16 +542,16 @@ test "render island with complex children" {
 
 ///|
 test "render island with hydration markers" {
-  let node = @kaguya.visland(
+  let node = @luna.visland(
     "hyd-1",
     "/components/counter.js",
     "{\"count\":10}",
-    [@kaguya.text_dyn(fn() { "10" })],
+    [@luna.text_dyn(fn() { "10" })],
   )
   let html = render_to_string_with_hydration(node)
   // Should have island markers
-  assert_true(html.contains("<!--kg:island:hyd-1"))
-  assert_true(html.contains("<!--/kg:island:hyd-1-->"))
+  assert_true(html.contains("<!--ln:island:hyd-1"))
+  assert_true(html.contains("<!--/ln:island:hyd-1-->"))
   // Should have hydration markers for dynamic text inside
   assert_true(html.contains("<!--t:"))
   assert_true(html.contains("<!--/t-->"))
@@ -559,11 +559,11 @@ test "render island with hydration markers" {
 
 ///|
 test "trigger_to_string" {
-  assert_eq(@kaguya.trigger_to_string(@kaguya.Load), "load")
-  assert_eq(@kaguya.trigger_to_string(@kaguya.Idle), "idle")
-  assert_eq(@kaguya.trigger_to_string(@kaguya.Visible), "visible")
+  assert_eq(@luna.trigger_to_string(@luna.Load), "load")
+  assert_eq(@luna.trigger_to_string(@luna.Idle), "idle")
+  assert_eq(@luna.trigger_to_string(@luna.Visible), "visible")
   assert_eq(
-    @kaguya.trigger_to_string(@kaguya.Media("(max-width: 600px)")),
+    @luna.trigger_to_string(@luna.Media("(max-width: 600px)")),
     "media:(max-width: 600px)",
   )
 }

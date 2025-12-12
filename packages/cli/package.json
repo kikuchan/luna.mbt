@@ -1,10 +1,10 @@
 {
-  "name": "@mizchi/kaguya-cli",
+  "name": "@mizchi/luna-cli",
   "version": "0.1.0",
-  "description": "CLI for Kaguya MoonBit Web Framework",
+  "description": "CLI for Luna MoonBit Web Framework",
   "type": "module",
   "bin": {
-    "kaguya": "./dist/index.js"
+    "luna": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

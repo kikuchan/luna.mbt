@@ -4,11 +4,11 @@
   ],
   "import": [
     {
-      "path": "mizchi/kaguya/core",
-      "alias": "kaguya"
+      "path": "mizchi/luna/core",
+      "alias": "luna"
     },
-    { "path": "mizchi/kaguya/server/renderer", "alias": "renderer" },
-    "mizchi/kaguya/server/embed",
+    { "path": "mizchi/luna/server/renderer", "alias": "renderer" },
+    "mizchi/luna/server/embed",
     "mizchi/js/core",
     {
       "path": "mizchi/npm_typed/hono",

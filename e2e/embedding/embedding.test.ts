@@ -5,11 +5,11 @@ test.describe("Embedding Module E2E Tests", () => {
     test("generates correct HTML structure", async ({ page }) => {
       await page.goto("/embedding/minimal");
 
-      // Check kg:* attributes are present
+      // Check ln:* attributes are present
       const component = page.locator('[kg\\:id="counter-1"]');
-      await expect(component).toHaveAttribute("kg:url", "/components/counter.js");
+      await expect(component).toHaveAttribute("ln:url", "/components/counter.js");
       // State attribute is HTML-escaped in source but browser parses it correctly
-      const state = await component.getAttribute("kg:state");
+      const state = await component.getAttribute("ln:state");
       expect(state).toBe('{"count":42}');
     });
 
@@ -61,7 +61,7 @@ test.describe("Embedding Module E2E Tests", () => {
       await page.goto("/embedding/lazy");
 
       const component = page.locator('[kg\\:id="lazy-counter"]');
-      await expect(component).toHaveAttribute("kg:trigger", "visible");
+      await expect(component).toHaveAttribute("ln:trigger", "visible");
     });
 
     test("does not hydrate until visible", async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe("Embedding Module E2E Tests", () => {
 
       // The state value contains dangerous content but it was safely escaped in HTML
       // Browser parses the HTML entities back, so we just verify the component exists
-      const stateValue = await component.getAttribute("kg:state");
+      const stateValue = await component.getAttribute("ln:state");
       expect(stateValue).toContain("<script>");
       expect(stateValue).toContain("</script>");
 

@@ -16,32 +16,32 @@ Inspired by [Qwik's Resumability](https://qwik.dev/docs/concepts/resumable/) and
 
 ```html
 <!-- Minimal snippet -->
-<div kg:id="counter-1"
-     kg:url="https://cdn.example.com/components/counter.js"
-     kg:trigger="visible"
-     kg:state='{"count":0}'>
+<div ln:id="counter-1"
+     ln:url="https://cdn.example.com/components/counter.js"
+     ln:trigger="visible"
+     ln:state='{"count":0}'>
   <span>0</span>
   <button>+1</button>
 </div>
 
 <!-- With loader (standalone) -->
 <script type="module" src="https://cdn.example.com/kg-loader-v1.js"></script>
-<div kg:id="counter-1" ...>...</div>
+<div ln:id="counter-1" ...>...</div>
 
 <!-- With inline state for large data -->
-<div kg:id="app-1"
-     kg:url="./app.js"
-     kg:trigger="load"
-     kg:state="#kg-state-app-1">
+<div ln:id="app-1"
+     ln:url="./app.js"
+     ln:trigger="load"
+     ln:state="#kg-state-app-1">
   <!-- SSR content -->
 </div>
 <script id="kg-state-app-1" type="kg/json">{"large":"data","nested":{"items":[1,2,3]}}<\/script>
 
 <!-- With remote state -->
-<div kg:id="user-1"
-     kg:url="./user-profile.js"
-     kg:trigger="idle"
-     kg:state="url:https://api.example.com/user/123/state">
+<div ln:id="user-1"
+     ln:url="./user-profile.js"
+     ln:trigger="idle"
+     ln:state="url:https://api.example.com/user/123/state">
   <span>Loading...</span>
 </div>
 ```
@@ -50,10 +50,10 @@ Inspired by [Qwik's Resumability](https://qwik.dev/docs/concepts/resumable/) and
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `kg:id` | Yes | Unique identifier for the component |
-| `kg:url` | Yes | ES module URL to load for hydration |
-| `kg:trigger` | No | When to hydrate (default: `load`) |
-| `kg:state` | No | Initial state (inline JSON, `#id` ref, or `url:` prefix) |
+| `ln:id` | Yes | Unique identifier for the component |
+| `ln:url` | Yes | ES module URL to load for hydration |
+| `ln:trigger` | No | When to hydrate (default: `load`) |
+| `ln:state` | No | Initial state (inline JSON, `#id` ref, or `url:` prefix) |
 
 ## Trigger Types
 
@@ -72,7 +72,7 @@ Following Astro's naming convention:
 ### Inline JSON (default for small state)
 
 ```html
-<div kg:state='{"count":0}'></div>
+<div ln:state='{"count":0}'></div>
 ```
 
 - Pros: Single HTTP request, no async loading
@@ -82,7 +82,7 @@ Following Astro's naming convention:
 ### Script Reference (for medium state)
 
 ```html
-<div kg:state="#kg-state-123"></div>
+<div ln:state="#kg-state-123"></div>
 <script id="kg-state-123" type="kg/json">{"data":"..."}<\/script>
 ```
 
@@ -93,7 +93,7 @@ Following Astro's naming convention:
 ### URL Reference (for large state)
 
 ```html
-<div kg:state="url:https://api.example.com/state/123"></div>
+<div ln:state="url:https://api.example.com/state/123"></div>
 ```
 
 - Pros: Minimal HTML size, CDN cacheable
@@ -129,8 +129,8 @@ The loader supports CSP nonces:
 1. Scans for `[kg\\:id]` elements
 2. Sets up trigger listeners (IntersectionObserver, idle callback, etc.)
 3. On trigger:
-   - Parse state from `kg:state`
-   - Dynamic import `kg:url`
+   - Parse state from `ln:state`
+   - Dynamic import `ln:url`
    - Call exported `hydrate(element, state)` function
 
 ### Versioning
@@ -231,7 +231,7 @@ packages/loader/
 This module is currently a **proof of concept**. The current implementation:
 
 ### What Works
-- ✅ HTML snippet generation with `kg:*` attributes
+- ✅ HTML snippet generation with `ln:*` attributes
 - ✅ XSS escaping for inline JSON state (`escape_json_for_html`)
 - ✅ Various trigger modes (load, visible, idle, none)
 - ✅ Script reference state (`#id` format)

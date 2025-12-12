@@ -16,7 +16,7 @@ pub struct IslandContext {
   element : @js_dom.Element
   /// Component ID
   id : String
-  /// Parsed state from kg:state attribute
+  /// Parsed state from ln:state attribute
   priv state_json : String
 }
 

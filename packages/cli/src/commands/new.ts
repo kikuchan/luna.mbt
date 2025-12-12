@@ -1,5 +1,5 @@
 /**
- * kaguya new <name> - Create a new Kaguya project
+ * luna new <name> - Create a new Luna project
  */
 import { Command } from "commander";
 import { mkdir, readFile, writeFile, readdir, stat } from "node:fs/promises";
@@ -46,7 +46,7 @@ async function copyTemplate(
 }
 
 export const newCommand = new Command("new")
-  .description("Create a new Kaguya project")
+  .description("Create a new Luna project")
   .argument("<name>", "Project name or path")
   .option("-t, --template <template>", "Template to use", "")
   .action(async (name: string, options: { template: string }) => {
@@ -68,7 +68,7 @@ export const newCommand = new Command("new")
 
     // Use directory name for package name (not full path)
     const packageName = basename(projectDir);
-    console.log(pc.cyan(`Creating new Kaguya project: ${projectDir}`));
+    console.log(pc.cyan(`Creating new Luna project: ${projectDir}`));
 
     try {
       // Template variables for substitution

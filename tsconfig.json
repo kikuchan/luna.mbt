@@ -5,13 +5,13 @@
     "moduleResolution": "bundler",
     "strict": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@mizchi/kaguya",
+    "jsxImportSource": "@mizchi/luna",
     "noEmit": true,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@mizchi/kaguya": ["./packages/ui"],
-      "@mizchi/kaguya/*": ["./packages/ui/*"]
+      "@mizchi/luna": ["./packages/ui"],
+      "@mizchi/luna/*": ["./packages/ui/*"]
     }
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx"]

@@ -1,12 +1,12 @@
 {
   "supported-targets": ["js"],
   "import": [
-    { "path": "mizchi/kaguya/core", "alias": "kaguya" },
-    "mizchi/kaguya/core/signal",
+    { "path": "mizchi/luna/core", "alias": "luna" },
+    "mizchi/luna/core/signal",
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
-    { "path": "mizchi/kaguya/browser", "alias": "dom" },
+    { "path": "mizchi/luna/browser", "alias": "dom" },
     "mizchi/js/core",
-    { "path": "mizchi/kaguya/tests/counter_component", "alias": "counter_component" }
+    { "path": "mizchi/luna/tests/counter_component", "alias": "counter_component" }
   ],
   "link": {
     "js": {

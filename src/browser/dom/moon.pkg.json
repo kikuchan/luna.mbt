@@ -3,7 +3,7 @@
     "js"
   ],
   "import": [
-    "mizchi/kaguya/core/signal",
+    "mizchi/luna/core/signal",
     "mizchi/js/core",
     {
       "path": "mizchi/js/browser/dom",

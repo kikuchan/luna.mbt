@@ -2,7 +2,7 @@
 
 ///|
 test "render simple text" {
-  let node = @kaguya.vtext("Hello")
+  let node = @luna.vtext("Hello")
   let json = render_to_json(node)
   match json {
     Text(content) => assert_eq(content, "Hello")
@@ -13,7 +13,7 @@ test "render simple text" {
 ///|
 test "render dynamic text" {
   let count = @signal.signal(42)
-  let node = @kaguya.text_dyn(fn() { count.get().to_string() })
+  let node = @luna.text_dyn(fn() { count.get().to_string() })
   let json = render_to_json(node)
   match json {
     Text(content) => assert_eq(content, "42")
@@ -23,11 +23,11 @@ test "render dynamic text" {
 
 ///|
 test "render element with static attrs" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
-      ("class", @kaguya.attr_static("container")),
-      ("id", @kaguya.attr_static("main")),
+      ("class", @luna.attr_static("container")),
+      ("id", @luna.attr_static("main")),
     ],
     [],
   )
@@ -51,9 +51,9 @@ test "render element with static attrs" {
 ///|
 test "render element with dynamic attr" {
   let color = @signal.signal("red")
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
-    [("style", @kaguya.attr_dynamic(fn() { "color: " + color.get() }))],
+    [("style", @luna.attr_dynamic(fn() { "color: " + color.get() }))],
     [],
   )
   let json = render_to_json(node)
@@ -69,9 +69,9 @@ test "render element with dynamic attr" {
 
 ///|
 test "render element with children" {
-  let node = @kaguya.h("div", [], [
-    @kaguya.vtext("First"),
-    @kaguya.h("span", [], [@kaguya.vtext("Second")]),
+  let node = @luna.h("div", [], [
+    @luna.vtext("First"),
+    @luna.h("span", [], [@luna.vtext("Second")]),
   ])
   let json = render_to_json(node)
   match json {
@@ -93,10 +93,10 @@ test "render element with children" {
 
 ///|
 test "render fragment" {
-  let node = @kaguya.vfragment([
-    @kaguya.vtext("A"),
-    @kaguya.vtext("B"),
-    @kaguya.vtext("C"),
+  let node = @luna.vfragment([
+    @luna.vtext("A"),
+    @luna.vtext("B"),
+    @luna.vtext("C"),
   ])
   let json = render_to_json(node)
   match json {
@@ -114,8 +114,8 @@ test "render fragment" {
 ///|
 test "render show when true" {
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.vtext("Visible")
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.vtext("Visible")
   })
   let json = render_to_json(node)
   match json {
@@ -127,8 +127,8 @@ test "render show when true" {
 ///|
 test "render show when false" {
   let visible = @signal.signal(false)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.vtext("Hidden")
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.vtext("Hidden")
   })
   let json = render_to_json(node)
   match json {
@@ -140,11 +140,11 @@ test "render show when false" {
 ///|
 test "render for loop" {
   let items = @signal.signal(["A", "B", "C"])
-  let node = @kaguya.vfor(fn() {
+  let node = @luna.vfor(fn() {
     let arr = items.get()
-    let result : Array[@kaguya.Node[Unit]] = []
+    let result : Array[@luna.Node[Unit]] = []
     for item in arr {
-      result.push(@kaguya.vtext(item))
+      result.push(@luna.vtext(item))
     }
     result
   })
@@ -167,13 +167,13 @@ test "render for loop" {
 
 ///|
 test "render component" {
-  fn my_component() -> @kaguya.Node[Unit] {
-    @kaguya.h("div", [("class", @kaguya.attr_static("component"))], [
-      @kaguya.vtext("Content"),
+  fn my_component() -> @luna.Node[Unit] {
+    @luna.h("div", [("class", @luna.attr_static("component"))], [
+      @luna.vtext("Content"),
     ])
   }
 
-  let node = @kaguya.vcomponent(my_component)
+  let node = @luna.vcomponent(my_component)
   let json = render_to_json(node)
   match json {
     Element(elem) => {
@@ -189,10 +189,10 @@ test "render component" {
 
 ///|
 test "render event handler" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
-    [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
-    [@kaguya.vtext("Click")],
+    [("onClick", @luna.attr_handler(@luna.event_handler()))],
+    [@luna.vtext("Click")],
   )
   let json = render_to_json(node)
   match json {
@@ -209,8 +209,8 @@ test "render event handler" {
 
 ///|
 test "render to json string" {
-  let node = @kaguya.h("div", [("id", @kaguya.attr_static("test"))], [
-    @kaguya.vtext("Hello"),
+  let node = @luna.h("div", [("id", @luna.attr_static("test"))], [
+    @luna.vtext("Hello"),
   ])
   let json_str = render_to_json_string(node)
   assert_true(json_str.contains("\"type\":\"element\""))
@@ -249,9 +249,9 @@ test "fragment children" {
 
 ///|
 test "nested structure" {
-  let node = @kaguya.h("div", [("class", @kaguya.attr_static("outer"))], [
-    @kaguya.h("div", [("class", @kaguya.attr_static("inner"))], [
-      @kaguya.h("span", [], [@kaguya.vtext("Deep")]),
+  let node = @luna.h("div", [("class", @luna.attr_static("outer"))], [
+    @luna.h("div", [("class", @luna.attr_static("inner"))], [
+      @luna.h("span", [], [@luna.vtext("Deep")]),
     ]),
   ])
   let json = render_to_json(node)
@@ -281,7 +281,7 @@ test "nested structure" {
 
 ///|
 test "json string escaping" {
-  let node = @kaguya.vtext("Hello \"World\"\nNew line")
+  let node = @luna.vtext("Hello \"World\"\nNew line")
   let json_str = render_to_json_string(node)
   assert_true(json_str.contains("\\\""))
   assert_true(json_str.contains("\\n"))
@@ -290,7 +290,7 @@ test "json string escaping" {
 ///|
 test "signal reactivity captured at render time" {
   let count = @signal.signal(10)
-  let node = @kaguya.text_dyn(fn() { count.get().to_string() })
+  let node = @luna.text_dyn(fn() { count.get().to_string() })
 
   // First render
   let json1 = render_to_json(node)

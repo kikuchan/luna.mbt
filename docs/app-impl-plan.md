@@ -1,12 +1,12 @@
-# Kaguya App Framework 実装計画
+# Luna App Framework 実装計画
 
 フルスタックWebフレームワークの実装計画。Hono上でSSRとresumable stateを統合する。
 
 ## 目標
 
 ```bash
-$ kaguya new myapp
-$ cd myapp && kaguya dev  # localhost:3000
+$ luna new myapp
+$ cd myapp && luna dev  # localhost:3000
 ```
 
 ## プロジェクト構造（生成されるアプリ）
@@ -90,10 +90,10 @@ src/core/serialize/
 ### 機能
 
 ```bash
-kaguya new <name>     # プロジェクト作成
-kaguya dev            # 開発サーバー起動
-kaguya build          # 本番ビルド
-kaguya validate       # client/server境界チェック
+luna new <name>     # プロジェクト作成
+luna dev            # 開発サーバー起動
+luna build          # 本番ビルド
+luna validate       # client/server境界チェック
 ```
 
 ### 実装方針
@@ -112,7 +112,7 @@ packages/cli/
 │   └── utils/
 │       └── project.ts
 ├── templates/
-│   └── default/          # kaguya new のテンプレート
+│   └── default/          # luna new のテンプレート
 └── package.json
 ```
 
@@ -184,13 +184,13 @@ let params = ctx.params()  // { "id": "123" }
 
 ```moonbit
 ///| サーバー専用: 非同期データフェッチ
-async fn post_page(ctx : @framework.Ctx) -> @kaguya.Node {
+async fn post_page(ctx : @framework.Ctx) -> @luna.Node {
   let id = ctx.params().get("id").unwrap()
   let post = fetch_post(id)  // async
 
-  @kaguya.h("article", [], [
-    @kaguya.h("h1", [], [@kaguya.vtext(post.title)]),
-    @kaguya.h("div", [], [@kaguya.vtext(post.content)]),
+  @luna.h("article", [], [
+    @luna.h("h1", [], [@luna.vtext(post.title)]),
+    @luna.h("div", [], [@luna.vtext(post.content)]),
   ])
 }
 ```
@@ -202,7 +202,7 @@ async fn post_page(ctx : @framework.Ctx) -> @kaguya.Node {
 
 ---
 
-## Phase 5: 境界の検証 (kaguya validate)
+## Phase 5: 境界の検証 (luna validate)
 
 ### ルール
 
@@ -234,8 +234,8 @@ function validateClientServerBoundary(projectDir: string) {
 
 ### Step 2: CLI 基盤
 1. [ ] `packages/cli/` 作成
-2. [ ] `kaguya new` コマンド（テンプレートコピー）
-3. [ ] `kaguya dev` コマンド（moon build + serve）
+2. [ ] `luna new` コマンド（テンプレートコピー）
+3. [ ] `luna dev` コマンド（moon build + serve）
 
 ### Step 3: 開発サーバー改善
 1. [ ] rolldown統合
@@ -256,7 +256,7 @@ function validateClientServerBoundary(projectDir: string) {
 
 ### React との違い
 
-| React | Kaguya |
+| React | Luna |
 |-------|--------|
 | `"use client"` / `"use server"` | ディレクトリ規約 (`client/`, `server/`) |
 | Server Components (RSC) | サーバーコンポーネント（非同期OK、SSR専用） |

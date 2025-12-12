@@ -4,18 +4,18 @@
 ///|
 /// Render a VNode to JsonNode
 /// Dynamic values are evaluated at the time of rendering
-pub fn render_to_json(node : @kaguya.Node[Unit]) -> JsonNode {
+pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
   match node {
-    @kaguya.Text(content) => Text(content)
-    @kaguya.DynamicText(getter) => Text(getter())
-    @kaguya.Fragment(children) => {
+    @luna.Text(content) => Text(content)
+    @luna.DynamicText(getter) => Text(getter())
+    @luna.Fragment(children) => {
       let json_children : Array[JsonNode] = []
       for child in children {
         json_children.push(render_to_json(child))
       }
       Fragment(json_children)
     }
-    @kaguya.Element(elem) => {
+    @luna.Element(elem) => {
       let attrs : Map[String, JsonAttrValue] = {}
       for pair in elem.attrs {
         let (name, value) = pair
@@ -27,14 +27,14 @@ pub fn render_to_json(node : @kaguya.Node[Unit]) -> JsonNode {
       }
       Element({ tag: elem.tag, attrs, children })
     }
-    @kaguya.Show(condition~, child~) => {
+    @luna.Show(condition~, child~) => {
       if condition() {
         render_to_json(child())
       } else {
         Fragment([])
       }
     }
-    @kaguya.For(render~) => {
+    @luna.For(render~) => {
       let items = render()
       let children : Array[JsonNode] = []
       for item in items {
@@ -42,14 +42,14 @@ pub fn render_to_json(node : @kaguya.Node[Unit]) -> JsonNode {
       }
       Fragment(children)
     }
-    @kaguya.Component(render~) => render_to_json(render())
-    @kaguya.Island(island) => {
-      // Render Island as an element with kg:* attributes
+    @luna.Component(render~) => render_to_json(render())
+    @luna.Island(island) => {
+      // Render Island as an element with ln:* attributes
       let attrs : Map[String, JsonAttrValue] = {}
-      attrs.set("kg:id", Static(island.id))
-      attrs.set("kg:url", Static(island.url))
-      attrs.set("kg:state", Static(island.state))
-      attrs.set("kg:trigger", Static(@kaguya.trigger_to_string(island.trigger)))
+      attrs.set("ln:id", Static(island.id))
+      attrs.set("ln:url", Static(island.url))
+      attrs.set("ln:state", Static(island.state))
+      attrs.set("ln:trigger", Static(@luna.trigger_to_string(island.trigger)))
       let children : Array[JsonNode] = []
       for child in island.children {
         children.push(render_to_json(child))
@@ -61,18 +61,18 @@ pub fn render_to_json(node : @kaguya.Node[Unit]) -> JsonNode {
 
 ///|
 /// Convert VNode attribute to JsonAttrValue
-fn convert_attr(attr : @kaguya.Attr[Unit]) -> JsonAttrValue {
+fn convert_attr(attr : @luna.Attr[Unit]) -> JsonAttrValue {
   match attr {
-    @kaguya.VStatic(value) => Static(value)
-    @kaguya.VDynamic(getter) => Dynamic(getter())
-    @kaguya.VHandler(_) => Handler
-    @kaguya.VAction(name) => Dynamic("action:" + name)
+    @luna.VStatic(value) => Static(value)
+    @luna.VDynamic(getter) => Dynamic(getter())
+    @luna.VHandler(_) => Handler
+    @luna.VAction(name) => Dynamic("action:" + name)
   }
 }
 
 ///|
 /// Render to JSON string (for debugging/serialization)
-pub fn render_to_json_string(node : @kaguya.Node[Unit]) -> String {
+pub fn render_to_json_string(node : @luna.Node[Unit]) -> String {
   let json_node = render_to_json(node)
   json_node_to_string(json_node)
 }

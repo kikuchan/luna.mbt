@@ -19,7 +19,7 @@ pub(all) enum TriggerType {
 pub(all) enum StateConfig {
   /// No state
   Empty
-  /// Inline JSON in kg:state attribute
+  /// Inline JSON in ln:state attribute
   Inline(String)
   /// Reference to a <script id="..."> element
   ScriptRef(String)

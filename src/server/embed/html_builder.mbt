@@ -24,29 +24,29 @@ pub fn generate_embed(config : EmbedConfig) -> EmbedOutput {
   }
 
   // 3. Main container div
-  sb.write_string("<div kg:id=\"")
+  sb.write_string("<div ln:id=\"")
   sb.write_string(config.id)
   sb.write_char('"')
 
-  // kg:url attribute
-  sb.write_string(" kg:url=\"")
+  // ln:url attribute
+  sb.write_string(" ln:url=\"")
   sb.write_string(config.script_url)
   sb.write_char('"')
 
-  // kg:trigger attribute (only if not default)
+  // ln:trigger attribute (only if not default)
   match config.trigger {
     Load => () // default, no need to specify
     _ => {
-      sb.write_string(" kg:trigger=\"")
+      sb.write_string(" ln:trigger=\"")
       sb.write_string(config.trigger.to_string())
       sb.write_char('"')
     }
   }
 
-  // kg:state attribute
+  // ln:state attribute
   match format_state_attr(config.state) {
     Some(state_value) => {
-      sb.write_string(" kg:state=\"")
+      sb.write_string(" ln:state=\"")
       sb.write_string(state_value)
       sb.write_char('"')
     }

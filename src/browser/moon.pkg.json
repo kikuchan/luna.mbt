@@ -4,16 +4,16 @@
   ],
   "import": [
     {
-      "path": "mizchi/kaguya/core",
-      "alias": "kaguya"
+      "path": "mizchi/luna/core",
+      "alias": "luna"
     },
-    "mizchi/kaguya/core/signal",
+    "mizchi/luna/core/signal",
     {
-      "path": "mizchi/kaguya/router",
+      "path": "mizchi/luna/router",
       "alias": "router"
     },
     {
-      "path": "mizchi/kaguya/browser/dom",
+      "path": "mizchi/luna/browser/dom",
       "alias": "dom"
     },
     "mizchi/js/core",
@@ -26,7 +26,7 @@
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    { "path": "mizchi/kaguya/server/renderer", "alias": "renderer" }
+    { "path": "mizchi/luna/server/renderer", "alias": "renderer" }
   ],
   "link": {
     "js": {

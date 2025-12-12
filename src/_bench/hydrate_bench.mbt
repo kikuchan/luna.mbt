@@ -51,7 +51,7 @@ extern "js" fn hydrate_set_inner_html(
 ///|
 test "hydrate_simple_text" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vtext("Hello, World!")
+  let node = @luna.vtext("Hello, World!")
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_simple_text", fn() {
     let container = setup_hydrate_container(html)
@@ -62,7 +62,7 @@ test "hydrate_simple_text" (b : @bench.T) {
 ///|
 test "hydrate_simple_element" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
+  let node = @luna.h("div", [], [@luna.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_simple_element", fn() {
     let container = setup_hydrate_container(html)
@@ -73,13 +73,13 @@ test "hydrate_simple_element" (b : @bench.T) {
 ///|
 test "hydrate_element_with_attrs" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h(
+  let node = @luna.h(
     "div",
     [
-      ("class", @kaguya.attr_static("container")),
-      ("id", @kaguya.attr_static("main")),
+      ("class", @luna.attr_static("container")),
+      ("id", @luna.attr_static("main")),
     ],
-    [@kaguya.vtext("Content")],
+    [@luna.vtext("Content")],
   )
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_element_with_attrs", fn() {
@@ -95,8 +95,8 @@ test "hydrate_element_with_attrs" (b : @bench.T) {
 ///|
 test "hydrate_nested_3" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [@kaguya.h("p", [], [@kaguya.vtext("Nested")])]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [@luna.h("p", [], [@luna.vtext("Nested")])]),
   ])
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_nested_3", fn() {
@@ -108,10 +108,10 @@ test "hydrate_nested_3" (b : @bench.T) {
 ///|
 test "hydrate_nested_5" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.h("div", [], [
-    @kaguya.h("section", [], [
-      @kaguya.h("article", [], [
-        @kaguya.h("div", [], [@kaguya.h("span", [], [@kaguya.vtext("Deep")])]),
+  let node = @luna.h("div", [], [
+    @luna.h("section", [], [
+      @luna.h("article", [], [
+        @luna.h("div", [], [@luna.h("span", [], [@luna.vtext("Deep")])]),
       ]),
     ]),
   ])
@@ -127,12 +127,12 @@ test "hydrate_nested_5" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_hydrate_list_node(count : Int) -> @kaguya.Node[@core.Any] {
-  let items : Array[@kaguya.Node[@core.Any]] = []
+fn create_hydrate_list_node(count : Int) -> @luna.Node[@core.Any] {
+  let items : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < count; i = i + 1 {
-    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
-  @kaguya.h("ul", [], items)
+  @luna.h("ul", [], items)
 }
 
 ///|
@@ -165,7 +165,7 @@ test "hydrate_list_100" (b : @bench.T) {
 test "hydrate_dynamic_text" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(42)
-  let node = @kaguya.text_dyn(fn() { "Count: " + count.get().to_string() })
+  let node = @luna.text_dyn(fn() { "Count: " + count.get().to_string() })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_dynamic_text", fn() {
     let container = setup_hydrate_container(html)
@@ -177,12 +177,12 @@ test "hydrate_dynamic_text" (b : @bench.T) {
 test "hydrate_dynamic_attrs" (b : @bench.T) {
   @global_jsdom.register()
   let active = @signal.signal(true)
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
     [
       (
         "class",
-        @kaguya.attr_dynamic(fn() {
+        @luna.attr_dynamic(fn() {
           if active.get() {
             "active"
           } else {
@@ -191,7 +191,7 @@ test "hydrate_dynamic_attrs" (b : @bench.T) {
         }),
       ),
     ],
-    [@kaguya.vtext("Toggle")],
+    [@luna.vtext("Toggle")],
   )
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_dynamic_attrs", fn() {
@@ -208,8 +208,8 @@ test "hydrate_dynamic_attrs" (b : @bench.T) {
 test "hydrate_show_visible" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.h("div", [], [@kaguya.vtext("Visible content")])
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.h("div", [], [@luna.vtext("Visible content")])
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_show_visible", fn() {
@@ -222,8 +222,8 @@ test "hydrate_show_visible" (b : @bench.T) {
 test "hydrate_show_hidden" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(false)
-  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
-    @kaguya.h("div", [], [@kaguya.vtext("Hidden content")])
+  let node = @luna.vshow(fn() { visible.get() }, fn() {
+    @luna.h("div", [], [@luna.vtext("Hidden content")])
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_show_hidden", fn() {
@@ -240,8 +240,8 @@ test "hydrate_show_hidden" (b : @bench.T) {
 test "hydrate_for_5_items" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c", "d", "e"])
-  let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
+  let node = @luna.vfor(fn() {
+    items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_for_5_items", fn() {
@@ -258,8 +258,8 @@ test "hydrate_for_20_items" (b : @bench.T) {
     items.push("item_" + i.to_string())
   }
   let items_sig = @signal.signal(items)
-  let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
+  let node = @luna.vfor(fn() {
+    items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_for_20_items", fn() {
@@ -273,23 +273,23 @@ test "hydrate_for_20_items" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_hydrate_card(title : String, content : String) -> @kaguya.Node[@core.Any] {
-  @kaguya.h("div", [("class", @kaguya.attr_static("card"))], [
-    @kaguya.h("h3", [("class", @kaguya.attr_static("card-title"))], [
-      @kaguya.vtext(title),
+fn create_hydrate_card(title : String, content : String) -> @luna.Node[@core.Any] {
+  @luna.h("div", [("class", @luna.attr_static("card"))], [
+    @luna.h("h3", [("class", @luna.attr_static("card-title"))], [
+      @luna.vtext(title),
     ]),
-    @kaguya.h("p", [("class", @kaguya.attr_static("card-content"))], [
-      @kaguya.vtext(content),
+    @luna.h("p", [("class", @luna.attr_static("card-content"))], [
+      @luna.vtext(content),
     ]),
-    @kaguya.h("button", [("class", @kaguya.attr_static("card-button"))], [
-      @kaguya.vtext("Read more"),
+    @luna.h("button", [("class", @luna.attr_static("card-button"))], [
+      @luna.vtext("Read more"),
     ]),
   ])
 }
 
 ///|
-fn create_hydrate_page(card_count : Int) -> @kaguya.Node[@core.Any] {
-  let cards : Array[@kaguya.Node[@core.Any]] = []
+fn create_hydrate_page(card_count : Int) -> @luna.Node[@core.Any] {
+  let cards : Array[@luna.Node[@core.Any]] = []
   for i = 0; i < card_count; i = i + 1 {
     cards.push(
       create_hydrate_card(
@@ -298,13 +298,13 @@ fn create_hydrate_page(card_count : Int) -> @kaguya.Node[@core.Any] {
       ),
     )
   }
-  @kaguya.h("html", [], [
-    @kaguya.h("head", [], [@kaguya.h("title", [], [@kaguya.vtext("Test Page")])]),
-    @kaguya.h("body", [], [
-      @kaguya.h("header", [], [@kaguya.h("h1", [], [@kaguya.vtext("Welcome")])]),
-      @kaguya.h("main", [("class", @kaguya.attr_static("container"))], cards),
-      @kaguya.h("footer", [], [
-        @kaguya.h("p", [], [@kaguya.vtext("Footer content")]),
+  @luna.h("html", [], [
+    @luna.h("head", [], [@luna.h("title", [], [@luna.vtext("Test Page")])]),
+    @luna.h("body", [], [
+      @luna.h("header", [], [@luna.h("h1", [], [@luna.vtext("Welcome")])]),
+      @luna.h("main", [("class", @luna.attr_static("container"))], cards),
+      @luna.h("footer", [], [
+        @luna.h("p", [], [@luna.vtext("Footer content")]),
       ]),
     ]),
   ])
@@ -340,16 +340,16 @@ test "hydrate_page_50_cards" (b : @bench.T) {
 test "hydrate_with_click_handler" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(0)
-  let node = @kaguya.h(
+  let node = @luna.h(
     "button",
     [
       (
         "class",
-        @kaguya.attr_dynamic(fn() { "count-" + count.get().to_string() }),
+        @luna.attr_dynamic(fn() { "count-" + count.get().to_string() }),
       ),
-      ("onClick", @kaguya.attr_handler(@dom.browser_noop_handler())),
+      ("onClick", @luna.attr_handler(@dom.browser_noop_handler())),
     ],
-    [@kaguya.text_dyn(fn() { "Count: " + count.get().to_string() })],
+    [@luna.text_dyn(fn() { "Count: " + count.get().to_string() })],
   )
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_with_click_handler", fn() {
@@ -362,21 +362,21 @@ test "hydrate_with_click_handler" (b : @bench.T) {
 test "hydrate_form_with_handlers" (b : @bench.T) {
   @global_jsdom.register()
   let value = @signal.signal("")
-  let node = @kaguya.h(
+  let node = @luna.h(
     "form",
-    [("onSubmit", @kaguya.attr_handler(@dom.browser_noop_handler()))],
+    [("onSubmit", @luna.attr_handler(@dom.browser_noop_handler()))],
     [
-      @kaguya.h(
+      @luna.h(
         "input",
         [
-          ("type", @kaguya.attr_static("text")),
-          ("value", @kaguya.attr_dynamic(fn() { value.get() })),
-          ("onInput", @kaguya.attr_handler(@dom.browser_noop_handler())),
+          ("type", @luna.attr_static("text")),
+          ("value", @luna.attr_dynamic(fn() { value.get() })),
+          ("onInput", @luna.attr_handler(@dom.browser_noop_handler())),
         ],
         [],
       ),
-      @kaguya.h("button", [("type", @kaguya.attr_static("submit"))], [
-        @kaguya.vtext("Submit"),
+      @luna.h("button", [("type", @luna.attr_static("submit"))], [
+        @luna.vtext("Submit"),
       ]),
     ],
   )

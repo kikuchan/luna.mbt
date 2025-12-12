@@ -1,8 +1,8 @@
-# Kaguya Framework 実装計画
+# Luna Framework 実装計画
 
 ## 概要
 
-KaguyaはMoonBitで実装されたIsland Architectureベースの軽量UIフレームワーク。
+LunaはMoonBitで実装されたIsland Architectureベースの軽量UIフレームワーク。
 Preactの軽量ランタイム + Qwikのresumability + Solidのシグナルを組み合わせ、最小限のクライアントバンドルサイズを目指す。
 
 ## 設計原則
@@ -30,33 +30,33 @@ Preactの軽量ランタイム + Qwikのresumability + Solidのシグナルを�
 
 ## 命名規約
 
-### 属性プレフィックス（kg:統一）
-- `kg:id` - コンポーネントID
-- `kg:url` - Hydration用モジュールURL
-- `kg:trigger` - Hydrationトリガー（load, idle, visible, media）
-- `kg:state` - シリアライズされた状態
+### 属性プレフィックス（ln:統一）
+- `ln:id` - コンポーネントID
+- `ln:url` - Hydration用モジュールURL
+- `ln:trigger` - Hydrationトリガー（load, idle, visible, media）
+- `ln:state` - シリアライズされた状態
 
 ### MoonBit名前空間
-- `mizchi/kaguya` - コアモジュール
-- `mizchi/kaguya/element` - HTML要素
-- `mizchi/kaguya/ssr` - SSR
-- `mizchi/kaguya/embedding` - 埋め込みモード
-- `mizchi/kaguya/js/dom` - DOM操作
+- `mizchi/luna` - コアモジュール
+- `mizchi/luna/element` - HTML要素
+- `mizchi/luna/ssr` - SSR
+- `mizchi/luna/embedding` - 埋め込みモード
+- `mizchi/luna/js/dom` - DOM操作
 
 ### NPMパッケージ
-- `@mizchi/kaguya` - コアランタイム
-- `@mizchi/kaguya-loader` - Islandローダー
+- `@mizchi/luna` - コアランタイム
+- `@mizchi/luna-loader` - Islandローダー
 
 ---
 
 ## Phase 1: 名前空間移行 ✅
 
-- [x] moon.mod.json 変更 (`mizchi/ui` → `mizchi/kaguya`)
+- [x] moon.mod.json 変更 (`mizchi/ui` → `mizchi/luna`)
 - [x] 全moon.pkg.json 変更 (20ファイル)
-- [x] ソースコード変更 (`@ui.` → `@kaguya.`)
+- [x] ソースコード変更 (`@ui.` → `@luna.`)
 - [x] NPMパッケージ名変更
-  - [x] `@mizchi/ui` → `@mizchi/kaguya`
-  - [x] `@mizchi/ui-loader` → `@mizchi/kaguya-loader`
+  - [x] `@mizchi/ui` → `@mizchi/luna`
+  - [x] `@mizchi/ui-loader` → `@mizchi/luna-loader`
 - [x] tsconfig.json 更新 (jsxImportSource, paths)
 - [x] `moon check` 通過確認
 
@@ -64,24 +64,24 @@ Preactの軽量ランタイム + Qwikのresumability + Solidのシグナルを�
 
 ## Phase 2: ローダー属性の統一 ✅
 
-### kg:* 属性への移行
+### ln:* 属性への移行
 
-`kg:*` 形式で統一済み。
+`ln:*` 形式で統一済み。
 
 **HTML出力例**
 ```html
-<div kg:id="counter-1"
-     kg:url="/components/counter.js"
-     kg:trigger="visible"
-     kg:state='{"count":0}'>
+<div ln:id="counter-1"
+     ln:url="/components/counter.js"
+     ln:trigger="visible"
+     ln:state='{"count":0}'>
   <span>0</span>
   <button>+</button>
 </div>
 ```
 
-- [x] `src/embedding/html_builder.mbt` - kg:* 属性出力
-- [x] `packages/loader/kg-loader-v1.js` - kg:* 属性読み取り
-- [x] E2Eテストで kg:* 使用
+- [x] `src/embedding/html_builder.mbt` - ln:* 属性出力
+- [x] `packages/loader/kg-loader-v1.js` - ln:* 属性読み取り
+- [x] E2Eテストで ln:* 使用
 
 ---
 
@@ -148,7 +148,7 @@ src/
 // 自動生成されるWebComponent
 class KgCounter extends HTMLElement {
   connectedCallback() {
-    kaguya.hydrate(this, this.getAttribute('kg:state'));
+    luna.hydrate(this, this.getAttribute('ln:state'));
   }
 }
 customElements.define('kg-counter', KgCounter);

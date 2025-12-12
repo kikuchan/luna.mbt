@@ -9,27 +9,27 @@
 // =============================================================================
 
 ///|
-fn create_distance_tree(count : Int) -> @kaguya.Node[@core.Any] {
-  let items : Array[@kaguya.Node[@core.Any]] = []
+fn create_distance_tree(count : Int) -> @luna.Node[@core.Any] {
+  let items : Array[@luna.Node[@core.Any]] = []
   for i in 0..<count {
-    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
-  @kaguya.h("ul", [], items)
+  @luna.h("ul", [], items)
 }
 
 ///|
-fn create_distance_tree_with_attrs(count : Int) -> @kaguya.Node[@core.Any] {
-  let items : Array[@kaguya.Node[@core.Any]] = []
+fn create_distance_tree_with_attrs(count : Int) -> @luna.Node[@core.Any] {
+  let items : Array[@luna.Node[@core.Any]] = []
   for i in 0..<count {
     items.push(
-      @kaguya.h(
+      @luna.h(
         "li",
-        [("class", @kaguya.attr_static("item-" + i.to_string()))],
-        [@kaguya.vtext("Item " + i.to_string())],
+        [("class", @luna.attr_static("item-" + i.to_string()))],
+        [@luna.vtext("Item " + i.to_string())],
       ),
     )
   }
-  @kaguya.h("ul", [], items)
+  @luna.h("ul", [], items)
 }
 
 ///|

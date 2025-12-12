@@ -118,10 +118,10 @@ test "format_state_attr - empty returns None" {
 test "generate_embed - minimal config" {
   let config = @embed.EmbedConfig::new("counter-1", "./counter.js")
   let output = @embed.generate_embed(config)
-  assert_true(output.html.contains("kg:id=\"counter-1\""))
-  assert_true(output.html.contains("kg:url=\"./counter.js\""))
+  assert_true(output.html.contains("ln:id=\"counter-1\""))
+  assert_true(output.html.contains("ln:url=\"./counter.js\""))
   // load is default, should not be included
-  assert_true(not(output.html.contains("kg:trigger")))
+  assert_true(not(output.html.contains("ln:trigger")))
 }
 
 ///|
@@ -130,7 +130,7 @@ test "generate_embed - with visible trigger" {
     @embed.TriggerType::Visible,
   )
   let output = @embed.generate_embed(config)
-  assert_true(output.html.contains("kg:trigger=\"visible\""))
+  assert_true(output.html.contains("ln:trigger=\"visible\""))
 }
 
 ///|
@@ -140,7 +140,7 @@ test "generate_embed - with inline state" {
   )
   let output = @embed.generate_embed(config)
   // State is HTML-escaped for attribute safety
-  assert_true(output.html.contains("kg:state=\"{&quot;count&quot;:0}\""))
+  assert_true(output.html.contains("ln:state=\"{&quot;count&quot;:0}\""))
 }
 
 ///|

@@ -4,7 +4,7 @@
 
 ///|
 /// Render a VNode to HTML string
-pub fn[E] render_to_string(node : @kaguya.Node[E]) -> String {
+pub fn[E] render_to_string(node : @luna.Node[E]) -> String {
   let sb = StringBuilder::new(size_hint=256)
   render_to_sb(sb, node)
   sb.to_string()
@@ -19,7 +19,7 @@ pub struct SSRResult {
 
 ///|
 /// Render a VNode to HTML string and collect preload URLs from islands
-pub fn[E] render_with_preloads(node : @kaguya.Node[E]) -> SSRResult {
+pub fn[E] render_with_preloads(node : @luna.Node[E]) -> SSRResult {
   render_with_options(node)
 }
 
@@ -28,7 +28,7 @@ pub fn[E] render_with_preloads(node : @kaguya.Node[E]) -> SSRResult {
 /// - preload: Whether to collect preload URLs from islands (default: true)
 /// - hydration: Whether to include hydration markers (default: true, reserved for future use)
 pub fn[E] render_with_options(
-  node : @kaguya.Node[E],
+  node : @luna.Node[E],
   preload~ : Bool = true,
   hydration~ : Bool = true
 ) -> SSRResult {
@@ -63,7 +63,7 @@ pub fn generate_preload_tags(urls : Array[String]) -> String {
 /// Render a VNode to StringBuilder and collect island URLs
 fn[E] render_and_collect_urls(
   sb : StringBuilder,
-  node : @kaguya.Node[E],
+  node : @luna.Node[E],
   urls : Array[String],
 ) -> Unit {
   match node {
@@ -109,7 +109,7 @@ fn[E] render_and_collect_urls(
 /// Render Island node and collect its URL
 fn[E] render_island_and_collect_urls(
   sb : StringBuilder,
-  island : @kaguya.VIsland[E],
+  island : @luna.VIsland[E],
   urls : Array[String],
 ) -> Unit {
   // Collect URL if not already present
@@ -118,22 +118,22 @@ fn[E] render_island_and_collect_urls(
   }
 
   // Render the island (same as render_island_to)
-  sb.write_string("<!--kg:island:")
+  sb.write_string("<!--ln:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
   sb.write_string(island.url)
   sb.write_string(" trigger=")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("-->")
 
-  sb.write_string("<div kg:id=\"")
+  sb.write_string("<div ln:id=\"")
   sb.write_string(island.id)
-  sb.write_string("\" kg:url=\"")
+  sb.write_string("\" ln:url=\"")
   sb.write_string(island.url)
-  sb.write_string("\" kg:state=\"")
+  sb.write_string("\" ln:state=\"")
   escape_attr_to(sb, island.state)
-  sb.write_string("\" kg:trigger=\"")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\" ln:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
 
   for child in island.children {
@@ -141,7 +141,7 @@ fn[E] render_island_and_collect_urls(
   }
 
   sb.write_string("</div>")
-  sb.write_string("<!--/kg:island:")
+  sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
 }
@@ -235,7 +235,7 @@ fn escape_attr_to(sb : StringBuilder, s : String) -> Unit {
 /// Render attributes to StringBuilder
 fn[E] render_attrs_to(
   sb : StringBuilder,
-  attrs : Array[(String, @kaguya.Attr[E])],
+  attrs : Array[(String, @luna.Attr[E])],
 ) -> Unit {
   for attr in attrs {
     let (name, value) = attr
@@ -292,7 +292,7 @@ fn[E] render_attrs_to(
 
 ///|
 /// Render a VNode to StringBuilder
-fn[E] render_to_sb(sb : StringBuilder, node : @kaguya.Node[E]) -> Unit {
+fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
   match node {
     Text(content) => escape_html_to(sb, content)
     DynamicText(getter) => escape_html_to(sb, getter())
@@ -333,28 +333,28 @@ fn[E] render_to_sb(sb : StringBuilder, node : @kaguya.Node[E]) -> Unit {
 }
 
 ///|
-/// Render Island node with kg:* attributes for hydration
-fn[E] render_island_to(sb : StringBuilder, island : @kaguya.VIsland[E]) -> Unit {
+/// Render Island node with ln:* attributes for hydration
+fn[E] render_island_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
   // Start comment marker for preload detection (allows finding islands before DOM parsing)
-  // Format: <!--kg:island:ID url=URL state=STATE trigger=TRIGGER-->
-  sb.write_string("<!--kg:island:")
+  // Format: <!--ln:island:ID url=URL state=STATE trigger=TRIGGER-->
+  sb.write_string("<!--ln:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
   sb.write_string(island.url)
   sb.write_string(" trigger=")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("-->")
 
-  // Wrapper div with kg:* attributes
-  sb.write_string("<div kg:id=\"")
+  // Wrapper div with ln:* attributes
+  sb.write_string("<div ln:id=\"")
   sb.write_string(island.id)
-  sb.write_string("\" kg:url=\"")
+  sb.write_string("\" ln:url=\"")
   sb.write_string(island.url)
-  sb.write_string("\" kg:state=\"")
+  sb.write_string("\" ln:state=\"")
   // State needs attribute escaping (it's JSON)
   escape_attr_to(sb, island.state)
-  sb.write_string("\" kg:trigger=\"")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\" ln:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
 
   // Render children (may contain nested islands)
@@ -365,14 +365,14 @@ fn[E] render_island_to(sb : StringBuilder, island : @kaguya.VIsland[E]) -> Unit 
   sb.write_string("</div>")
 
   // End comment marker
-  sb.write_string("<!--/kg:island:")
+  sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
 }
 
 ///|
 /// Render with data-ssr-id markers for hydration
-pub fn[E] render_to_string_with_hydration(node : @kaguya.Node[E]) -> String {
+pub fn[E] render_to_string_with_hydration(node : @luna.Node[E]) -> String {
   let sb = StringBuilder::new(size_hint=256)
   let id_counter = { val: 0 }
   render_with_id_to(sb, node, id_counter)
@@ -383,7 +383,7 @@ pub fn[E] render_to_string_with_hydration(node : @kaguya.Node[E]) -> String {
 /// Internal: Render with hydration markers to StringBuilder
 fn[E] render_with_id_to(
   sb : StringBuilder,
-  node : @kaguya.Node[E],
+  node : @luna.Node[E],
   id_counter : Ref[Int],
 ) -> Unit {
   match node {
@@ -457,30 +457,30 @@ fn[E] render_with_id_to(
 }
 
 ///|
-/// Render Island node with kg:* attributes and hydration markers
+/// Render Island node with ln:* attributes and hydration markers
 fn[E] render_island_with_id_to(
   sb : StringBuilder,
-  island : @kaguya.VIsland[E],
+  island : @luna.VIsland[E],
   id_counter : Ref[Int],
 ) -> Unit {
   // Start comment marker for preload detection
-  sb.write_string("<!--kg:island:")
+  sb.write_string("<!--ln:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
   sb.write_string(island.url)
   sb.write_string(" trigger=")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("-->")
 
-  // Wrapper div with kg:* attributes
-  sb.write_string("<div kg:id=\"")
+  // Wrapper div with ln:* attributes
+  sb.write_string("<div ln:id=\"")
   sb.write_string(island.id)
-  sb.write_string("\" kg:url=\"")
+  sb.write_string("\" ln:url=\"")
   sb.write_string(island.url)
-  sb.write_string("\" kg:state=\"")
+  sb.write_string("\" ln:state=\"")
   escape_attr_to(sb, island.state)
-  sb.write_string("\" kg:trigger=\"")
-  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\" ln:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
 
   // Render children with hydration markers
@@ -491,14 +491,14 @@ fn[E] render_island_with_id_to(
   sb.write_string("</div>")
 
   // End comment marker
-  sb.write_string("<!--/kg:island:")
+  sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
 }
 
 ///|
 /// Check if element has dynamic content that needs hydration
-fn[E] has_dynamic_content(attrs : Array[(String, @kaguya.Attr[E])]) -> Bool {
+fn[E] has_dynamic_content(attrs : Array[(String, @luna.Attr[E])]) -> Bool {
   for attr in attrs {
     let (_, value) = attr
     match value {

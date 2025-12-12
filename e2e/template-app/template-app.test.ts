@@ -15,12 +15,12 @@ test.describe("Template App E2E Tests", () => {
       await page.goto(BASE_URL);
 
       // Check SSR rendered content
-      await expect(page.locator("h1")).toContainText("Welcome to Kaguya");
+      await expect(page.locator("h1")).toContainText("Welcome to Luna");
       await expect(page.locator(".counter")).toBeVisible();
       await expect(page.locator(".count-display")).toBeVisible();
     });
 
-    test("counter has correct kg:* attributes for hydration", async ({
+    test("counter has correct ln:* attributes for hydration", async ({
       page,
     }) => {
       await page.goto(BASE_URL);
@@ -29,10 +29,10 @@ test.describe("Template App E2E Tests", () => {
       await expect(counter).toBeVisible();
 
       // Verify hydration attributes
-      const url = await counter.getAttribute("kg:url");
+      const url = await counter.getAttribute("ln:url");
       expect(url).toBe("/static/counter.js");
 
-      const state = await counter.getAttribute("kg:state");
+      const state = await counter.getAttribute("ln:state");
       expect(state).toContain('"count"');
     });
 
@@ -84,7 +84,7 @@ test.describe("Template App E2E Tests", () => {
           console.log('[BROWSER] Module keys:', moduleKeys);
           console.log('[BROWSER] mod.hydrate type:', typeof mod.hydrate);
           if (mod.hydrate && counterEl) {
-            const state = JSON.parse(counterEl.getAttribute('kg:state') || '{}');
+            const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
             console.log('[BROWSER] Calling hydrate directly with state:', state);
             mod.hydrate(counterEl, state, 'counter');
             directHydrateResult = 'success';
@@ -148,7 +148,7 @@ test.describe("Template App E2E Tests", () => {
         const counterEl = document.querySelector('[kg\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
-          const state = JSON.parse(counterEl.getAttribute('kg:state') || '{}');
+          const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
           mod.hydrate(counterEl, state, 'counter');
         }
       });
@@ -174,7 +174,7 @@ test.describe("Template App E2E Tests", () => {
         const counterEl = document.querySelector('[kg\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
-          const state = JSON.parse(counterEl.getAttribute('kg:state') || '{}');
+          const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
           mod.hydrate(counterEl, state, 'counter');
         }
       });
@@ -208,7 +208,7 @@ test.describe("Template App E2E Tests", () => {
 
       await page.click('a[href="/"]');
       await expect(page).toHaveURL(BASE_URL + "/");
-      await expect(page.locator("h1")).toContainText("Welcome to Kaguya");
+      await expect(page.locator("h1")).toContainText("Welcome to Luna");
     });
   });
 

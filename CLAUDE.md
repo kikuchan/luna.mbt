@@ -1,4 +1,4 @@
-# Kaguya Framework
+# Luna Framework
 
 MoonBitで実装されたIsland ArchitectureベースのUIフレームワーク。
 
@@ -21,8 +21,8 @@ src/                    # MoonBitソースコード
 ├── tests/              # テストコンポーネント
 └── examples/           # サンプル
 packages/               # NPMパッケージ
-├── core/               # @kaguya/core (旧ui)
-└── loader/             # @kaguya/loader
+├── core/               # @luna/core (旧ui)
+└── loader/             # @luna/loader
 e2e/                    # Playwrightテスト
 ```
 
@@ -43,28 +43,28 @@ pnpm test:e2e:loader     # Loaderテストのみ
 
 ## 命名規約
 
-### HTML属性 (kg:*)
-- `kg:id` - コンポーネントID
-- `kg:url` - Hydration用モジュールURL
-- `kg:trigger` - Hydrationトリガー (load, idle, visible, media)
-- `kg:state` - シリアライズされた状態JSON
+### HTML属性 (ln:*)
+- `ln:id` - コンポーネントID
+- `ln:url` - Hydration用モジュールURL
+- `ln:trigger` - Hydrationトリガー (load, idle, visible, media)
+- `ln:state` - シリアライズされた状態JSON
 
 ### MoonBit名前空間
-- `mizchi/kaguya` - コア（旧 mizchi/ui）
-- `@kaguya.` - Signal, Node, Attr等のエイリアス
+- `mizchi/luna` - コア（旧 mizchi/ui）
+- `@luna.` - Signal, Node, Attr等のエイリアス
 - `@dom.` - DOM操作のエイリアス
 - `@ssr.` - SSRのエイリアス
 
 ### NPMパッケージ
-- `@mizchi/kaguya` - コアランタイム
-- `@mizchi/kaguya-loader` - Islandローダー
+- `@mizchi/luna` - コアランタイム
+- `@mizchi/luna-loader` - Islandローダー
 
 ## アーキテクチャ
 
 ### Island Architecture
 - SSRで静的HTML生成
-- `kg:*`属性でIsland境界をマーク
-- kaguya-loaderが遅延Hydration実行
+- `ln:*`属性でIsland境界をマーク
+- luna-loaderが遅延Hydration実行
 
 ### トリガータイプ
 | トリガー | 説明 |
@@ -83,8 +83,8 @@ count.set(1)  // "1" が出力される
 
 ## 開発時の注意
 
-- 名前空間は `mizchi/kaguya` (移行中)
-- 属性は `kg:*` 形式に統一
+- 名前空間は `mizchi/luna` (移行中)
+- 属性は `ln:*` 形式に統一
 - テストは必ず `moon check` と `pnpm test:e2e` の両方を確認
 - XSSエスケープは `src/embedding/serializer.mbt` で処理
 

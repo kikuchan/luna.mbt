@@ -1,6 +1,6 @@
 {
   "import": [],
   "test-import": [
-    { "path": "mizchi/kaguya/core", "alias": "kaguya" }
+    { "path": "mizchi/luna/core", "alias": "luna" }
   ]
 }

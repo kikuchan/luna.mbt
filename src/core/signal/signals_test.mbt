@@ -728,27 +728,27 @@ test "computed is alias for memo" {
 ///|
 test "vtext_sig creates dynamic text from signal" {
   let sig = Signal::new(42)
-  let node = @kaguya.vtext_sig(sig)
+  let node = @luna.vtext_sig(sig)
   match node {
-    @kaguya.DynamicText(getter) => assert_eq(getter(), "42")
+    @luna.DynamicText(getter) => assert_eq(getter(), "42")
     _ => assert_true(false)
   }
   sig.set(100)
   match node {
-    @kaguya.DynamicText(getter) => assert_eq(getter(), "100")
+    @luna.DynamicText(getter) => assert_eq(getter(), "100")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vnode creates anchor element" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "a",
-    [("href", @kaguya.attr_static("https://example.com"))],
-    [@kaguya.vtext("Link")],
+    [("href", @luna.attr_static("https://example.com"))],
+    [@luna.vtext("Link")],
   )
   match node {
-    @kaguya.Element(el) => {
+    @luna.Element(el) => {
       assert_eq(el.tag, "a")
       assert_eq(el.attrs.length(), 1)
       assert_eq(el.children.length(), 1)
@@ -759,11 +759,11 @@ test "vnode creates anchor element" {
 
 ///|
 test "vnode creates form element" {
-  let node = @kaguya.h("form", [("id", @kaguya.attr_static("myform"))], [
-    @kaguya.h("input", [("type", @kaguya.attr_static("text"))], []),
+  let node = @luna.h("form", [("id", @luna.attr_static("myform"))], [
+    @luna.h("input", [("type", @luna.attr_static("text"))], []),
   ])
   match node {
-    @kaguya.Element(el) => {
+    @luna.Element(el) => {
       assert_eq(el.tag, "form")
       assert_eq(el.attrs.length(), 1)
       assert_eq(el.children.length(), 1)
@@ -774,56 +774,56 @@ test "vnode creates form element" {
 
 ///|
 test "vnode creates label element" {
-  let node = @kaguya.h("label", [("for", @kaguya.attr_static("input1"))], [
-    @kaguya.vtext("Name:"),
+  let node = @luna.h("label", [("for", @luna.attr_static("input1"))], [
+    @luna.vtext("Name:"),
   ])
   match node {
-    @kaguya.Element(el) => assert_eq(el.tag, "label")
+    @luna.Element(el) => assert_eq(el.tag, "label")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vnode creates h2 element" {
-  let node = @kaguya.h("h2", [], [@kaguya.vtext("Section")])
+  let node = @luna.h("h2", [], [@luna.vtext("Section")])
   match node {
-    @kaguya.Element(el) => assert_eq(el.tag, "h2")
+    @luna.Element(el) => assert_eq(el.tag, "h2")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vnode creates h3 element" {
-  let node = @kaguya.h("h3", [], [@kaguya.vtext("Subsection")])
+  let node = @luna.h("h3", [], [@luna.vtext("Subsection")])
   match node {
-    @kaguya.Element(el) => assert_eq(el.tag, "h3")
+    @luna.Element(el) => assert_eq(el.tag, "h3")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vnode creates ol element" {
-  let node = @kaguya.h("ol", [], [
-    @kaguya.h("li", [], [@kaguya.vtext("Item 1")]),
+  let node = @luna.h("ol", [], [
+    @luna.h("li", [], [@luna.vtext("Item 1")]),
   ])
   match node {
-    @kaguya.Element(el) => assert_eq(el.tag, "ol")
+    @luna.Element(el) => assert_eq(el.tag, "ol")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "vnode creates img element" {
-  let node = @kaguya.h(
+  let node = @luna.h(
     "img",
     [
-      ("src", @kaguya.attr_static("/image.png")),
-      ("alt", @kaguya.attr_static("An image")),
+      ("src", @luna.attr_static("/image.png")),
+      ("alt", @luna.attr_static("An image")),
     ],
     [],
   )
   match node {
-    @kaguya.Element(el) => {
+    @luna.Element(el) => {
       assert_eq(el.tag, "img")
       assert_eq(el.attrs.length(), 2)
       assert_eq(el.children.length(), 0)
@@ -835,57 +835,57 @@ test "vnode creates img element" {
 ///|
 test "attr_dynamic creates dynamic attribute" {
   let getter = fn() { "dynamic-value" }
-  let attr = @kaguya.attr_dynamic(getter)
+  let attr = @luna.attr_dynamic(getter)
   match attr {
-    @kaguya.VDynamic(g) => assert_eq(g(), "dynamic-value")
+    @luna.VDynamic(g) => assert_eq(g(), "dynamic-value")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "attr_static creates value attribute" {
-  let attr = @kaguya.attr_static("test-value")
+  let attr = @luna.attr_static("test-value")
   match attr {
-    @kaguya.VStatic(v) => assert_eq(v, "test-value")
+    @luna.VStatic(v) => assert_eq(v, "test-value")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "attr_dynamic creates dynamic value attribute" {
-  let attr = @kaguya.attr_dynamic(fn() { "dynamic" })
+  let attr = @luna.attr_dynamic(fn() { "dynamic" })
   match attr {
-    @kaguya.VDynamic(g) => assert_eq(g(), "dynamic")
+    @luna.VDynamic(g) => assert_eq(g(), "dynamic")
     _ => assert_true(false)
   }
 }
 
 ///|
 test "attr_handler creates input handler" {
-  let handler = @kaguya.event_handler()
-  let attr = @kaguya.attr_handler(handler)
+  let handler = @luna.event_handler()
+  let attr = @luna.attr_handler(handler)
   match attr {
-    @kaguya.VHandler(_) => assert_true(true)
+    @luna.VHandler(_) => assert_true(true)
     _ => assert_true(false)
   }
 }
 
 ///|
 test "attr_handler creates change handler" {
-  let handler = @kaguya.event_handler()
-  let attr = @kaguya.attr_handler(handler)
+  let handler = @luna.event_handler()
+  let attr = @luna.attr_handler(handler)
   match attr {
-    @kaguya.VHandler(_) => assert_true(true)
+    @luna.VHandler(_) => assert_true(true)
     _ => assert_true(false)
   }
 }
 
 ///|
 test "attr_handler creates submit handler" {
-  let handler = @kaguya.event_handler()
-  let attr = @kaguya.attr_handler(handler)
+  let handler = @luna.event_handler()
+  let attr = @luna.attr_handler(handler)
   match attr {
-    @kaguya.VHandler(_) => assert_true(true)
+    @luna.VHandler(_) => assert_true(true)
     _ => assert_true(false)
   }
 }
@@ -893,9 +893,9 @@ test "attr_handler creates submit handler" {
 ///|
 test "attr_dynamic_style creates dynamic style attribute" {
   let style_getter = fn() { "color: red; margin: 10px" }
-  let attr = @kaguya.attr_dynamic_style(style_getter)
+  let attr = @luna.attr_dynamic_style(style_getter)
   match attr {
-    @kaguya.VDynamic(g) => assert_eq(g(), "color: red; margin: 10px")
+    @luna.VDynamic(g) => assert_eq(g(), "color: red; margin: 10px")
     _ => assert_true(false)
   }
 }

@@ -6,10 +6,10 @@ test "register: basic custom element" {
   // Register a simple counter component
   register("test-counter-1", fn(_host) {
     let count = @signal.signal(0)
-    @kaguya.h("div", [], [
-      @kaguya.h("span", [], [@kaguya.text_dyn(fn() { count.get().to_string() })]),
-      @kaguya.h("button", [("id", @kaguya.attr_static("inc"))], [
-        @kaguya.vtext("+"),
+    @luna.h("div", [], [
+      @luna.h("span", [], [@luna.text_dyn(fn() { count.get().to_string() })]),
+      @luna.h("button", [("id", @luna.attr_static("inc"))], [
+        @luna.vtext("+"),
       ]),
     ])
   })
@@ -38,9 +38,9 @@ test "register_with_attrs: observed attributes become signals" {
       Some(s) => s
       None => @signal.signal("")
     }
-    @kaguya.h("div", [], [
-      @kaguya.h("span", [("id", @kaguya.attr_static("greeting"))], [
-        @kaguya.text_dyn(fn() { "Hello, " + name_sig.get() + "!" }),
+    @luna.h("div", [], [
+      @luna.h("span", [("id", @luna.attr_static("greeting"))], [
+        @luna.text_dyn(fn() { "Hello, " + name_sig.get() + "!" }),
       ]),
     ])
   })

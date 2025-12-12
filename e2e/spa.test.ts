@@ -10,7 +10,7 @@ test.describe("SPA Example", () => {
     await page.waitForSelector("h1");
 
     const title = page.locator("h1");
-    await expect(title).toHaveText("Kaguya Examples");
+    await expect(title).toHaveText("Luna Examples");
   });
 
   test("counter example works", async ({ page }) => {

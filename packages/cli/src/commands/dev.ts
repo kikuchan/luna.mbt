@@ -1,5 +1,5 @@
 /**
- * kaguya dev - Start development server
+ * luna dev - Start development server
  */
 import { Command } from "commander";
 import { spawn } from "node:child_process";
@@ -19,7 +19,7 @@ export const devCommand = new Command("dev")
       process.exit(1);
     }
 
-    console.log(pc.cyan("Starting Kaguya development server..."));
+    console.log(pc.cyan("Starting Luna development server..."));
 
     // Step 1: Build MoonBit project
     console.log(pc.gray("Building MoonBit project..."));

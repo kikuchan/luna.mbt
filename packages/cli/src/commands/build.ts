@@ -1,5 +1,5 @@
 /**
- * kaguya build - Build for production
+ * luna build - Build for production
  */
 import { Command } from "commander";
 import { spawn } from "node:child_process";

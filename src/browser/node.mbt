@@ -7,37 +7,37 @@
 ///|
 /// Browser VNode type (uses @core.Any for event type)
 pub struct BrowserVNode {
-  inner : @kaguya.Node[@core.Any]
+  inner : @luna.Node[@core.Any]
 }
 
 ///|
 /// Browser Attr type (uses @core.Any for event type)
 pub struct BrowserAttr {
-  inner : @kaguya.Attr[@core.Any]
+  inner : @luna.Attr[@core.Any]
 }
 
 ///|
 /// Browser EventHandler type
 pub struct BrowserEventHandler {
-  inner : @kaguya.EventHandler[@core.Any]
+  inner : @luna.EventHandler[@core.Any]
 }
 
 ///|
 /// Create a browser event handler from a callback
-pub fn browser_event_handler(f : (@core.Any) -> Unit) -> @kaguya.EventHandler[@core.Any] {
-  @kaguya.handler(f)
+pub fn browser_event_handler(f : (@core.Any) -> Unit) -> @luna.EventHandler[@core.Any] {
+  @luna.handler(f)
 }
 
 ///|
 /// Create a noop browser event handler (for SSR compatibility in browser context)
-pub fn browser_noop_handler() -> @kaguya.EventHandler[@core.Any] {
-  @kaguya.handler(fn(_event) { () })
+pub fn browser_noop_handler() -> @luna.EventHandler[@core.Any] {
+  @luna.handler(fn(_event) { () })
 }
 
 ///|
 /// Create a browser event handler from a simple callback (ignores event)
-pub fn browser_handler_from_callback(f : () -> Unit) -> @kaguya.EventHandler[@core.Any] {
-  @kaguya.handler(fn(_event) { f() })
+pub fn browser_handler_from_callback(f : () -> Unit) -> @luna.EventHandler[@core.Any] {
+  @luna.handler(fn(_event) { f() })
 }
 
 ///|

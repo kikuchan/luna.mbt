@@ -95,7 +95,7 @@ fn get_text_content(node : @js_dom.Node) -> String {
 /// The container should already have server-rendered HTML with hydration markers.
 pub fn hydrate(
   container : @js_dom.Element,
-  node : @kaguya.Node[@core.Any],
+  node : @luna.Node[@core.Any],
   recover_on_mismatch? : Bool,
   warn_on_mismatch? : Bool,
   logger? : StringBuilder,
@@ -138,26 +138,26 @@ pub fn hydrate(
 /// Internal: Hydrate a single node
 fn hydrate_node(
   parent : @js_dom.Node,
-  node : @kaguya.Node[@core.Any],
+  node : @luna.Node[@core.Any],
   ctx : HydrationContext,
 ) -> Unit {
   match node {
-    @kaguya.Text(_) =>
+    @luna.Text(_) =>
       // Static text doesn't need hydration
       ()
-    @kaguya.DynamicText(getter) => {
+    @luna.DynamicText(getter) => {
       // Find the text marker comments and set up effect
       let id = ctx.current_id
       ctx.current_id = id + 1
       hydrate_dynamic_text(parent, id, getter)
     }
-    @kaguya.Fragment(children) =>
+    @luna.Fragment(children) =>
       for i = 0; i < children.length(); i = i + 1 {
         hydrate_node(parent, children[i], ctx)
       }
-    @kaguya.Element(elem) => {
+    @luna.Element(elem) => {
       // Check if this element needs hydration (has handlers or dynamic attrs)
-      let needs_hydration = @kaguya.has_dynamic_content(elem.attrs)
+      let needs_hydration = @luna.has_dynamic_content(elem.attrs)
 
       // Always increment id to match SSR counter
       let id = ctx.current_id
@@ -210,18 +210,18 @@ fn hydrate_node(
         None => ()
       }
     }
-    @kaguya.Show(condition=cond, child=child_fn) => {
+    @luna.Show(condition=cond, child=child_fn) => {
       let id = ctx.current_id
       ctx.current_id = id + 1
       hydrate_show(parent, id, cond, child_fn, ctx)
     }
-    @kaguya.For(render=render_fn) => {
+    @luna.For(render=render_fn) => {
       let id = ctx.current_id
       ctx.current_id = id + 1
       hydrate_for(parent, id, render_fn, ctx)
     }
-    @kaguya.Component(render=render_fn) => hydrate_node(parent, render_fn(), ctx)
-    @kaguya.Island(island) =>
+    @luna.Component(render=render_fn) => hydrate_node(parent, render_fn(), ctx)
+    @luna.Island(island) =>
       // Island hydration is handled by the loader, not this function
       // Just hydrate children normally for nested content
       for child in island.children {
@@ -298,7 +298,7 @@ fn hydrate_dynamic_text(
 /// Hydrate element attributes and handlers
 fn hydrate_element(
   elem : @js_dom.Element,
-  attrs : Array[(String, @kaguya.Attr[@core.Any])],
+  attrs : Array[(String, @luna.Attr[@core.Any])],
 ) -> Unit {
   hydrate_element_with_dispatch(elem, attrs, None)
 }
@@ -307,16 +307,16 @@ fn hydrate_element(
 /// Hydrate element attributes with optional action dispatcher
 fn hydrate_element_with_dispatch(
   elem : @js_dom.Element,
-  attrs : Array[(String, @kaguya.Attr[@core.Any])],
+  attrs : Array[(String, @luna.Attr[@core.Any])],
   dispatcher : ((String) -> Unit)?,
 ) -> Unit {
   for attr in attrs {
     let (name, value) = attr
     match value {
-      @kaguya.VStatic(_) =>
+      @luna.VStatic(_) =>
         // Static attributes already rendered, nothing to do
         ()
-      @kaguya.VDynamic(getter) => {
+      @luna.VDynamic(getter) => {
         // Set up effect to update attribute
         let _ = @signal.effect(fn() {
           let new_value = getter()
@@ -332,7 +332,7 @@ fn hydrate_element_with_dispatch(
         })
 
       }
-      @kaguya.VHandler(handler) => {
+      @luna.VHandler(handler) => {
         // Attach event handler
         let event_name = extract_event_name(name)
         let callback = handler.get_callback()
@@ -340,7 +340,7 @@ fn hydrate_element_with_dispatch(
         let wrapper : (@core.Any) -> Unit = fn(event) { callback(event) }
         elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
       }
-      @kaguya.VAction(action_name) =>
+      @luna.VAction(action_name) =>
         // Attach action handler - dispatch action when event fires
         match dispatcher {
           Some(dispatch) => {
@@ -395,7 +395,7 @@ fn hydrate_show(
   parent : @js_dom.Node,
   id : Int,
   cond : () -> Bool,
-  child_fn : () -> @kaguya.Node[@core.Any],
+  child_fn : () -> @luna.Node[@core.Any],
   ctx : HydrationContext,
 ) -> Unit {
   let marker_start = "s:" + id.to_string()
@@ -474,40 +474,40 @@ fn hydrate_show(
 /// Hydrate child nodes with VNode
 fn hydrate_child_nodes(
   nodes : Array[@js_dom.Node],
-  node : @kaguya.Node[@core.Any],
+  node : @luna.Node[@core.Any],
   ctx : HydrationContext,
 ) -> Unit {
   // For now, just traverse the VNode and update ctx
   let _ = nodes // suppress unused warning
   match node {
-    @kaguya.Text(_) => ()
-    @kaguya.DynamicText(_) => ctx.current_id = ctx.current_id + 1
-    @kaguya.Fragment(children) =>
+    @luna.Text(_) => ()
+    @luna.DynamicText(_) => ctx.current_id = ctx.current_id + 1
+    @luna.Fragment(children) =>
       for i = 0; i < children.length(); i = i + 1 {
         hydrate_child_nodes(nodes, children[i], ctx)
       }
-    @kaguya.Element(elem) => {
+    @luna.Element(elem) => {
       ctx.current_id = ctx.current_id + 1
       for i = 0; i < elem.children.length(); i = i + 1 {
         hydrate_child_nodes(nodes, elem.children[i], ctx)
       }
     }
-    @kaguya.Show(condition=condition_fn, child=child_getter) => {
+    @luna.Show(condition=condition_fn, child=child_getter) => {
       ctx.current_id = ctx.current_id + 1
       if condition_fn() {
         hydrate_child_nodes(nodes, child_getter(), ctx)
       }
     }
-    @kaguya.For(render=render_fn) => {
+    @luna.For(render=render_fn) => {
       ctx.current_id = ctx.current_id + 1
       let items = render_fn()
       for i = 0; i < items.length(); i = i + 1 {
         hydrate_child_nodes(nodes, items[i], ctx)
       }
     }
-    @kaguya.Component(render=render_fn) =>
+    @luna.Component(render=render_fn) =>
       hydrate_child_nodes(nodes, render_fn(), ctx)
-    @kaguya.Island(island) =>
+    @luna.Island(island) =>
       for child in island.children {
         hydrate_child_nodes(nodes, child, ctx)
       }
@@ -519,7 +519,7 @@ fn hydrate_child_nodes(
 fn hydrate_for(
   parent : @js_dom.Node,
   id : Int,
-  render_fn : () -> Array[@kaguya.Node[@core.Any]],
+  render_fn : () -> Array[@luna.Node[@core.Any]],
   ctx : HydrationContext,
 ) -> Unit {
   let marker_start = "f:" + id.to_string()
@@ -598,11 +598,11 @@ fn hydrate_for(
 
 ///|
 /// Render VNode to DOM node (for client-side rendering after hydration)
-pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
+pub fn render_vnode_to_dom(node : @luna.Node[@core.Any]) -> @js_dom.Node {
   let doc = @js_dom.document()
   match node {
-    @kaguya.Text(content) => doc.createTextNode(content).as_node()
-    @kaguya.DynamicText(getter) => {
+    @luna.Text(content) => doc.createTextNode(content).as_node()
+    @luna.DynamicText(getter) => {
       let text_node = doc.createTextNode(getter())
       let node_ref = text_node.as_node()
       let _ = @signal.effect(fn() {
@@ -611,7 +611,7 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
       })
       node_ref
     }
-    @kaguya.Fragment(children) => {
+    @luna.Fragment(children) => {
       let fragment = doc.createDocumentFragment()
       for i = 0; i < children.length(); i = i + 1 {
         fragment.as_node().appendChild(render_vnode_to_dom(children[i]))
@@ -619,7 +619,7 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
       }
       fragment.as_node()
     }
-    @kaguya.Element(elem) => {
+    @luna.Element(elem) => {
       let dom_elem = doc.createElement(elem.tag)
 
       // Apply attributes
@@ -635,7 +635,7 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
       }
       dom_elem.as_node()
     }
-    @kaguya.Show(condition=cond, child=child_fn) => {
+    @luna.Show(condition=cond, child=child_fn) => {
       let placeholder = doc.createComment("show")
       let mut current_node : @js_dom.Node? = None
       let _ = @signal.effect(fn() {
@@ -664,7 +664,7 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
       })
       placeholder
     }
-    @kaguya.For(render=render_fn) => {
+    @luna.For(render=render_fn) => {
       // Use a comment as a placeholder/marker for where to insert items
       let placeholder = doc.createComment("for")
       let current_nodes : Array[@js_dom.Node] = []
@@ -716,17 +716,17 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
       })
       fragment_node
     }
-    @kaguya.Component(render=render_fn) => render_vnode_to_dom(render_fn())
-    @kaguya.Island(island) => {
+    @luna.Component(render=render_fn) => render_vnode_to_dom(render_fn())
+    @luna.Island(island) => {
       // For client-side rendering, create a wrapper div with island attributes
       // and render children inside
       let wrapper = doc.createElement("div")
-      wrapper.setAttribute("kg:id", island.id)
-      wrapper.setAttribute("kg:url", island.url)
-      wrapper.setAttribute("kg:state", island.state)
+      wrapper.setAttribute("ln:id", island.id)
+      wrapper.setAttribute("ln:url", island.url)
+      wrapper.setAttribute("ln:state", island.state)
       wrapper.setAttribute(
-        "kg:trigger",
-        @kaguya.trigger_to_string(island.trigger),
+        "ln:trigger",
+        @luna.trigger_to_string(island.trigger),
       )
       for child in island.children {
         wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
@@ -738,9 +738,9 @@ pub fn render_vnode_to_dom(node : @kaguya.Node[@core.Any]) -> @js_dom.Node {
 
 ///|
 /// Apply VAttr to DOM element
-fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr[@core.Any]) -> Unit {
+fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@core.Any]) -> Unit {
   match value {
-    @kaguya.VStatic(s) =>
+    @luna.VStatic(s) =>
       if s != "__remove__" {
         if name == "class" || name == "className" {
           elem.setClassName(s)
@@ -752,7 +752,7 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr[@core
           elem.setAttribute(name, s)
         }
       }
-    @kaguya.VDynamic(getter) => {
+    @luna.VDynamic(getter) => {
       let _ = @signal.effect(fn() {
         let new_value = getter()
         if new_value == "__remove__" {
@@ -767,14 +767,14 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr[@core
       })
 
     }
-    @kaguya.VHandler(handler) => {
+    @luna.VHandler(handler) => {
       let event_name = extract_event_name(name)
       let callback = handler.get_callback()
       // Pass event to callback
       let wrapper : (@core.Any) -> Unit = fn(event) { callback(event) }
       elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
     }
-    @kaguya.VAction(_) =>
+    @luna.VAction(_) =>
       // VAction without dispatcher does nothing in CSR context
       // Actions are meant to be bound during action-based hydration
       ()
@@ -783,7 +783,7 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @kaguya.Attr[@core
 
 ///|
 /// Convenience function: render VNode to DOM and mount
-pub fn render_vnode(container : @js_dom.Element, node : @kaguya.Node[@core.Any]) -> Unit {
+pub fn render_vnode(container : @js_dom.Element, node : @luna.Node[@core.Any]) -> Unit {
   container.as_node().setTextContent("")
   let dom_node = render_vnode_to_dom(node)
   container.as_node().appendChild(dom_node) |> ignore
@@ -865,7 +865,7 @@ fn bind_action_handlers(elem : @js_dom.Element, dispatch : (String) -> Unit) -> 
 pub fn[State] hydrate_with_actions(
   container : @js_dom.Element,
   initial_state : State,
-  render : (State) -> @kaguya.Node[@core.Any],
+  render : (State) -> @luna.Node[@core.Any],
   update : (State, String) -> State,
 ) -> Unit {
   let state_signal = @signal.signal(initial_state)

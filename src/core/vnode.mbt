@@ -44,10 +44,10 @@ pub(all) enum IslandTrigger {
 ///|
 /// Virtual Island node - serializable hydration unit
 pub struct VIsland[E] {
-  id : String // Unique identifier (kg:id)
-  url : String // Script URL for loading implementation (kg:url)
-  state : String // Serialized state JSON (kg:state)
-  trigger : IslandTrigger // Hydration trigger (kg:trigger)
+  id : String // Unique identifier (ln:id)
+  url : String // Script URL for loading implementation (ln:url)
+  state : String // Serialized state JSON (ln:state)
+  trigger : IslandTrigger // Hydration trigger (ln:trigger)
   children : Array[Node[E]] // SSR-rendered content (can contain nested Islands)
 }
 
@@ -137,7 +137,7 @@ pub fn[E] visland(
 }
 
 ///|
-/// Convert IslandTrigger to string for kg:trigger attribute
+/// Convert IslandTrigger to string for ln:trigger attribute
 pub fn trigger_to_string(trigger : IslandTrigger) -> String {
   match trigger {
     Load => "load"

@@ -43,7 +43,7 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
 /// Render a VNode to HTML string with full document wrapper
 /// Use hydration=true to enable hydration markers (for pages with Islands)
 pub fn[E] render_page(
-  node : @kaguya.Node[E],
+  node : @luna.Node[E],
   title? : String,
   head? : String,
   hydration? : Bool,
@@ -68,7 +68,7 @@ pub fn[E] render_page(
 
 ///|
 /// Render a VNode to HTML string without document wrapper (for partial/fragment responses)
-pub fn[E] render_fragment(node : @kaguya.Node[E]) -> String {
+pub fn[E] render_fragment(node : @luna.Node[E]) -> String {
   @renderer.render_to_string_with_hydration(node)
 }
 
@@ -78,7 +78,7 @@ pub fn[E] render_fragment(node : @kaguya.Node[E]) -> String {
 pub fn[E] page(
   app : App,
   path : String,
-  render_fn : (Ctx) -> @kaguya.Node[E],
+  render_fn : (Ctx) -> @luna.Node[E],
   title? : String,
   head? : String,
   hydration? : Bool,
@@ -159,7 +159,7 @@ pub struct IslandConfig[E] {
   /// State configuration
   state : @embed.StateConfig
   /// SSR rendered content (VNode)
-  content : @kaguya.Node[E]?
+  content : @luna.Node[E]?
   /// SSR rendered HTML string (alternative to content)
   ssr_html : String?
 }
@@ -211,7 +211,7 @@ pub fn[E] IslandConfig::with_state_url(self : IslandConfig[E], url : String) -> 
 /// Builder: set SSR content from VNode
 pub fn[E] IslandConfig::with_content(
   self : IslandConfig[E],
-  node : @kaguya.Node[E]
+  node : @luna.Node[E]
 ) -> IslandConfig[E] {
   { ..self, content: Some(node) }
 }
@@ -341,11 +341,11 @@ pub fn escape_json_for_html(json : String) -> String {
 }
 
 // ============================================================================
-// Island VNode Support (using @kaguya.visland)
+// Island VNode Support (using @luna.visland)
 // ============================================================================
 
-// Re-export Island types from @kaguya for convenience
-pub using @kaguya {
+// Re-export Island types from @luna for convenience
+pub using @luna {
   type IslandTrigger,
   type VIsland,
   visland,
@@ -359,10 +359,10 @@ pub fn[E] island(
   id : String,
   url : String,
   state : String,
-  children : Array[@kaguya.Node[E]],
-  trigger~ : @kaguya.IslandTrigger = @kaguya.Load,
-) -> @kaguya.Node[E] {
-  @kaguya.visland(id, url, state, children, trigger~)
+  children : Array[@luna.Node[E]],
+  trigger~ : @luna.IslandTrigger = @luna.Load,
+) -> @luna.Node[E] {
+  @luna.visland(id, url, state, children, trigger~)
 }
 
 ///|
@@ -371,16 +371,16 @@ pub fn[E] island_with(
   id : String,
   url : String,
   state : String,
-  render : () -> @kaguya.Node[E],
-  trigger~ : @kaguya.IslandTrigger = @kaguya.Load,
-) -> @kaguya.Node[E] {
-  @kaguya.visland(id, url, state, [render()], trigger~)
+  render : () -> @luna.Node[E],
+  trigger~ : @luna.IslandTrigger = @luna.Load,
+) -> @luna.Node[E] {
+  @luna.visland(id, url, state, [render()], trigger~)
 }
 
 ///|
 /// Render a VNode to HTML string
 /// Use hydration=true to enable hydration markers
-pub fn[E] render_node(node : @kaguya.Node[E], hydration~ : Bool = false) -> String {
+pub fn[E] render_node(node : @luna.Node[E], hydration~ : Bool = false) -> String {
   if hydration {
     @renderer.render_to_string_with_hydration(node)
   } else {
@@ -440,7 +440,7 @@ pub struct StaticFileConfig {
 }
 
 ///|
-/// Create default static file config for Kaguya apps
+/// Create default static file config for Luna apps
 pub fn StaticFileConfig::default() -> StaticFileConfig {
   {
     path_prefix: "/static",

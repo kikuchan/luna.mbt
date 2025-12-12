@@ -247,11 +247,11 @@ const browserTestPage = (
 <body>
   <h1>${title}</h1>
   <div id="app"
-       kg:id="${componentId}"
-       kg:url="/components/browser-components.js"
-       kg:export="${hydrateFn}"
-       kg:trigger="load"
-       kg:state='${JSON.stringify(state).replace(/'/g, "&#39;")}'>${ssrHtml}</div>
+       ln:id="${componentId}"
+       ln:url="/components/browser-components.js"
+       ln:export="${hydrateFn}"
+       ln:trigger="load"
+       ln:state='${JSON.stringify(state).replace(/'/g, "&#39;")}'>${ssrHtml}</div>
 </body>
 </html>`;
 
@@ -448,7 +448,7 @@ app.get("/chunked-counter", async (c) => {
 });
 
 // Island Node SSR test routes
-// These test the visland() VNode rendering with kg:* attributes and HTML comment markers
+// These test the visland() VNode rendering with ln:* attributes and HTML comment markers
 
 // Helper to generate island page with kg-loader
 const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
@@ -466,15 +466,15 @@ const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
 
 // Test: Basic Island Node SSR output format
 app.get("/island-node/basic-ssr", (c) => {
-  // Simulate what @kaguya.visland() + @ssr.render_to_string() would produce
+  // Simulate what @luna.visland() + @ssr.render_to_string() would produce
   const html = islandTestPage("Island Node Basic SSR", `
-    <!--kg:island:counter-1 url=/components/counter.js trigger=load-->
-    <div kg:id="counter-1" kg:url="/components/counter.js" kg:state="{&quot;count&quot;:5}" kg:trigger="load">
+    <!--ln:island:counter-1 url=/components/counter.js trigger=load-->
+    <div ln:id="counter-1" ln:url="/components/counter.js" ln:state="{&quot;count&quot;:5}" ln:trigger="load">
       <span data-count>5</span>
       <button data-inc>+1</button>
       <button data-dec>-1</button>
     </div>
-    <!--/kg:island:counter-1-->
+    <!--/ln:island:counter-1-->
   `);
   return c.html(html);
 });
@@ -483,28 +483,28 @@ app.get("/island-node/basic-ssr", (c) => {
 app.get("/island-node/triggers", (c) => {
   const html = islandTestPage("Island Node Triggers", `
     <h2>Load Trigger (immediate)</h2>
-    <!--kg:island:load-1 url=/components/lazy.js trigger=load-->
-    <div kg:id="load-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Load trigger&quot;}" kg:trigger="load">
+    <!--ln:island:load-1 url=/components/lazy.js trigger=load-->
+    <div ln:id="load-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Load trigger&quot;}" ln:trigger="load">
       <div data-content>Load trigger</div>
     </div>
-    <!--/kg:island:load-1-->
+    <!--/ln:island:load-1-->
 
     <h2>Idle Trigger</h2>
-    <!--kg:island:idle-1 url=/components/lazy.js trigger=idle-->
-    <div kg:id="idle-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Idle trigger&quot;}" kg:trigger="idle">
+    <!--ln:island:idle-1 url=/components/lazy.js trigger=idle-->
+    <div ln:id="idle-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Idle trigger&quot;}" ln:trigger="idle">
       <div data-content>Idle trigger</div>
     </div>
-    <!--/kg:island:idle-1-->
+    <!--/ln:island:idle-1-->
 
     <h2>Visible Trigger (scroll down)</h2>
     <div style="height: 150vh; background: linear-gradient(#eee, #ccc); display: flex; align-items: center; justify-content: center;">
       Scroll down to see visible trigger
     </div>
-    <!--kg:island:visible-1 url=/components/lazy.js trigger=visible-->
-    <div kg:id="visible-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Visible trigger&quot;}" kg:trigger="visible">
+    <!--ln:island:visible-1 url=/components/lazy.js trigger=visible-->
+    <div ln:id="visible-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Visible trigger&quot;}" ln:trigger="visible">
       <div data-content>Visible trigger</div>
     </div>
-    <!--/kg:island:visible-1-->
+    <!--/ln:island:visible-1-->
   `);
   return c.html(html);
 });
@@ -512,22 +512,22 @@ app.get("/island-node/triggers", (c) => {
 // Test: Nested Islands
 app.get("/island-node/nested", (c) => {
   const html = islandTestPage("Nested Islands", `
-    <!--kg:island:outer-1 url=/components/counter.js trigger=load-->
-    <div kg:id="outer-1" kg:url="/components/counter.js" kg:state="{&quot;count&quot;:10}" kg:trigger="load">
+    <!--ln:island:outer-1 url=/components/counter.js trigger=load-->
+    <div ln:id="outer-1" ln:url="/components/counter.js" ln:state="{&quot;count&quot;:10}" ln:trigger="load">
       <h2>Outer Island</h2>
       <span data-count>10</span>
       <button data-inc>+1</button>
       <button data-dec>-1</button>
       <div style="margin-left: 20px; padding: 10px; border-left: 2px solid #ccc;">
-        <!--kg:island:inner-1 url=/components/lazy.js trigger=load-->
-        <div kg:id="inner-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Inner island content&quot;}" kg:trigger="load">
+        <!--ln:island:inner-1 url=/components/lazy.js trigger=load-->
+        <div ln:id="inner-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Inner island content&quot;}" ln:trigger="load">
           <h3>Inner Island</h3>
           <div data-content>Inner island content</div>
         </div>
-        <!--/kg:island:inner-1-->
+        <!--/ln:island:inner-1-->
       </div>
     </div>
-    <!--/kg:island:outer-1-->
+    <!--/ln:island:outer-1-->
   `);
   return c.html(html);
 });
@@ -537,11 +537,11 @@ app.get("/island-node/xss-safety", (c) => {
   // The state contains potentially dangerous characters, but they should be entity-escaped
   const html = islandTestPage("Island XSS Safety Test", `
     <script>window.xssTriggered = false; window.alert = () => { window.xssTriggered = true; };</script>
-    <!--kg:island:xss-1 url=/components/lazy.js trigger=load-->
-    <div kg:id="xss-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;}" kg:trigger="load">
+    <!--ln:island:xss-1 url=/components/lazy.js trigger=load-->
+    <div ln:id="xss-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;}" ln:trigger="load">
       <div data-content>Safe content</div>
     </div>
-    <!--/kg:island:xss-1-->
+    <!--/ln:island:xss-1-->
   `);
   return c.html(html);
 });
@@ -567,10 +567,10 @@ app.get("/test/idempotent-hydrate", async (c) => {
 
   <!-- SSR content with kg attributes for loader -->
   <div id="counter"
-       kg:id="counter-1"
-       kg:url="/components/counter-mbt.js"
-       kg:trigger="load"
-       kg:state='${stateJson}'>${ssrHtml}</div>
+       ln:id="counter-1"
+       ln:url="/components/counter-mbt.js"
+       ln:trigger="load"
+       ln:state='${stateJson}'>${ssrHtml}</div>
 
   <!-- Debug info -->
   <div id="debug">

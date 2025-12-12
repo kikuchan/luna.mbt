@@ -1,11 +1,11 @@
 {
   "import": [
     {
-      "path": "mizchi/kaguya/core",
-      "alias": "kaguya"
+      "path": "mizchi/luna/core",
+      "alias": "luna"
     },
-    "mizchi/kaguya/core/signal",
-    { "path": "mizchi/kaguya/server/renderer", "alias": "renderer" }
+    "mizchi/luna/core/signal",
+    { "path": "mizchi/luna/server/renderer", "alias": "renderer" }
   ],
   "link": {
     "js": {
