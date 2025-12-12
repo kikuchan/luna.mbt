@@ -221,6 +221,12 @@ fn hydrate_node(
       hydrate_for(parent, id, render_fn, ctx)
     }
     @kaguya.Component(render=render_fn) => hydrate_node(parent, render_fn(), ctx)
+    @kaguya.Island(island) =>
+      // Island hydration is handled by the loader, not this function
+      // Just hydrate children normally for nested content
+      for child in island.children {
+        hydrate_node(parent, child, ctx)
+      }
   }
 }
 
@@ -501,6 +507,10 @@ fn hydrate_child_nodes(
     }
     @kaguya.Component(render=render_fn) =>
       hydrate_child_nodes(nodes, render_fn(), ctx)
+    @kaguya.Island(island) =>
+      for child in island.children {
+        hydrate_child_nodes(nodes, child, ctx)
+      }
   }
 }
 
@@ -707,6 +717,22 @@ pub fn render_vnode_to_dom(node : @kaguya.Node) -> @js_dom.Node {
       fragment_node
     }
     @kaguya.Component(render=render_fn) => render_vnode_to_dom(render_fn())
+    @kaguya.Island(island) => {
+      // For client-side rendering, create a wrapper div with island attributes
+      // and render children inside
+      let wrapper = doc.createElement("div")
+      wrapper.setAttribute("kg:id", island.id)
+      wrapper.setAttribute("kg:url", island.url)
+      wrapper.setAttribute("kg:state", island.state)
+      wrapper.setAttribute(
+        "kg:trigger",
+        @kaguya.trigger_to_string(island.trigger),
+      )
+      for child in island.children {
+        wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
+      }
+      wrapper.as_node()
+    }
   }
 }
 

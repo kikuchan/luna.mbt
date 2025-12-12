@@ -188,9 +188,9 @@ async fn post_page(ctx : @framework.Ctx) -> @kaguya.Node {
   let id = ctx.params().get("id").unwrap()
   let post = fetch_post(id)  // async
 
-  @kaguya.vnode("article", [], [
-    @kaguya.vnode("h1", [], [@kaguya.vtext(post.title)]),
-    @kaguya.vnode("div", [], [@kaguya.vtext(post.content)]),
+  @kaguya.h("article", [], [
+    @kaguya.h("h1", [], [@kaguya.vtext(post.title)]),
+    @kaguya.h("div", [], [@kaguya.vtext(post.content)]),
   ])
 }
 ```

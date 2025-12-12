@@ -5,19 +5,19 @@
 
 ///| Counter component VNode
 pub fn render(count : @signal.Signal[Int]) -> @kaguya.Node {
-  @kaguya.vnode("div", [("class", @kaguya.attr_static("counter"))], [
-    @kaguya.vnode("span", [("class", @kaguya.attr_static("count-display"))], [
+  @kaguya.h("div", [("class", @kaguya.attr_static("counter"))], [
+    @kaguya.h("span", [("class", @kaguya.attr_static("count-display"))], [
       @kaguya.vtext_sig(count),
     ]),
-    @kaguya.vnode("div", [("class", @kaguya.attr_static("buttons"))], [
-      @kaguya.vnode("button", [
+    @kaguya.h("div", [("class", @kaguya.attr_static("buttons"))], [
+      @kaguya.h("button", [
         ("class", @kaguya.attr_static("dec")),
         ("onclick", @kaguya.action("decrement")),
       ], [@kaguya.vtext("-")]),
-      @kaguya.vnode("button", [
+      @kaguya.h("button", [
         ("class", @kaguya.attr_static("inc")),
         ("onclick", @kaguya.action("increment")),
-      ], [@kaguya.vtext("+")]),
+      ], [@kaguya.」vtext("+")]),
     ]),
   ])
 }

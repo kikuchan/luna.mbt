@@ -3,12 +3,12 @@
 ///|
 /// Trait for types that can be serialized to StateValue
 pub(open) trait Serializable {
-  to_state_value(Self) -> @serialize.StateValue
-  from_state_value(@serialize.StateValue) -> Self?
+  to_state_value(Self) -> StateValue
+  from_state_value(StateValue) -> Self?
 }
 
 ///|
-impl Serializable for Int with to_state_value(self) { @serialize.int(self) }
+impl Serializable for Int with to_state_value(self) { sv_int(self) }
 
 ///|
 impl Serializable for Int with from_state_value(value) {
@@ -16,7 +16,7 @@ impl Serializable for Int with from_state_value(value) {
 }
 
 ///|
-impl Serializable for String with to_state_value(self) { @serialize.str(self) }
+impl Serializable for String with to_state_value(self) { sv_str(self) }
 
 ///|
 impl Serializable for String with from_state_value(value) {
@@ -24,7 +24,7 @@ impl Serializable for String with from_state_value(value) {
 }
 
 ///|
-impl Serializable for Bool with to_state_value(self) { @serialize.bool(self) }
+impl Serializable for Bool with to_state_value(self) { sv_bool(self) }
 
 ///|
 impl Serializable for Bool with from_state_value(value) {
@@ -32,7 +32,7 @@ impl Serializable for Bool with from_state_value(value) {
 }
 
 ///|
-impl Serializable for Double with to_state_value(self) { @serialize.number(self) }
+impl Serializable for Double with to_state_value(self) { sv_number(self) }
 
 ///|
 impl Serializable for Double with from_state_value(value) {
@@ -108,24 +108,24 @@ pub fn[T : Serializable] resume_signal(
 
 ///|
 /// Convert an Int to StateValue
-pub fn int_to_state_value(value : Int) -> @serialize.StateValue {
+pub fn int_to_state_value(value : Int) -> StateValue {
   Serializable::to_state_value(value)
 }
 
 ///|
 /// Convert a String to StateValue
-pub fn string_to_state_value(value : String) -> @serialize.StateValue {
+pub fn string_to_state_value(value : String) -> StateValue {
   Serializable::to_state_value(value)
 }
 
 ///|
 /// Convert a Bool to StateValue
-pub fn bool_to_state_value(value : Bool) -> @serialize.StateValue {
+pub fn bool_to_state_value(value : Bool) -> StateValue {
   Serializable::to_state_value(value)
 }
 
 ///|
 /// Convert a Double to StateValue
-pub fn double_to_state_value(value : Double) -> @serialize.StateValue {
+pub fn double_to_state_value(value : Double) -> StateValue {
   Serializable::to_state_value(value)
 }

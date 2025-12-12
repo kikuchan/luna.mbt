@@ -1,6 +1,7 @@
-///| Stream SSR - Streaming server-side rendering
+///| Stream SSR - Streaming server-side rendering with Web Streams API
 ///|
 ///| Provides chunked HTML output for faster Time-To-First-Byte (TTFB)
+///| Uses standard Web Streams API (ReadableStream, WritableStream)
 
 ///|
 /// Stream writer callback - receives chunks as they're ready
@@ -54,7 +55,46 @@ fn render_node_to_stream(node : @kaguya.Node, writer : StreamWriter) -> Unit {
         render_node_to_stream(item, writer)
       }
     Component(render=render_fn) => render_node_to_stream(render_fn(), writer)
+    Island(island) => render_island_to_stream(island, writer)
   }
+}
+
+///|
+/// Render Island node to stream
+fn render_island_to_stream(
+  island : @kaguya.VIsland,
+  writer : StreamWriter,
+) -> Unit {
+  let write = writer.0
+  // Start comment marker
+  write(
+    "<!--kg:island:" +
+    island.id +
+    " url=" +
+    island.url +
+    " trigger=" +
+    @kaguya.trigger_to_string(island.trigger) +
+    "-->",
+  )
+  // Wrapper div with kg:* attributes
+  let sb = StringBuilder::new()
+  sb.write_string("<div kg:id=\"")
+  sb.write_string(island.id)
+  sb.write_string("\" kg:url=\"")
+  sb.write_string(island.url)
+  sb.write_string("\" kg:state=\"")
+  escape_attr_to_sb(sb, island.state)
+  sb.write_string("\" kg:trigger=\"")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\">")
+  write(sb.to_string())
+  // Render children
+  for child in island.children {
+    render_node_to_stream(child, writer)
+  }
+  write("</div>")
+  // End comment marker
+  write("<!--/kg:island:" + island.id + "-->")
 }
 
 ///|
@@ -94,7 +134,7 @@ pub async fn render_with_suspense(
   // 3. Resolve each suspense and stream replacement
   for s in suspenses {
     let content = (s.content)()
-    let html = @ssr_core.render_to_string(content)
+    let html = @ssr.render_to_string(content)
     let escaped = escape_js_string(html)
     write("<script>$RC(" + s.id.to_string() + ",\"" + escaped + "\")</script>")
   }
@@ -124,6 +164,18 @@ fn escape_html(s : String) -> String {
     }
   }
   sb.to_string()
+}
+
+///|
+/// Helper: escape attribute value and write to StringBuilder
+fn escape_attr_to_sb(sb : StringBuilder, s : String) -> Unit {
+  for char in s {
+    match char {
+      '&' => sb.write_string("&amp;")
+      '"' => sb.write_string("&quot;")
+      _ => sb.write_char(char)
+    }
+  }
 }
 
 ///|
@@ -188,7 +240,7 @@ fn render_attrs_to_sb(sb : StringBuilder, attrs : Array[(String, @kaguya.Attr)])
       VAction(action_name) => {
         // Render action as data-action attribute for hydration
         let event_name = if name.has_prefix("on") {
-          name.substring(start=2)
+          try { name[2:].to_string() } catch { _ => name }
         } else {
           name
         }
@@ -203,10 +255,10 @@ fn render_attrs_to_sb(sb : StringBuilder, attrs : Array[(String, @kaguya.Attr)])
 }
 
 ///|
-/// Create a ReadableStream for HTTP response (Node.js/Web Streams API)
+/// Create a ReadableStream for HTTP response (Web Streams API)
 extern "js" fn js_create_readable_stream(
   start : ((String) -> Unit) -> Unit
-) -> @js.Any =
+) -> @streams.ReadableStream =
   #| (start) => new ReadableStream({
   #|   start(controller) {
   #|     start((chunk) => {
@@ -217,7 +269,7 @@ extern "js" fn js_create_readable_stream(
 
 ///|
 /// Render to a ReadableStream for streaming HTTP response
-pub fn render_to_readable_stream(node : @kaguya.Node) -> @js.Any {
+pub fn render_to_readable_stream(node : @kaguya.Node) -> @streams.ReadableStream {
   js_create_readable_stream(fn(enqueue) {
     render_to_stream(node, StreamWriter(fn(chunk) { enqueue(chunk) }))
   })
@@ -228,7 +280,7 @@ pub fn render_to_readable_stream(node : @kaguya.Node) -> @js.Any {
 pub async fn render_to_readable_stream_with_suspense(
   shell : @kaguya.Node,
   suspenses : Array[Suspense]
-) -> @js.Any {
+) -> @streams.ReadableStream {
   let chunks : Array[String] = []
 
   // Collect all chunks

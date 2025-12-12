@@ -43,6 +43,19 @@ pub fn render_to_json(node : @kaguya.Node) -> JsonNode {
       Fragment(children)
     }
     @kaguya.Component(render~) => render_to_json(render())
+    @kaguya.Island(island) => {
+      // Render Island as an element with kg:* attributes
+      let attrs : Map[String, JsonAttrValue] = {}
+      attrs.set("kg:id", Static(island.id))
+      attrs.set("kg:url", Static(island.url))
+      attrs.set("kg:state", Static(island.state))
+      attrs.set("kg:trigger", Static(@kaguya.trigger_to_string(island.trigger)))
+      let children : Array[JsonNode] = []
+      for child in island.children {
+        children.push(render_to_json(child))
+      }
+      Element({ tag: "div", attrs, children })
+    }
   }
 }
 

@@ -66,7 +66,7 @@ test "hydrate element with text" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode("div", [], [@kaguya.vtext("Content")])
+  let vnode = @kaguya.h("div", [], [@kaguya.vtext("Content")])
   let html = @renderer.render_to_string(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -78,11 +78,9 @@ test "hydrate element with class" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("test-class"))],
-    [@kaguya.vtext("Styled")],
-  )
+  let vnode = @kaguya.h("div", [("class", @kaguya.attr_static("test-class"))], [
+    @kaguya.vtext("Styled"),
+  ])
   let html = @renderer.render_to_string(vnode)
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -94,8 +92,8 @@ test "hydrate nested elements" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode("div", [], [
-    @kaguya.vnode("span", [], [@kaguya.vtext("Nested")]),
+  let vnode = @kaguya.h("div", [], [
+    @kaguya.h("span", [], [@kaguya.vtext("Nested")]),
   ])
   let html = @renderer.render_to_string(vnode)
   set_inner_html(container, html)
@@ -135,7 +133,7 @@ test "hydrate element with click handler" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Click me")],
@@ -157,7 +155,7 @@ test "hydrate dynamic class" {
   defer cleanup()
   let container = create_container()
   let active = @signal.signal(false)
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "div",
     [
       (
@@ -241,7 +239,7 @@ test "hydrate for loop" {
     let arr = items.get()
     let result : Array[@kaguya.Node] = []
     for i = 0; i < arr.length(); i = i + 1 {
-      result.push(@kaguya.vnode("li", [], [@kaguya.vtext(arr[i])]))
+      result.push(@kaguya.h("li", [], [@kaguya.vtext(arr[i])]))
     }
     result
   })
@@ -273,7 +271,7 @@ test "hydrate detects missing element" {
   let logger = StringBuilder::new()
 
   // VNode expects a button with handler
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Button")],
@@ -303,11 +301,9 @@ test "hydrate recovers on mismatch" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("expected"))],
-    [@kaguya.vtext("Expected")],
-  )
+  let vnode = @kaguya.h("div", [("class", @kaguya.attr_static("expected"))], [
+    @kaguya.vtext("Expected"),
+  ])
 
   // Wrong HTML
   set_inner_html(container, "<span>Wrong</span>")
@@ -339,7 +335,7 @@ test "hydrate success on correct HTML" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode("div", [], [@kaguya.vtext("Correct")])
+  let vnode = @kaguya.h("div", [], [@kaguya.vtext("Correct")])
 
   // Correct SSR HTML
   let html = @renderer.render_to_string(vnode)
@@ -365,22 +361,22 @@ test "hydrate complex page structure" {
   let logger = StringBuilder::new()
   let count = @signal.signal(0)
   let items = @signal.signal(["Item 1", "Item 2"])
-  let vnode = @kaguya.vnode("div", [("class", @kaguya.attr_static("app"))], [
-    @kaguya.vnode("h1", [], [@kaguya.vtext("Title")]),
-    @kaguya.vnode("p", [], [
+  let vnode = @kaguya.h("div", [("class", @kaguya.attr_static("app"))], [
+    @kaguya.h("h1", [], [@kaguya.vtext("Title")]),
+    @kaguya.h("p", [], [
       @kaguya.text_dyn(fn() { "Count: " + count.get().to_string() }),
     ]),
-    @kaguya.vnode("ul", [], [
+    @kaguya.h("ul", [], [
       @kaguya.vfor(fn() {
         let arr = items.get()
         let result : Array[@kaguya.Node] = []
         for i = 0; i < arr.length(); i = i + 1 {
-          result.push(@kaguya.vnode("li", [], [@kaguya.vtext(arr[i])]))
+          result.push(@kaguya.h("li", [], [@kaguya.vtext(arr[i])]))
         }
         result
       }),
     ]),
-    @kaguya.vnode(
+    @kaguya.h(
       "button",
       [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
       [@kaguya.vtext("Click")],
@@ -424,7 +420,7 @@ test "hydrate component" {
   defer cleanup()
   let container = create_container()
   fn greeting(name : String) -> @kaguya.Node {
-    @kaguya.vnode("div", [], [@kaguya.vtext("Hello, " + name + "!")])
+    @kaguya.h("div", [], [@kaguya.vtext("Hello, " + name + "!")])
   }
 
   let vnode = @kaguya.vcomponent(fn() { greeting("World") })
@@ -455,12 +451,10 @@ test "hydrate deeply nested structure" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode("div", [], [
-    @kaguya.vnode("div", [], [
-      @kaguya.vnode("div", [], [
-        @kaguya.vnode("div", [], [
-          @kaguya.vnode("span", [], [@kaguya.vtext("Deep")]),
-        ]),
+  let vnode = @kaguya.h("div", [], [
+    @kaguya.h("div", [], [
+      @kaguya.h("div", [], [
+        @kaguya.h("div", [], [@kaguya.h("span", [], [@kaguya.vtext("Deep")])]),
       ]),
     ]),
   ])
@@ -498,7 +492,7 @@ test "hydrate with logger captures mismatch warning" {
   let logger = StringBuilder::new()
 
   // VNode expects a button with handler
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Button")],
@@ -523,7 +517,7 @@ test "hydrate with logger captures strict mode mismatch" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Click")],
@@ -550,7 +544,7 @@ test "hydrate with logger no output on success" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vnode("div", [], [@kaguya.vtext("Content")])
+  let vnode = @kaguya.h("div", [], [@kaguya.vtext("Content")])
   let html = @renderer.render_to_string(vnode)
   set_inner_html(container, html)
   let result = hydrate(container, vnode, logger~)
@@ -572,7 +566,7 @@ test "hydrate logger contains element info" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Submit")],
@@ -594,7 +588,7 @@ test "hydrate without logger outputs to console" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Button")],
@@ -618,12 +612,12 @@ test "hydrate multiple mismatches joined with semicolon" {
   let logger = StringBuilder::new()
   // Two buttons with handlers - both need data-hk
   let vnode = @kaguya.vfragment([
-    @kaguya.vnode(
+    @kaguya.h(
       "button",
       [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
       [@kaguya.vtext("A")],
     ),
-    @kaguya.vnode(
+    @kaguya.h(
       "button",
       [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
       [@kaguya.vtext("B")],
@@ -647,7 +641,7 @@ test "hydrate tag mismatch with correct data-hk" {
   let container = create_container()
   let logger = StringBuilder::new()
   // Expect a button
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Click")],
@@ -669,7 +663,7 @@ test "hydrate dynamic attribute value" {
   defer cleanup()
   let container = create_container()
   let value_sig = @signal.signal("initial")
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "input",
     [("value", @kaguya.attr_dynamic(fn() { value_sig.get() }))],
     [],
@@ -690,7 +684,7 @@ test "hydrate dynamic attribute general" {
   defer cleanup()
   let container = create_container()
   let title_sig = @signal.signal("Title 1")
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "div",
     [("title", @kaguya.attr_dynamic(fn() { title_sig.get() }))],
     [@kaguya.vtext("Content")],
@@ -710,7 +704,7 @@ test "hydrate dynamic attribute removal" {
   defer cleanup()
   let container = create_container()
   let show_title = @signal.signal(true)
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "div",
     [
       (
@@ -741,7 +735,7 @@ test "hydrate dynamic style" {
   defer cleanup()
   let container = create_container()
   let color_sig = @signal.signal("red")
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "div",
     [
       (
@@ -765,7 +759,7 @@ test "render_vnode directly" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode("div", [("class", @kaguya.attr_static("test"))], [
+  let vnode = @kaguya.h("div", [("class", @kaguya.attr_static("test"))], [
     @kaguya.vtext("Direct render"),
   ])
   // Use render_vnode directly (not hydrate)
@@ -865,11 +859,9 @@ test "render_vnode_to_dom with static style" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode(
-    "div",
-    [("style", @kaguya.attr_style("color: red"))],
-    [@kaguya.vtext("Styled")],
-  )
+  let vnode = @kaguya.h("div", [("style", @kaguya.attr_style("color: red"))], [
+    @kaguya.vtext("Styled"),
+  ])
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   assert_true(get_inner_html(container).contains("Styled"))
@@ -881,7 +873,7 @@ test "render_vnode_to_dom with dynamic style" {
   defer cleanup()
   let container = create_container()
   let color = @signal.signal("green")
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "div",
     [
       (
@@ -905,7 +897,7 @@ test "render_vnode_to_dom with VDynamic attribute" {
   defer cleanup()
   let container = create_container()
   let href = @signal.signal("/page1")
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "a",
     [("href", @kaguya.attr_dynamic(fn() { href.get() }))],
     [@kaguya.vtext("Link")],
@@ -923,7 +915,7 @@ test "render_vnode_to_dom with static attribute value" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @kaguya.vnode(
+  let vnode = @kaguya.h(
     "input",
     [("value", @kaguya.attr_static("test-value"))],
     [],

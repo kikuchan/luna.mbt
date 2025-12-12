@@ -7,7 +7,7 @@
 /// State container that can be serialized
 pub struct ResumableState {
   /// Serialized values as JSON-compatible array
-  values : Array[@serialize.StateValue]
+  values : Array[StateValue]
   /// Map from signal ID to index in values array
   mut next_id : Int
 }
@@ -23,7 +23,7 @@ pub fn ResumableState::new() -> ResumableState {
 pub fn ResumableState::register_null(self : ResumableState) -> Int {
   let id = self.next_id
   self.next_id = id + 1
-  self.values.push(@serialize.null())
+  self.values.push(sv_null())
   id
 }
 
@@ -32,7 +32,7 @@ pub fn ResumableState::register_null(self : ResumableState) -> Int {
 pub fn ResumableState::register_int(self : ResumableState, value : Int) -> Int {
   let id = self.next_id
   self.next_id = id + 1
-  self.values.push(@serialize.int(value))
+  self.values.push(sv_int(value))
   id
 }
 
@@ -44,7 +44,7 @@ pub fn ResumableState::register_string(
 ) -> Int {
   let id = self.next_id
   self.next_id = id + 1
-  self.values.push(@serialize.str(value))
+  self.values.push(sv_str(value))
   id
 }
 
@@ -56,7 +56,7 @@ pub fn ResumableState::register_bool(
 ) -> Int {
   let id = self.next_id
   self.next_id = id + 1
-  self.values.push(@serialize.bool(value))
+  self.values.push(sv_bool(value))
   id
 }
 
@@ -68,7 +68,7 @@ pub fn ResumableState::register_float(
 ) -> Int {
   let id = self.next_id
   self.next_id = id + 1
-  self.values.push(@serialize.number(value))
+  self.values.push(sv_number(value))
   id
 }
 
@@ -77,7 +77,7 @@ pub fn ResumableState::register_float(
 pub fn ResumableState::get(
   self : ResumableState,
   id : Int,
-) -> @serialize.StateValue? {
+) -> StateValue? {
   if id >= 0 && id < self.values.length() {
     Some(self.values[id])
   } else {
@@ -124,13 +124,13 @@ pub fn ResumableState::get_float(self : ResumableState, id : Int) -> Double? {
 ///|
 /// Serialize state to JSON string
 pub fn ResumableState::to_json(self : ResumableState) -> String {
-  @serialize.array_to_json(self.values)
+  state_values_to_json(self.values)
 }
 
 ///|
 /// Parse JSON string to ResumableState
 pub fn ResumableState::from_json(json : String) -> ResumableState? {
-  match @serialize.array_from_json(json) {
+  match state_values_from_json(json) {
     Some(values) => Some({ values, next_id: values.length() })
     None => None
   }

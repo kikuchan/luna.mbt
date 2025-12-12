@@ -122,28 +122,28 @@ test "full resumable signal flow" {
 
 ///|
 test "Serializable Int from wrong type returns None" {
-  let value = @serialize.str("not an int")
+  let value = sv_str("not an int")
   let result : Int? = Serializable::from_state_value(value)
   assert_eq(result, None)
 }
 
 ///|
 test "Serializable String from wrong type returns None" {
-  let value = @serialize.int(42)
+  let value = sv_int(42)
   let result : String? = Serializable::from_state_value(value)
   assert_eq(result, None)
 }
 
 ///|
 test "Serializable Bool from wrong type returns None" {
-  let value = @serialize.int(42)
+  let value = sv_int(42)
   let result : Bool? = Serializable::from_state_value(value)
   assert_eq(result, None)
 }
 
 ///|
 test "Serializable Double from wrong type returns None" {
-  let value = @serialize.int(42)
+  let value = sv_int(42)
   let result : Double? = Serializable::from_state_value(value)
   assert_eq(result, None)
 }

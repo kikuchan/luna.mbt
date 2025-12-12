@@ -348,6 +348,13 @@ fn count_vnode_nodes(node : @kaguya.Node) -> Int {
       count
     }
     @kaguya.Component(render=render_fn) => 1 + count_vnode_nodes(render_fn())
+    @kaguya.Island(island) => {
+      let mut count = 1
+      for child in island.children {
+        count = count + count_vnode_nodes(child)
+      }
+      count
+    }
   }
 }
 
@@ -691,6 +698,11 @@ fn experimental_hydrate_node(
     }
     @kaguya.Component(render=render_fn) =>
       experimental_hydrate_node(parent, render_fn(), ctx)
+    @kaguya.Island(island) =>
+      // Island hydration is handled by the loader, just hydrate children
+      for child in island.children {
+        experimental_hydrate_node(parent, child, ctx)
+      }
   }
 }
 

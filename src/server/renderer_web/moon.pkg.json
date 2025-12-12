@@ -7,14 +7,10 @@
       "path": "mizchi/kaguya/core",
       "alias": "kaguya"
     },
-    "mizchi/kaguya/core/signal",
     {
       "path": "mizchi/kaguya/server/renderer",
-      "alias": "ssr_core"
+      "alias": "ssr"
     },
-    {
-      "path": "mizchi/js/core",
-      "alias": "js"
-    }
+    "mizchi/js/web/streams"
   ]
 }

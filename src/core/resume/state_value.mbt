@@ -70,36 +70,36 @@ pub fn StateValue::as_array(self : StateValue) -> Array[StateValue]? {
 
 ///|
 /// Create null value
-pub fn null() -> StateValue {
+pub fn sv_null() -> StateValue {
   Null
 }
 
 ///|
 /// Create bool value
-pub fn bool(b : Bool) -> StateValue {
+pub fn sv_bool(b : Bool) -> StateValue {
   Bool(b)
 }
 
 ///|
 /// Create int value
-pub fn int(n : Int) -> StateValue {
+pub fn sv_int(n : Int) -> StateValue {
   Int(n)
 }
 
 ///|
 /// Create number value
-pub fn number(f : Double) -> StateValue {
+pub fn sv_number(f : Double) -> StateValue {
   Number(f)
 }
 
 ///|
 /// Create string value
-pub fn str(s : String) -> StateValue {
+pub fn sv_str(s : String) -> StateValue {
   Str(s)
 }
 
 ///|
 /// Create array value
-pub fn arr(values : Array[StateValue]) -> StateValue {
+pub fn sv_arr(values : Array[StateValue]) -> StateValue {
   Arr(values)
 }

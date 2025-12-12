@@ -1,35 +1,44 @@
 ///| Kaguya Framework App - Server Entry Point
 
 ///|
-/// Home page with counter island
-fn home_page_islands(_ctx : @framework.Ctx) -> Array[@framework.IslandConfig] {
+/// Home page with counter island (using VNode Island)
+fn home_page(_ctx : @framework.Ctx) -> @kaguya.Node {
   let initial_count = 0
   let state_json = "{\"count\":" + initial_count.to_string() + "}"
 
   // Create signal for SSR (will be restored on client via resume)
   let count_signal = @signal.signal(initial_count)
 
-  // Use render function from client component for SSR
-  // The VNode will have data-action-* attributes rendered by SSR
-  let counter_island = @framework.IslandConfig::new("counter", "/static/counter.js")
-    .with_state(state_json)
-    .with_content(@counter.render(count_signal))
-
-  let layout = @framework.IslandConfig::new("layout", "")
-    .with_ssr_html(
-      "<div class=\"container\"><h1>Welcome to Kaguya</h1><p>A SSR-first web framework for MoonBit</p><nav><a href=\"/\">Home</a> | <a href=\"/about\">About</a></nav></div>"
-    )
-
-  [layout, counter_island]
+  // Layout with Island using @framework.island()
+  // The counter component is wrapped in an Island VNode that will be hydrated
+  @kaguya.vfragment([
+    // Static layout content (no hydration needed)
+    @kaguya.h("div", [("class", @kaguya.attr_static("container"))], [
+      @kaguya.h("h1", [], [@kaguya.vtext("Welcome to Kaguya")]),
+      @kaguya.h("p", [], [@kaguya.vtext("A SSR-first web framework for MoonBit")]),
+      @kaguya.h("nav", [], [
+        @kaguya.h("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("Home")]),
+        @kaguya.vtext(" | "),
+        @kaguya.h("a", [("href", @kaguya.attr_static("/about"))], [@kaguya.vtext("About")]),
+      ]),
+    ]),
+    // Counter Island - this will be hydrated on the client
+    @framework.island(
+      "counter",                    // id
+      "/static/counter.js",         // url
+      state_json,                   // state
+      [@counter.render(count_signal)], // children (VNode from counter component)
+    ),
+  ])
 }
 
 ///|
 /// About page component
 fn about_page(_ctx : @framework.Ctx) -> @kaguya.Node {
-  @kaguya.vnode("div", [("class", @kaguya.attr_static("container"))], [
-    @kaguya.vnode("h1", [], [@kaguya.vtext("About")]),
-    @kaguya.vnode("p", [], [@kaguya.vtext("Built with MoonBit and Kaguya framework.")]),
-    @kaguya.vnode("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("← Back")]),
+  @kaguya.h("div", [("class", @kaguya.attr_static("container"))], [
+    @kaguya.h("h1", [], [@kaguya.vtext("About")]),
+    @kaguya.h("p", [], [@kaguya.vtext("Built with MoonBit and Kaguya framework.")]),
+    @kaguya.h("a", [("href", @kaguya.attr_static("/"))], [@kaguya.vtext("← Back")]),
   ])
 }
 
@@ -38,13 +47,14 @@ fn about_page(_ctx : @framework.Ctx) -> @kaguya.Node {
 fn configure_app(app : @framework.App) -> @framework.App {
   let style = "<style>body { font-family: system-ui; max-width: 800px; margin: 0 auto; padding: 2rem; } .counter { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; } .buttons { margin-top: 1rem; } .buttons button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0 0.5rem; cursor: pointer; }</style>"
 
-  // Home page with island (counter)
-  let app = @framework.island_page(
+  // Home page with island (counter) using VNode Islands
+  let app = @framework.page(
     app,
     "/",
-    home_page_islands,
+    home_page,
     title="Home",
     head=style,
+    hydration=true,
     loader_url="/static/kg-loader-v1.js",
   )
   let app = @framework.page(app, "/about", about_page, title="About", head=style)

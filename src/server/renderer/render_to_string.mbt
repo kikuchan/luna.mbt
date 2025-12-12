@@ -140,7 +140,7 @@ fn render_attrs_to(
         // Render action as data-action attribute for hydration
         // onclick -> data-action-click="increment"
         let event_name = if name.has_prefix("on") {
-          name.substring(start=2)
+          try { name[2:].to_string() } catch { _ => name }
         } else {
           name
         }
@@ -192,7 +192,46 @@ fn render_to_sb(sb : StringBuilder, node : @kaguya.Node) -> Unit {
         render_to_sb(sb, item)
       }
     Component(render=render_fn) => render_to_sb(sb, render_fn())
+    Island(island) => render_island_to(sb, island)
   }
+}
+
+///|
+/// Render Island node with kg:* attributes for hydration
+fn render_island_to(sb : StringBuilder, island : @kaguya.VIsland) -> Unit {
+  // Start comment marker for preload detection (allows finding islands before DOM parsing)
+  // Format: <!--kg:island:ID url=URL state=STATE trigger=TRIGGER-->
+  sb.write_string("<!--kg:island:")
+  sb.write_string(island.id)
+  sb.write_string(" url=")
+  sb.write_string(island.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("-->")
+
+  // Wrapper div with kg:* attributes
+  sb.write_string("<div kg:id=\"")
+  sb.write_string(island.id)
+  sb.write_string("\" kg:url=\"")
+  sb.write_string(island.url)
+  sb.write_string("\" kg:state=\"")
+  // State needs attribute escaping (it's JSON)
+  escape_attr_to(sb, island.state)
+  sb.write_string("\" kg:trigger=\"")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\">")
+
+  // Render children (may contain nested islands)
+  for child in island.children {
+    render_to_sb(sb, child)
+  }
+
+  sb.write_string("</div>")
+
+  // End comment marker
+  sb.write_string("<!--/kg:island:")
+  sb.write_string(island.id)
+  sb.write_string("-->")
 }
 
 ///|
@@ -277,7 +316,48 @@ fn render_with_id_to(
     }
     Component(render=render_fn) =>
       render_with_id_to(sb, render_fn(), id_counter)
+    Island(island) => render_island_with_id_to(sb, island, id_counter)
   }
+}
+
+///|
+/// Render Island node with kg:* attributes and hydration markers
+fn render_island_with_id_to(
+  sb : StringBuilder,
+  island : @kaguya.VIsland,
+  id_counter : Ref[Int],
+) -> Unit {
+  // Start comment marker for preload detection
+  sb.write_string("<!--kg:island:")
+  sb.write_string(island.id)
+  sb.write_string(" url=")
+  sb.write_string(island.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("-->")
+
+  // Wrapper div with kg:* attributes
+  sb.write_string("<div kg:id=\"")
+  sb.write_string(island.id)
+  sb.write_string("\" kg:url=\"")
+  sb.write_string(island.url)
+  sb.write_string("\" kg:state=\"")
+  escape_attr_to(sb, island.state)
+  sb.write_string("\" kg:trigger=\"")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\">")
+
+  // Render children with hydration markers
+  for child in island.children {
+    render_with_id_to(sb, child, id_counter)
+  }
+
+  sb.write_string("</div>")
+
+  // End comment marker
+  sb.write_string("<!--/kg:island:")
+  sb.write_string(island.id)
+  sb.write_string("-->")
 }
 
 ///|

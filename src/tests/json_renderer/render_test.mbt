@@ -23,9 +23,12 @@ test "render dynamic text" {
 
 ///|
 test "render element with static attrs" {
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "div",
-    [("class", @kaguya.attr_static("container")), ("id", @kaguya.attr_static("main"))],
+    [
+      ("class", @kaguya.attr_static("container")),
+      ("id", @kaguya.attr_static("main")),
+    ],
     [],
   )
   let json = render_to_json(node)
@@ -48,28 +51,27 @@ test "render element with static attrs" {
 ///|
 test "render element with dynamic attr" {
   let color = @signal.signal("red")
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "div",
     [("style", @kaguya.attr_dynamic(fn() { "color: " + color.get() }))],
     [],
   )
   let json = render_to_json(node)
   match json {
-    Element(elem) => {
+    Element(elem) =>
       match elem.attrs.get("style") {
         Some(Dynamic(v)) => assert_eq(v, "color: red")
         _ => assert_true(false)
       }
-    }
     _ => assert_true(false)
   }
 }
 
 ///|
 test "render element with children" {
-  let node = @kaguya.vnode("div", [], [
+  let node = @kaguya.h("div", [], [
     @kaguya.vtext("First"),
-    @kaguya.vnode("span", [], [@kaguya.vtext("Second")]),
+    @kaguya.h("span", [], [@kaguya.vtext("Second")]),
   ])
   let json = render_to_json(node)
   match json {
@@ -166,11 +168,9 @@ test "render for loop" {
 ///|
 test "render component" {
   fn my_component() -> @kaguya.Node {
-    @kaguya.vnode(
-      "div",
-      [("class", @kaguya.attr_static("component"))],
-      [@kaguya.vtext("Content")],
-    )
+    @kaguya.h("div", [("class", @kaguya.attr_static("component"))], [
+      @kaguya.vtext("Content"),
+    ])
   }
 
   let node = @kaguya.vcomponent(my_component)
@@ -189,7 +189,7 @@ test "render component" {
 
 ///|
 test "render event handler" {
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "button",
     [("onClick", @kaguya.attr_handler(@kaguya.event_handler()))],
     [@kaguya.vtext("Click")],
@@ -209,11 +209,9 @@ test "render event handler" {
 
 ///|
 test "render to json string" {
-  let node = @kaguya.vnode(
-    "div",
-    [("id", @kaguya.attr_static("test"))],
-    [@kaguya.vtext("Hello")],
-  )
+  let node = @kaguya.h("div", [("id", @kaguya.attr_static("test"))], [
+    @kaguya.vtext("Hello"),
+  ])
   let json_str = render_to_json_string(node)
   assert_true(json_str.contains("\"type\":\"element\""))
   assert_true(json_str.contains("\"tag\":\"div\""))
@@ -223,11 +221,9 @@ test "render to json string" {
 
 ///|
 test "json node helpers" {
-  let node = json_element(
-    "div",
-    { "class": attr_static("container") },
-    [json_text("Hello")],
-  )
+  let node = json_element("div", { "class": attr_static("container") }, [
+    json_text("Hello"),
+  ])
   assert_eq(node.tag(), Some("div"))
   assert_eq(node.children().length(), 1)
   match node.get_attr("class") {
@@ -253,17 +249,11 @@ test "fragment children" {
 
 ///|
 test "nested structure" {
-  let node = @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("outer"))],
-    [
-      @kaguya.vnode(
-        "div",
-        [("class", @kaguya.attr_static("inner"))],
-        [@kaguya.vnode("span", [], [@kaguya.vtext("Deep")])],
-      ),
-    ],
-  )
+  let node = @kaguya.h("div", [("class", @kaguya.attr_static("outer"))], [
+    @kaguya.h("div", [("class", @kaguya.attr_static("inner"))], [
+      @kaguya.h("span", [], [@kaguya.vtext("Deep")]),
+    ]),
+  ])
   let json = render_to_json(node)
   match json {
     Element(outer) => {

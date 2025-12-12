@@ -1,7 +1,11 @@
 ///| Counter Component - Shared component for SSR and hydration testing
+
 ///|
+
 ///| This component is used to verify idempotent hydration:
+
 ///| SSR output should match the DOM after hydration.
+
 ///| Uses Signal for reactive state management.
 
 ///|
@@ -14,19 +18,17 @@ pub fn render_counter(
   on_inc : @kaguya.EventHandler,
   on_dec : @kaguya.EventHandler,
 ) -> @kaguya.Node {
-  @kaguya.vnode(
+  @kaguya.h(
     "div",
     [
       ("class", @kaguya.attr_static("counter")),
       ("data-count", @kaguya.attr_dynamic(fn() { count_sig.get().to_string() })),
     ],
     [
-      @kaguya.vnode(
-        "span",
-        [("data-count", @kaguya.attr_static("true"))],
-        [@kaguya.text_dyn(fn() { count_sig.get().to_string() })],
-      ),
-      @kaguya.vnode(
+      @kaguya.h("span", [("data-count", @kaguya.attr_static("true"))], [
+        @kaguya.text_dyn(fn() { count_sig.get().to_string() }),
+      ]),
+      @kaguya.h(
         "button",
         [
           ("data-inc", @kaguya.attr_static("true")),
@@ -34,7 +36,7 @@ pub fn render_counter(
         ],
         [@kaguya.vtext("+1")],
       ),
-      @kaguya.vnode(
+      @kaguya.h(
         "button",
         [
           ("data-dec", @kaguya.attr_static("true")),

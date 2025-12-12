@@ -41,14 +41,21 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
 
 ///|
 /// Render a VNode to HTML string with full document wrapper
+/// Use hydration=true to enable hydration markers (for pages with Islands)
 pub fn render_page(
   node : @kaguya.Node,
   title? : String,
   head? : String,
+  hydration? : Bool,
 ) -> String {
   let title_str = title.unwrap_or("App")
   let head_str = head.unwrap_or("")
-  let body_html = @renderer.render_to_string_with_hydration(node)
+  let enable_hydration = hydration.unwrap_or(false)
+  let body_html = if enable_hydration {
+    @renderer.render_to_string_with_hydration(node)
+  } else {
+    @renderer.render_to_string(node)
+  }
 
   "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
   title_str +
@@ -67,17 +74,31 @@ pub fn render_fragment(node : @kaguya.Node) -> String {
 
 ///|
 /// Register a page route that renders a VNode
+/// Use hydration=true for pages with Islands (adds loader script and hydration markers)
 pub fn page(
   app : App,
   path : String,
   render_fn : (Ctx) -> @kaguya.Node,
   title? : String,
   head? : String,
+  hydration? : Bool,
+  loader_url? : String,
 ) -> App {
   app.get(path, fn(c) {
     let node = render_fn(c)
-    let html = render_page(node, title?, head?)
-    c.html(html)
+    let enable_hydration = hydration.unwrap_or(false)
+    if enable_hydration {
+      // Hydration enabled: render with hydration markers and include loader script
+      let loader = loader_url.unwrap_or(default_loader_url)
+      let loader_script = "<script type=\"module\" src=\"" + loader + "\"></script>"
+      let full_head = head.unwrap_or("") + loader_script
+      let html = render_page(node, title?, head=full_head, hydration=true)
+      c.html(html)
+    } else {
+      // Static page: render without hydration
+      let html = render_page(node, title?, head?)
+      c.html(html)
+    }
   })
 }
 
@@ -317,6 +338,58 @@ pub fn escape_json_for_attr(json : String) -> String {
 /// Escape JSON for safe embedding in script tags
 pub fn escape_json_for_html(json : String) -> String {
   @embed.escape_json_for_html(json)
+}
+
+// ============================================================================
+// Island VNode Support (using @kaguya.visland)
+// ============================================================================
+
+// Re-export Island types from @kaguya for convenience
+pub using @kaguya {
+  type IslandTrigger,
+  type VIsland,
+  visland,
+  trigger_load,
+  trigger_idle,
+  trigger_visible,
+  trigger_media,
+  trigger_to_string,
+}
+
+///|
+/// Create an Island VNode from a component render function
+/// This is the recommended way to create Islands with type-safe VNode children
+pub fn island(
+  id : String,
+  url : String,
+  state : String,
+  children : Array[@kaguya.Node],
+  trigger~ : @kaguya.IslandTrigger = @kaguya.Load,
+) -> @kaguya.Node {
+  @kaguya.visland(id, url, state, children, trigger~)
+}
+
+///|
+/// Create an Island VNode with a render function for children
+pub fn island_with(
+  id : String,
+  url : String,
+  state : String,
+  render : () -> @kaguya.Node,
+  trigger~ : @kaguya.IslandTrigger = @kaguya.Load,
+) -> @kaguya.Node {
+  @kaguya.visland(id, url, state, [render()], trigger~)
+}
+
+///|
+/// Render a VNode to HTML string
+/// Use hydration=true to enable hydration markers
+pub fn render_node(node : @kaguya.Node, hydration~ : Bool = false) -> String {
+  if hydration {
+    @renderer.render_to_string_with_hydration(node)
+  } else {
+    @renderer.render_to_string(node)
+  }
 }
 
 // ============================================================================

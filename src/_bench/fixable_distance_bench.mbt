@@ -1,5 +1,7 @@
 ///|
+
 ///| Distance-based Benchmarks for Fixable Hydration
+
 ///| Measures how repair cost scales with mismatch severity
 
 // =============================================================================
@@ -10,9 +12,9 @@
 fn create_distance_tree(count : Int) -> @kaguya.Node {
   let items : Array[@kaguya.Node] = []
   for i in 0..<count {
-    items.push(@kaguya.vnode("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
   }
-  @kaguya.vnode("ul", [], items)
+  @kaguya.h("ul", [], items)
 }
 
 ///|
@@ -20,14 +22,14 @@ fn create_distance_tree_with_attrs(count : Int) -> @kaguya.Node {
   let items : Array[@kaguya.Node] = []
   for i in 0..<count {
     items.push(
-      @kaguya.vnode(
+      @kaguya.h(
         "li",
         [("class", @kaguya.attr_static("item-" + i.to_string()))],
         [@kaguya.vtext("Item " + i.to_string())],
       ),
     )
   }
-  @kaguya.vnode("ul", [], items)
+  @kaguya.h("ul", [], items)
 }
 
 ///|
@@ -84,7 +86,7 @@ test "distance_0_clean_10_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_10_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -96,7 +98,7 @@ test "distance_0_clean_50_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_50_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -108,7 +110,7 @@ test "distance_0_clean_100_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_100_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -124,7 +126,7 @@ test "distance_1_text_10_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_1_text_10_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -136,7 +138,7 @@ test "distance_1_text_50_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_1_text_50_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -152,7 +154,7 @@ test "distance_10pct_text_50_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_10pct_text_50_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -164,7 +166,7 @@ test "distance_10pct_text_100_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_10pct_text_100_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -180,7 +182,7 @@ test "distance_50pct_text_50_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_50pct_text_50_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -192,7 +194,7 @@ test "distance_50pct_text_100_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_50pct_text_100_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -208,7 +210,7 @@ test "distance_100pct_text_50_nodes" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_100pct_text_50_nodes", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -224,7 +226,7 @@ test "distance_attr_1_of_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_attr_1_of_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -236,7 +238,7 @@ test "distance_attr_25_of_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_attr_25_of_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -252,7 +254,7 @@ test "distance_missing_1_of_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_missing_1_of_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -264,7 +266,7 @@ test "distance_missing_10_of_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_missing_10_of_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -276,7 +278,7 @@ test "distance_missing_25_of_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_missing_25_of_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -292,7 +294,7 @@ test "distance_complete_mismatch_10" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_complete_mismatch_10", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -304,7 +306,7 @@ test "distance_complete_mismatch_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="distance_complete_mismatch_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -351,7 +353,7 @@ test "smart_hydrate_10_nodes_clean" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_10_nodes_clean", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }
 
@@ -363,7 +365,7 @@ test "smart_hydrate_50_nodes_clean" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_50_nodes_clean", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }
 
@@ -375,7 +377,7 @@ test "smart_hydrate_60_nodes_fallback" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_60_nodes_fallback", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }
 
@@ -387,7 +389,7 @@ test "smart_hydrate_100_nodes_fallback" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_100_nodes_fallback", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }
 
@@ -399,7 +401,7 @@ test "smart_hydrate_50_nodes_low_ratio" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_50_nodes_low_ratio", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }
 
@@ -411,6 +413,6 @@ test "smart_hydrate_50_nodes_mismatch" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_50_nodes_mismatch", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.smart_hydrate(container, node, logger=logger))
+    b.keep(@fixable.smart_hydrate(container, node, logger~))
   })
 }

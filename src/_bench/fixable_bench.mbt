@@ -1,6 +1,9 @@
 ///|
+
 ///| Experimental Hydration (Fixable) Benchmarks
-///| Measures performance of morphdom-like DOM diffing/patching during hydration
+
+///|
+/// Measures performance of morphdom-like DOM diffing/patching during hydration
 
 // =============================================================================
 // Helper Functions
@@ -35,7 +38,10 @@ fn setup_fixable_container(html : String) -> @js_dom.Element {
 }
 
 ///|
-extern "js" fn fixable_set_inner_html(elem : @js_dom.Element, html : String) -> Unit =
+extern "js" fn fixable_set_inner_html(
+  elem : @js_dom.Element,
+  html : String,
+) -> Unit =
   #| (elem, html) => { elem.innerHTML = html; }
 
 // =============================================================================
@@ -45,34 +51,28 @@ extern "js" fn fixable_set_inner_html(elem : @js_dom.Element, html : String) -> 
 ///|
 test "fixable_clean_simple" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Hello")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_simple", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
 ///|
 test "fixable_clean_nested" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
-    "div",
-    [],
-    [
-      @kaguya.vnode(
-        "section",
-        [],
-        [@kaguya.vnode("p", [], [@kaguya.vtext("Nested content")])],
-      ),
-    ],
-  )
+  let node = @kaguya.h("div", [], [
+    @kaguya.h("section", [], [
+      @kaguya.h("p", [], [@kaguya.vtext("Nested content")]),
+    ]),
+  ])
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_nested", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -80,9 +80,9 @@ test "fixable_clean_nested" (b : @bench.T) {
 fn create_fixable_list_node(count : Int) -> @kaguya.Node {
   let items : Array[@kaguya.Node] = []
   for i = 0; i < count; i = i + 1 {
-    items.push(@kaguya.vnode("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
   }
-  @kaguya.vnode("ul", [], items)
+  @kaguya.h("ul", [], items)
 }
 
 ///|
@@ -93,7 +93,7 @@ test "fixable_clean_list_50" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_list_50", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -104,24 +104,24 @@ test "fixable_clean_list_50" (b : @bench.T) {
 ///|
 test "fixable_repair_text_mismatch" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Expected Text")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Expected Text")])
   let html = "<div>Different Text</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_mismatch", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
 ///|
 test "fixable_repair_text_missing" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Expected Text")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Expected Text")])
   let html = "<div></div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_text_missing", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -132,16 +132,14 @@ test "fixable_repair_text_missing" (b : @bench.T) {
 ///|
 test "fixable_repair_element_missing" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
-    "div",
-    [],
-    [@kaguya.vnode("span", [], [@kaguya.vtext("Child")])],
-  )
+  let node = @kaguya.h("div", [], [
+    @kaguya.h("span", [], [@kaguya.vtext("Child")]),
+  ])
   let html = ""
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_element_missing", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -152,7 +150,7 @@ test "fixable_repair_element_missing" (b : @bench.T) {
 ///|
 test "fixable_repair_attr_mismatch" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "div",
     [("class", @kaguya.attr_static("expected-class"))],
     [@kaguya.vtext("Content")],
@@ -161,7 +159,7 @@ test "fixable_repair_attr_mismatch" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_attr_mismatch", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -178,7 +176,7 @@ test "fixable_repair_dynamic_text_marker" (b : @bench.T) {
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_dynamic_text_marker", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -186,15 +184,14 @@ test "fixable_repair_dynamic_text_marker" (b : @bench.T) {
 test "fixable_repair_show_marker" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(
-    fn() { visible.get() },
-    fn() { @kaguya.vnode("div", [], [@kaguya.vtext("Visible")]) },
-  )
+  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.h("div", [], [@kaguya.vtext("Visible")])
+  })
   let html = "<div>Visible</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_show_marker", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -203,13 +200,13 @@ test "fixable_repair_for_marker" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c"])
   let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.vnode("li", [], [@kaguya.vtext(item)]) })
+    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
   })
   let html = "<li>a</li><li>b</li><li>c</li>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_for_marker", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -218,13 +215,13 @@ test "fixable_repair_for_item_count" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c", "d", "e"])
   let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.vnode("li", [], [@kaguya.vtext(item)]) })
+    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
   })
   let html = "<!--f:0--><li>a</li><li>b</li><!--/f-->"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_for_item_count", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -234,22 +231,14 @@ test "fixable_repair_for_item_count" (b : @bench.T) {
 
 ///|
 fn create_fixable_card(title : String, content : String) -> @kaguya.Node {
-  @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("card"))],
-    [
-      @kaguya.vnode(
-        "h3",
-        [("class", @kaguya.attr_static("card-title"))],
-        [@kaguya.vtext(title)],
-      ),
-      @kaguya.vnode(
-        "p",
-        [("class", @kaguya.attr_static("card-content"))],
-        [@kaguya.vtext(content)],
-      ),
-    ],
-  )
+  @kaguya.h("div", [("class", @kaguya.attr_static("card"))], [
+    @kaguya.h("h3", [("class", @kaguya.attr_static("card-title"))], [
+      @kaguya.vtext(title),
+    ]),
+    @kaguya.h("p", [("class", @kaguya.attr_static("card-content"))], [
+      @kaguya.vtext(content),
+    ]),
+  ])
 }
 
 ///|
@@ -257,14 +246,20 @@ test "fixable_repair_multiple_cards" (b : @bench.T) {
   @global_jsdom.register()
   let cards : Array[@kaguya.Node] = []
   for i = 0; i < 5; i = i + 1 {
-    cards.push(create_fixable_card("Card " + i.to_string(), "Content " + i.to_string()))
+    cards.push(
+      create_fixable_card("Card " + i.to_string(), "Content " + i.to_string()),
+    )
   }
-  let node = @kaguya.vnode("div", [("class", @kaguya.attr_static("container"))], cards)
+  let node = @kaguya.h(
+    "div",
+    [("class", @kaguya.attr_static("container"))],
+    cards,
+  )
   let html = "<div class=\"wrong-container\"><div class=\"card\"><h3>Card 0</h3><p>Old Content</p></div></div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_repair_multiple_cards", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate(container, node, logger~))
   })
 }
 
@@ -275,39 +270,37 @@ test "fixable_repair_multiple_cards" (b : @bench.T) {
 ///|
 test "fixable_with_report_clean" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Hello")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_clean", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger~))
   })
 }
 
 ///|
 test "fixable_with_report_repairs" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("expected"))],
-    [@kaguya.vtext("Expected")],
-  )
+  let node = @kaguya.h("div", [("class", @kaguya.attr_static("expected"))], [
+    @kaguya.vtext("Expected"),
+  ])
   let html = "<div class=\"wrong\">Wrong</div>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_repairs", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger=logger))
+    b.keep(@fixable.experimental_hydrate_with_report(container, node, logger~))
   })
 }
 
 ///|
 test "fixable_hydrate_with_fallback" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Content")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Content")])
   let html = "<span>Wrong tag</span>"
   let logger = StringBuilder::new()
   b.bench(name="fixable_hydrate_with_fallback", fn() {
     let container = setup_fixable_container(html)
-    b.keep(@fixable.hydrate_with_fallback(container, node, logger=logger))
+    b.keep(@fixable.hydrate_with_fallback(container, node, logger~))
   })
 }

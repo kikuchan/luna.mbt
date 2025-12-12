@@ -1,6 +1,9 @@
 ///|
+
 ///| Hydration Benchmarks
-///| Measures performance of connecting VNodes to server-rendered DOM
+
+///|
+/// Measures performance of connecting VNodes to server-rendered DOM
 
 // =============================================================================
 // Helper Functions
@@ -35,7 +38,10 @@ fn setup_hydrate_container(html : String) -> @js_dom.Element {
 }
 
 ///|
-extern "js" fn hydrate_set_inner_html(elem : @js_dom.Element, html : String) -> Unit =
+extern "js" fn hydrate_set_inner_html(
+  elem : @js_dom.Element,
+  html : String,
+) -> Unit =
   #| (elem, html) => { elem.innerHTML = html; }
 
 // =============================================================================
@@ -56,7 +62,7 @@ test "hydrate_simple_text" (b : @bench.T) {
 ///|
 test "hydrate_simple_element" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode("div", [], [@kaguya.vtext("Hello")])
+  let node = @kaguya.h("div", [], [@kaguya.vtext("Hello")])
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_simple_element", fn() {
     let container = setup_hydrate_container(html)
@@ -67,9 +73,12 @@ test "hydrate_simple_element" (b : @bench.T) {
 ///|
 test "hydrate_element_with_attrs" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "div",
-    [("class", @kaguya.attr_static("container")), ("id", @kaguya.attr_static("main"))],
+    [
+      ("class", @kaguya.attr_static("container")),
+      ("id", @kaguya.attr_static("main")),
+    ],
     [@kaguya.vtext("Content")],
   )
   let html = @ssr.render_to_string(node)
@@ -86,17 +95,9 @@ test "hydrate_element_with_attrs" (b : @bench.T) {
 ///|
 test "hydrate_nested_3" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
-    "div",
-    [],
-    [
-      @kaguya.vnode(
-        "section",
-        [],
-        [@kaguya.vnode("p", [], [@kaguya.vtext("Nested")])],
-      ),
-    ],
-  )
+  let node = @kaguya.h("div", [], [
+    @kaguya.h("section", [], [@kaguya.h("p", [], [@kaguya.vtext("Nested")])]),
+  ])
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_nested_3", fn() {
     let container = setup_hydrate_container(html)
@@ -107,29 +108,13 @@ test "hydrate_nested_3" (b : @bench.T) {
 ///|
 test "hydrate_nested_5" (b : @bench.T) {
   @global_jsdom.register()
-  let node = @kaguya.vnode(
-    "div",
-    [],
-    [
-      @kaguya.vnode(
-        "section",
-        [],
-        [
-          @kaguya.vnode(
-            "article",
-            [],
-            [
-              @kaguya.vnode(
-                "div",
-                [],
-                [@kaguya.vnode("span", [], [@kaguya.vtext("Deep")])],
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
-  )
+  let node = @kaguya.h("div", [], [
+    @kaguya.h("section", [], [
+      @kaguya.h("article", [], [
+        @kaguya.h("div", [], [@kaguya.h("span", [], [@kaguya.vtext("Deep")])]),
+      ]),
+    ]),
+  ])
   let html = @ssr.render_to_string(node)
   b.bench(name="hydrate_nested_5", fn() {
     let container = setup_hydrate_container(html)
@@ -145,9 +130,9 @@ test "hydrate_nested_5" (b : @bench.T) {
 fn create_hydrate_list_node(count : Int) -> @kaguya.Node {
   let items : Array[@kaguya.Node] = []
   for i = 0; i < count; i = i + 1 {
-    items.push(@kaguya.vnode("li", [], [@kaguya.vtext("Item " + i.to_string())]))
+    items.push(@kaguya.h("li", [], [@kaguya.vtext("Item " + i.to_string())]))
   }
-  @kaguya.vnode("ul", [], items)
+  @kaguya.h("ul", [], items)
 }
 
 ///|
@@ -192,9 +177,20 @@ test "hydrate_dynamic_text" (b : @bench.T) {
 test "hydrate_dynamic_attrs" (b : @bench.T) {
   @global_jsdom.register()
   let active = @signal.signal(true)
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "button",
-    [("class", @kaguya.attr_dynamic(fn() { if active.get() { "active" } else { "inactive" } }))],
+    [
+      (
+        "class",
+        @kaguya.attr_dynamic(fn() {
+          if active.get() {
+            "active"
+          } else {
+            "inactive"
+          }
+        }),
+      ),
+    ],
     [@kaguya.vtext("Toggle")],
   )
   let html = @ssr.render_to_string_with_hydration(node)
@@ -212,10 +208,9 @@ test "hydrate_dynamic_attrs" (b : @bench.T) {
 test "hydrate_show_visible" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(true)
-  let node = @kaguya.vshow(
-    fn() { visible.get() },
-    fn() { @kaguya.vnode("div", [], [@kaguya.vtext("Visible content")]) },
-  )
+  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.h("div", [], [@kaguya.vtext("Visible content")])
+  })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_show_visible", fn() {
     let container = setup_hydrate_container(html)
@@ -227,10 +222,9 @@ test "hydrate_show_visible" (b : @bench.T) {
 test "hydrate_show_hidden" (b : @bench.T) {
   @global_jsdom.register()
   let visible = @signal.signal(false)
-  let node = @kaguya.vshow(
-    fn() { visible.get() },
-    fn() { @kaguya.vnode("div", [], [@kaguya.vtext("Hidden content")]) },
-  )
+  let node = @kaguya.vshow(fn() { visible.get() }, fn() {
+    @kaguya.h("div", [], [@kaguya.vtext("Hidden content")])
+  })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_show_hidden", fn() {
     let container = setup_hydrate_container(html)
@@ -247,7 +241,7 @@ test "hydrate_for_5_items" (b : @bench.T) {
   @global_jsdom.register()
   let items_sig = @signal.signal(["a", "b", "c", "d", "e"])
   let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.vnode("li", [], [@kaguya.vtext(item)]) })
+    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_for_5_items", fn() {
@@ -265,7 +259,7 @@ test "hydrate_for_20_items" (b : @bench.T) {
   }
   let items_sig = @signal.signal(items)
   let node = @kaguya.vfor(fn() {
-    items_sig.get().map(fn(item) { @kaguya.vnode("li", [], [@kaguya.vtext(item)]) })
+    items_sig.get().map(fn(item) { @kaguya.h("li", [], [@kaguya.vtext(item)]) })
   })
   let html = @ssr.render_to_string_with_hydration(node)
   b.bench(name="hydrate_for_20_items", fn() {
@@ -280,59 +274,40 @@ test "hydrate_for_20_items" (b : @bench.T) {
 
 ///|
 fn create_hydrate_card(title : String, content : String) -> @kaguya.Node {
-  @kaguya.vnode(
-    "div",
-    [("class", @kaguya.attr_static("card"))],
-    [
-      @kaguya.vnode(
-        "h3",
-        [("class", @kaguya.attr_static("card-title"))],
-        [@kaguya.vtext(title)],
-      ),
-      @kaguya.vnode(
-        "p",
-        [("class", @kaguya.attr_static("card-content"))],
-        [@kaguya.vtext(content)],
-      ),
-      @kaguya.vnode(
-        "button",
-        [("class", @kaguya.attr_static("card-button"))],
-        [@kaguya.vtext("Read more")],
-      ),
-    ],
-  )
+  @kaguya.h("div", [("class", @kaguya.attr_static("card"))], [
+    @kaguya.h("h3", [("class", @kaguya.attr_static("card-title"))], [
+      @kaguya.vtext(title),
+    ]),
+    @kaguya.h("p", [("class", @kaguya.attr_static("card-content"))], [
+      @kaguya.vtext(content),
+    ]),
+    @kaguya.h("button", [("class", @kaguya.attr_static("card-button"))], [
+      @kaguya.vtext("Read more"),
+    ]),
+  ])
 }
 
 ///|
 fn create_hydrate_page(card_count : Int) -> @kaguya.Node {
   let cards : Array[@kaguya.Node] = []
   for i = 0; i < card_count; i = i + 1 {
-    cards.push(create_hydrate_card("Card " + i.to_string(), "Content for card " + i.to_string()))
+    cards.push(
+      create_hydrate_card(
+        "Card " + i.to_string(),
+        "Content for card " + i.to_string(),
+      ),
+    )
   }
-  @kaguya.vnode(
-    "html",
-    [],
-    [
-      @kaguya.vnode(
-        "head",
-        [],
-        [@kaguya.vnode("title", [], [@kaguya.vtext("Test Page")])],
-      ),
-      @kaguya.vnode(
-        "body",
-        [],
-        [
-          @kaguya.vnode("header", [], [@kaguya.vnode("h1", [], [@kaguya.vtext("Welcome")])]),
-          @kaguya.vnode("main", [("class", @kaguya.attr_static("container"))], cards),
-          @kaguya.vnode(
-            "footer",
-            [],
-            [@kaguya.vnode("p", [], [@kaguya.vtext("Footer content")])],
-          ),
-        ],
-      ),
-    ],
-  )
+  @kaguya.h("html", [], [
+    @kaguya.h("head", [], [@kaguya.h("title", [], [@kaguya.vtext("Test Page")])]),
+    @kaguya.h("body", [], [
+      @kaguya.h("header", [], [@kaguya.h("h1", [], [@kaguya.vtext("Welcome")])]),
+      @kaguya.h("main", [("class", @kaguya.attr_static("container"))], cards),
+      @kaguya.h("footer", [], [
+        @kaguya.h("p", [], [@kaguya.vtext("Footer content")]),
+      ]),
+    ]),
+  ])
 }
 
 ///|
@@ -365,10 +340,13 @@ test "hydrate_page_50_cards" (b : @bench.T) {
 test "hydrate_with_click_handler" (b : @bench.T) {
   @global_jsdom.register()
   let count = @signal.signal(0)
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "button",
     [
-      ("class", @kaguya.attr_dynamic(fn() { "count-" + count.get().to_string() })),
+      (
+        "class",
+        @kaguya.attr_dynamic(fn() { "count-" + count.get().to_string() }),
+      ),
       ("onClick", @kaguya.attr_handler(@kaguya.event_handler())),
     ],
     [@kaguya.text_dyn(fn() { "Count: " + count.get().to_string() })],
@@ -384,11 +362,11 @@ test "hydrate_with_click_handler" (b : @bench.T) {
 test "hydrate_form_with_handlers" (b : @bench.T) {
   @global_jsdom.register()
   let value = @signal.signal("")
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "form",
     [("onSubmit", @kaguya.attr_handler(@kaguya.event_handler()))],
     [
-      @kaguya.vnode(
+      @kaguya.h(
         "input",
         [
           ("type", @kaguya.attr_static("text")),
@@ -397,11 +375,9 @@ test "hydrate_form_with_handlers" (b : @bench.T) {
         ],
         [],
       ),
-      @kaguya.vnode(
-        "button",
-        [("type", @kaguya.attr_static("submit"))],
-        [@kaguya.vtext("Submit")],
-      ),
+      @kaguya.h("button", [("type", @kaguya.attr_static("submit"))], [
+        @kaguya.vtext("Submit"),
+      ]),
     ],
   )
   let html = @ssr.render_to_string_with_hydration(node)

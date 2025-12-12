@@ -376,6 +376,105 @@ app.get("/csr-router/contact", (c) => c.html(csrRouterHtml));
 app.get("/csr-router/posts/:id", (c) => c.html(csrRouterHtml));
 app.get("/csr-router/unknown/*", (c) => c.html(csrRouterHtml));
 
+// Island Node SSR test routes
+// These test the visland() VNode rendering with kg:* attributes and HTML comment markers
+
+// Helper to generate island page with kg-loader
+const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <script type="module" src="/kg-loader-v1.js"></script>
+</head>
+<body>
+  <h1>${title}</h1>
+  ${body}
+</body>
+</html>`;
+
+// Test: Basic Island Node SSR output format
+app.get("/island-node/basic-ssr", (c) => {
+  // Simulate what @kaguya.visland() + @ssr.render_to_string() would produce
+  const html = islandTestPage("Island Node Basic SSR", `
+    <!--kg:island:counter-1 url=/components/counter.js trigger=load-->
+    <div kg:id="counter-1" kg:url="/components/counter.js" kg:state="{&quot;count&quot;:5}" kg:trigger="load">
+      <span data-count>5</span>
+      <button data-inc>+1</button>
+      <button data-dec>-1</button>
+    </div>
+    <!--/kg:island:counter-1-->
+  `);
+  return c.html(html);
+});
+
+// Test: Island Node with different triggers
+app.get("/island-node/triggers", (c) => {
+  const html = islandTestPage("Island Node Triggers", `
+    <h2>Load Trigger (immediate)</h2>
+    <!--kg:island:load-1 url=/components/lazy.js trigger=load-->
+    <div kg:id="load-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Load trigger&quot;}" kg:trigger="load">
+      <div data-content>Load trigger</div>
+    </div>
+    <!--/kg:island:load-1-->
+
+    <h2>Idle Trigger</h2>
+    <!--kg:island:idle-1 url=/components/lazy.js trigger=idle-->
+    <div kg:id="idle-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Idle trigger&quot;}" kg:trigger="idle">
+      <div data-content>Idle trigger</div>
+    </div>
+    <!--/kg:island:idle-1-->
+
+    <h2>Visible Trigger (scroll down)</h2>
+    <div style="height: 150vh; background: linear-gradient(#eee, #ccc); display: flex; align-items: center; justify-content: center;">
+      Scroll down to see visible trigger
+    </div>
+    <!--kg:island:visible-1 url=/components/lazy.js trigger=visible-->
+    <div kg:id="visible-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Visible trigger&quot;}" kg:trigger="visible">
+      <div data-content>Visible trigger</div>
+    </div>
+    <!--/kg:island:visible-1-->
+  `);
+  return c.html(html);
+});
+
+// Test: Nested Islands
+app.get("/island-node/nested", (c) => {
+  const html = islandTestPage("Nested Islands", `
+    <!--kg:island:outer-1 url=/components/counter.js trigger=load-->
+    <div kg:id="outer-1" kg:url="/components/counter.js" kg:state="{&quot;count&quot;:10}" kg:trigger="load">
+      <h2>Outer Island</h2>
+      <span data-count>10</span>
+      <button data-inc>+1</button>
+      <button data-dec>-1</button>
+      <div style="margin-left: 20px; padding: 10px; border-left: 2px solid #ccc;">
+        <!--kg:island:inner-1 url=/components/lazy.js trigger=load-->
+        <div kg:id="inner-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;Inner island content&quot;}" kg:trigger="load">
+          <h3>Inner Island</h3>
+          <div data-content>Inner island content</div>
+        </div>
+        <!--/kg:island:inner-1-->
+      </div>
+    </div>
+    <!--/kg:island:outer-1-->
+  `);
+  return c.html(html);
+});
+
+// Test: Island with state escaping (XSS test)
+app.get("/island-node/xss-safety", (c) => {
+  // The state contains potentially dangerous characters, but they should be entity-escaped
+  const html = islandTestPage("Island XSS Safety Test", `
+    <script>window.xssTriggered = false; window.alert = () => { window.xssTriggered = true; };</script>
+    <!--kg:island:xss-1 url=/components/lazy.js trigger=load-->
+    <div kg:id="xss-1" kg:url="/components/lazy.js" kg:state="{&quot;message&quot;:&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;}" kg:trigger="load">
+      <div data-content>Safe content</div>
+    </div>
+    <!--/kg:island:xss-1-->
+  `);
+  return c.html(html);
+});
+
 // Idempotent hydration test route
 // Uses MoonBit SSR for initial render, MoonBit hydrate for client
 app.get("/test/idempotent-hydrate", async (c) => {

@@ -742,7 +742,7 @@ test "vtext_sig creates dynamic text from signal" {
 
 ///|
 test "vnode creates anchor element" {
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "a",
     [("href", @kaguya.attr_static("https://example.com"))],
     [@kaguya.vtext("Link")],
@@ -759,11 +759,9 @@ test "vnode creates anchor element" {
 
 ///|
 test "vnode creates form element" {
-  let node = @kaguya.vnode(
-    "form",
-    [("id", @kaguya.attr_static("myform"))],
-    [@kaguya.vnode("input", [("type", @kaguya.attr_static("text"))], [])],
-  )
+  let node = @kaguya.h("form", [("id", @kaguya.attr_static("myform"))], [
+    @kaguya.h("input", [("type", @kaguya.attr_static("text"))], []),
+  ])
   match node {
     @kaguya.Element(el) => {
       assert_eq(el.tag, "form")
@@ -776,11 +774,9 @@ test "vnode creates form element" {
 
 ///|
 test "vnode creates label element" {
-  let node = @kaguya.vnode(
-    "label",
-    [("for", @kaguya.attr_static("input1"))],
-    [@kaguya.vtext("Name:")],
-  )
+  let node = @kaguya.h("label", [("for", @kaguya.attr_static("input1"))], [
+    @kaguya.vtext("Name:"),
+  ])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "label")
     _ => assert_true(false)
@@ -789,7 +785,7 @@ test "vnode creates label element" {
 
 ///|
 test "vnode creates h2 element" {
-  let node = @kaguya.vnode("h2", [], [@kaguya.vtext("Section")])
+  let node = @kaguya.h("h2", [], [@kaguya.vtext("Section")])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "h2")
     _ => assert_true(false)
@@ -798,7 +794,7 @@ test "vnode creates h2 element" {
 
 ///|
 test "vnode creates h3 element" {
-  let node = @kaguya.vnode("h3", [], [@kaguya.vtext("Subsection")])
+  let node = @kaguya.h("h3", [], [@kaguya.vtext("Subsection")])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "h3")
     _ => assert_true(false)
@@ -807,11 +803,9 @@ test "vnode creates h3 element" {
 
 ///|
 test "vnode creates ol element" {
-  let node = @kaguya.vnode(
-    "ol",
-    [],
-    [@kaguya.vnode("li", [], [@kaguya.vtext("Item 1")])],
-  )
+  let node = @kaguya.h("ol", [], [
+    @kaguya.h("li", [], [@kaguya.vtext("Item 1")]),
+  ])
   match node {
     @kaguya.Element(el) => assert_eq(el.tag, "ol")
     _ => assert_true(false)
@@ -820,7 +814,7 @@ test "vnode creates ol element" {
 
 ///|
 test "vnode creates img element" {
-  let node = @kaguya.vnode(
+  let node = @kaguya.h(
     "img",
     [
       ("src", @kaguya.attr_static("/image.png")),

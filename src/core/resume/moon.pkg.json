@@ -1,7 +1,6 @@
 {
   "import": [
-    "mizchi/kaguya/core/signal",
-    "mizchi/kaguya/core/serialize"
+    "mizchi/kaguya/core/signal"
   ],
   "test-import": [
     "mizchi/kaguya/server/renderer"

@@ -36,6 +36,51 @@ pub enum Attr {
 }
 
 ///|
+/// Island hydration trigger types
+pub(all) enum IslandTrigger {
+  Load // Hydrate immediately on page load
+  Idle // Hydrate during browser idle time
+  Visible // Hydrate when element becomes visible
+  Media(String) // Hydrate when media query matches
+}
+
+// Factory functions for IslandTrigger (for external package access)
+
+///|
+/// Create a Load trigger (hydrate immediately on page load)
+pub fn trigger_load() -> IslandTrigger {
+  Load
+}
+
+///|
+/// Create an Idle trigger (hydrate during browser idle time)
+pub fn trigger_idle() -> IslandTrigger {
+  Idle
+}
+
+///|
+/// Create a Visible trigger (hydrate when element becomes visible)
+pub fn trigger_visible() -> IslandTrigger {
+  Visible
+}
+
+///|
+/// Create a Media trigger (hydrate when media query matches)
+pub fn trigger_media(query : String) -> IslandTrigger {
+  Media(query)
+}
+
+///|
+/// Virtual Island node - serializable hydration unit
+pub struct VIsland {
+  id : String // Unique identifier (kg:id)
+  url : String // Script URL for loading implementation (kg:url)
+  state : String // Serialized state JSON (kg:state)
+  trigger : IslandTrigger // Hydration trigger (kg:trigger)
+  children : Array[Node] // SSR-rendered content (can contain nested Islands)
+}
+
+///|
 /// Virtual DOM node types
 pub enum Node {
   Element(VElement)
@@ -45,6 +90,7 @@ pub enum Node {
   Show(condition~ : () -> Bool, child~ : () -> Node)
   For(render~ : () -> Array[Node])
   Component(render~ : () -> Node)
+  Island(VIsland) // Hydration boundary for partial hydration
 }
 
 ///|
@@ -57,13 +103,14 @@ pub struct VElement {
 
 ///|
 /// Create a VNode element
-pub fn vnode(
+pub fn h(
   tag : String,
   attrs : Array[(String, Attr)],
   children : Array[Node],
 ) -> Node {
   Element({ tag, attrs, children })
 }
+
 
 ///|
 /// Create a text VNode
@@ -105,6 +152,29 @@ pub fn vfor(items : () -> Array[Node]) -> Node {
 /// Create a component VNode
 pub fn vcomponent(render : () -> Node) -> Node {
   Component(render~)
+}
+
+///|
+/// Create an island VNode for partial hydration
+pub fn visland(
+  id : String,
+  url : String,
+  state : String,
+  children : Array[Node],
+  trigger? : IslandTrigger = Load,
+) -> Node {
+  Island({ id, url, state, trigger, children })
+}
+
+///|
+/// Convert IslandTrigger to string for kg:trigger attribute
+pub fn trigger_to_string(trigger : IslandTrigger) -> String {
+  match trigger {
+    Load => "load"
+    Idle => "idle"
+    Visible => "visible"
+    Media(query) => "media:" + query
+  }
 }
 
 ///|
