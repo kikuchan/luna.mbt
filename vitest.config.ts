@@ -9,8 +9,11 @@ export default defineConfig({
       "packages/**/*.test.ts",
     ],
     exclude: [
-      "node_modules/**",
-      ".mooncakes/**",
+      "**/node_modules/**",
+      "**/.mooncakes/**",
+      // Exclude CLI e2e tests (run with playwright) and temp directories
+      "packages/cli/e2e/**",
+      "packages/**/tmp/**",
     ],
   },
 });

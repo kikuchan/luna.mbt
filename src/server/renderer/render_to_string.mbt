@@ -10,6 +10,142 @@ pub fn render_to_string(node : @kaguya.Node) -> String {
   sb.to_string()
 }
 
+///|
+/// SSR result with preload URLs collected from islands
+pub struct SSRResult {
+  html : String
+  preload_urls : Array[String]
+}
+
+///|
+/// Render a VNode to HTML string and collect preload URLs from islands
+pub fn render_with_preloads(node : @kaguya.Node) -> SSRResult {
+  render_with_options(node)
+}
+
+///|
+/// Render a VNode to HTML string with options
+/// - preload: Whether to collect preload URLs from islands (default: true)
+/// - hydration: Whether to include hydration markers (default: true, reserved for future use)
+pub fn render_with_options(
+  node : @kaguya.Node,
+  preload~ : Bool = true,
+  hydration~ : Bool = true
+) -> SSRResult {
+  let _ = hydration // Reserved for future use
+  let sb = StringBuilder::new(size_hint=256)
+  if preload {
+    let urls : Array[String] = []
+    render_and_collect_urls(sb, node, urls)
+    { html: sb.to_string(), preload_urls: urls }
+  } else {
+    render_to_sb(sb, node)
+    { html: sb.to_string(), preload_urls: [] }
+  }
+}
+
+///|
+/// Generate modulepreload link tags from collected URLs
+pub fn generate_preload_tags(urls : Array[String]) -> String {
+  if urls.is_empty() {
+    return ""
+  }
+  let sb = StringBuilder::new(size_hint=64 * urls.length())
+  for url in urls {
+    sb.write_string("  <link rel=\"modulepreload\" href=\"")
+    sb.write_string(url)
+    sb.write_string("\">\n")
+  }
+  sb.to_string()
+}
+
+///|
+/// Render a VNode to StringBuilder and collect island URLs
+fn render_and_collect_urls(
+  sb : StringBuilder,
+  node : @kaguya.Node,
+  urls : Array[String],
+) -> Unit {
+  match node {
+    Text(content) => escape_html_to(sb, content)
+    DynamicText(getter) => escape_html_to(sb, getter())
+    Fragment(children) =>
+      for child in children {
+        render_and_collect_urls(sb, child, urls)
+      }
+    Element(elem) => {
+      let tag = elem.tag
+      sb.write_char('<')
+      sb.write_string(tag)
+      render_attrs_to(sb, elem.attrs)
+      if is_void_element(tag) {
+        sb.write_string(" />")
+      } else {
+        sb.write_char('>')
+        for child in elem.children {
+          render_and_collect_urls(sb, child, urls)
+        }
+        sb.write_string("</")
+        sb.write_string(tag)
+        sb.write_char('>')
+      }
+    }
+    Show(condition=cond, child=child_fn) =>
+      if cond() {
+        render_and_collect_urls(sb, child_fn(), urls)
+      } else {
+        sb.write_string("<!--show-->")
+      }
+    For(render=render_fn) =>
+      for item in render_fn() {
+        render_and_collect_urls(sb, item, urls)
+      }
+    Component(render=render_fn) => render_and_collect_urls(sb, render_fn(), urls)
+    Island(island) => render_island_and_collect_urls(sb, island, urls)
+  }
+}
+
+///|
+/// Render Island node and collect its URL
+fn render_island_and_collect_urls(
+  sb : StringBuilder,
+  island : @kaguya.VIsland,
+  urls : Array[String],
+) -> Unit {
+  // Collect URL if not already present
+  if not(urls.contains(island.url)) {
+    urls.push(island.url)
+  }
+
+  // Render the island (same as render_island_to)
+  sb.write_string("<!--kg:island:")
+  sb.write_string(island.id)
+  sb.write_string(" url=")
+  sb.write_string(island.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("-->")
+
+  sb.write_string("<div kg:id=\"")
+  sb.write_string(island.id)
+  sb.write_string("\" kg:url=\"")
+  sb.write_string(island.url)
+  sb.write_string("\" kg:state=\"")
+  escape_attr_to(sb, island.state)
+  sb.write_string("\" kg:trigger=\"")
+  sb.write_string(@kaguya.trigger_to_string(island.trigger))
+  sb.write_string("\">")
+
+  for child in island.children {
+    render_and_collect_urls(sb, child, urls)
+  }
+
+  sb.write_string("</div>")
+  sb.write_string("<!--/kg:island:")
+  sb.write_string(island.id)
+  sb.write_string("-->")
+}
+
 ///| Self-closing tags that don't need a closing tag
 
 ///|

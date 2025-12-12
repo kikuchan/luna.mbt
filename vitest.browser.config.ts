@@ -16,11 +16,14 @@ export default defineConfig({
       "packages/**/*.bench.ts",
     ],
     exclude: [
-      "node_modules/**",
-      ".mooncakes/**",
+      "**/node_modules/**",
+      "**/.mooncakes/**",
       // Exclude tests that use Node.js-specific features
       "src/resume/**",
       "packages/loader/**",
+      // Exclude CLI e2e tests (run with playwright) and temp directories
+      "packages/cli/e2e/**",
+      "packages/**/tmp/**",
     ],
   },
 });
