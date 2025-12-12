@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Embedding Module E2E Tests", () => {
-  test.describe("generate_minimal_embed", () => {
+test.describe("Shard Module E2E Tests", () => {
+  test.describe("generate_minimal_shard", () => {
     test("generates correct HTML structure", async ({ page }) => {
-      await page.goto("/embedding/minimal");
+      await page.goto("/shard/minimal");
 
       // Check ln:* attributes are present
-      const component = page.locator('[kg\\:id="counter-1"]');
+      const component = page.locator('[ln\\:id="counter-1"]');
       await expect(component).toHaveAttribute("ln:url", "/components/counter.js");
       // State attribute is HTML-escaped in source but browser parses it correctly
       const state = await component.getAttribute("ln:state");
@@ -14,10 +14,10 @@ test.describe("Embedding Module E2E Tests", () => {
     });
 
     test("hydrates and responds to interactions", async ({ page }) => {
-      await page.goto("/embedding/minimal");
+      await page.goto("/shard/minimal");
 
       // Wait for hydration
-      await expect(page.locator('[kg\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -35,19 +35,19 @@ test.describe("Embedding Module E2E Tests", () => {
     });
   });
 
-  test.describe("generate_standalone_embed", () => {
+  test.describe("generate_standalone_shard", () => {
     test("includes loader script in output", async ({ page }) => {
-      await page.goto("/embedding/standalone");
+      await page.goto("/shard/standalone");
 
       // Loader should be embedded
-      const loaderScript = page.locator('script[src="/kg-loader-v1.js"]');
+      const loaderScript = page.locator('script[src="/ln-loader-v1.js"]');
       await expect(loaderScript).toHaveCount(1);
     });
 
     test("hydrates correctly", async ({ page }) => {
-      await page.goto("/embedding/standalone");
+      await page.goto("/shard/standalone");
 
-      await expect(page.locator('[kg\\:id="greeting-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="greeting-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -56,27 +56,27 @@ test.describe("Embedding Module E2E Tests", () => {
     });
   });
 
-  test.describe("generate_lazy_embed", () => {
+  test.describe("generate_lazy_shard", () => {
     test("sets visible trigger", async ({ page }) => {
-      await page.goto("/embedding/lazy");
+      await page.goto("/shard/lazy");
 
-      const component = page.locator('[kg\\:id="lazy-counter"]');
+      const component = page.locator('[ln\\:id="lazy-counter"]');
       await expect(component).toHaveAttribute("ln:trigger", "visible");
     });
 
     test("does not hydrate until visible", async ({ page }) => {
-      await page.goto("/embedding/lazy");
+      await page.goto("/shard/lazy");
 
-      const component = page.locator('[kg\\:id="lazy-counter"]');
+      const component = page.locator('[ln\\:id="lazy-counter"]');
 
       // Should not be hydrated yet (below fold)
       await expect(component).not.toHaveAttribute("data-hydrated", "true");
     });
 
     test("hydrates when scrolled into view", async ({ page }) => {
-      await page.goto("/embedding/lazy");
+      await page.goto("/shard/lazy");
 
-      const component = page.locator('[kg\\:id="lazy-counter"]');
+      const component = page.locator('[ln\\:id="lazy-counter"]');
 
       // Scroll to component
       await component.scrollIntoViewIfNeeded();
@@ -93,7 +93,7 @@ test.describe("Embedding Module E2E Tests", () => {
 
   test.describe("XSS Safety", () => {
     test("escapes dangerous content in state", async ({ page }) => {
-      await page.goto("/embedding/xss-safety");
+      await page.goto("/shard/xss-safety");
 
       // XSS should not have been triggered
       const xssTriggered = await page.evaluate(() => (window as any).xssTriggered);
@@ -101,10 +101,10 @@ test.describe("Embedding Module E2E Tests", () => {
     });
 
     test("escape_json_for_html properly escapes script tags", async ({ page }) => {
-      await page.goto("/embedding/xss-safety");
+      await page.goto("/shard/xss-safety");
 
       // Verify the component rendered (was not broken by XSS)
-      const component = page.locator('[kg\\:id="xss-test"]');
+      const component = page.locator('[ln\\:id="xss-test"]');
       await expect(component).toBeVisible();
 
       // The state value contains dangerous content but it was safely escaped in HTML
@@ -121,16 +121,16 @@ test.describe("Embedding Module E2E Tests", () => {
 
   test.describe("generate_state_script", () => {
     test("creates script element with correct type", async ({ page }) => {
-      await page.goto("/embedding/state-script");
+      await page.goto("/shard/state-script");
 
-      const stateScript = page.locator('script[type="kg/json"]#counter-state');
+      const stateScript = page.locator('script[type="ln/json"]#counter-state');
       await expect(stateScript).toHaveCount(1);
     });
 
     test("state is loaded from script reference", async ({ page }) => {
-      await page.goto("/embedding/state-script");
+      await page.goto("/shard/state-script");
 
-      await expect(page.locator('[kg\\:id="counter-script"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="counter-script"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -139,9 +139,9 @@ test.describe("Embedding Module E2E Tests", () => {
     });
 
     test("interactions work with script-referenced state", async ({ page }) => {
-      await page.goto("/embedding/state-script");
+      await page.goto("/shard/state-script");
 
-      await expect(page.locator('[kg\\:id="counter-script"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="counter-script"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );

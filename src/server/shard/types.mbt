@@ -1,5 +1,5 @@
-///| Embedding Types
-///| Types for generating portable, resumable UI snippets
+///| Shard Types
+///| Types for generating portable, resumable UI snippets (shards)
 
 /// When to hydrate the component
 pub(all) enum TriggerType {
@@ -27,8 +27,8 @@ pub(all) enum StateConfig {
   Url(String)
 }
 
-/// Configuration for generating an embed snippet
-pub struct EmbedConfig {
+/// Configuration for generating a shard snippet
+pub struct ShardConfig {
   /// Unique identifier for the component
   id : String
   /// ES module URL to load for hydration
@@ -45,8 +45,8 @@ pub struct EmbedConfig {
   loader_url : String
 }
 
-/// Output from embed generation
-pub struct EmbedOutput {
+/// Output from shard generation
+pub struct ShardOutput {
   /// Complete HTML snippet
   html : String
   /// Scripts to inject in <head> (for SSR environments)
@@ -56,10 +56,10 @@ pub struct EmbedOutput {
 }
 
 /// Default loader URL
-pub let default_loader_url : String = "kg-loader-v1.js"
+pub let default_loader_url : String = "ln-loader-v1.js"
 
-/// Create a minimal embed config
-pub fn EmbedConfig::new(id : String, script_url : String) -> EmbedConfig {
+/// Create a minimal shard config
+pub fn ShardConfig::new(id : String, script_url : String) -> ShardConfig {
   {
     id,
     script_url,
@@ -72,37 +72,37 @@ pub fn EmbedConfig::new(id : String, script_url : String) -> EmbedConfig {
 }
 
 /// Builder pattern: set trigger
-pub fn EmbedConfig::with_trigger(self : EmbedConfig, trigger : TriggerType) -> EmbedConfig {
+pub fn ShardConfig::with_trigger(self : ShardConfig, trigger : TriggerType) -> ShardConfig {
   { ..self, trigger }
 }
 
 /// Builder pattern: set inline state from JSON string
-pub fn EmbedConfig::with_state(self : EmbedConfig, json : String) -> EmbedConfig {
+pub fn ShardConfig::with_state(self : ShardConfig, json : String) -> ShardConfig {
   { ..self, state: Inline(json) }
 }
 
 /// Builder pattern: set state from script reference
-pub fn EmbedConfig::with_state_ref(self : EmbedConfig, script_id : String) -> EmbedConfig {
+pub fn ShardConfig::with_state_ref(self : ShardConfig, script_id : String) -> ShardConfig {
   { ..self, state: ScriptRef(script_id) }
 }
 
 /// Builder pattern: set state from URL
-pub fn EmbedConfig::with_state_url(self : EmbedConfig, url : String) -> EmbedConfig {
+pub fn ShardConfig::with_state_url(self : ShardConfig, url : String) -> ShardConfig {
   { ..self, state: Url(url) }
 }
 
 /// Builder pattern: set SSR content
-pub fn EmbedConfig::with_ssr_content(self : EmbedConfig, content : String) -> EmbedConfig {
+pub fn ShardConfig::with_ssr_content(self : ShardConfig, content : String) -> ShardConfig {
   { ..self, ssr_content: Some(content) }
 }
 
 /// Builder pattern: include loader script
-pub fn EmbedConfig::with_loader(self : EmbedConfig, url : String) -> EmbedConfig {
+pub fn ShardConfig::with_loader(self : ShardConfig, url : String) -> ShardConfig {
   { ..self, include_loader: true, loader_url: url }
 }
 
 /// Builder pattern: include loader script with default URL
-pub fn EmbedConfig::with_default_loader(self : EmbedConfig) -> EmbedConfig {
+pub fn ShardConfig::with_default_loader(self : ShardConfig) -> ShardConfig {
   { ..self, include_loader: true }
 }
 

@@ -61,7 +61,7 @@ npx rolldown -c rolldown.config.mjs
 # Copy loader to static directory
 echo ""
 echo "=== Copying loader to static ==="
-cp "$ROOT_DIR/packages/loader/loader.js" "$TEST_APP/static/kg-loader-v1.js"
+cp "$ROOT_DIR/packages/loader/loader.js" "$TEST_APP/static/ln-loader-v1.js"
 
 # Start server (will be kept running for E2E tests)
 echo ""

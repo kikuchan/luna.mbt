@@ -3,7 +3,7 @@
 ///|
 
 ///|
-/// Each hydrate_* function is exported and called by kg-loader
+/// Each hydrate_* function is exported and called by ln-loader
 
 // FFI for JSON parsing
 extern "js" fn js_getInt(state : @js.Any, key : String) -> Int =

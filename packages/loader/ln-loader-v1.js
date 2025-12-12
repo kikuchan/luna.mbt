@@ -1,11 +1,11 @@
-/*! kaguya loader v1 - MIT License */
+/*! luna loader v1 - MIT License */
 ((d, w) => {
   const S = {}; // State store: { id: state, ... }
   const loaded = new Set(); // Track loaded components
 
-  // Parse kg:state attribute value
+  // Parse ln:state attribute value
   const parseState = async (el) => {
-    const attr = el.getAttribute('kg:state');
+    const attr = el.getAttribute('ln:state');
     if (!attr) return null;
 
     // #id - reference to script element
@@ -30,11 +30,11 @@
 
   // Hydrate a component
   const hydrate = async (el) => {
-    const id = el.getAttribute('kg:id');
+    const id = el.getAttribute('ln:id');
     if (!id || loaded.has(id)) return;
     loaded.add(id);
 
-    const url = el.getAttribute('kg:url');
+    const url = el.getAttribute('ln:url');
     if (!url) return;
 
     // Parse state
@@ -42,20 +42,20 @@
     S[id] = state;
 
     // Import module and call hydrate function
-    // Supports kg:export attribute to specify which function to call
+    // Supports ln:export attribute to specify which function to call
     try {
       const mod = await import(url);
-      const exportName = el.getAttribute('kg:export');
+      const exportName = el.getAttribute('ln:export');
       const fn = exportName ? mod[exportName] : (mod.hydrate || mod.default);
       if (fn) fn(el, state, id);
     } catch (e) {
-      console.error(`[kg-loader] Failed to hydrate ${id}:`, e);
+      console.error(`[ln-loader] Failed to hydrate ${id}:`, e);
     }
   };
 
   // Setup trigger for an element
   const setupTrigger = (el) => {
-    const trigger = el.getAttribute('kg:trigger') || 'load';
+    const trigger = el.getAttribute('ln:trigger') || 'load';
 
     if (trigger === 'load') {
       // Hydrate immediately on DOMContentLoaded (or now if already loaded)
@@ -102,9 +102,9 @@
     }
   };
 
-  // Scan for kg:id elements and setup triggers
+  // Scan for ln:id elements and setup triggers
   const scan = () => {
-    d.querySelectorAll('[kg\\:id]').forEach(setupTrigger);
+    d.querySelectorAll('[ln\\:id]').forEach(setupTrigger);
   };
 
   // Also extract legacy data-resumable-state for backwards compatibility
@@ -113,8 +113,8 @@
     S[id] = JSON.parse(s.textContent);
   });
 
-  // Extract kg/json scripts
-  d.querySelectorAll('script[type="kg/json"]').forEach(s => {
+  // Extract ln/json scripts
+  d.querySelectorAll('script[type="ln/json"]').forEach(s => {
     const id = s.id;
     if (id) {
       S[id] = JSON.parse(s.textContent);
@@ -132,7 +132,7 @@
   const mo = new MutationObserver((mutations) => {
     mutations.forEach(m => {
       m.addedNodes.forEach(node => {
-        if (node.nodeType === 1 && node.hasAttribute('kg:id')) {
+        if (node.nodeType === 1 && node.hasAttribute('ln:id')) {
           setupTrigger(node);
         }
       });
@@ -141,7 +141,7 @@
   mo.observe(d.body || d.documentElement, { childList: true, subtree: true });
 
   // Public API
-  w.__KG_STATE__ = S;
-  w.__KG_HYDRATE__ = hydrate;
-  w.__KG_SCAN__ = scan;
+  w.__LN_STATE__ = S;
+  w.__LN_HYDRATE__ = hydrate;
+  w.__LN_SCAN__ = scan;
 })(document, window);

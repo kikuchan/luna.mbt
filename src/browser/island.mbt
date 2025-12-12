@@ -119,7 +119,7 @@ extern "js" fn update_element_text(
 
 ///|
 /// Generic hydration function for simple counter-like components
-/// Takes the kg-loader hydrate signature and component-specific logic
+/// Takes the ln-loader hydrate signature and component-specific logic
 ///
 /// Usage in component:
 /// ```moonbit

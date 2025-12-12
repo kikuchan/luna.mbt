@@ -6,7 +6,7 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/basic-ssr");
 
       // Check that the island element exists with correct attributes
-      const island = page.locator('[kg\\:id="counter-1"]');
+      const island = page.locator('[ln\\:id="counter-1"]');
       await expect(island).toBeVisible();
       await expect(island).toHaveAttribute("ln:url", "/components/counter.js");
       await expect(island).toHaveAttribute("ln:trigger", "load");
@@ -31,7 +31,7 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/basic-ssr");
 
       // Wait for hydration
-      await expect(page.locator('[kg\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -68,7 +68,7 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/triggers");
 
       // Load trigger should hydrate immediately
-      await expect(page.locator('[kg\\:id="load-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="load-1"]')).toHaveAttribute(
         "data-hydrated",
         "true",
         { timeout: 3000 }
@@ -79,7 +79,7 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/triggers");
 
       // Idle trigger should hydrate after browser becomes idle
-      await expect(page.locator('[kg\\:id="idle-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="idle-1"]')).toHaveAttribute(
         "data-hydrated",
         "true",
         { timeout: 5000 }
@@ -91,7 +91,7 @@ test.describe("Island Node SSR E2E Tests", () => {
     }) => {
       await page.goto("/island-node/triggers");
 
-      const visibleIsland = page.locator('[kg\\:id="visible-1"]');
+      const visibleIsland = page.locator('[ln\\:id="visible-1"]');
 
       // Initially not hydrated (below the fold)
       await page.waitForTimeout(500);
@@ -110,15 +110,15 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/triggers");
 
       // Check trigger attribute values
-      await expect(page.locator('[kg\\:id="load-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="load-1"]')).toHaveAttribute(
         "ln:trigger",
         "load"
       );
-      await expect(page.locator('[kg\\:id="idle-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="idle-1"]')).toHaveAttribute(
         "ln:trigger",
         "idle"
       );
-      await expect(page.locator('[kg\\:id="visible-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="visible-1"]')).toHaveAttribute(
         "ln:trigger",
         "visible"
       );
@@ -130,8 +130,8 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/nested");
 
       // Both islands should be visible
-      const outer = page.locator('[kg\\:id="outer-1"]');
-      const inner = page.locator('[kg\\:id="inner-1"]');
+      const outer = page.locator('[ln\\:id="outer-1"]');
+      const inner = page.locator('[ln\\:id="inner-1"]');
 
       await expect(outer).toBeVisible();
       await expect(inner).toBeVisible();
@@ -145,13 +145,13 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/nested");
 
       // Wait for outer island hydration
-      await expect(page.locator('[kg\\:id="outer-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="outer-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
-      const count = page.locator('[kg\\:id="outer-1"] [data-count]');
-      const incBtn = page.locator('[kg\\:id="outer-1"] [data-inc]');
+      const count = page.locator('[ln\\:id="outer-1"] [data-count]');
+      const incBtn = page.locator('[ln\\:id="outer-1"] [data-inc]');
 
       // Initial value
       await expect(count).toHaveText("10");
@@ -165,17 +165,17 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/nested");
 
       // Both should hydrate
-      await expect(page.locator('[kg\\:id="outer-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="outer-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
-      await expect(page.locator('[kg\\:id="inner-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="inner-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
       // Inner island should show hydrated message
-      const innerContent = page.locator('[kg\\:id="inner-1"] [data-content]');
+      const innerContent = page.locator('[ln\\:id="inner-1"] [data-content]');
       await expect(innerContent).toHaveText("Hydrated: Inner island content");
     });
 
@@ -206,7 +206,7 @@ test.describe("Island Node SSR E2E Tests", () => {
       await page.goto("/island-node/xss-safety");
 
       // Wait for hydration
-      await expect(page.locator('[kg\\:id="xss-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="xss-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -240,18 +240,18 @@ test.describe("Island Node SSR E2E Tests", () => {
   });
 
   test.describe("Global API", () => {
-    test("__KG_STATE__ tracks island states", async ({ page }) => {
+    test("__LN_STATE__ tracks island states", async ({ page }) => {
       await page.goto("/island-node/basic-ssr");
 
       // Wait for hydration
-      await expect(page.locator('[kg\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
       // Check global state
       const stateExists = await page.evaluate(() => {
-        return typeof (window as any).__KG_STATE__ === "object";
+        return typeof (window as any).__LN_STATE__ === "object";
       });
       expect(stateExists).toBe(true);
     });

@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, "..");
 
 // Load static assets
-const loaderPath = join(rootDir, "packages", "loader", "kg-loader-v1.js");
+const loaderPath = join(rootDir, "packages", "loader", "ln-loader-v1.js");
 const loaderCode = readFileSync(loaderPath, "utf-8");
 
 // Import MoonBit counter_component module for SSR
@@ -100,6 +100,18 @@ const chunkedCounterStaticDir = join(
   "static"
 );
 
+// Import MoonBit SPA example module path
+const spaModulePath = join(
+  rootDir,
+  "target",
+  "js",
+  "release",
+  "build",
+  "examples",
+  "spa",
+  "spa.js"
+);
+
 // Promisify MoonBit async callback
 function promisifyMoonBit<T>(fn: (cont: (v: T) => void, err: (e: Error) => void) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -114,7 +126,7 @@ const app = new Hono();
 app.get("/", (c) => c.text("ok"));
 
 // Serve static assets
-app.get("/kg-loader-v1.js", (c) => {
+app.get("/ln-loader-v1.js", (c) => {
   return c.body(loaderCode, 200, {
     "Content-Type": "application/javascript",
   });
@@ -235,7 +247,7 @@ const browserTestPage = (
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-  <script type="module" src="/kg-loader-v1.js"></script>
+  <script type="module" src="/ln-loader-v1.js"></script>
   <style>
     .box { padding: 20px; border: 1px solid #ccc; margin: 10px 0; }
     .box.active { background-color: #e0ffe0; border-color: green; }
@@ -421,6 +433,38 @@ app.get("/csr-router/contact", (c) => c.html(csrRouterHtml));
 app.get("/csr-router/posts/:id", (c) => c.html(csrRouterHtml));
 app.get("/csr-router/unknown/*", (c) => c.html(csrRouterHtml));
 
+// SPA Example routes
+// Serve the SPA example HTML page that loads the MoonBit SPA module
+const spaHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Luna SPA Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    .app { padding: 20px; max-width: 800px; margin: 0 auto; }
+    .buttons { display: flex; gap: 8px; }
+    button { padding: 8px 16px; cursor: pointer; }
+    input[type="text"], input[type="range"] { padding: 8px; }
+    hr { margin: 20px 0; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 8px 0; }
+  </style>
+</head>
+<body>
+  <div id="app">Loading...</div>
+  <script type="module">
+    import '/spa/main.js';
+  </script>
+</body>
+</html>`;
+
+app.get("/spa", (c) => c.html(spaHtml));
+app.get("/spa/main.js", (c) => {
+  const code = readFileSync(spaModulePath, "utf-8");
+  return c.body(code, 200, { "Content-Type": "application/javascript" });
+});
+
 // Chunked Counter routes (for ESM import architecture tests)
 // Serve static files from chunked counter static directory
 // Support both /static/ and /chunked-counter/static/ paths
@@ -450,13 +494,13 @@ app.get("/chunked-counter", async (c) => {
 // Island Node SSR test routes
 // These test the visland() VNode rendering with ln:* attributes and HTML comment markers
 
-// Helper to generate island page with kg-loader
+// Helper to generate island page with ln-loader
 const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-  <script type="module" src="/kg-loader-v1.js"></script>
+  <script type="module" src="/ln-loader-v1.js"></script>
 </head>
 <body>
   <h1>${title}</h1>
@@ -559,7 +603,7 @@ app.get("/test/idempotent-hydrate", async (c) => {
 <head>
   <meta charset="UTF-8">
   <title>Idempotent Hydration Test</title>
-  <script type="module" src="/kg-loader-v1.js"></script>
+  <script type="module" src="/ln-loader-v1.js"></script>
 </head>
 <body>
   <h1>Idempotent Hydration Test</h1>
@@ -606,7 +650,7 @@ async function setupMoonBitRoutes() {
   const moonbitApp = await promisifyMoonBit<any>(e2eServer.create_app);
 
   // Mount loader routes at /loader/*
-  // Mount embedding routes at /embedding/*
+  // Mount shard routes at /shard/*
   app.route("/", moonbitApp);
 }
 

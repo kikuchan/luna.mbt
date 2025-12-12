@@ -13,7 +13,7 @@ extern "js" fn js_setAttribute(el : @js_dom.Element, name : String, value : Stri
 
 ///|
 /// Hydrate a counter element
-/// Called by kg-loader with: hydrate(element, state)
+/// Called by ln-loader with: hydrate(element, state)
 /// Uses @dom.hydrate to connect the VNode to existing DOM
 pub fn hydrate(el : @js_dom.Element, state : @js.Any) -> Unit {
   // Parse initial count from state

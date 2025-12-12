@@ -4,7 +4,10 @@
   ],
   "import": [
     "mizchi/luna/core/signal",
-    { "path": "mizchi/js/core", "alias": "js" },
+    {
+      "path": "mizchi/js/core",
+      "alias": "js"
+    },
     {
       "path": "mizchi/js/browser/dom",
       "alias": "js_dom"
@@ -54,5 +57,6 @@
       ],
       "format": "esm"
     }
-  }
+  },
+  "warn-list": "-5"
 }

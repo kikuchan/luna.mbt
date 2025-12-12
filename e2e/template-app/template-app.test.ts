@@ -25,7 +25,7 @@ test.describe("Template App E2E Tests", () => {
     }) => {
       await page.goto(BASE_URL);
 
-      const counter = page.locator('[kg\\:id="counter"]');
+      const counter = page.locator('[ln\\:id="counter"]');
       await expect(counter).toBeVisible();
 
       // Verify hydration attributes
@@ -63,17 +63,17 @@ test.describe("Template App E2E Tests", () => {
       // Wait for hydration (longer wait)
       await page.waitForTimeout(1500);
 
-      // Check if kg-loader executed
-      const kgState = await page.evaluate(() => (window as any).__KG_STATE__);
-      console.log(`[TEST] __KG_STATE__:`, kgState);
+      // Check if ln-loader executed
+      const lnState = await page.evaluate(() => (window as any).__LN_STATE__);
+      console.log(`[TEST] __LN_STATE__:`, lnState);
 
       // Check hydration status and directly invoke hydrate from module
       const hydrationStatus = await page.evaluate(async () => {
-        const counterEl = document.querySelector('[kg\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
         const buttons = counterEl?.querySelectorAll('button');
         const decBtn = counterEl?.querySelector('[data-action-click="decrement"]');
         const incBtn = counterEl?.querySelector('[data-action-click="increment"]');
-        const hasKgHydrate = typeof (window as any).__KG_HYDRATE__ === 'function';
+        const hasLnHydrate = typeof (window as any).__LN_HYDRATE__ === 'function';
 
         // Try to directly import and call hydrate
         let directHydrateResult = null;
@@ -101,7 +101,7 @@ test.describe("Template App E2E Tests", () => {
           buttonCount: buttons?.length,
           decBtnFound: !!decBtn,
           incBtnFound: !!incBtn,
-          hasKgHydrate,
+          hasLnHydrate,
           directHydrateResult,
           moduleKeys,
         };
@@ -143,9 +143,9 @@ test.describe("Template App E2E Tests", () => {
     test("hydrates counter and handles decrement", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Manually trigger hydration (since kg-loader may not be present)
+      // Manually trigger hydration (since ln-loader may not be present)
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[kg\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
           const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
@@ -169,9 +169,9 @@ test.describe("Template App E2E Tests", () => {
     test("multiple clicks update counter correctly", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Manually trigger hydration (since kg-loader may not be present)
+      // Manually trigger hydration (since ln-loader may not be present)
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[kg\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
           const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
