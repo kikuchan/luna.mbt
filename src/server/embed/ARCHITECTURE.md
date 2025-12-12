@@ -25,17 +25,17 @@ Inspired by [Qwik's Resumability](https://qwik.dev/docs/concepts/resumable/) and
 </div>
 
 <!-- With loader (standalone) -->
-<script type="module" src="https://cdn.example.com/kg-loader-v1.js"></script>
+<script type="module" src="https://cdn.example.com/ln-loader-v1.js"></script>
 <div ln:id="counter-1" ...>...</div>
 
 <!-- With inline state for large data -->
 <div ln:id="app-1"
      ln:url="./app.js"
      ln:trigger="load"
-     ln:state="#kg-state-app-1">
+     ln:state="#ln-state-app-1">
   <!-- SSR content -->
 </div>
-<script id="kg-state-app-1" type="kg/json">{"large":"data","nested":{"items":[1,2,3]}}<\/script>
+<script id="ln-state-app-1" type="ln/json">{"large":"data","nested":{"items":[1,2,3]}}<\/script>
 
 <!-- With remote state -->
 <div ln:id="user-1"
@@ -82,8 +82,8 @@ Following Astro's naming convention:
 ### Script Reference (for medium state)
 
 ```html
-<div ln:state="#kg-state-123"></div>
-<script id="kg-state-123" type="kg/json">{"data":"..."}<\/script>
+<div ln:state="#ln-state-123"></div>
+<script id="ln-state-123" type="ln/json">{"data":"..."}<\/script>
 ```
 
 - Pros: Cleaner HTML attributes, larger capacity
@@ -119,14 +119,14 @@ fn escape_json_for_html(json: String) -> String {
 The loader supports CSP nonces:
 
 ```html
-<script type="module" src="kg-loader-v1.js" nonce="abc123"></script>
+<script type="module" src="ln-loader-v1.js" nonce="abc123"></script>
 ```
 
 ## Loader Script
 
-`kg-loader-v1.js` (~1KB minified):
+`ln-loader-v1.js` (~1KB minified):
 
-1. Scans for `[kg\\:id]` elements
+1. Scans for `[ln\\:id]` elements
 2. Sets up trigger listeners (IntersectionObserver, idle callback, etc.)
 3. On trigger:
    - Parse state from `ln:state`
@@ -135,15 +135,15 @@ The loader supports CSP nonces:
 
 ### Versioning
 
-Loader uses versioned filenames (`kg-loader-v1.js`) to:
+Loader uses versioned filenames (`ln-loader-v1.js`) to:
 - Prevent duplicate loading via `type="module"` deduplication
 - Allow multiple versions on same page
 - Enable breaking changes without conflicts
 
 ```html
 <!-- These won't conflict -->
-<script type="module" src="kg-loader-v1.js"></script>
-<script type="module" src="kg-loader-v2.js"></script>
+<script type="module" src="ln-loader-v1.js"></script>
+<script type="module" src="ln-loader-v2.js"></script>
 ```
 
 ## API
@@ -158,7 +158,7 @@ struct EmbedConfig {
   state: StateConfig         // Inline(String) | ScriptRef(String) | Url(String) | Empty
   ssr_content: String?       // Pre-rendered HTML or None
   include_loader: Bool       // Include loader script tag
-  loader_url: String         // Loader URL (default: kg-loader-v1.js)
+  loader_url: String         // Loader URL (default: ln-loader-v1.js)
 }
 ```
 
@@ -182,7 +182,7 @@ let config = EmbedConfig::{
   state: Inline(@json.stringify(initial_state)),
   ssr_content: Some(@ssr.render_to_string(vnode)),
   include_loader: true,
-  loader_url: "https://cdn.example.com/kg-loader-v1.js",
+  loader_url: "https://cdn.example.com/ln-loader-v1.js",
 }
 
 let output = generate_embed(config)
@@ -192,8 +192,8 @@ let output = generate_embed(config)
 ## Integration with packages/loader
 
 The `packages/loader/` directory contains:
-- `kg-loader-v1.js` - Production loader
-- `kg-loader-v1.min.js` - Minified version
+- `ln-loader-v1.js` - Production loader
+- `ln-loader-v1.min.js` - Minified version
 
 Loader expects components to export:
 
@@ -221,8 +221,8 @@ src/embedding/
 └── embedding_test.mbt # Tests
 
 packages/loader/
-├── kg-loader-v1.js    # Loader script (renamed from loader.js)
-├── kg-loader-v1.min.js
+├── ln-loader-v1.js    # Loader script (renamed from loader.js)
+├── ln-loader-v1.min.js
 └── loader.test.ts     # Tests
 ```
 

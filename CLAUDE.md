@@ -6,23 +6,27 @@ MoonBitで実装されたIsland ArchitectureベースのUIフレームワーク�
 
 ```
 src/                    # MoonBitソースコード
-├── signal.mbt          # Signalプリミティブ
-├── effect.mbt          # Effectプリミティブ
-├── element/            # HTML要素ファクトリ (div, span等)
-├── ssr/                # SSRレンダリング
-├── embedding/          # 埋め込みモード
-├── resume/             # 状態復帰/シリアライズ
-├── js/                 # JS専用モジュール
-│   ├── dom/            # DOM操作、Hydration
-│   │   └── reconcile/  # VDOM差分計算
-│   ├── ssr/            # JSストリーミングSSR
-│   ├── framework/      # Hono統合
-│   └── webcomponents/  # WebComponents
+├── core/               # コアモジュール
+│   ├── signal/         # Signalプリミティブ
+│   ├── resume/         # 状態復帰/シリアライズ
+│   └── vnode.mbt       # VNode定義
+├── browser/            # ブラウザ専用モジュール
+│   ├── dom/            # DOM操作、レンダリング、差分更新
+│   ├── fixable/        # 実験的Hydration
+│   ├── client_router.mbt # クライアントルーター
+│   └── hydrate.mbt     # Hydration
+├── server/             # サーバーサイド
+│   ├── renderer/       # SSRレンダリング
+│   ├── renderer_web/   # WebストリーミングSSR
+│   └── embed/          # Island埋め込み
+├── app/                # アプリケーションフレームワーク
+├── router/             # ルーティング
 ├── tests/              # テストコンポーネント
 └── examples/           # サンプル
 packages/               # NPMパッケージ
-├── core/               # @luna/core (旧ui)
-└── loader/             # @luna/loader
+├── luna/               # @mizchi/luna
+├── loader/             # @mizchi/luna-loader
+└── cli/                # CLIツール
 e2e/                    # Playwrightテスト
 ```
 
@@ -76,20 +80,18 @@ pnpm test:e2e:loader     # Loaderテストのみ
 
 ### Signals
 ```moonbit
-let count = @ui.signal(0)
-@ui.effect(fn() { println(count.get().to_string()) })
+let count = @signal.signal(0)
+@signal.effect(fn() { println(count.get().to_string()) })
 count.set(1)  // "1" が出力される
 ```
 
 ## 開発時の注意
 
-- 名前空間は `mizchi/luna` (移行中)
+- 名前空間は `mizchi/luna`
 - 属性は `ln:*` 形式に統一
-- テストは必ず `moon check` と `pnpm test:e2e` の両方を確認
-- XSSエスケープは `src/embedding/serializer.mbt` で処理
+- テストは必ず `moon check` と `pnpm test` の両方を確認
+- XSSエスケープは `src/server/embed/serializer.mbt` で処理
 
 ## 参照ドキュメント
 
-- [実装計画](./docs/IMPLEMENTATION_PLAN.md)
-- [Embedding Architecture](./src/embedding/ARCHITECTURE.md)
-- [Reconcile README](./src/js/dom/reconcile/README.md)
+- [Embedding Architecture](./src/server/embed/ARCHITECTURE.md)
