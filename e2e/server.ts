@@ -402,6 +402,26 @@ app.get("/browser/input-binding", (c) => {
   return c.html(html);
 });
 
+// Element ref test (Solid.js style refs)
+app.get("/browser/element-ref", (c) => {
+  const html = browserTestPage(
+    "Element Ref Test",
+    "element-ref-1",
+    "hydrate_element_ref",
+    {},
+    `<div>
+      <div class="ref-demo">
+        <input data-ref-input type="text" placeholder="This input has a ref">
+        <button data-focus-btn>Focus Input</button>
+        <button data-clear-focus-btn>Clear & Focus</button>
+      </div>
+      <div><span data-focus-count>Focus count: 0</span></div>
+      <div><span data-ref-status>Ref captured: no</span></div>
+    </div>`
+  );
+  return c.html(html);
+});
+
 // CSR Router test routes
 // Wildcard route handler for CSR Router SPA
 const csrRouterHtml = `<!DOCTYPE html>

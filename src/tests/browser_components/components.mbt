@@ -127,13 +127,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @js.Any) -> Unit {
         ),
       ],
       [
-        @luna.text_dyn(fn() {
-          if active.get() {
-            "Active"
-          } else {
-            "Inactive"
-          }
-        }),
+        @luna.text_dyn(fn() { if active.get() { "Active" } else { "Inactive" } }),
       ],
     ),
     @luna.h(
@@ -358,13 +352,17 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onMouseenter",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() { hover_state.set("hovering") }),
+            @browser.browser_handler_from_callback(fn() {
+              hover_state.set("hovering")
+            }),
           ),
         ),
         (
           "onMouseleave",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() { hover_state.set("none") }),
+            @browser.browser_handler_from_callback(fn() {
+              hover_state.set("none")
+            }),
           ),
         ),
       ],
@@ -458,25 +456,16 @@ pub fn hydrate_sortable_list(el : @js_dom.Element, state : @js.Any) -> Unit {
   )
 
   // Use @dom.for_each for reference-based DOM reuse
-  let list_items = @dom.for_each(
-    fn() { items_sig.get() },
-    fn(item, _index) {
-      @dom.create_element(
-        "li",
-        [
-          ("data-key", @dom.Static(item.id.to_string())),
-        ],
-        [@dom.text_node(fn() { item.label })],
-      )
-    },
-  )
-
-  let list = @dom.create_element(
-    "ul",
-    [("data-list", @dom.Static("true"))],
-    [list_items],
-  )
-
+  let list_items = @dom.for_each(fn() { items_sig.get() }, fn(item, _index) {
+    @dom.create_element(
+      "li",
+      [("data-key", @dom.Static(item.id.to_string()))],
+      [@dom.text_node(fn() { item.label })],
+    )
+  })
+  let list = @dom.create_element("ul", [("data-list", @dom.Static("true"))], [
+    list_items,
+  ])
   let container = @dom.create_element("div", [], [controls, list])
 
   // Clear and mount
@@ -560,5 +549,87 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @js.Any) -> Unit {
 
   // Client-side rendering: clear container and render VNode
   @browser.render_vnode(el, vnode)
+  js_setAttribute(el, "data-hydrated", "true")
+}
+
+///|
+/// Element ref test component
+/// Tests: ref_ callback for direct DOM element access
+pub fn hydrate_element_ref(el : @js_dom.Element, _state : @js.Any) -> Unit {
+  // Store ref to the input element
+  let input_ref : Ref[@js_dom.Element?] = { val: None }
+  let focus_count = @signal.signal(0)
+
+  // Build UI using @dom DSL with ref_ support
+  let container = @dom.div([
+    @dom.div(
+      class="ref-demo",
+      [
+        @dom.input(
+          type_="text",
+          placeholder="This input has a ref",
+          ref_=fn(input_el) {
+            // Store the element reference
+            input_ref.val = Some(input_el)
+          },
+          attrs=[("data-ref-input", @dom.AttrString("true"))],
+        ),
+        @dom.button(
+          on=@dom.on(
+            click=Some(fn(_e) {
+              // Use the stored ref to focus the input
+              match input_ref.val {
+                Some(input_el) => {
+                  input_el.as_any()._call("focus", []) |> ignore
+                  focus_count.update(fn(c) { c + 1 })
+                }
+                None => ()
+              }
+            }),
+          ),
+          attrs=[("data-focus-btn", @dom.AttrString("true"))],
+          [@dom.text("Focus Input")],
+        ),
+        @dom.button(
+          on=@dom.on(
+            click=Some(fn(_e) {
+              // Use the stored ref to clear and focus the input
+              match input_ref.val {
+                Some(input_el) => {
+                  input_el.as_any()._set("value", @js.any("")) |> ignore
+                  input_el.as_any()._call("focus", []) |> ignore
+                  focus_count.update(fn(c) { c + 1 })
+                }
+                None => ()
+              }
+            }),
+          ),
+          attrs=[("data-clear-focus-btn", @dom.AttrString("true"))],
+          [@dom.text("Clear & Focus")],
+        ),
+      ],
+    ),
+    @dom.div([
+      @dom.span(
+        attrs=[("data-focus-count", @dom.AttrString("true"))],
+        [@dom.text_dyn(fn() { "Focus count: " + focus_count.get().to_string() })],
+      ),
+    ]),
+    @dom.div([
+      @dom.span(
+        attrs=[("data-ref-status", @dom.AttrString("true"))],
+        [@dom.text_dyn(fn() {
+          match input_ref.val {
+            Some(_) => "Ref captured: yes"
+            None => "Ref captured: no"
+          }
+        })],
+      ),
+    ]),
+  ])
+
+  // Clear and mount
+  el.as_node().setTextContent("")
+  @dom.mount_to(el, container)
   js_setAttribute(el, "data-hydrated", "true")
 }

@@ -566,4 +566,90 @@ test.describe("Luna UI Framework Browser Tests", () => {
       await expect(submitted).toHaveText("Submitted: ");
     });
   });
+
+  test.describe("Element Ref (Solid.js style)", () => {
+    test("ref callback captures element reference after hydration", async ({
+      page,
+    }) => {
+      await page.goto("/browser/element-ref");
+      await expect(page.locator("#app")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      // After hydration, ref should be captured
+      const refStatus = page.locator("[data-ref-status]");
+      await expect(refStatus).toHaveText("Ref captured: yes");
+    });
+
+    test("focus button uses ref to focus input", async ({ page }) => {
+      await page.goto("/browser/element-ref");
+      await expect(page.locator("#app")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      const input = page.locator("[data-ref-input]");
+      const focusBtn = page.locator("[data-focus-btn]");
+      const focusCount = page.locator("[data-focus-count]");
+
+      // Initial focus count
+      await expect(focusCount).toHaveText("Focus count: 0");
+
+      // Click focus button - should focus input via ref
+      await focusBtn.click();
+      await expect(focusCount).toHaveText("Focus count: 1");
+
+      // Verify the input is actually focused
+      await expect(input).toBeFocused();
+    });
+
+    test("clear & focus button clears and focuses input via ref", async ({
+      page,
+    }) => {
+      await page.goto("/browser/element-ref");
+      await expect(page.locator("#app")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      const input = page.locator("[data-ref-input]");
+      const clearFocusBtn = page.locator("[data-clear-focus-btn]");
+      const focusCount = page.locator("[data-focus-count]");
+
+      // Type something in the input first
+      await input.fill("Some text");
+      await expect(input).toHaveValue("Some text");
+
+      // Click clear & focus button
+      await clearFocusBtn.click();
+
+      // Input should be cleared and focused
+      await expect(input).toHaveValue("");
+      await expect(input).toBeFocused();
+      await expect(focusCount).toHaveText("Focus count: 1");
+    });
+
+    test("multiple focus calls increment counter", async ({ page }) => {
+      await page.goto("/browser/element-ref");
+      await expect(page.locator("#app")).toHaveAttribute(
+        "data-hydrated",
+        "true"
+      );
+
+      const focusBtn = page.locator("[data-focus-btn]");
+      const clearFocusBtn = page.locator("[data-clear-focus-btn]");
+      const focusCount = page.locator("[data-focus-count]");
+
+      // Click focus multiple times
+      await focusBtn.click();
+      await expect(focusCount).toHaveText("Focus count: 1");
+
+      await focusBtn.click();
+      await expect(focusCount).toHaveText("Focus count: 2");
+
+      await clearFocusBtn.click();
+      await expect(focusCount).toHaveText("Focus count: 3");
+    });
+  });
 });

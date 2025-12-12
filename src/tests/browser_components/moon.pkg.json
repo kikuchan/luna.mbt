@@ -17,7 +17,8 @@
         "hydrate_for_each",
         "hydrate_events",
         "hydrate_sortable_list",
-        "hydrate_input_binding"
+        "hydrate_input_binding",
+        "hydrate_element_ref"
       ],
       "format": "esm"
     }

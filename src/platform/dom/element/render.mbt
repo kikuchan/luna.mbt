@@ -78,7 +78,13 @@ fn apply_attribute(
       })
 
     }
-    Handler(handler) => apply_event_handler(elem, name, handler)
+    Handler(handler) =>
+      if name == "__ref" {
+        // Call ref callback with element (not an event listener)
+        handler(elem.as_any())
+      } else {
+        apply_event_handler(elem, name, handler)
+      }
   }
 }
 
@@ -228,13 +234,9 @@ pub fn[T] for_each(
       is_first.val = false
       return
     }
-    reconcile_for_each(
-      entries,
-      placeholder,
-      new_items,
-      fn(item, i) { render_item(item, i).to_jsdom() },
-    )
+    reconcile_for_each(entries, placeholder, new_items, fn(item, i) {
+      render_item(item, i).to_jsdom()
+    })
   })
-
   Raw(fragment.as_node())
 }
