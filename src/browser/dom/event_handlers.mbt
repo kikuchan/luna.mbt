@@ -1,89 +1,138 @@
 ///| Event Handler Types - Type-safe event handlers for Luna DOM
 ///|
 ///| This module provides typed event handler aliases similar to React's event handler types.
-///| Each handler type is parameterized by the target element type for type safety.
+///| Each handler type is parameterized by the target element type [T] for type safety.
 ///|
 ///| Usage:
-///|   let handler : MouseEventHandler = fn(e) { e.preventDefault() }
-///|   div(on=on(click=Some(handler)), [text("Click me")])
+///|   // Type-safe handler with specific element type
+///|   let handler : MouseEventHandler[@js_dom.HTMLButtonElement] = fn(e) {
+///|     let target = e.target() // Returns HTMLButtonElement
+///|     e.preventDefault()
+///|   }
+///|
+///|   // Or use with generic Element when element type doesn't matter
+///|   let handler : MouseEventHandler[@js_dom.Element] = fn(e) { ... }
 
 // =============================================================================
-// Event Handler Type Aliases
+// Event Handler Type Aliases (with target element type parameter)
 // =============================================================================
 
 ///|
-/// MouseEventHandler - Handler for mouse events (click, dblclick, mouseenter, etc.)
+/// MouseEventHandler[T] - Handler for mouse events (click, dblclick, mouseenter, etc.)
+/// T is the target element type (e.g., HTMLButtonElement, HTMLDivElement)
 /// The event provides clientX, clientY, button, ctrlKey, etc.
-pub type MouseEventHandler = (@js_dom.MouseEvent) -> Unit
+pub type MouseEventHandler[T] = (@js_dom.MouseEvent) -> Unit
 
 ///|
-/// KeyboardEventHandler - Handler for keyboard events (keydown, keyup, keypress)
+/// KeyboardEventHandler[T] - Handler for keyboard events (keydown, keyup, keypress)
+/// T is the target element type (e.g., HTMLInputElement)
 /// The event provides key, code, ctrlKey, shiftKey, etc.
-pub type KeyboardEventHandler = (@js_dom.KeyboardEvent) -> Unit
+pub type KeyboardEventHandler[T] = (@js_dom.KeyboardEvent) -> Unit
 
 ///|
-/// InputEventHandler - Handler for input events on form elements
+/// InputEventHandler[T] - Handler for input events on form elements
+/// T is the target element type (e.g., HTMLInputElement, HTMLTextAreaElement)
 /// The event provides inputType, data, isComposing, etc.
-pub type InputEventHandler = (@js_dom.InputEvent) -> Unit
+pub type InputEventHandler[T] = (@js_dom.InputEvent) -> Unit
 
 ///|
-/// ChangeEventHandler - Handler for change events on form elements
-pub type ChangeEventHandler = (@js_dom.ChangeEvent) -> Unit
+/// ChangeEventHandler[T] - Handler for change events on form elements
+/// T is the target element type (e.g., HTMLInputElement, HTMLSelectElement)
+pub type ChangeEventHandler[T] = (@js_dom.ChangeEvent) -> Unit
 
 ///|
-/// FocusEventHandler - Handler for focus/blur events
+/// FocusEventHandler[T] - Handler for focus/blur events
+/// T is the target element type
 /// The event provides relatedTarget for focus transitions
-pub type FocusEventHandler = (@js_dom.FocusEvent) -> Unit
+pub type FocusEventHandler[T] = (@js_dom.FocusEvent) -> Unit
 
 ///|
-/// FormEventHandler - Handler for form submission events
+/// FormEventHandler[T] - Handler for form submission events
+/// T is typically HTMLFormElement
 /// Call preventDefault() to prevent default form submission
-pub type FormEventHandler = (@js_dom.FormEvent) -> Unit
+pub type FormEventHandler[T] = (@js_dom.FormEvent) -> Unit
 
 ///|
-/// DragEventHandler - Handler for drag and drop events
+/// DragEventHandler[T] - Handler for drag and drop events
+/// T is the target element type
 /// The event provides dataTransfer for drag data
-pub type DragEventHandler = (@js_dom.DragEvent) -> Unit
+pub type DragEventHandler[T] = (@js_dom.DragEvent) -> Unit
 
 ///|
-/// WheelEventHandler - Handler for wheel/scroll events
+/// WheelEventHandler[T] - Handler for wheel/scroll events
+/// T is the target element type
 /// The event provides deltaX, deltaY, deltaZ, deltaMode
-pub type WheelEventHandler = (@js_dom.WheelEvent) -> Unit
+pub type WheelEventHandler[T] = (@js_dom.WheelEvent) -> Unit
 
 ///|
-/// TouchEventHandler - Handler for touch events on touch devices
+/// TouchEventHandler[T] - Handler for touch events on touch devices
+/// T is the target element type
 /// The event provides touches, targetTouches, changedTouches arrays
-pub type TouchEventHandler = (@js_dom.TouchEvent) -> Unit
+pub type TouchEventHandler[T] = (@js_dom.TouchEvent) -> Unit
 
 ///|
-/// PointerEventHandler - Handler for pointer events (unified mouse/touch/pen)
+/// PointerEventHandler[T] - Handler for pointer events (unified mouse/touch/pen)
+/// T is the target element type
 /// The event provides pointerId, pointerType, pressure, etc.
-pub type PointerEventHandler = (@js_dom.PointerEvent) -> Unit
+pub type PointerEventHandler[T] = (@js_dom.PointerEvent) -> Unit
 
 ///|
-/// AnimationEventHandler - Handler for CSS animation events
+/// AnimationEventHandler[T] - Handler for CSS animation events
+/// T is the target element type
 /// The event provides animationName, elapsedTime, pseudoElement
-pub type AnimationEventHandler = (@js_dom.AnimationEvent) -> Unit
+pub type AnimationEventHandler[T] = (@js_dom.AnimationEvent) -> Unit
 
 ///|
-/// TransitionEventHandler - Handler for CSS transition events
+/// TransitionEventHandler[T] - Handler for CSS transition events
+/// T is the target element type
 /// The event provides propertyName, elapsedTime, pseudoElement
-pub type TransitionEventHandler = (@js_dom.TransitionEvent) -> Unit
+pub type TransitionEventHandler[T] = (@js_dom.TransitionEvent) -> Unit
 
 ///|
-/// ClipboardEventHandler - Handler for clipboard events (copy, cut, paste)
+/// ClipboardEventHandler[T] - Handler for clipboard events (copy, cut, paste)
+/// T is the target element type
 /// The event provides clipboardData
-pub type ClipboardEventHandler = (@js_dom.ClipboardEvent) -> Unit
+pub type ClipboardEventHandler[T] = (@js_dom.ClipboardEvent) -> Unit
 
 ///|
-/// ScrollEventHandler - Handler for scroll events
-pub type ScrollEventHandler = (@js_dom.ScrollEvent) -> Unit
+/// ScrollEventHandler[T] - Handler for scroll events
+/// T is the target element type
+pub type ScrollEventHandler[T] = (@js_dom.ScrollEvent) -> Unit
 
 // =============================================================================
 // Generic Event Handler
 // =============================================================================
 
 ///|
-/// GenericEventHandler - Handler for any DOM event
+/// GenericEventHandler[T] - Handler for any DOM event
+/// T is the target element type
 /// Use when you need to handle an event type not covered above
-pub type GenericEventHandler = (@js_dom.Event) -> Unit
+pub type GenericEventHandler[T] = (@js_dom.Event) -> Unit
+
+// =============================================================================
+// Non-generic aliases for convenience (using Element as target)
+// =============================================================================
+
+///|
+/// Convenience alias: MouseHandler = MouseEventHandler[@js_dom.Element]
+pub type MouseHandler = (@js_dom.MouseEvent) -> Unit
+
+///|
+/// Convenience alias: KeyboardHandler = KeyboardEventHandler[@js_dom.Element]
+pub type KeyboardHandler = (@js_dom.KeyboardEvent) -> Unit
+
+///|
+/// Convenience alias: InputHandler = InputEventHandler[@js_dom.Element]
+pub type InputHandler = (@js_dom.InputEvent) -> Unit
+
+///|
+/// Convenience alias: ChangeHandler = ChangeEventHandler[@js_dom.Element]
+pub type ChangeHandler = (@js_dom.ChangeEvent) -> Unit
+
+///|
+/// Convenience alias: FocusHandler = FocusEventHandler[@js_dom.Element]
+pub type FocusHandler = (@js_dom.FocusEvent) -> Unit
+
+///|
+/// Convenience alias: FormHandler = FormEventHandler[@js_dom.Element]
+pub type FormHandler = (@js_dom.FormEvent) -> Unit

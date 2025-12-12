@@ -98,29 +98,32 @@ pub type HandlerMap
 /// Event names are lowercase DOM standard (click, not onClick) to avoid conversion
 ///
 /// Each handler receives the appropriate typed event:
-/// - click, dblclick, mouseenter, etc. -> MouseEventHandler (@js_dom.MouseEvent)
-/// - keydown, keyup, keypress -> KeyboardEventHandler (@js_dom.KeyboardEvent)
-/// - input -> InputEventHandler (@js_dom.InputEvent)
-/// - change -> ChangeEventHandler (@js_dom.ChangeEvent)
-/// - submit -> FormEventHandler (@js_dom.FormEvent)
-/// - focus, blur -> FocusEventHandler (@js_dom.FocusEvent)
+/// - click, dblclick, mouseenter, etc. -> MouseHandler (@js_dom.MouseEvent)
+/// - keydown, keyup, keypress -> KeyboardHandler (@js_dom.KeyboardEvent)
+/// - input -> InputHandler (@js_dom.InputEvent)
+/// - change -> ChangeHandler (@js_dom.ChangeEvent)
+/// - submit -> FormHandler (@js_dom.FormEvent)
+/// - focus, blur -> FocusHandler (@js_dom.FocusEvent)
+///
+/// For type-safe target element access, use the generic versions:
+/// - MouseEventHandler[HTMLButtonElement], ChangeEventHandler[HTMLInputElement], etc.
 pub extern "js" fn on(
-  click? : MouseEventHandler?,
-  dblclick? : MouseEventHandler?,
-  input? : InputEventHandler?,
-  change? : ChangeEventHandler?,
-  submit? : FormEventHandler?,
-  keydown? : KeyboardEventHandler?,
-  keyup? : KeyboardEventHandler?,
-  keypress? : KeyboardEventHandler?,
-  focus? : FocusEventHandler?,
-  blur? : FocusEventHandler?,
-  mouseenter? : MouseEventHandler?,
-  mouseleave? : MouseEventHandler?,
-  mouseover? : MouseEventHandler?,
-  mouseout? : MouseEventHandler?,
-  mousedown? : MouseEventHandler?,
-  mouseup? : MouseEventHandler?,
+  click? : MouseHandler?,
+  dblclick? : MouseHandler?,
+  input? : InputHandler?,
+  change? : ChangeHandler?,
+  submit? : FormHandler?,
+  keydown? : KeyboardHandler?,
+  keyup? : KeyboardHandler?,
+  keypress? : KeyboardHandler?,
+  focus? : FocusHandler?,
+  blur? : FocusHandler?,
+  mouseenter? : MouseHandler?,
+  mouseleave? : MouseHandler?,
+  mouseover? : MouseHandler?,
+  mouseout? : MouseHandler?,
+  mousedown? : MouseHandler?,
+  mouseup? : MouseHandler?,
 ) -> HandlerMap =
   #|(click, dblclick, input, change, submit, keydown, keyup, keypress, focus, blur, mouseenter, mouseleave, mouseover, mouseout, mousedown, mouseup) => {
   #|  const m = {};
