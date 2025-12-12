@@ -1,0 +1,51 @@
+{
+  "supported-targets": ["js"],
+  "import": [
+    { "path": "mizchi/luna/core", "alias": "luna" },
+    { "path": "mizchi/luna/renderer", "alias": "renderer" },
+    { "path": "mizchi/luna/renderer/shard", "alias": "shard" }
+  ],
+  "link": {
+    "js": {
+      "exports": [
+        "render",
+        "render_with_preloads",
+        "html",
+        "head",
+        "body",
+        "title",
+        "meta",
+        "link",
+        "script",
+        "style",
+        "div",
+        "span",
+        "p",
+        "a",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "ul",
+        "ol",
+        "li",
+        "img",
+        "br",
+        "hr",
+        "main_",
+        "nav",
+        "header_",
+        "footer_",
+        "section",
+        "article",
+        "aside",
+        "text",
+        "fragment",
+        "island"
+      ],
+      "format": "esm"
+    }
+  }
+}
