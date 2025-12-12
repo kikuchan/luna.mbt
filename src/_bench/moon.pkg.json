@@ -9,15 +9,15 @@
     },
     "mizchi/luna/core/signal",
     {
-      "path": "mizchi/luna/server/renderer",
+      "path": "mizchi/luna/renderer",
       "alias": "ssr"
     },
     {
-      "path": "mizchi/luna/browser",
+      "path": "mizchi/luna/platform/dom",
       "alias": "dom"
     },
     {
-      "path": "mizchi/luna/browser/fixable",
+      "path": "mizchi/luna/platform/dom/repair",
       "alias": "fixable"
     },
     {

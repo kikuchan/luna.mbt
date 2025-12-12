@@ -13,8 +13,8 @@
       "alias": "router"
     },
     {
-      "path": "mizchi/luna/browser/dom",
-      "alias": "dom"
+      "path": "mizchi/luna/platform/dom/element",
+      "alias": "element"
     },
     { "path": "mizchi/js/core", "alias": "js" },
     {
@@ -26,7 +26,7 @@
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    { "path": "mizchi/luna/server/renderer", "alias": "renderer" }
+    { "path": "mizchi/luna/renderer", "alias": "renderer" }
   ],
   "link": {
     "js": {

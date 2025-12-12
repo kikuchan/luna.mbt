@@ -16,12 +16,12 @@
     "mizchi/js/web/event",
     "mizchi/js/builtins/global",
     {
-      "path": "mizchi/luna/browser",
+      "path": "mizchi/luna/platform/dom",
       "alias": "dom"
     }
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    "mizchi/luna/server/renderer"
+    "mizchi/luna/renderer"
   ]
 }

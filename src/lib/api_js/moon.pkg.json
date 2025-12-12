@@ -5,7 +5,7 @@
   "import": [
     { "path": "mizchi/luna/core", "alias": "luna" },
     "mizchi/luna/core/signal",
-    { "path": "mizchi/luna/browser", "alias": "dom" },
+    { "path": "mizchi/luna/platform/dom", "alias": "dom" },
     { "path": "mizchi/js/core", "alias": "js" },
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" }
   ],

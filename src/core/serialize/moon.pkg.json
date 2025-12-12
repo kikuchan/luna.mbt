@@ -3,6 +3,6 @@
     "mizchi/luna/core/signal"
   ],
   "test-import": [
-    "mizchi/luna/server/renderer"
+    "mizchi/luna/renderer"
   ]
 }
