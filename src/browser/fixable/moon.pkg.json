@@ -8,7 +8,7 @@
       "alias": "luna"
     },
     "mizchi/luna/core/signal",
-    "mizchi/js/core",
+    { "path": "mizchi/js/core", "alias": "js" },
     {
       "path": "mizchi/js/browser/dom",
       "alias": "js_dom"

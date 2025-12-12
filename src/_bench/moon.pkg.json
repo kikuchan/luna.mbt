@@ -26,7 +26,7 @@
     },
     {
       "path": "mizchi/js/core",
-      "alias": "core"
+      "alias": "js"
     },
     "mizchi/npm_typed/global_jsdom"
   ]

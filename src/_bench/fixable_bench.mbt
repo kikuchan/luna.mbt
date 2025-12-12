@@ -77,8 +77,8 @@ test "fixable_clean_nested" (b : @bench.T) {
 }
 
 ///|
-fn create_fixable_list_node(count : Int) -> @luna.Node[@core.Any] {
-  let items : Array[@luna.Node[@core.Any]] = []
+fn create_fixable_list_node(count : Int) -> @luna.Node[@js.Any] {
+  let items : Array[@luna.Node[@js.Any]] = []
   for i = 0; i < count; i = i + 1 {
     items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
@@ -230,7 +230,7 @@ test "fixable_repair_for_item_count" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_fixable_card(title : String, content : String) -> @luna.Node[@core.Any] {
+fn create_fixable_card(title : String, content : String) -> @luna.Node[@js.Any] {
   @luna.h("div", [("class", @luna.attr_static("card"))], [
     @luna.h("h3", [("class", @luna.attr_static("card-title"))], [
       @luna.vtext(title),
@@ -244,7 +244,7 @@ fn create_fixable_card(title : String, content : String) -> @luna.Node[@core.Any
 ///|
 test "fixable_repair_multiple_cards" (b : @bench.T) {
   @global_jsdom.register()
-  let cards : Array[@luna.Node[@core.Any]] = []
+  let cards : Array[@luna.Node[@js.Any]] = []
   for i = 0; i < 5; i = i + 1 {
     cards.push(
       create_fixable_card("Card " + i.to_string(), "Content " + i.to_string()),

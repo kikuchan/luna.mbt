@@ -1,42 +1,42 @@
 ///| Node types - DOM-independent interface for signals/dom
 
 // =============================================================================
-// Browser-specific VNode type aliases (Event type = @core.Any)
+// Browser-specific VNode type aliases (Event type = @js.Any)
 // =============================================================================
 
 ///|
-/// Browser VNode type (uses @core.Any for event type)
+/// Browser VNode type (uses @js.Any for event type)
 pub struct BrowserVNode {
-  inner : @luna.Node[@core.Any]
+  inner : @luna.Node[@js.Any]
 }
 
 ///|
-/// Browser Attr type (uses @core.Any for event type)
+/// Browser Attr type (uses @js.Any for event type)
 pub struct BrowserAttr {
-  inner : @luna.Attr[@core.Any]
+  inner : @luna.Attr[@js.Any]
 }
 
 ///|
 /// Browser EventHandler type
 pub struct BrowserEventHandler {
-  inner : @luna.EventHandler[@core.Any]
+  inner : @luna.EventHandler[@js.Any]
 }
 
 ///|
 /// Create a browser event handler from a callback
-pub fn browser_event_handler(f : (@core.Any) -> Unit) -> @luna.EventHandler[@core.Any] {
+pub fn browser_event_handler(f : (@js.Any) -> Unit) -> @luna.EventHandler[@js.Any] {
   @luna.handler(f)
 }
 
 ///|
 /// Create a noop browser event handler (for SSR compatibility in browser context)
-pub fn browser_noop_handler() -> @luna.EventHandler[@core.Any] {
+pub fn browser_noop_handler() -> @luna.EventHandler[@js.Any] {
   @luna.handler(fn(_event) { () })
 }
 
 ///|
 /// Create a browser event handler from a simple callback (ignores event)
-pub fn browser_handler_from_callback(f : () -> Unit) -> @luna.EventHandler[@core.Any] {
+pub fn browser_handler_from_callback(f : () -> Unit) -> @luna.EventHandler[@js.Any] {
   @luna.handler(fn(_event) { f() })
 }
 

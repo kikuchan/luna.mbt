@@ -9,7 +9,7 @@
     },
     { "path": "mizchi/luna/server/renderer", "alias": "renderer" },
     "mizchi/luna/server/embed",
-    "mizchi/js/core",
+    { "path": "mizchi/js/core", "alias": "js" },
     {
       "path": "mizchi/npm_typed/hono",
       "alias": "hono"

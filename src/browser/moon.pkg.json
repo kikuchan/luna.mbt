@@ -16,7 +16,7 @@
       "path": "mizchi/luna/browser/dom",
       "alias": "dom"
     },
-    "mizchi/js/core",
+    { "path": "mizchi/js/core", "alias": "js" },
     {
       "path": "mizchi/js/browser/dom",
       "alias": "js_dom"

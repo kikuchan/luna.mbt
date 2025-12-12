@@ -9,8 +9,8 @@
 // =============================================================================
 
 ///|
-fn create_distance_tree(count : Int) -> @luna.Node[@core.Any] {
-  let items : Array[@luna.Node[@core.Any]] = []
+fn create_distance_tree(count : Int) -> @luna.Node[@js.Any] {
+  let items : Array[@luna.Node[@js.Any]] = []
   for i in 0..<count {
     items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
@@ -18,8 +18,8 @@ fn create_distance_tree(count : Int) -> @luna.Node[@core.Any] {
 }
 
 ///|
-fn create_distance_tree_with_attrs(count : Int) -> @luna.Node[@core.Any] {
-  let items : Array[@luna.Node[@core.Any]] = []
+fn create_distance_tree_with_attrs(count : Int) -> @luna.Node[@js.Any] {
+  let items : Array[@luna.Node[@js.Any]] = []
   for i in 0..<count {
     items.push(
       @luna.h(

@@ -7,7 +7,7 @@
 ///|
 /// Helper to set innerHTML on container
 fn set_inner_html(container : @js_dom.Element, html : String) -> Unit {
-  container.as_any()._set("innerHTML", @core.any(html)) |> ignore
+  container.as_any()._set("innerHTML", @js.any(html)) |> ignore
 }
 
 ///|
@@ -21,7 +21,7 @@ fn get_inner_html(container : @js_dom.Element) -> String {
 fn cleanup() -> Unit {
   let doc = @js_dom.document()
   match doc.body() {
-    Some(body) => body.as_any()._set("innerHTML", @core.any("")) |> ignore
+    Some(body) => body.as_any()._set("innerHTML", @js.any("")) |> ignore
     None => ()
   }
 }
@@ -237,7 +237,7 @@ test "hydrate for loop" {
   let items = @signal.signal(["A", "B", "C"])
   let vnode = @luna.vfor(fn() {
     let arr = items.get()
-    let result : Array[@luna.Node[@core.Any]] = []
+    let result : Array[@luna.Node[@js.Any]] = []
     for i = 0; i < arr.length(); i = i + 1 {
       result.push(@luna.h("li", [], [@luna.vtext(arr[i])]))
     }
@@ -369,7 +369,7 @@ test "hydrate complex page structure" {
     @luna.h("ul", [], [
       @luna.vfor(fn() {
         let arr = items.get()
-        let result : Array[@luna.Node[@core.Any]] = []
+        let result : Array[@luna.Node[@js.Any]] = []
         for i = 0; i < arr.length(); i = i + 1 {
           result.push(@luna.h("li", [], [@luna.vtext(arr[i])]))
         }
@@ -419,7 +419,7 @@ test "hydrate component" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  fn greeting(name : String) -> @luna.Node[@core.Any] {
+  fn greeting(name : String) -> @luna.Node[@js.Any] {
     @luna.h("div", [], [@luna.vtext("Hello, " + name + "!")])
   }
 
@@ -839,7 +839,7 @@ test "render_vnode_to_dom with For list" {
   let items = @signal.signal(["X", "Y"])
   let vnode = @luna.vfor(fn() {
     let arr = items.get()
-    let result : Array[@luna.Node[@core.Any]] = []
+    let result : Array[@luna.Node[@js.Any]] = []
     for i = 0; i < arr.length(); i = i + 1 {
       result.push(@luna.vtext(arr[i]))
     }

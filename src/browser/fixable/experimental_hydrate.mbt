@@ -295,7 +295,7 @@ fn log_repair_detailed(
     None => {
       let global = @global.global_this()
       let console = global["console"]
-      console._call("log", [@core.any(full_msg)]) |> ignore
+      console._call("log", [@js.any(full_msg)]) |> ignore
     }
   }
 }
@@ -320,7 +320,7 @@ let max_hydration_nodes : Int = 50
 
 ///|
 /// Count total nodes in a VNode tree
-fn count_vnode_nodes(node : @luna.Node[@core.Any]) -> Int {
+fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
   match node {
     @luna.Text(_) => 1
     @luna.DynamicText(_) => 1
@@ -373,7 +373,7 @@ fn count_dom_nodes(node : @js_dom.Node) -> Int {
 /// Check if heuristics suggest fallback to full render
 fn should_fallback_to_full_render(
   container : @js_dom.Element,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
 ) -> Bool {
   let vnode_count = count_vnode_nodes(node)
 
@@ -405,7 +405,7 @@ fn should_fallback_to_full_render(
 ///|
 /// Helper to get text content with default
 fn get_text_content(node : @js_dom.Node) -> String {
-  let data : @core.Any = node.as_any()._get("data")
+  let data : @js.Any = node.as_any()._get("data")
   data.cast()
 }
 
@@ -503,14 +503,14 @@ fn extract_event_name(name : String) -> String {
 
 ///|
 /// Apply VAttr to DOM element
-fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@core.Any]) -> Unit {
+fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any]) -> Unit {
   match value {
     @luna.VStatic(s) =>
       if s != "__remove__" {
         if name == "class" || name == "className" {
           elem.setClassName(s)
         } else if name == "value" {
-          elem.as_any()._set("value", @core.any(s)) |> ignore
+          elem.as_any()._set("value", @js.any(s)) |> ignore
         } else if s == "" {
           elem.setAttribute(name, "")
         } else {
@@ -525,7 +525,7 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@core.A
         } else if name == "class" || name == "className" {
           elem.setClassName(new_value)
         } else if name == "value" {
-          elem.as_any()._set("value", @core.any(new_value)) |> ignore
+          elem.as_any()._set("value", @js.any(new_value)) |> ignore
         } else {
           elem.setAttribute(name, new_value)
         }
@@ -535,8 +535,8 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@core.A
       let event_name = extract_event_name(name)
       let callback = handler.get_callback()
       // Wrap callback to ignore event argument
-      let wrapper : (@core.Any) -> Unit = fn(event) { callback(event) }
-      elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
+      let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
+      elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
     }
     @luna.VAction(_) =>
       // VAction without dispatcher - skip in experimental hydrate
@@ -556,7 +556,7 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@core.A
 /// - Repair text content differences
 pub fn experimental_hydrate(
   container : @js_dom.Element,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
   logger? : StringBuilder,
 ) -> ExperimentalHydrationResult {
   // Build hk_cache once for O(1) lookups
@@ -601,7 +601,7 @@ pub enum SmartHydrateResult {
 /// Returns SmartHydrateResult indicating the strategy used.
 pub fn smart_hydrate(
   container : @js_dom.Element,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
   logger? : StringBuilder,
 ) -> SmartHydrateResult {
   // Check heuristics first
@@ -624,7 +624,7 @@ pub fn smart_hydrate(
       None => {
         let global = @global.global_this()
         let console = global["console"]
-        console._call("log", [@core.any(log_msg)]) |> ignore
+        console._call("log", [@js.any(log_msg)]) |> ignore
       }
     }
 
@@ -645,7 +645,7 @@ pub fn smart_hydrate(
 /// Returns a detailed report including repair types, node paths, and expected/actual values.
 pub fn experimental_hydrate_with_report(
   container : @js_dom.Element,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
   logger? : StringBuilder,
 ) -> ExperimentalHydrationReport {
   let hk_cache = build_hk_cache(container)
@@ -673,7 +673,7 @@ pub fn experimental_hydrate_with_report(
 /// Internal: Hydrate a single node with repair capability
 fn experimental_hydrate_node(
   parent : @js_dom.Node,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
   ctx : ExperimentalHydrationContext,
 ) -> Unit {
   match node {
@@ -833,7 +833,7 @@ fn experimental_hydrate_dynamic_text(
 /// Hydrate an element, repairing structure if needed
 fn experimental_hydrate_element(
   parent : @js_dom.Node,
-  elem : @luna.VElement[@core.Any],
+  elem : @luna.VElement[@js.Any],
   ctx : ExperimentalHydrationContext,
 ) -> Unit {
   ctx.path_stack.push(elem.tag)
@@ -926,7 +926,7 @@ fn experimental_hydrate_element(
 
 ///|
 /// Create a DOM element from VElement
-fn create_element_from_velem(elem : @luna.VElement[@core.Any], hk_id : Int) -> @js_dom.Element {
+fn create_element_from_velem(elem : @luna.VElement[@js.Any], hk_id : Int) -> @js_dom.Element {
   let doc = @js_dom.document()
   let dom_elem = doc.createElement(elem.tag)
 
@@ -954,7 +954,7 @@ fn create_element_from_velem(elem : @luna.VElement[@core.Any], hk_id : Int) -> @
 /// Repair element attributes to match expected VDOM
 fn repair_attributes(
   elem : @js_dom.Element,
-  attrs : Array[(String, @luna.Attr[@core.Any])],
+  attrs : Array[(String, @luna.Attr[@js.Any])],
   ctx : ExperimentalHydrationContext,
 ) -> Unit {
   for i = 0; i < attrs.length(); i = i + 1 {
@@ -982,7 +982,7 @@ fn repair_attributes(
           if name == "class" || name == "className" {
             elem.setClassName(expected)
           } else if name == "value" {
-            elem.as_any()._set("value", @core.any(expected)) |> ignore
+            elem.as_any()._set("value", @js.any(expected)) |> ignore
           } else {
             elem.setAttribute(name, expected)
           }
@@ -997,7 +997,7 @@ fn repair_attributes(
           } else if name == "class" || name == "className" {
             elem.setClassName(new_value)
           } else if name == "value" {
-            elem.as_any()._set("value", @core.any(new_value)) |> ignore
+            elem.as_any()._set("value", @js.any(new_value)) |> ignore
           } else {
             elem.setAttribute(name, new_value)
           }
@@ -1008,8 +1008,8 @@ fn repair_attributes(
         let event_name = extract_event_name(name)
         let callback = handler.get_callback()
         // Wrap callback to ignore event argument
-        let wrapper : (@core.Any) -> Unit = fn(event) { callback(event) }
-        elem.as_event_target().addEventListener(event_name, @core.any(wrapper).cast())
+        let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
+        elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
       }
       @luna.VAction(_) =>
         // VAction without dispatcher - skip in repair
@@ -1024,7 +1024,7 @@ fn experimental_hydrate_show(
   parent : @js_dom.Node,
   id : Int,
   cond : () -> Bool,
-  child_fn : () -> @luna.Node[@core.Any],
+  child_fn : () -> @luna.Node[@js.Any],
   ctx : ExperimentalHydrationContext,
 ) -> Unit {
   ctx.path_stack.push("#show:" + id.to_string())
@@ -1131,7 +1131,7 @@ fn experimental_hydrate_show(
 fn experimental_hydrate_for(
   parent : @js_dom.Node,
   id : Int,
-  render_fn : () -> Array[@luna.Node[@core.Any]],
+  render_fn : () -> Array[@luna.Node[@js.Any]],
   ctx : ExperimentalHydrationContext,
 ) -> Unit {
   ctx.path_stack.push("#for:" + id.to_string())
@@ -1294,7 +1294,7 @@ pub fn hydration_failed(message : String) -> ExperimentalHydrationResult {
 /// Convenience function: Try regular hydration first, fall back to experimental
 pub fn hydrate_with_fallback(
   container : @js_dom.Element,
-  node : @luna.Node[@core.Any],
+  node : @luna.Node[@js.Any],
   logger? : StringBuilder,
 ) -> @dom.HydrationResult {
   // First try regular hydration
@@ -1324,11 +1324,11 @@ pub fn hydrate_with_fallback(
         let global = @global.global_this()
         let console = global["console"]
         console._call("warn", [
-          @core.any("[Hydration] Regular hydration failed: " + msg),
+          @js.any("[Hydration] Regular hydration failed: " + msg),
         ])
         |> ignore
         console._call("warn", [
-          @core.any("[Hydration] Falling back to experimental hydration"),
+          @js.any("[Hydration] Falling back to experimental hydration"),
         ])
         |> ignore
       }

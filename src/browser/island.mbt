@@ -57,7 +57,7 @@ extern "js" fn parse_int_from_state(json_str : String, key : String) -> Int =
   #| (json, key) => { try { return JSON.parse(json)[key] ?? 0; } catch { return 0; } }
 
 ///|
-extern "js" fn stringify_state(state : @core.Any) -> String =
+extern "js" fn stringify_state(state : @js.Any) -> String =
   #| (state) => JSON.stringify(state)
 
 ///|
@@ -123,7 +123,7 @@ extern "js" fn update_element_text(
 ///
 /// Usage in component:
 /// ```moonbit
-/// pub fn hydrate(element : @core.Any, state : @core.Any, id : String) -> Unit {
+/// pub fn hydrate(element : @js.Any, state : @js.Any, id : String) -> Unit {
 ///   @dom.hydrate_island(element, state, id, fn(ctx) {
 ///     let count = ctx.signal_int("count", 0)
 ///     ctx.bind_actions(fn(action) {
@@ -138,8 +138,8 @@ extern "js" fn update_element_text(
 /// }
 /// ```
 pub fn hydrate_island(
-  element : @core.Any,
-  state : @core.Any,
+  element : @js.Any,
+  state : @js.Any,
   id : String,
   setup : (IslandContext) -> Unit
 ) -> Unit {

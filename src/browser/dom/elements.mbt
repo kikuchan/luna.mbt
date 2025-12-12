@@ -321,7 +321,7 @@ pub fn attr_dynamic(getter : () -> String) -> AttrValue {
 
 ///|
 /// Create an event handler attribute
-pub fn attr_handler(handler : (@core.Any) -> Unit) -> AttrValue {
+pub fn attr_handler(handler : (@js.Any) -> Unit) -> AttrValue {
   Handler(handler)
 }
 

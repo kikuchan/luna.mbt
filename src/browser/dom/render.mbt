@@ -26,7 +26,7 @@ pub fn[T : Show] text_from_signal(sig : @signal.Signal[T]) -> DomNode {
 pub(all) enum AttrValue {
   Static(String)
   Dynamic(() -> String)
-  Handler((@core.Any) -> Unit)
+  Handler((@js.Any) -> Unit)
 }
 
 ///|
@@ -93,9 +93,9 @@ fn apply_static_attr(
     elem.setClassName(value)
   } else if name == "value" {
     // Special handling for input value
-    elem.as_any()._set("value", @core.any(value)) |> ignore
+    elem.as_any()._set("value", @js.any(value)) |> ignore
   } else if name == "checked" {
-    elem.as_any()._set("checked", @core.any(value == "true")) |> ignore
+    elem.as_any()._set("checked", @js.any(value == "true")) |> ignore
   } else if name == "disabled" {
     if value == "true" {
       elem.setAttribute("disabled", "")
@@ -113,7 +113,7 @@ fn apply_static_attr(
 extern "js" fn apply_event_handler(
   elem : @js_dom.Element,
   name : String,
-  handler : (@core.Any) -> Unit,
+  handler : (@js.Any) -> Unit,
 ) -> Unit =
   #|(elem, name, handler) => elem.addEventListener(name, handler)
 

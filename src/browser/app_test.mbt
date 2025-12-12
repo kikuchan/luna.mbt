@@ -86,7 +86,7 @@ fn create_todo_app() -> (
               ("value", @dom.attr_dynamic(fn() { input_text.get() })),
               (
                 "onInput",
-                @dom.attr_handler(fn(e : @core.Any) {
+                @dom.attr_handler(fn(e : @js.Any) {
                   let target : @js_dom.HTMLInputElement = e
                     ._call("target", [])
                     .cast()
@@ -95,7 +95,7 @@ fn create_todo_app() -> (
               ),
               (
                 "onKeydown",
-                @dom.attr_handler(fn(e : @core.Any) {
+                @dom.attr_handler(fn(e : @js.Any) {
                   let key : String = e._get("key").cast()
                   if key == "Enter" {
                     add_todo()

@@ -4,7 +4,7 @@
 ///| to the reactive counter component using the @dom.hydrate runtime.
 
 // FFI for JSON parsing
-extern "js" fn js_getCount(state : @core.Any) -> Int =
+extern "js" fn js_getCount(state : @js.Any) -> Int =
   #|(s) => (s && typeof s.count === 'number') ? s.count : 0
 
 // FFI to set data-hydrated attribute
@@ -15,7 +15,7 @@ extern "js" fn js_setAttribute(el : @js_dom.Element, name : String, value : Stri
 /// Hydrate a counter element
 /// Called by kg-loader with: hydrate(element, state)
 /// Uses @dom.hydrate to connect the VNode to existing DOM
-pub fn hydrate(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate(el : @js_dom.Element, state : @js.Any) -> Unit {
   // Parse initial count from state
   let initial_count = js_getCount(state)
 
@@ -26,8 +26,8 @@ pub fn hydrate(el : @js_dom.Element, state : @core.Any) -> Unit {
   let on_inc = @dom.browser_handler_from_callback(fn() { count_sig.update(fn(c) { c + 1 }) })
   let on_dec = @dom.browser_handler_from_callback(fn() { count_sig.update(fn(c) { c - 1 }) })
 
-  // Build counter VNode for browser (with @core.Any event type)
-  let vnode : @luna.Node[@core.Any] = @luna.h(
+  // Build counter VNode for browser (with @js.Any event type)
+  let vnode : @luna.Node[@js.Any] = @luna.h(
     "div",
     [
       ("class", @luna.attr_static("counter")),

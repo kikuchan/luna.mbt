@@ -136,7 +136,7 @@ pub fn ClientRouter::current_match_signal(
 // Link Attributes
 // =============================================================================
 
-extern "js" fn prevent_default_event(e : @core.Any) -> Unit =
+extern "js" fn prevent_default_event(e : @js.Any) -> Unit =
   #| (e) => e.preventDefault()
 
 ///| クライアントナビゲーション用リンク属性を生成

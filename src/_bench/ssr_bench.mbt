@@ -72,8 +72,8 @@ test "ssr_nested_5_levels" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_list(count : Int) -> @luna.Node[@core.Any] {
-  let items : Array[@luna.Node[@core.Any]] = []
+fn create_list(count : Int) -> @luna.Node[@js.Any] {
+  let items : Array[@luna.Node[@js.Any]] = []
   for i = 0; i < count; i = i + 1 {
     items.push(@luna.h("li", [], [@luna.vtext("Item " + i.to_string())]))
   }
@@ -107,7 +107,7 @@ test "ssr_list_1000_items" (b : @bench.T) {
 // =============================================================================
 
 ///|
-fn create_card(title : String, content : String) -> @luna.Node[@core.Any] {
+fn create_card(title : String, content : String) -> @luna.Node[@js.Any] {
   @luna.h("div", [("class", @luna.attr_static("card"))], [
     @luna.h("h3", [("class", @luna.attr_static("card-title"))], [
       @luna.vtext(title),
@@ -122,8 +122,8 @@ fn create_card(title : String, content : String) -> @luna.Node[@core.Any] {
 }
 
 ///|
-fn create_page(card_count : Int) -> @luna.Node[@core.Any] {
-  let cards : Array[@luna.Node[@core.Any]] = []
+fn create_page(card_count : Int) -> @luna.Node[@js.Any] {
+  let cards : Array[@luna.Node[@js.Any]] = []
   for i = 0; i < card_count; i = i + 1 {
     cards.push(
       create_card("Card " + i.to_string(), "Content for card " + i.to_string()),

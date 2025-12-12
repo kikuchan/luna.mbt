@@ -3,7 +3,7 @@
 ///|
 /// Helper to set innerHTML on container
 fn exp_set_inner_html(container : @js_dom.Element, html : String) -> Unit {
-  container.as_any()._set("innerHTML", @core.any(html)) |> ignore
+  container.as_any()._set("innerHTML", @js.any(html)) |> ignore
 }
 
 ///|
@@ -17,7 +17,7 @@ fn exp_get_inner_html(container : @js_dom.Element) -> String {
 fn exp_cleanup() -> Unit {
   let doc = @js_dom.document()
   match doc.body() {
-    Some(body) => body.as_any()._set("innerHTML", @core.any("")) |> ignore
+    Some(body) => body.as_any()._set("innerHTML", @js.any("")) |> ignore
     None => ()
   }
 }
@@ -394,7 +394,7 @@ test "exp: repair missing for markers" {
   let items = @signal.signal(["A", "B", "C"])
   let vnode = @luna.vfor(fn() {
     let arr = items.get()
-    let result : Array[@luna.Node[@core.Any]] = []
+    let result : Array[@luna.Node[@js.Any]] = []
     for i = 0; i < arr.length(); i = i + 1 {
       result.push(@luna.h("li", [], [@luna.vtext(arr[i])]))
     }
@@ -520,7 +520,7 @@ test "exp: repair component render" {
   defer exp_cleanup()
   let container = exp_create_container()
   let logger = StringBuilder::new()
-  fn counter_component(initial : Int) -> @luna.Node[@core.Any] {
+  fn counter_component(initial : Int) -> @luna.Node[@js.Any] {
     let count = @signal.signal(initial)
     let _ = count // suppress unused warning
     @luna.h("div", [], [

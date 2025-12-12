@@ -24,7 +24,7 @@
 /// Console logging helper
 fn console_log(msg : String) -> Unit {
   let global = @global.global_this()
-  global["console"]._call("log", [@core.any(msg)]) |> ignore
+  global["console"]._call("log", [@js.any(msg)]) |> ignore
 }
 
 // =============================================================================
@@ -72,7 +72,7 @@ fn input_example() -> @dom.DomNode {
       placeholder="Type something...",
       on=@dom.on(
         input=Some(fn(e) {
-          let target : @core.Any = e.target() |> @core.identity
+          let target : @js.Any = e.target() |> @js.identity
           let value : String = target._get("value").cast()
           text.set(value)
         }),
@@ -183,7 +183,7 @@ fn style_example() -> @dom.DomNode {
         attrs=[("min", @dom.Attr::AttrInt(0)), ("max", @dom.Attr::AttrInt(360))],
         on=@dom.on(
           input=Some(fn(e) {
-            let target : @core.Any = e.target() |> @core.identity
+            let target : @js.Any = e.target() |> @js.identity
             let value : String = target._get("value").cast()
             match @global.parseInt(value) {
               Some(n) => hue.set(n)
@@ -201,7 +201,7 @@ fn style_example() -> @dom.DomNode {
         attrs=[("min", @dom.Attr::AttrInt(50)), ("max", @dom.Attr::AttrInt(200))],
         on=@dom.on(
           input=Some(fn(e) {
-            let target : @core.Any = e.target() |> @core.identity
+            let target : @js.Any = e.target() |> @js.identity
             let value : String = target._get("value").cast()
             match @global.parseInt(value) {
               Some(n) => size.set(n)
@@ -297,7 +297,7 @@ fn todo_example() -> @dom.DomNode {
           placeholder="Add a todo...",
           on=@dom.on(
             input=Some(fn(e) {
-              let target : @core.Any = e.target() |> @core.identity
+              let target : @js.Any = e.target() |> @js.identity
               input_text.set(target._get("value").cast())
             }),
           ),

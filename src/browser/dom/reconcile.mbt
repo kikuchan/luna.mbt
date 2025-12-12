@@ -7,13 +7,13 @@
 ///|
 /// Check if two values are the same reference (physical equality)
 /// Uses JavaScript's === operator for reference comparison
-extern "js" fn ref_equal_any(a : @core.Any, b : @core.Any) -> Bool =
+extern "js" fn ref_equal_any(a : @js.Any, b : @js.Any) -> Bool =
   #| (a, b) => a === b
 
 ///|
 /// Check if two values are the same reference (type-safe wrapper)
 pub fn[T] ref_equal(a : T, b : T) -> Bool {
-  ref_equal_any(@core.any(a), @core.any(b))
+  ref_equal_any(@js.any(a), @js.any(b))
 }
 
 ///|

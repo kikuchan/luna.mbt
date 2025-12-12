@@ -26,7 +26,7 @@ pub async fn create_app() -> App {
 }
 
 ///|
-extern "js" fn ffi_new_hono_async() -> @core.Promise[@core.Any] =
+extern "js" fn ffi_new_hono_async() -> @js.Promise[@js.Any] =
   #| () => import("hono").then(m => new m.Hono())
 
 ///|
@@ -35,7 +35,7 @@ extern "js" fn ffi_new_hono_async() -> @core.Promise[@core.Any] =
 pub fn create_app_then(callback : (App) -> Unit) -> Unit {
   let _ = ffi_new_hono_async().then(fn(app) {
     callback(app.cast())
-    @core.Promise::resolve(@core.any(()))
+    @js.Promise::resolve(@js.any(()))
   })
 }
 
@@ -107,7 +107,7 @@ pub fn[E] page(
 pub fn api(
   app : App,
   path : String,
-  handler : (Ctx) -> @core.Any,
+  handler : (Ctx) -> @js.Any,
 ) -> App {
   app.get(path, fn(c) { c.json(handler(c)) })
 }
@@ -117,7 +117,7 @@ pub fn api(
 pub fn api_post(
   app : App,
   path : String,
-  handler : (Ctx) -> @core.Any,
+  handler : (Ctx) -> @js.Any,
 ) -> App {
   app.post(path, fn(c) { c.json(handler(c)) })
 }
@@ -129,7 +129,7 @@ pub fn serve(app : App, port : Int) -> Unit {
 }
 
 ///|
-extern "js" fn ffi_serve(app : @core.Any, port : Int) -> Unit =
+extern "js" fn ffi_serve(app : @js.Any, port : Int) -> Unit =
   #|(app, port) => {
   #|  const { serve } = require('@hono/node-server');
   #|  serve({ fetch: app.fetch, port });
@@ -401,7 +401,7 @@ extern "js" fn ffi_read_file_sync(path : String) -> String? =
   #| (path) => { try { return require('fs').readFileSync(path, 'utf-8'); } catch { return null; } }
 
 ///|
-extern "js" fn ffi_get_req_path(c : @core.Any) -> String =
+extern "js" fn ffi_get_req_path(c : @js.Any) -> String =
   #| (c) => new URL(c.req.url).pathname
 
 ///|

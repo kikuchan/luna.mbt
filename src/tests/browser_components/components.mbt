@@ -6,19 +6,19 @@
 /// Each hydrate_* function is exported and called by kg-loader
 
 // FFI for JSON parsing
-extern "js" fn js_getInt(state : @core.Any, key : String) -> Int =
+extern "js" fn js_getInt(state : @js.Any, key : String) -> Int =
   #|(s, k) => (s && typeof s[k] === 'number') ? s[k] : 0
 
 ///|
-extern "js" fn js_getString(state : @core.Any, key : String) -> String =
+extern "js" fn js_getString(state : @js.Any, key : String) -> String =
   #|(s, k) => (s && typeof s[k] === 'string') ? s[k] : ''
 
 ///|
-extern "js" fn js_getBool(state : @core.Any, key : String) -> Bool =
+extern "js" fn js_getBool(state : @js.Any, key : String) -> Bool =
   #|(s, k) => (s && typeof s[k] === 'boolean') ? s[k] : false
 
 ///|
-extern "js" fn js_getArray(state : @core.Any, key : String) -> Array[String] =
+extern "js" fn js_getArray(state : @js.Any, key : String) -> Array[String] =
   #|(s, k) => (s && Array.isArray(s[k])) ? s[k] : []
 
 // FFI to set data-hydrated attribute
@@ -34,7 +34,7 @@ extern "js" fn js_setAttribute(
 ///|
 /// Signal/Effect basic test component
 /// Tests: Signal get/set, Effect auto-tracking, reactive text updates
-pub fn hydrate_signal_effect(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_signal_effect(el : @js_dom.Element, state : @js.Any) -> Unit {
   let initial = js_getInt(state, "count")
   let count_sig = @signal.signal(initial)
   let double_sig = @signal.signal(initial * 2)
@@ -101,7 +101,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @core.Any) -> Unit {
 ///|
 /// Dynamic attributes test component
 /// Tests: Dynamic class, dynamic style, attribute updates
-pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @js.Any) -> Unit {
   let active = @signal.signal(js_getBool(state, "active"))
   let color = @signal.signal(js_getString(state, "color"))
   let vnode = @luna.h("div", [], [
@@ -187,7 +187,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @core.Any) -> Unit {
 ///|
 /// Show/hide toggle test component
 /// Tests: Conditional rendering with vshow()
-pub fn hydrate_show_toggle(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_show_toggle(el : @js_dom.Element, state : @js.Any) -> Unit {
   let visible = @signal.signal(js_getBool(state, "visible"))
   let vnode = @luna.h("div", [], [
     @luna.h(
@@ -225,7 +225,7 @@ pub fn hydrate_show_toggle(el : @js_dom.Element, state : @core.Any) -> Unit {
 ///|
 /// For each list test component
 /// Tests: List rendering with vfor()
-pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_for_each(el : @js_dom.Element, state : @js.Any) -> Unit {
   let items = @signal.signal(js_getArray(state, "items"))
   // Store the pending input value separately since we need to capture it at add time
   let pending_input : Ref[String] = { val: "" }
@@ -273,7 +273,7 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
     @luna.h("ul", [("data-list", @luna.attr_static("true"))], [
       @luna.vfor(fn() {
         let current_items = items.get()
-        let result : Array[@luna.Node[@core.Any]] = []
+        let result : Array[@luna.Node[@js.Any]] = []
         for i = 0; i < current_items.length(); i = i + 1 {
           let item = current_items[i]
           let index = i
@@ -323,7 +323,7 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @core.Any) -> Unit {
 ///|
 /// Multiple event types test component
 /// Tests: click, dblclick handlers
-pub fn hydrate_events(el : @js_dom.Element, _state : @core.Any) -> Unit {
+pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
   let click_count = @signal.signal(0)
   let dblclick_count = @signal.signal(0)
   let hover_state = @signal.signal("none")
@@ -395,7 +395,7 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @core.Any) -> Unit {
 ///|
 /// Sortable list test component
 /// Tests: List reordering without destroying DOM instances
-pub fn hydrate_sortable_list(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_sortable_list(el : @js_dom.Element, state : @js.Any) -> Unit {
   // Item struct with id and label
   struct Item {
     id : Int
@@ -488,7 +488,7 @@ pub fn hydrate_sortable_list(el : @js_dom.Element, state : @core.Any) -> Unit {
 ///|
 /// Input binding test component
 /// Tests: Form interaction via signals
-pub fn hydrate_input_binding(el : @js_dom.Element, state : @core.Any) -> Unit {
+pub fn hydrate_input_binding(el : @js_dom.Element, state : @js.Any) -> Unit {
   let text_value = @signal.signal(js_getString(state, "text"))
   let submitted = @signal.signal("")
   let vnode = @luna.h("div", [], [

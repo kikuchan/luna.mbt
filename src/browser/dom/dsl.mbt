@@ -42,7 +42,7 @@
 
 ///|
 /// Type alias for event handler
-pub type Handler = (@core.Any) -> Unit
+pub type Handler = (@js.Any) -> Unit
 
 // =============================================================================
 // Attr - Attribute value for attrs array
@@ -62,7 +62,7 @@ pub(all) enum Attr {
 /// Convert Double to String using JS toString
 /// Note: We avoid MoonBit's Double.to_string() which uses ryu algorithm (~31KB overhead)
 fn double_to_string(d : Double) -> String {
-  let any : @core.Any = d |> @core.identity
+  let any : @js.Any = d |> @js.identity
   any._call("toString", []).cast()
 }
 
