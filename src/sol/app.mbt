@@ -1,6 +1,9 @@
 ///| Sol - SSR-first Web Framework for MoonBit
+
 ///|
+
 ///| Built on top of Hono, providing SSR with Luna VNodes.
+
 ///| Inspired by Next.js, Solid Start, and Qwik City.
 
 ///|
@@ -37,6 +40,7 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
     callback(app.cast())
     @js.Promise::resolve(@js.any(()))
   })
+
 }
 
 ///|
@@ -56,7 +60,6 @@ pub fn[E] render_page(
   } else {
     @renderer.render_to_string(node)
   }
-
   "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
   title_str +
   "</title>" +
@@ -90,7 +93,9 @@ pub fn[E] page(
     if enable_hydration {
       // Hydration enabled: render with hydration markers and include loader script
       let loader = loader_url.unwrap_or(default_loader_url)
-      let loader_script = "<script type=\"module\" src=\"" + loader + "\"></script>"
+      let loader_script = "<script type=\"module\" src=\"" +
+        loader +
+        "\"></script>"
       let full_head = head.unwrap_or("") + loader_script
       let html = render_page(node, title?, head=full_head, hydration=true)
       c.html(html)
@@ -104,21 +109,13 @@ pub fn[E] page(
 
 ///|
 /// Register an API route that returns JSON
-pub fn api(
-  app : App,
-  path : String,
-  handler : (Ctx) -> @js.Any,
-) -> App {
+pub fn api(app : App, path : String, handler : (Ctx) -> @js.Any) -> App {
   app.get(path, fn(c) { c.json(handler(c)) })
 }
 
 ///|
 /// Register a POST API route
-pub fn api_post(
-  app : App,
-  path : String,
-  handler : (Ctx) -> @js.Any,
-) -> App {
+pub fn api_post(app : App, path : String, handler : (Ctx) -> @js.Any) -> App {
   app.post(path, fn(c) { c.json(handler(c)) })
 }
 
@@ -145,6 +142,8 @@ extern "js" fn ffi_serve(app : @js.Any, port : Int) -> Unit =
 pub let default_loader_url : String = "/ln-loader-v1.js"
 
 // Re-export shard types for convenience
+
+///|
 pub using @shard {type TriggerType, type StateConfig, type ShardConfig}
 
 ///|
@@ -166,7 +165,10 @@ pub struct IslandConfig[E] {
 
 ///|
 /// Create a new island configuration
-pub fn[E] IslandConfig::new(id : String, script_url : String) -> IslandConfig[E] {
+pub fn[E] IslandConfig::new(
+  id : String,
+  script_url : String,
+) -> IslandConfig[E] {
   {
     id,
     script_url,
@@ -181,14 +183,17 @@ pub fn[E] IslandConfig::new(id : String, script_url : String) -> IslandConfig[E]
 /// Builder: set trigger type
 pub fn[E] IslandConfig::with_trigger(
   self : IslandConfig[E],
-  trigger : @shard.TriggerType
+  trigger : @shard.TriggerType,
 ) -> IslandConfig[E] {
-  { ..self, trigger }
+  { ..self, trigger, }
 }
 
 ///|
 /// Builder: set inline state from JSON
-pub fn[E] IslandConfig::with_state(self : IslandConfig[E], json : String) -> IslandConfig[E] {
+pub fn[E] IslandConfig::with_state(
+  self : IslandConfig[E],
+  json : String,
+) -> IslandConfig[E] {
   { ..self, state: @shard.StateConfig::Inline(json) }
 }
 
@@ -196,14 +201,17 @@ pub fn[E] IslandConfig::with_state(self : IslandConfig[E], json : String) -> Isl
 /// Builder: set state from script reference
 pub fn[E] IslandConfig::with_state_ref(
   self : IslandConfig[E],
-  script_id : String
+  script_id : String,
 ) -> IslandConfig[E] {
   { ..self, state: @shard.StateConfig::ScriptRef(script_id) }
 }
 
 ///|
 /// Builder: set state from URL
-pub fn[E] IslandConfig::with_state_url(self : IslandConfig[E], url : String) -> IslandConfig[E] {
+pub fn[E] IslandConfig::with_state_url(
+  self : IslandConfig[E],
+  url : String,
+) -> IslandConfig[E] {
   { ..self, state: @shard.StateConfig::Url(url) }
 }
 
@@ -211,14 +219,17 @@ pub fn[E] IslandConfig::with_state_url(self : IslandConfig[E], url : String) -> 
 /// Builder: set SSR content from VNode
 pub fn[E] IslandConfig::with_content(
   self : IslandConfig[E],
-  node : @luna.Node[E]
+  node : @luna.Node[E],
 ) -> IslandConfig[E] {
   { ..self, content: Some(node) }
 }
 
 ///|
 /// Builder: set SSR content from raw HTML string
-pub fn[E] IslandConfig::with_ssr_html(self : IslandConfig[E], html : String) -> IslandConfig[E] {
+pub fn[E] IslandConfig::with_ssr_html(
+  self : IslandConfig[E],
+  html : String,
+) -> IslandConfig[E] {
   { ..self, ssr_html: Some(html) }
 }
 
@@ -247,7 +258,6 @@ pub fn[E] render_island(config : IslandConfig[E]) -> String {
     @shard.StateConfig::ScriptRef(id) => shard_config.with_state_ref(id)
     @shard.StateConfig::Url(url) => shard_config.with_state_url(url)
   }
-
   @shard.generate_shard(final_config).html
 }
 
@@ -258,25 +268,24 @@ pub fn render_island_page(
   islands : Array[String],
   title? : String,
   head? : String,
-  loader_url? : String
+  loader_url? : String,
 ) -> String {
   let title_str = title.unwrap_or("App")
   let head_str = head.unwrap_or("")
   let loader = loader_url.unwrap_or(default_loader_url)
-
   let sb = StringBuilder::new(size_hint=4096)
-  sb.write_string("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+  sb.write_string(
+    "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>",
+  )
   sb.write_string(title_str)
   sb.write_string("</title>")
   sb.write_string(head_str)
   sb.write_string("<script type=\"module\" src=\"")
   sb.write_string(loader)
   sb.write_string("\"></script></head><body>")
-
   for island_html in islands {
     sb.write_string(island_html)
   }
-
   sb.write_string("</body></html>")
   sb.to_string()
 }
@@ -289,7 +298,7 @@ pub fn[E] island_page(
   render_fn : (Ctx) -> Array[IslandConfig[E]],
   title? : String,
   head? : String,
-  loader_url? : String
+  loader_url? : String,
 ) -> App {
   app.get(path, fn(c) {
     let islands = render_fn(c)
@@ -303,7 +312,7 @@ pub fn[E] island_page(
 /// Render island with separate state script (for large state)
 pub fn[E] render_island_with_state_script(
   config : IslandConfig[E],
-  state_json : String
+  state_json : String,
 ) -> String {
   // Priority: ssr_html > content (VNode) > empty
   let ssr_content = match config.ssr_html {
@@ -314,11 +323,9 @@ pub fn[E] render_island_with_state_script(
         None => ""
       }
   }
-
   let shard_config = @shard.ShardConfig::new(config.id, config.script_url)
     .with_trigger(config.trigger)
     .with_ssr_content(ssr_content)
-
   @shard.generate_shard_with_state_script(shard_config, state_json).html
 }
 
@@ -345,12 +352,9 @@ pub fn escape_json_for_html(json : String) -> String {
 // ============================================================================
 
 // Re-export Island types from @luna for convenience
-pub using @luna {
-  type IslandTrigger,
-  type VIsland,
-  visland,
-  trigger_to_string,
-}
+
+///|
+pub using @luna {type IslandTrigger, type VIsland, visland, trigger_to_string}
 
 ///|
 /// Create an Island VNode from a component render function
@@ -360,7 +364,7 @@ pub fn[E] island(
   url : String,
   state : String,
   children : Array[@luna.Node[E]],
-  trigger~ : @luna.IslandTrigger = @luna.Load,
+  trigger? : @luna.IslandTrigger = @luna.Load,
 ) -> @luna.Node[E] {
   @luna.visland(id, url, state, children, trigger~)
 }
@@ -372,7 +376,7 @@ pub fn[E] island_with(
   url : String,
   state : String,
   render : () -> @luna.Node[E],
-  trigger~ : @luna.IslandTrigger = @luna.Load,
+  trigger? : @luna.IslandTrigger = @luna.Load,
 ) -> @luna.Node[E] {
   @luna.visland(id, url, state, [render()], trigger~)
 }
@@ -380,7 +384,10 @@ pub fn[E] island_with(
 ///|
 /// Render a VNode to HTML string
 /// Use hydration=true to enable hydration markers
-pub fn[E] render_node(node : @luna.Node[E], hydration~ : Bool = false) -> String {
+pub fn[E] render_node(
+  node : @luna.Node[E],
+  hydration? : Bool = false,
+) -> String {
   if hydration {
     @renderer.render_to_string_with_hydration(node)
   } else {
@@ -389,11 +396,171 @@ pub fn[E] render_node(node : @luna.Node[E], hydration~ : Bool = false) -> String
 }
 
 // ============================================================================
+// Streaming SSR Support
+// ============================================================================
+
+// Re-export renderer types for convenience
+
+///|
+pub using @renderer {
+  type StreamWriter,
+  type SSRResult,
+  render_to_stream,
+  render_to_readable_stream,
+  render_to_stream_with_async,
+  render_to_stream_collecting_async,
+  stream_async_replacement,
+  render_with_preloads,
+  render_with_options,
+  generate_preload_tags,
+  escape_html,
+  escape_attr,
+  escape_js_string,
+}
+
+///|
+/// Render a page with streaming SSR and async boundaries (VAsync nodes)
+/// Returns a ReadableStream for HTTP response
+/// VAsync nodes in the tree will be rendered with fallback first,
+/// then resolved content will be streamed as replacement scripts
+pub async fn render_streaming_page(
+  shell : @luna.Node[Unit],
+  title? : String,
+  head? : String,
+  loader_url? : String,
+) -> @http.Response {
+  let title_str = title.unwrap_or("App")
+  let head_str = head.unwrap_or("")
+  let loader = loader_url.unwrap_or(default_loader_url)
+
+  // Build header HTML
+  let header_html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
+    title_str +
+    "</title>" +
+    head_str +
+    "<script type=\"module\" src=\"" +
+    loader +
+    "\"></script></head><body><div id=\"app\">"
+
+  // Build footer HTML
+  let footer_html = "</div></body></html>"
+
+  // Create streaming response with async resolution
+  let stream = create_streaming_response_with_async(header_html, footer_html, shell)
+  ffi_create_stream_response(stream)
+}
+
+///|
+/// Create a ReadableStream that streams HTML with async resolution
+fn create_streaming_response_with_async(
+  header : String,
+  footer : String,
+  shell : @luna.Node[Unit],
+) -> @js.Any {
+  ffi_create_streaming_response_async(header, footer, async fn(write) {
+    // Use render_to_stream_with_async which handles VAsync nodes
+    @renderer.render_to_stream_with_async(
+      shell,
+      @renderer.StreamWriter::from_callback(write),
+    )
+  })
+}
+
+///|
+extern "js" fn ffi_create_streaming_response_async(
+  header : String,
+  footer : String,
+  render_with_async : async ((String) -> Unit) -> Unit,
+) -> @js.Any =
+  #| (header, footer, renderWithAsync) => new ReadableStream({
+  #|   async start(controller) {
+  #|     const encoder = new TextEncoder();
+  #|     const write = (chunk) => controller.enqueue(encoder.encode(chunk));
+  #|     write(header);
+  #|     await renderWithAsync(write);
+  #|     write(footer);
+  #|     controller.close();
+  #|   }
+  #| })
+
+///|
+extern "js" fn ffi_create_stream_response(stream : @js.Any) -> @http.Response =
+  #| (stream) => new Response(stream, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+
+///|
+/// Register a streaming page route with async support
+/// VAsync nodes in the rendered tree will be handled automatically
+pub fn streaming_page(
+  app : App,
+  path : String,
+  render_fn : (Ctx) -> @luna.Node[Unit],
+  title? : String,
+  head? : String,
+  loader_url? : String,
+) -> App {
+  app.get(path, fn(c) {
+    let shell = render_fn(c)
+    let title_str = title.unwrap_or("App")
+    let head_str = head.unwrap_or("")
+    let loader = loader_url.unwrap_or(default_loader_url)
+    let header_html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
+      title_str +
+      "</title>" +
+      head_str +
+      "<script type=\"module\" src=\"" +
+      loader +
+      "\"></script></head><body><div id=\"app\">"
+    let footer_html = "</div></body></html>"
+    let stream = create_streaming_response_with_async(header_html, footer_html, shell)
+    ffi_create_stream_response(stream)
+  })
+}
+
+///|
+/// Render a VNode to HTML with preload URLs for islands
+/// Returns SSRResult with html and preload_urls
+pub fn[E] render_with_island_preloads(node : @luna.Node[E]) -> @renderer.SSRResult {
+  @renderer.render_with_preloads(node)
+}
+
+///|
+/// Render a page with automatic modulepreload tags for islands
+pub fn[E] render_page_with_preloads(
+  node : @luna.Node[E],
+  title? : String,
+  head? : String,
+  hydration? : Bool,
+) -> String {
+  let title_str = title.unwrap_or("App")
+  let enable_hydration = hydration.unwrap_or(false)
+
+  // Render and collect preload URLs
+  let result = @renderer.render_with_options(node, preload=true, hydration=enable_hydration)
+
+  // Generate preload tags
+  let preload_tags = @renderer.generate_preload_tags(result.preload_urls)
+
+  // Combine head with preload tags
+  let head_str = head.unwrap_or("") + preload_tags
+
+  "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
+  title_str +
+  "</title>" +
+  head_str +
+  "</head><body><div id=\"app\">" +
+  result.html +
+  "</div></body></html>"
+}
+
+// ============================================================================
 // Static File Serving
 // ============================================================================
 
 ///|
-extern "js" fn ffi_create_js_response(body : String, content_type : String) -> @http.Response =
+extern "js" fn ffi_create_js_response(
+  body : String,
+  content_type : String,
+) -> @http.Response =
   #| (body, contentType) => new Response(body, { headers: { 'Content-Type': contentType } })
 
 ///|
@@ -445,9 +612,7 @@ pub fn StaticFileConfig::default() -> StaticFileConfig {
   {
     path_prefix: "/static",
     local_dir: "static",
-    mappings: [
-      ("ln-loader-v1.js", "static/ln-loader-v1.js"),
-    ],
+    mappings: [("ln-loader-v1.js", "static/ln-loader-v1.js")],
   }
 }
 
@@ -456,7 +621,7 @@ pub fn StaticFileConfig::default() -> StaticFileConfig {
 pub fn StaticFileConfig::with_mapping(
   self : StaticFileConfig,
   url_filename : String,
-  local_path : String
+  local_path : String,
 ) -> StaticFileConfig {
   let new_mappings = self.mappings.copy()
   new_mappings.push((url_filename, local_path))
@@ -469,7 +634,6 @@ pub fn serve_static(app : App, config? : StaticFileConfig) -> App {
   let cfg = config.unwrap_or(StaticFileConfig::default())
   let prefix = cfg.path_prefix
   let mappings = cfg.mappings
-
   app.get(prefix + "/*", fn(c) {
     let path = get_request_path(c)
     let start_idx = prefix.length() + 1
@@ -490,7 +654,11 @@ pub fn serve_static(app : App, config? : StaticFileConfig) -> App {
             }
             return text_response(content, content_type)
           }
-          None => return text_response("// " + url_file + " not found", "application/javascript")
+          None =>
+            return text_response(
+              "// " + url_file + " not found",
+              "application/javascript",
+            )
         }
       }
     }

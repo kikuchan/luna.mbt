@@ -9,6 +9,7 @@ pub enum HydrationResult {
 }
 
 // HydrationResult constructors for external access
+
 ///|
 pub fn hydration_result_success() -> HydrationResult {
   Success
@@ -25,6 +26,7 @@ pub fn hydration_result_recovered(msg : String) -> HydrationResult {
 }
 
 // HydrationResult predicates and accessors
+
 ///|
 pub fn HydrationResult::is_success(self : HydrationResult) -> Bool {
   match self {
@@ -227,6 +229,13 @@ fn hydrate_node(
       for child in island.children {
         hydrate_node(parent, child, ctx)
       }
+    @luna.Async(async_node) => {
+      // Async node hydration: hydrate the fallback content
+      // Full async replacement would happen via streaming SSR
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+      hydrate_node(parent, (async_node.fallback)(), ctx)
+    }
   }
 }
 
@@ -338,7 +347,9 @@ fn hydrate_element_with_dispatch(
         let callback = handler.get_callback()
         // Pass event to callback
         let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
-        elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
+        elem
+        .as_event_target()
+        .addEventListener(event_name, @js.any(wrapper).cast())
       }
       @luna.VAction(action_name) =>
         // Attach action handler - dispatch action when event fires
@@ -346,8 +357,12 @@ fn hydrate_element_with_dispatch(
           Some(dispatch) => {
             let event_name = extract_event_name(name)
             let captured_action = action_name
-            let wrapper : (@js.Any) -> Unit = fn(_event) { dispatch(captured_action) }
-            elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
+            let wrapper : (@js.Any) -> Unit = fn(_event) {
+              dispatch(captured_action)
+            }
+            elem
+            .as_event_target()
+            .addEventListener(event_name, @js.any(wrapper).cast())
           }
           None =>
             // No dispatcher provided, action won't work
@@ -511,6 +526,10 @@ fn hydrate_child_nodes(
       for child in island.children {
         hydrate_child_nodes(nodes, child, ctx)
       }
+    @luna.Async(async_node) => {
+      ctx.current_id = ctx.current_id + 1
+      hydrate_child_nodes(nodes, (async_node.fallback)(), ctx)
+    }
   }
 }
 
@@ -687,7 +706,6 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       // Set up effect for updates (skip first run since we already rendered)
       let _ = @signal.effect(fn() {
         let new_items = render_fn()
-
         if is_first_render.val {
           is_first_render.val = false
           return
@@ -704,13 +722,12 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
 
         // Insert new items before the placeholder
         match placeholder.parentNode() {
-          Some(parent) => {
+          Some(parent) =>
             for item in new_items {
               let rendered = render_vnode_to_dom(item)
               current_nodes.push(rendered)
               parent.insertBefore(rendered, Some(placeholder)) |> ignore
             }
-          }
           None => ()
         }
       })
@@ -733,12 +750,21 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       }
       wrapper.as_node()
     }
+    @luna.Async(async_node) => {
+      // For client-side rendering, render fallback initially
+      // Async replacement would be handled separately
+      render_vnode_to_dom((async_node.fallback)())
+    }
   }
 }
 
 ///|
 /// Apply VAttr to DOM element
-fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any]) -> Unit {
+fn apply_vattr(
+  elem : @js_dom.Element,
+  name : String,
+  value : @luna.Attr[@js.Any],
+) -> Unit {
   match value {
     @luna.VStatic(s) =>
       if s != "__remove__" {
@@ -772,7 +798,9 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any
       let callback = handler.get_callback()
       // Pass event to callback
       let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
-      elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
+      elem
+      .as_event_target()
+      .addEventListener(event_name, @js.any(wrapper).cast())
     }
     @luna.VAction(_) =>
       // VAction without dispatcher does nothing in CSR context
@@ -783,7 +811,10 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any
 
 ///|
 /// Convenience function: render VNode to DOM and mount
-pub fn render_vnode(container : @js_dom.Element, node : @luna.Node[@js.Any]) -> Unit {
+pub fn render_vnode(
+  container : @js_dom.Element,
+  node : @luna.Node[@js.Any],
+) -> Unit {
   container.as_node().setTextContent("")
   let dom_node = render_vnode_to_dom(node)
   container.as_node().appendChild(dom_node) |> ignore
@@ -810,7 +841,7 @@ pub fn bind_actions_from_dom(
 
 ///|
 extern "js" fn query_all_with_action_attrs(
-  container : @js_dom.Element
+  container : @js_dom.Element,
 ) -> Array[@js.Any] =
   #| (container) => {
   #|   const result = [];
@@ -831,7 +862,9 @@ extern "js" fn query_all_with_action_attrs(
   #| }
 
 ///|
-extern "js" fn get_action_attrs(elem : @js_dom.Element) -> Array[(String, String)] =
+extern "js" fn get_action_attrs(
+  elem : @js_dom.Element,
+) -> Array[(String, String)] =
   #| (elem) => {
   #|   const result = [];
   #|   const attrs = elem.attributes;
@@ -848,7 +881,10 @@ extern "js" fn get_action_attrs(elem : @js_dom.Element) -> Array[(String, String
 
 ///|
 /// Bind action handlers to a single element based on data-action-* attributes
-fn bind_action_handlers(elem : @js_dom.Element, dispatch : (String) -> Unit) -> Unit {
+fn bind_action_handlers(
+  elem : @js_dom.Element,
+  dispatch : (String) -> Unit,
+) -> Unit {
   let action_attrs = get_action_attrs(elem)
   for attr in action_attrs {
     let (event_name, action_name) = attr
@@ -900,4 +936,5 @@ pub fn[State] hydrate_with_actions(
     // Re-bind actions after re-render
     bind_actions_from_dom(container, dispatch)
   })
+
 }

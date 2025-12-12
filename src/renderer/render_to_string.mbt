@@ -2,6 +2,8 @@
 
 ///| Pure MoonBit implementation with no external dependencies
 
+///| Uses shared escape utilities from escape.mbt
+
 ///|
 /// Render a VNode to HTML string
 pub fn[E] render_to_string(node : @luna.Node[E]) -> String {
@@ -29,8 +31,8 @@ pub fn[E] render_with_preloads(node : @luna.Node[E]) -> SSRResult {
 /// - hydration: Whether to include hydration markers (default: true, reserved for future use)
 pub fn[E] render_with_options(
   node : @luna.Node[E],
-  preload~ : Bool = true,
-  hydration~ : Bool = true
+  preload? : Bool = true,
+  hydration? : Bool = true,
 ) -> SSRResult {
   let _ = hydration // Reserved for future use
   let sb = StringBuilder::new(size_hint=256)
@@ -100,8 +102,12 @@ fn[E] render_and_collect_urls(
       for item in render_fn() {
         render_and_collect_urls(sb, item, urls)
       }
-    Component(render=render_fn) => render_and_collect_urls(sb, render_fn(), urls)
+    Component(render=render_fn) =>
+      render_and_collect_urls(sb, render_fn(), urls)
     Island(island) => render_island_and_collect_urls(sb, island, urls)
+    Async(async_node) =>
+      // In sync rendering, render fallback (async content handled by stream renderer)
+      render_and_collect_urls(sb, (async_node.fallback)(), urls)
   }
 }
 
@@ -125,7 +131,6 @@ fn[E] render_island_and_collect_urls(
   sb.write_string(" trigger=")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("-->")
-
   sb.write_string("<div ln:id=\"")
   sb.write_string(island.id)
   sb.write_string("\" ln:url=\"")
@@ -135,101 +140,16 @@ fn[E] render_island_and_collect_urls(
   sb.write_string("\" ln:trigger=\"")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
-
   for child in island.children {
     render_and_collect_urls(sb, child, urls)
   }
-
   sb.write_string("</div>")
   sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
 }
 
-///| Self-closing tags that don't need a closing tag
-
-///|
-/// Optimized with length check and first char dispatch
-fn is_void_element(tag : String) -> Bool {
-  let len = tag.length()
-  // Fast reject: most common tags are not void elements
-  // void elements have length 2-6
-  if len < 2 || len > 6 {
-    return false
-  }
-  // Check by length first, then by content
-  match len {
-    2 => tag == "br" || tag == "hr"
-    3 => tag == "img" || tag == "col" || tag == "wbr"
-    4 => tag == "area" || tag == "base" || tag == "link" || tag == "meta"
-    5 => tag == "embed" || tag == "input" || tag == "track"
-    6 => tag == "param" || tag == "source"
-    _ => false
-  }
-}
-
-///|
-/// Check if string needs HTML escaping
-fn needs_html_escape(s : String) -> Bool {
-  for char in s {
-    match char {
-      '&' | '<' | '>' | '"' | '\'' => return true
-      _ => ()
-    }
-  }
-  false
-}
-
-///|
-/// Escape HTML special characters and write to StringBuilder
-fn escape_html_to(sb : StringBuilder, s : String) -> Unit {
-  // Fast path: most strings don't need escaping
-  if not(needs_html_escape(s)) {
-    sb.write_string(s)
-    return
-  }
-  // Slow path: escape character by character
-  for char in s {
-    match char {
-      '&' => sb.write_string("&amp;")
-      '<' => sb.write_string("&lt;")
-      '>' => sb.write_string("&gt;")
-      '"' => sb.write_string("&quot;")
-      '\'' => sb.write_string("&#39;")
-      _ => sb.write_char(char)
-    }
-  }
-}
-
-///|
-/// Check if string needs attribute escaping
-fn needs_attr_escape(s : String) -> Bool {
-  for char in s {
-    match char {
-      '&' | '"' => return true
-      _ => ()
-    }
-  }
-  false
-}
-
-///|
-/// Escape attribute value and write to StringBuilder
-fn escape_attr_to(sb : StringBuilder, s : String) -> Unit {
-  // Fast path: most attribute values don't need escaping
-  if not(needs_attr_escape(s)) {
-    sb.write_string(s)
-    return
-  }
-  // Slow path: escape character by character
-  for char in s {
-    match char {
-      '&' => sb.write_string("&amp;")
-      '"' => sb.write_string("&quot;")
-      _ => sb.write_char(char)
-    }
-  }
-}
+// Note: is_void_element, escape_html_to, escape_attr_to are defined in escape.mbt
 
 ///|
 /// Render attributes to StringBuilder
@@ -276,7 +196,9 @@ fn[E] render_attrs_to(
         // Render action as data-action attribute for hydration
         // onclick -> data-action-click="increment"
         let event_name = if name.has_prefix("on") {
-          try { name[2:].to_string() } catch { _ => name }
+          name[2:].to_string() catch {
+            _ => name
+          }
         } else {
           name
         }
@@ -329,6 +251,9 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
       }
     Component(render=render_fn) => render_to_sb(sb, render_fn())
     Island(island) => render_island_to(sb, island)
+    Async(async_node) =>
+      // In sync rendering, render fallback (async content handled by stream renderer)
+      render_to_sb(sb, (async_node.fallback)())
   }
 }
 
@@ -361,7 +286,6 @@ fn[E] render_island_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
   for child in island.children {
     render_to_sb(sb, child)
   }
-
   sb.write_string("</div>")
 
   // End comment marker
@@ -453,6 +377,16 @@ fn[E] render_with_id_to(
     Component(render=render_fn) =>
       render_with_id_to(sb, render_fn(), id_counter)
     Island(island) => render_island_with_id_to(sb, island, id_counter)
+    Async(async_node) => {
+      // Render with async marker for potential hydration
+      let id = id_counter.val
+      id_counter.val = id + 1
+      sb.write_string("<!--a:")
+      sb.write_object(id)
+      sb.write_string("-->")
+      render_with_id_to(sb, (async_node.fallback)(), id_counter)
+      sb.write_string("<!--/a-->")
+    }
   }
 }
 
@@ -487,7 +421,6 @@ fn[E] render_island_with_id_to(
   for child in island.children {
     render_with_id_to(sb, child, id_counter)
   }
-
   sb.write_string("</div>")
 
   // End comment marker

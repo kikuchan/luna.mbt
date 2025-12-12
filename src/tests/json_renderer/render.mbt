@@ -1,4 +1,5 @@
 ///| VNode to JsonNode renderer
+
 ///| Evaluates dynamic content at render time
 
 ///|
@@ -27,13 +28,12 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       }
       Element({ tag: elem.tag, attrs, children })
     }
-    @luna.Show(condition~, child~) => {
+    @luna.Show(condition~, child~) =>
       if condition() {
         render_to_json(child())
       } else {
         Fragment([])
       }
-    }
     @luna.For(render~) => {
       let items = render()
       let children : Array[JsonNode] = []
@@ -56,6 +56,9 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       }
       Element({ tag: "div", attrs, children })
     }
+    @luna.Async(async_node) =>
+      // Render fallback content for async nodes
+      render_to_json((async_node.fallback)())
   }
 }
 

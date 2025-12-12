@@ -1,8 +1,13 @@
 ///| VNode - DOM-independent virtual node representation
+
 ///|
+
 ///| Type parameter E represents the event type for handlers:
+
 ///| - Browser: E = DomEvent (or specific event types)
+
 ///| - SSR: E = Unit (no events)
+
 ///| - Other platforms: custom event types
 
 ///|
@@ -62,6 +67,20 @@ pub enum Node[E] {
   For(render~ : () -> Array[Node[E]])
   Component(render~ : () -> Node[E])
   Island(VIsland[E]) // Hydration boundary for partial hydration
+  /// Async node - renders content asynchronously with fallback
+  /// - render: async function that may raise errors
+  /// - fallback: shown while loading or on error
+  /// - on_error: optional error handler for custom error UI
+  Async(VAsync[E])
+}
+
+///|
+/// Virtual Async node for async rendering with error handling
+/// Note: async functions implicitly raise Error, no need for raise? annotation
+pub struct VAsync[E] {
+  render : async () -> Node[E]
+  fallback : () -> Node[E]
+  on_error : ((Error) -> Node[E])?
 }
 
 ///|
@@ -134,6 +153,19 @@ pub fn[E] visland(
   trigger? : IslandTrigger = Load,
 ) -> Node[E] {
   Island({ id, url, state, trigger, children })
+}
+
+///|
+/// Create an async VNode with fallback
+/// - render: async function that produces the content (may raise errors)
+/// - fallback: shown while loading or on error (if no on_error handler)
+/// - on_error: optional custom error UI handler
+pub fn[E] vasync(
+  render~ : async () -> Node[E],
+  fallback~ : () -> Node[E],
+  on_error~ : ((Error) -> Node[E])? = None,
+) -> Node[E] {
+  Async({ render, fallback, on_error })
 }
 
 ///|

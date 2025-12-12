@@ -1,9 +1,15 @@
 ///| Experimental Hydration - Morphdom-like DOM diffing/patching during hydration
+
 ///|
+
 ///| This module provides resilient hydration that can repair mismatches between
+
 ///| server-rendered HTML and the expected VDOM structure, similar to morphdom.
+
 ///| Use this as a fallback when regular hydration fails.
+
 ///|
+
 ///| NOTE: This is an experimental module. The API may change in future versions.
 
 ///|
@@ -267,8 +273,14 @@ fn get_current_path(ctx : ExperimentalHydrationContext) -> String {
   if ctx.path_stack.is_empty() {
     "root"
   } else {
-    ctx.path_stack.iter().fold(init="", fn(acc, part) {
-      if acc == "" { part } else { acc + " > " + part }
+    ctx.path_stack
+    .iter()
+    .fold(init="", fn(acc, part) {
+      if acc == "" {
+        part
+      } else {
+        acc + " > " + part
+      }
     })
   }
 }
@@ -304,10 +316,12 @@ fn log_repair_detailed(
 // Heuristics Configuration
 // =============================================================================
 
+///|
 /// Threshold for node count difference ratio to trigger full re-render
 /// If DOM has less than this ratio of expected nodes, fallback to full render
 let min_node_ratio : Double = 0.3
 
+///|
 /// Maximum node count for experimental hydration
 /// Above this, always use full render (O(n²) becomes too expensive)
 /// Benchmark results show experimental_hydrate is ~4-12x slower than full render,
@@ -355,6 +369,7 @@ fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
       }
       count
     }
+    @luna.Async(async_node) => 1 + count_vnode_nodes((async_node.fallback)())
   }
 }
 
@@ -381,7 +396,6 @@ fn should_fallback_to_full_render(
   if vnode_count > max_hydration_nodes {
     return true
   }
-
   let dom_count = count_dom_nodes(container.as_node())
 
   // If DOM has very few nodes compared to expected, fallback
@@ -389,12 +403,10 @@ fn should_fallback_to_full_render(
   if dom_count == 0 {
     return true
   }
-
   let ratio = dom_count.to_double() / vnode_count.to_double()
   if ratio < min_node_ratio {
     return true
   }
-
   false
 }
 
@@ -411,7 +423,9 @@ fn get_text_content(node : @js_dom.Node) -> String {
 
 ///|
 /// Build hk_cache by scanning all elements with data-hk attribute once
-fn build_hk_cache(container : @js_dom.Element) -> @hashmap.HashMap[Int, @js_dom.Element] {
+fn build_hk_cache(
+  container : @js_dom.Element,
+) -> @hashmap.HashMap[Int, @js_dom.Element] {
   let cache : @hashmap.HashMap[Int, @js_dom.Element] = @hashmap.new()
   let elements = container.querySelectorAll("[data-hk]")
   for i in 0..<elements.length() {
@@ -447,7 +461,6 @@ fn find_element_by_hk_cached(
 ) -> @js_dom.Element? {
   ctx.hk_cache.get(id)
 }
-
 
 ///|
 /// Find first child element with matching tag name
@@ -503,7 +516,11 @@ fn extract_event_name(name : String) -> String {
 
 ///|
 /// Apply VAttr to DOM element
-fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any]) -> Unit {
+fn apply_vattr(
+  elem : @js_dom.Element,
+  name : String,
+  value : @luna.Attr[@js.Any],
+) -> Unit {
   match value {
     @luna.VStatic(s) =>
       if s != "__remove__" {
@@ -530,13 +547,16 @@ fn apply_vattr(elem : @js_dom.Element, name : String, value : @luna.Attr[@js.Any
           elem.setAttribute(name, new_value)
         }
       })
+
     }
     @luna.VHandler(handler) => {
       let event_name = extract_event_name(name)
       let callback = handler.get_callback()
       // Wrap callback to ignore event argument
       let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
-      elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
+      elem
+      .as_event_target()
+      .addEventListener(event_name, @js.any(wrapper).cast())
     }
     @luna.VAction(_) =>
       // VAction without dispatcher - skip in experimental hydrate
@@ -609,9 +629,17 @@ pub fn smart_hydrate(
     let vnode_count = count_vnode_nodes(node)
     let dom_count = count_dom_nodes(container.as_node())
     let reason = if vnode_count > max_hydration_nodes {
-      "VNode tree too large (" + vnode_count.to_string() + " > " + max_hydration_nodes.to_string() + ")"
+      "VNode tree too large (" +
+      vnode_count.to_string() +
+      " > " +
+      max_hydration_nodes.to_string() +
+      ")"
     } else {
-      "DOM/VNode ratio too low (" + dom_count.to_string() + "/" + vnode_count.to_string() + ")"
+      "DOM/VNode ratio too low (" +
+      dom_count.to_string() +
+      "/" +
+      vnode_count.to_string() +
+      ")"
     }
 
     // Log fallback
@@ -635,7 +663,7 @@ pub fn smart_hydrate(
     FellBackToFullRender(reason)
   } else {
     // Use experimental hydration
-    let result = experimental_hydrate(container, node, logger?=logger)
+    let result = experimental_hydrate(container, node, logger?)
     Hydrated(result)
   }
 }
@@ -705,6 +733,11 @@ fn experimental_hydrate_node(
       for child in island.children {
         experimental_hydrate_node(parent, child, ctx)
       }
+    @luna.Async(async_node) => {
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+      experimental_hydrate_node(parent, (async_node.fallback)(), ctx)
+    }
   }
 }
 
@@ -752,6 +785,7 @@ fn experimental_hydrate_text(
   let text_node = doc.createTextNode(expected)
   parent.appendChild(text_node.as_node()) |> ignore
   let _ = ctx.path_stack.pop()
+
 }
 
 ///|
@@ -827,6 +861,7 @@ fn experimental_hydrate_dynamic_text(
   let text_ref = text_node.as_node()
   let _ = @signal.effect(fn() { text_ref.setTextContent(getter()) })
   let _ = ctx.path_stack.pop()
+
 }
 
 ///|
@@ -838,7 +873,6 @@ fn experimental_hydrate_element(
 ) -> Unit {
   ctx.path_stack.push(elem.tag)
   let needs_hydration = @luna.has_dynamic_content(elem.attrs)
-
   let dom_elem : @js_dom.Element = if needs_hydration {
     let id = ctx.current_id
     ctx.current_id = id + 1
@@ -865,9 +899,8 @@ fn experimental_hydrate_element(
           // Replace element
           let new_elem = create_element_from_velem(elem, id)
           match found_elem.as_node().parentNode() {
-            Some(p) => {
+            Some(p) =>
               p.replaceChild(new_elem.as_node(), found_elem.as_node()) |> ignore
-            }
             None => ()
           }
           new_elem
@@ -922,11 +955,15 @@ fn experimental_hydrate_element(
     experimental_hydrate_node(dom_elem.as_node(), elem.children[i], ctx)
   }
   let _ = ctx.path_stack.pop()
+
 }
 
 ///|
 /// Create a DOM element from VElement
-fn create_element_from_velem(elem : @luna.VElement[@js.Any], hk_id : Int) -> @js_dom.Element {
+fn create_element_from_velem(
+  elem : @luna.VElement[@js.Any],
+  hk_id : Int,
+) -> @js_dom.Element {
   let doc = @js_dom.document()
   let dom_elem = doc.createElement(elem.tag)
 
@@ -946,7 +983,6 @@ fn create_element_from_velem(elem : @luna.VElement[@js.Any], hk_id : Int) -> @js
     let child_dom = @dom.render_vnode_to_dom(elem.children[i])
     dom_elem.as_node().appendChild(child_dom) |> ignore
   }
-
   dom_elem
 }
 
@@ -1002,6 +1038,7 @@ fn repair_attributes(
             elem.setAttribute(name, new_value)
           }
         })
+
       }
       @luna.VHandler(handler) => {
         // Attach event handler
@@ -1009,7 +1046,9 @@ fn repair_attributes(
         let callback = handler.get_callback()
         // Wrap callback to ignore event argument
         let wrapper : (@js.Any) -> Unit = fn(event) { callback(event) }
-        elem.as_event_target().addEventListener(event_name, @js.any(wrapper).cast())
+        elem
+        .as_event_target()
+        .addEventListener(event_name, @js.any(wrapper).cast())
       }
       @luna.VAction(_) =>
         // VAction without dispatcher - skip in repair
@@ -1034,7 +1073,6 @@ fn experimental_hydrate_show(
   let children = parent.childNodes()
   let mut start_marker : @js_dom.Node? = None
   let mut end_marker : @js_dom.Node? = None
-
   for i = 0; i < children.length(); i = i + 1 {
     let child = children[i]
     if child.nodeType() == 8 {
@@ -1124,6 +1162,7 @@ fn experimental_hydrate_show(
     }
   })
   let _ = ctx.path_stack.pop()
+
 }
 
 ///|
@@ -1141,7 +1180,6 @@ fn experimental_hydrate_for(
   let children = parent.childNodes()
   let mut start_marker : @js_dom.Node? = None
   let mut end_marker : @js_dom.Node? = None
-
   for i = 0; i < children.length(); i = i + 1 {
     let child = children[i]
     if child.nodeType() == 8 {
@@ -1203,7 +1241,6 @@ fn experimental_hydrate_for(
   let items = render_fn()
   let item_count = items.length()
   let node_count = current_nodes.length()
-
   if item_count != node_count {
     log_repair_detailed(
       ctx,
@@ -1231,6 +1268,7 @@ fn experimental_hydrate_for(
           current_node.setTextContent(getter())
           let node_ref = current_node
           let _ = @signal.effect(fn() { node_ref.setTextContent(getter()) })
+
         }
         _ => {
           // Replace text node with element
@@ -1263,6 +1301,7 @@ fn experimental_hydrate_for(
   // Trim array to item_count
   while current_nodes.length() > item_count {
     let _ = current_nodes.pop()
+
   }
 
   // Set up effect for future updates
@@ -1281,6 +1320,7 @@ fn experimental_hydrate_for(
     }
   })
   let _ = ctx.path_stack.pop()
+
 }
 
 ///|
@@ -1315,9 +1355,7 @@ pub fn hydrate_with_fallback(
     let msg = result.get_message()
     match logger {
       Some(sb) => {
-        sb.write_string(
-          "[Hydration] Regular hydration failed: " + msg + "\n",
-        )
+        sb.write_string("[Hydration] Regular hydration failed: " + msg + "\n")
         sb.write_string("[Hydration] Falling back to experimental hydration\n")
       }
       None => {
@@ -1338,17 +1376,20 @@ pub fn hydrate_with_fallback(
     container.as_node().setTextContent("")
     let dom_node = @dom.render_vnode_to_dom(node)
     container.as_node().appendChild(dom_node) |> ignore
-
-    let exp_result = experimental_hydrate(container, node, logger?=logger)
+    let exp_result = experimental_hydrate(container, node, logger?)
     match exp_result {
-      Clean => @dom.hydration_result_recovered("Experimental hydration succeeded cleanly")
+      Clean =>
+        @dom.hydration_result_recovered(
+          "Experimental hydration succeeded cleanly",
+        )
       Repaired(repairs) =>
         @dom.hydration_result_recovered(
           "Experimental hydration repaired " +
           repairs.length().to_string() +
           " issues",
         )
-      Failed(err) => @dom.hydration_result_mismatch("Experimental hydration failed: " + err)
+      Failed(err) =>
+        @dom.hydration_result_mismatch("Experimental hydration failed: " + err)
     }
   }
 }
