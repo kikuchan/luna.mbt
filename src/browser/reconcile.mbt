@@ -17,6 +17,14 @@ pub fn[T] ref_equal(a : T, b : T) -> Bool {
 }
 
 ///|
+/// Check if a node's next sibling matches the expected node
+extern "js" fn next_sibling_is(
+  node : @js_dom.Node,
+  expected : @js_dom.Node
+) -> Bool =
+  #| (node, expected) => node.nextSibling === expected
+
+///|
 /// Item-DOM mapping entry
 /// Stores the association between an item reference and its DOM node
 pub(all) struct ItemEntry[T] {
@@ -68,11 +76,29 @@ pub fn[T] reconcile_items(
   render_item : (T, Int) -> @js_dom.Node,
   end_marker : @js_dom.Node,
 ) -> Array[ItemEntry[T]] {
+  let n = new_items.length()
+
+  // Handle empty case - just remove all old entries
+  if n == 0 {
+    for i = 0; i < old_entries.length(); i = i + 1 {
+      parent.removeChild(old_entries[i].dom) |> ignore
+    }
+    return []
+  }
+
   let new_entries : Array[ItemEntry[T]] = []
+  for j = 0; j < n; j = j + 1 {
+    new_entries.push({ item: new_items[0], dom: end_marker })
+  }
   let used_indices : Array[Bool] = Array::make(old_entries.length(), false)
 
-  // Process new items in order
-  for i = 0; i < new_items.length(); i = i + 1 {
+  // Process items in REVERSE order (last to first)
+  // This allows us to efficiently check if nodes are already in correct position
+  // cursor tracks "what should be the next sibling of the current item"
+  let cursor : Ref[@js_dom.Node] = { val: end_marker }
+
+  // Process from last to first
+  for i = n - 1; i >= 0; i = i - 1 {
     let item = new_items[i]
     let old_index = find_entry_index(old_entries, item)
 
@@ -81,15 +107,20 @@ pub fn[T] reconcile_items(
       let entry = old_entries[old_index]
       used_indices[old_index] = true
 
-      // Move to correct position if needed
-      move_before(parent, entry.dom, Some(end_marker)) |> ignore
+      // Only move if not already at correct position
+      // The node is at correct position if its nextSibling equals cursor
+      if not(next_sibling_is(entry.dom, cursor.val)) {
+        move_before(parent, entry.dom, Some(cursor.val)) |> ignore
+      }
 
-      new_entries.push(entry)
+      cursor.val = entry.dom
+      new_entries[i] = entry
     } else {
       // Create new DOM node
       let dom = render_item(item, i)
-      parent.insertBefore(dom, Some(end_marker)) |> ignore
-      new_entries.push({ item, dom })
+      parent.insertBefore(dom, Some(cursor.val)) |> ignore
+      cursor.val = dom
+      new_entries[i] = { item, dom }
     }
   }
 
