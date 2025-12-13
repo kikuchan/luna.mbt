@@ -83,3 +83,76 @@ export function hasOwner(): boolean;
 
 /** Run a function once (Solid.js style onMount) */
 export function onMount(fn: () => void): void;
+
+// ============================================================================
+// DOM API
+// ============================================================================
+
+/** Opaque DOM Node type */
+export interface Node {
+  readonly __brand: unique symbol;
+}
+
+/** Event handler types */
+export type MouseEventHandler = (event: MouseEvent) => void;
+export type InputEventHandler = (event: InputEvent) => void;
+export type KeyboardEventHandler = (event: KeyboardEvent) => void;
+export type FocusEventHandler = (event: FocusEvent) => void;
+export type FormEventHandler = (event: Event) => void;
+export type ChangeEventHandler = (event: Event) => void;
+
+/** HandlerMap builder for event handlers (method chaining) */
+export interface HandlerMap {
+  click(handler: MouseEventHandler): HandlerMap;
+  dblclick(handler: MouseEventHandler): HandlerMap;
+  input(handler: InputEventHandler): HandlerMap;
+  change(handler: ChangeEventHandler): HandlerMap;
+  submit(handler: FormEventHandler): HandlerMap;
+  keydown(handler: KeyboardEventHandler): HandlerMap;
+  keyup(handler: KeyboardEventHandler): HandlerMap;
+  keypress(handler: KeyboardEventHandler): HandlerMap;
+  focus(handler: FocusEventHandler): HandlerMap;
+  blur(handler: FocusEventHandler): HandlerMap;
+  mouseenter(handler: MouseEventHandler): HandlerMap;
+  mouseleave(handler: MouseEventHandler): HandlerMap;
+  mouseover(handler: MouseEventHandler): HandlerMap;
+  mouseout(handler: MouseEventHandler): HandlerMap;
+  mousedown(handler: MouseEventHandler): HandlerMap;
+  mouseup(handler: MouseEventHandler): HandlerMap;
+}
+
+/** Create event handler map builder */
+export function events(): HandlerMap;
+
+// Text
+export function text(content: string): Node;
+export function textDyn(getter: () => string): Node;
+
+// Rendering
+export function render(container: Element, node: Node): void;
+export function mount(container: Element, node: Node): void;
+export function show(condition: () => boolean, render: () => Node): Node;
+
+// List rendering
+export function forEach<T>(
+  items: () => T[],
+  renderItem: (item: T, index: number) => Node
+): Node;
+
+// JSX support
+export function jsx(
+  type: string | ((props: any) => Node),
+  props: Record<string, any> | null
+): Node;
+export function jsxs(
+  type: string | ((props: any) => Node),
+  props: Record<string, any> | null
+): Node;
+export const Fragment: unique symbol;
+
+// Element creation (low-level)
+export function createElement(
+  tag: string,
+  attrs: [string, unknown][],
+  children: Node[]
+): Node;

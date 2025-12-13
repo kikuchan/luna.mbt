@@ -1,6 +1,7 @@
-// Re-export from MoonBit build output
+// Re-export from MoonBit build output (api_js)
 // This file exists to apply TypeScript types from index.d.ts
 export {
+  // Signal API
   createSignal,
   get,
   set,
@@ -21,4 +22,16 @@ export {
   runWithOwner,
   hasOwner,
   onMount,
+  // DOM API
+  text,
+  textDyn,
+  render,
+  mount,
+  show,
+  jsx,
+  jsxs,
+  Fragment,
+  createElement,
+  events,
+  forEach,
 } from "../../target/js/release/build/lib/api_js/api_js.js";

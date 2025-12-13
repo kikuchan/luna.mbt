@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 
-import { text, createElement } from "../dom.js";
+import { text, createElement } from "../index.js";
 
 describe("DOM API", () => {
   test("text creates a node", () => {

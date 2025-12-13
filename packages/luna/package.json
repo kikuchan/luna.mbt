@@ -10,10 +10,6 @@
       "types": "./index.d.ts",
       "import": "./index.js"
     },
-    "./dom": {
-      "types": "./dom.d.ts",
-      "import": "./dom.js"
-    },
     "./jsx-runtime": {
       "types": "./jsx-runtime.d.ts",
       "import": "./jsx-runtime.js"
