@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   testDir: __dirname,
   testMatch: "**/*.test.ts",
-  testIgnore: "**/template-app/**", // template-app has its own config
+  testIgnore: ["**/template-app/**", "**/sol/**"], // template-app has its own config, sol uses vitest
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -24,7 +24,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node --import tsx ${join(__dirname, "server.ts")}`,
+    command: `node ${join(__dirname, "server.ts")}`,
     url: "http://127.0.0.1:3456",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
