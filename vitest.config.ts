@@ -7,12 +7,11 @@ export default defineConfig({
     include: [
       "src/**/*.test.ts",
       "packages/**/*.test.ts",
+      "e2e/sol/**/*.test.ts",
     ],
     exclude: [
       "**/node_modules/**",
       "**/.mooncakes/**",
-      // Exclude CLI e2e tests (run with playwright) and temp directories
-      "packages/cli/e2e/**",
       "packages/**/tmp/**",
     ],
   },
