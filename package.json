@@ -4,23 +4,8 @@
   "private": true,
   "description": "MoonBit Island Architecture UI Framework",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:browser": "vitest run --config vitest.browser.config.ts",
-    "test:moon": "moon test --target js",
-    "test:e2e": "playwright test --config e2e/playwright.config.mts",
-    "test:e2e:loader": "playwright test --config e2e/playwright.config.mts --project=loader",
-    "test:e2e:embedding": "playwright test --config e2e/playwright.config.mts --project=embedding",
-    "test:e2e:template": "playwright test --config e2e/template-app/playwright.config.mts",
-    "test:sol-new": "node scripts/test-sol-new.ts",
-    "test:e2e:ui": "playwright test --config e2e/playwright.config.mts --ui",
-    "build": "moon build --target js",
-    "check": "moon check",
-    "check-minify": "moon build src/js_api --target js && terser target/js/release/build/js_api/js_api.js --module --minify --mangle",
-    "minify:loader": "terser packages/loader/loader.js --module --compress --mangle -o packages/loader/loader.min.js",
-    "bench": "node bench/run.js",
-    "bench:happydom": "node bench/run-happydom.js",
-    "bench:flame": "rm -rf *.0x && 0x -o bench/run.js"
+    "test": "just test",
+    "build": "just build"
   },
   "keywords": [
     "luna",

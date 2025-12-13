@@ -31,32 +31,44 @@ size-check:
 
 # === Test Commands ===
 
-# Run all tests (MoonBit + Node)
-test: test-moonbit test-vitest test-browser test-playwright
+# Run all tests
+test: test-moonbit test-vitest test-browser test-e2e
+    @echo "✓ All tests passed"
 
-# Run MoonBit tests
+# Run MoonBit unit tests
 test-moonbit:
     moon test --target js
     moon test --target all src/core/signal
 
-# Run Node.js tests (vitest)
-test-vitest: build
-    pnpm test
+# Run vitest tests
+test-vitest: build-moon
+    pnpm vitest run
 
 # Run browser tests
-test-browser: build
-    pnpm test:browser
+test-browser: build-moon
+    pnpm vitest run --config vitest.browser.config.ts
 
 # Run E2E tests (playwright)
-test-playwright: build
-    pnpm test:e2e
+test-e2e: build-moon
+    pnpm playwright test --config e2e/playwright.config.mts
+
+# Run E2E tests with UI
+test-e2e-ui: build-moon
+    pnpm playwright test --config e2e/playwright.config.mts --ui
+
+# Run sol new template test
+test-sol-new: build-moon
+    node scripts/test-sol-new.ts
 
 # === Build Commands ===
 
-# Build MoonBit
-build:
+# Build MoonBit only
+build-moon:
     moon build --target js
-    pnpm build
+
+# Build all (MoonBit + Vite)
+build: build-moon
+    pnpm vite build
 
 # Clean build artifacts
 clean:
@@ -77,10 +89,28 @@ size:
     @echo "=== MoonBit Output Sizes ==="
     @find target/js/release/build -name "*.js" -exec ls -lh {} \; 2>/dev/null | awk '{print $9 ": " $5}' | head -20
 
+# Minify loader
+minify-loader:
+    pnpm terser packages/loader/loader.js --module --compress --mangle -o packages/loader/loader.min.js
+
 # Run benchmarks
 bench:
-    moon bench --target js
+    node bench/run.js
+
+# Run benchmarks with happydom
+bench-happydom:
+    node bench/run-happydom.js
 
 # Watch and rebuild
 watch:
     moon build --target js --watch
+
+# === Sol CLI Commands ===
+
+# Run sol CLI
+sol *args:
+    node target/js/release/build/sol/cli/cli.js {{args}}
+
+# Create new sol project
+sol-new name:
+    node target/js/release/build/sol/cli/cli.js new {{name}}

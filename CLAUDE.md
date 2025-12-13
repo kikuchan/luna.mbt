@@ -117,10 +117,13 @@ just test            # 全テスト実行
 just test-moonbit    # MoonBitユニットテスト
 just test-vitest     # Vitestテスト
 just test-browser    # ブラウザテスト
-just test-playwright # E2Eテスト
+just test-e2e        # E2Eテスト（Playwright）
+just test-e2e-ui     # E2Eテスト（UI付き）
+just test-sol-new    # sol new テンプレートテスト
 
 # ビルド
-just build           # MoonBit + pnpm build
+just build           # MoonBit + Vite build
+just build-moon      # MoonBitのみ
 just clean           # ビルド成果物削除
 just fmt             # コードフォーマット
 
@@ -128,6 +131,11 @@ just fmt             # コードフォーマット
 just size            # バンドルサイズ表示
 just bench           # ベンチマーク実行
 just watch           # ファイル監視ビルド
+just minify-loader   # ローダーのminify
+
+# Sol CLI
+just sol --help      # sol CLIヘルプ
+just sol new myapp   # 新規プロジェクト作成
 ```
 
 ## 開発ポリシー
