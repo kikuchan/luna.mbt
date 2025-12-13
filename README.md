@@ -85,15 +85,15 @@ fn counter_component() -> @dom.DomNode {
     @dom.p([@dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
     @dom.div(class="buttons", [
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n - 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n - 1 }) }),
         [@dom.text("-")],
       ),
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n + 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n + 1 }) }),
         [@dom.text("+")],
       ),
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.set(0) })),
+        on=@dom.events().click(fn(_) { count.set(0) }),
         [@dom.text("Reset")],
       ),
     ]),
@@ -120,7 +120,7 @@ fn conditional_example() -> @dom.DomNode {
 
   @dom.div([
     @dom.button(
-      on=@dom.on(click=Some(fn(_) { show.update(fn(b) { not(b) }) })),
+      on=@dom.events().click(fn(_) { show.update(fn(b) { not(b) }) }),
       [@dom.text_dyn(fn() { if show.get() { "Hide" } else { "Show" } })],
     ),
     @dom.show(fn() { show.get() }, fn() {

@@ -40,16 +40,17 @@ fn counter_example() -> @dom.DomNode {
     @dom.p([@dom.text_dyn(fn() { if is_even() { "Even" } else { "Odd" } })]),
     @dom.div(class="buttons", [
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n - 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n - 1 }) }),
         [@dom.text("-")],
       ),
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n + 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n + 1 }) }),
         [@dom.text("+")],
       ),
-      @dom.button(on=@dom.on(click=Some(fn(_) { count.set(0) })), [
-        @dom.text("Reset"),
-      ]),
+      @dom.button(
+        on=@dom.events().click(fn(_) { count.set(0) }),
+        [@dom.text("Reset")],
+      ),
     ]),
   ])
 }

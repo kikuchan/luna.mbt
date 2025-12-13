@@ -13,12 +13,6 @@ pub fn browser_event_handler(
 }
 
 ///|
-/// Create a noop browser event handler (for SSR compatibility in browser context)
-pub fn browser_noop_handler() -> @luna.EventHandler[@js.Any] {
-  @luna.handler(fn(_event) { () })
-}
-
-///|
 /// Create a browser event handler from a simple callback (ignores event)
 pub fn browser_handler_from_callback(
   f : () -> Unit,

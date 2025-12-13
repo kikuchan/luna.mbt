@@ -43,16 +43,17 @@ fn counter_example() -> @dom.DomNode {
     @dom.p([@dom.text_dyn(fn() { if is_even() { "Even" } else { "Odd" } })]),
     @dom.div(class="buttons", [
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n - 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n - 1 }) }),
         [@dom.text("-")],
       ),
       @dom.button(
-        on=@dom.on(click=Some(fn(_) { count.update(fn(n) { n + 1 }) })),
+        on=@dom.events().click(fn(_) { count.update(fn(n) { n + 1 }) }),
         [@dom.text("+")],
       ),
-      @dom.button(on=@dom.on(click=Some(fn(_) { count.set(0) })), [
-        @dom.text("Reset"),
-      ]),
+      @dom.button(
+        on=@dom.events().click(fn(_) { count.set(0) }),
+        [@dom.text("Reset")],
+      ),
     ]),
   ])
 }
@@ -70,13 +71,11 @@ fn input_example() -> @dom.DomNode {
     @dom.input(
       type_="text",
       placeholder="Type something...",
-      on=@dom.on(
-        input=Some(fn(e) {
-          let target : @js.Any = e.target() |> @js.identity
-          let value : String = target._get("value").cast()
-          text.set(value)
-        }),
-      ),
+      on=@dom.events().input(fn(e) {
+        let target : @js.Any = e.target() |> @js.identity
+        let value : String = target._get("value").cast()
+        text.set(value)
+      }),
     ),
     @dom.p([@dom.text_dyn(fn() { "Characters: " + char_count().to_string() })]),
     @dom.p([@dom.text_dyn(fn() { "You typed: " + text.get() })]),
@@ -106,11 +105,11 @@ fn effect_example() -> @dom.DomNode {
     ]),
     @dom.p([@dom.text_dyn(fn() { "Ticks: " + ticks.get().to_string() })]),
     @dom.button(
-      on=@dom.on(click=Some(fn(_) { active.update(fn(b) { not(b) }) })),
+      on=@dom.events().click(fn(_) { active.update(fn(b) { not(b) }) }),
       [@dom.text_dyn(fn() { if active.get() { "Stop" } else { "Start" } })],
     ),
     @dom.button(
-      on=@dom.on(click=Some(fn(_) { ticks.update(fn(n) { n + 1 }) })),
+      on=@dom.events().click(fn(_) { ticks.update(fn(n) { n + 1 }) }),
       [@dom.text("Tick")],
     ),
   ])
@@ -126,7 +125,7 @@ fn conditional_example() -> @dom.DomNode {
   @dom.div(class="conditional-example", [
     @dom.h2([@dom.text("Conditional Example")]),
     @dom.button(
-      on=@dom.on(click=Some(fn(_) { show_message.update(fn(b) { not(b) }) })),
+      on=@dom.events().click(fn(_) { show_message.update(fn(b) { not(b) }) }),
       [
         @dom.text_dyn(fn() {
           if show_message.get() {
@@ -181,16 +180,14 @@ fn style_example() -> @dom.DomNode {
         type_="range",
         value="180",
         attrs=[("min", @dom.Attr::AttrInt(0)), ("max", @dom.Attr::AttrInt(360))],
-        on=@dom.on(
-          input=Some(fn(e) {
-            let target : @js.Any = e.target() |> @js.identity
-            let value : String = target._get("value").cast()
-            match @global.parseInt(value) {
-              Some(n) => hue.set(n)
-              None => ()
-            }
-          }),
-        ),
+        on=@dom.events().input(fn(e) {
+          let target : @js.Any = e.target() |> @js.identity
+          let value : String = target._get("value").cast()
+          match @global.parseInt(value) {
+            Some(n) => hue.set(n)
+            None => ()
+          }
+        }),
       ),
     ]),
     @dom.div([
@@ -202,16 +199,14 @@ fn style_example() -> @dom.DomNode {
           ("min", @dom.Attr::AttrInt(50)),
           ("max", @dom.Attr::AttrInt(200)),
         ],
-        on=@dom.on(
-          input=Some(fn(e) {
-            let target : @js.Any = e.target() |> @js.identity
-            let value : String = target._get("value").cast()
-            match @global.parseInt(value) {
-              Some(n) => size.set(n)
-              None => ()
-            }
-          }),
-        ),
+        on=@dom.events().input(fn(e) {
+          let target : @js.Any = e.target() |> @js.identity
+          let value : String = target._get("value").cast()
+          match @global.parseInt(value) {
+            Some(n) => size.set(n)
+            None => ()
+          }
+        }),
       ),
     ]),
   ])
@@ -288,22 +283,18 @@ fn todo_example() -> @dom.DomNode {
   @dom.div(class="todo-example", [
     @dom.h2([@dom.text("Todo List Example")]),
     @dom.form(
-      on=@dom.on(
-        submit=Some(fn(e) {
-          e.preventDefault()
-          add_todo()
-        }),
-      ),
+      on=@dom.events().submit(fn(e) {
+        e.preventDefault()
+        add_todo()
+      }),
       [
         @dom.input(
           type_="text",
           placeholder="Add a todo...",
-          on=@dom.on(
-            input=Some(fn(e) {
-              let target : @js.Any = e.target() |> @js.identity
-              input_text.set(target._get("value").cast())
-            }),
-          ),
+          on=@dom.events().input(fn(e) {
+            let target : @js.Any = e.target() |> @js.identity
+            input_text.set(target._get("value").cast())
+          }),
         ),
         @dom.create_element("button", [("type", @dom.attr_static("submit"))], [
           @dom.text("Add"),
@@ -343,12 +334,12 @@ fn todo_example() -> @dom.DomNode {
           [
             @dom.span(
               style="cursor: pointer;",
-              on=@dom.on(click=Some(fn(_) { toggle_todo(todo_id) })),
+              on=@dom.events().click(fn(_) { toggle_todo(todo_id) }),
               [@dom.text(todo.text)],
             ),
             @dom.button(
               style="margin-left: 10px;",
-              on=@dom.on(click=Some(fn(_) { remove_todo(todo_id) })),
+              on=@dom.events().click(fn(_) { remove_todo(todo_id) }),
               [@dom.text("x")],
             ),
           ],

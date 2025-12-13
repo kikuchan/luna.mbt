@@ -92,7 +92,7 @@ test "exp: repair missing element with handler" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click me")],
   )
   // Empty container
@@ -119,7 +119,7 @@ test "exp: repair tag mismatch with data-hk" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Submit")],
   )
   // Wrong tag (span instead of button) but correct data-hk
@@ -521,7 +521,7 @@ test "exp: repair component render" {
       @luna.text_dyn(fn() { "Count: " + count.get().to_string() }),
       @luna.h(
         "button",
-        [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+        [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
         [@luna.vtext("+")],
       ),
     ])
@@ -567,7 +567,7 @@ test "exp: fallback recovers from complete mismatch" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   // Completely wrong HTML
@@ -593,7 +593,7 @@ test "exp: fallback with logger captures both phases" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Submit")],
   )
   // Wrong HTML
@@ -696,7 +696,7 @@ test "exp: handle event handler attachment" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   // Correct HTML with data-hk
@@ -770,7 +770,7 @@ test "report: element missing has correct repair type" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   exp_set_inner_html(container, "")
@@ -791,7 +791,7 @@ test "report: tag mismatch has correct repair type" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   exp_set_inner_html(container, "<span data-hk=\"0\">Click</span>")
@@ -941,7 +941,7 @@ test "report: multiple repairs tracked" {
     @luna.vtext("Wrong"),
     @luna.h(
       "button",
-      [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+      [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
       [@luna.vtext("Click")],
     ),
   ])

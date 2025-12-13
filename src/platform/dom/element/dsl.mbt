@@ -1,44 +1,28 @@
 ///| Element DSL - Simplified API for creating reactive elements
-
 ///|
-
 ///| Usage:
-
-///|   div(class="myapp", on=on(click=fn(_) { ... }), [text("Hello")])
-
+///|   div(class="myapp", on=events().click(fn(_) { ... }), [text("Hello")])
 ///|
-
 ///| ## Bundle Size Optimization Notes
-
 ///|
-
 ///| This module uses JS FFI extensively to minimize bundle size:
-
 ///|
-
 ///| 1. **Double.to_string via JS FFI**: MoonBit's native Double.to_string uses the
-
 ///|    ryu algorithm which pulls in ~31KB of Int64 operations. We use JS's native
-
 ///|    toString() instead.
-
 ///|
-
 ///| 2. **HandlerMap as opaque JS object**: Instead of a MoonBit struct with 16 fields,
-
 ///|    we use a plain JS object created via FFI. This avoids generating large
-
 ///|    to_attrs() functions with 16 if-statements.
-
 ///|
-
 ///| 3. **Lowercase event names**: Event names are stored as lowercase DOM standard
-
 ///|    names (click, input) instead of React-style camelCase (onClick, onInput).
-
 ///|    This avoids runtime string conversion and prevents future bloat from
-
 ///|    conversion dictionaries.
+///|
+///| 4. **Method chaining via events() DSL**: Using events().click(...).input(...)
+///|    instead of on(click=Some(...)) avoids generating Option wrappers for all
+///|    16 event types. MoonBit's dead code elimination removes unused handlers.
 
 ///|
 /// Type alias for event handler
@@ -93,9 +77,8 @@ pub fn Attr::to_attr_value(self : Attr) -> AttrValue {
 pub type HandlerMap
 
 ///|
-/// Create a HandlerMap with optional event handlers
-/// Uses JS FFI to create a plain object directly, avoiding MoonBit struct overhead
-/// Event names are lowercase DOM standard (click, not onClick) to avoid conversion
+/// Create an empty HandlerMap, then chain event handlers
+/// Example: events().click(fn(_) { ... }).input(fn(e) { ... })
 ///
 /// Each handler receives the appropriate typed event:
 /// - click, dblclick, mouseenter, etc. -> MouseHandler (@js_dom.MouseEvent)
@@ -104,47 +87,121 @@ pub type HandlerMap
 /// - change -> ChangeHandler (@js_dom.ChangeEvent)
 /// - submit -> FormHandler (@js_dom.FormEvent)
 /// - focus, blur -> FocusHandler (@js_dom.FocusEvent)
-///
-/// For type-safe target element access, use the generic versions:
-/// - MouseEventHandler[HTMLButtonElement], ChangeEventHandler[HTMLInputElement], etc.
-pub extern "js" fn on(
-  click? : MouseHandler?,
-  dblclick? : MouseHandler?,
-  input? : InputHandler?,
-  change? : ChangeHandler?,
-  submit? : FormHandler?,
-  keydown? : KeyboardHandler?,
-  keyup? : KeyboardHandler?,
-  keypress? : KeyboardHandler?,
-  focus? : FocusHandler?,
-  blur? : FocusHandler?,
-  mouseenter? : MouseHandler?,
-  mouseleave? : MouseHandler?,
-  mouseover? : MouseHandler?,
-  mouseout? : MouseHandler?,
-  mousedown? : MouseHandler?,
-  mouseup? : MouseHandler?,
+pub fn events() -> HandlerMap {
+  @js.new_object().cast()
+}
+
+///|
+pub extern "js" fn HandlerMap::click(
+  self : Self,
+  handler : MouseHandler,
 ) -> HandlerMap =
-  #|(click, dblclick, input, change, submit, keydown, keyup, keypress, focus, blur, mouseenter, mouseleave, mouseover, mouseout, mousedown, mouseup) => {
-  #|  const m = {};
-  #|  if (click?._0) m.click = click._0;
-  #|  if (dblclick?._0) m.dblclick = dblclick._0;
-  #|  if (input?._0) m.input = input._0;
-  #|  if (change?._0) m.change = change._0;
-  #|  if (submit?._0) m.submit = submit._0;
-  #|  if (keydown?._0) m.keydown = keydown._0;
-  #|  if (keyup?._0) m.keyup = keyup._0;
-  #|  if (keypress?._0) m.keypress = keypress._0;
-  #|  if (focus?._0) m.focus = focus._0;
-  #|  if (blur?._0) m.blur = blur._0;
-  #|  if (mouseenter?._0) m.mouseenter = mouseenter._0;
-  #|  if (mouseleave?._0) m.mouseleave = mouseleave._0;
-  #|  if (mouseover?._0) m.mouseover = mouseover._0;
-  #|  if (mouseout?._0) m.mouseout = mouseout._0;
-  #|  if (mousedown?._0) m.mousedown = mousedown._0;
-  #|  if (mouseup?._0) m.mouseup = mouseup._0;
-  #|  return m;
-  #|}
+  #|(m, handler) => { m.click = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::dblclick(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.dblclick = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::input(
+  self : Self,
+  handler : InputHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.input = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::change(
+  self : Self,
+  handler : ChangeHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.change = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::submit(
+  self : Self,
+  handler : FormHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.submit = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::keydown(
+  self : Self,
+  handler : KeyboardHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.keydown = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::keyup(
+  self : Self,
+  handler : KeyboardHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.keyup = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::keypress(
+  self : Self,
+  handler : KeyboardHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.keypress = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::focus(
+  self : Self,
+  handler : FocusHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.focus = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::blur(
+  self : Self,
+  handler : FocusHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.blur = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mouseenter(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mouseenter = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mouseleave(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mouseleave = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mouseover(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mouseover = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mouseout(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mouseout = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mousedown(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mousedown = handler; return m; }
+
+///|
+pub extern "js" fn HandlerMap::mouseup(
+  self : Self,
+  handler : MouseHandler,
+) -> HandlerMap =
+  #|(m, handler) => { m.mouseup = handler; return m; }
 
 ///|
 /// Convert HandlerMap to Array of attribute tuples using JS Object.entries

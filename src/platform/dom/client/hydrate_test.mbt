@@ -133,7 +133,7 @@ test "hydrate element with click handler" {
   let container = create_container()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click me")],
   )
 
@@ -271,7 +271,7 @@ test "hydrate detects missing element" {
   // VNode expects a button with handler
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Button")],
   )
 
@@ -376,7 +376,7 @@ test "hydrate complex page structure" {
     ]),
     @luna.h(
       "button",
-      [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+      [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
       [@luna.vtext("Click")],
     ),
   ])
@@ -492,7 +492,7 @@ test "hydrate with logger captures mismatch warning" {
   // VNode expects a button with handler
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Button")],
   )
 
@@ -517,7 +517,7 @@ test "hydrate with logger captures strict mode mismatch" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   set_inner_html(container, "<div>Wrong</div>")
@@ -566,7 +566,7 @@ test "hydrate logger contains element info" {
   let logger = StringBuilder::new()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Submit")],
   )
   set_inner_html(container, "<input type=\"text\" />")
@@ -588,7 +588,7 @@ test "hydrate without logger outputs to console" {
   let container = create_container()
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Button")],
   )
   // Wrong HTML - will trigger mismatch without logger
@@ -612,12 +612,12 @@ test "hydrate multiple mismatches joined with semicolon" {
   let vnode = @luna.vfragment([
     @luna.h(
       "button",
-      [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+      [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
       [@luna.vtext("A")],
     ),
     @luna.h(
       "button",
-      [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+      [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
       [@luna.vtext("B")],
     ),
   ])
@@ -641,7 +641,7 @@ test "hydrate tag mismatch with correct data-hk" {
   // Expect a button
   let vnode = @luna.h(
     "button",
-    [("onClick", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.vtext("Click")],
   )
   // HTML has a span with correct data-hk but wrong tag

@@ -11,7 +11,7 @@
 
 using @dom {
   a,
-  on,
+  events,
   div,
   nav,
   span,
@@ -79,12 +79,10 @@ fn nav_component(router : @client.BrowserRouter) -> @dom.DomNode {
   fn nav_link(href : String, label : String) -> @dom.DomNode {
     a(
       href~,
-      on=on(
-        click=Some(fn(e) {
-          e.preventDefault()
-          router.navigate(href)
-        }),
-      ),
+      on=events().click(fn(e) {
+        e.preventDefault()
+        router.navigate(href)
+      }),
       [text(label)],
     )
   }
@@ -118,38 +116,28 @@ fn counter_component() -> @dom.DomNode {
     div(class="counter-buttons", [
       button(
         attrs=[("data-testid", AttrString("decrement-btn"))],
-        on=on(
-          click=Some(fn(_) {
-            console_log(
-              "Decrement clicked, current: " + count.get().to_string(),
-            )
-            count.update(fn(n) { n - 1 })
-            console_log("After decrement: " + count.get().to_string())
-          }),
-        ),
+        on=events().click(fn(_) {
+          console_log("Decrement clicked, current: " + count.get().to_string())
+          count.update(fn(n) { n - 1 })
+          console_log("After decrement: " + count.get().to_string())
+        }),
         [text("-")],
       ),
       button(
         attrs=[("data-testid", AttrString("increment-btn"))],
-        on=on(
-          click=Some(fn(_) {
-            console_log(
-              "Increment clicked, current: " + count.get().to_string(),
-            )
-            count.update(fn(n) { n + 1 })
-            console_log("After increment: " + count.get().to_string())
-          }),
-        ),
+        on=events().click(fn(_) {
+          console_log("Increment clicked, current: " + count.get().to_string())
+          count.update(fn(n) { n + 1 })
+          console_log("After increment: " + count.get().to_string())
+        }),
         [text("+")],
       ),
       button(
         attrs=[("data-testid", AttrString("reset-btn"))],
-        on=on(
-          click=Some(fn(_) {
-            console_log("Reset clicked")
-            count.set(0)
-          }),
-        ),
+        on=events().click(fn(_) {
+          console_log("Reset clicked")
+          count.set(0)
+        }),
         [text("Reset")],
       ),
     ]),
@@ -217,21 +205,21 @@ fn users_layout_component(
       div(style="margin-bottom: 10px;", [
         button(
           style="margin-right: 10px;",
-          on=on(click=Some(fn(_) { router.navigate(base + "/users") })),
+          on=events().click(fn(_) { router.navigate(base + "/users") }),
           [text("User List")],
         ),
         button(
           style="margin-right: 10px;",
-          on=on(click=Some(fn(_) { router.navigate(base + "/users/1") })),
+          on=events().click(fn(_) { router.navigate(base + "/users/1") }),
           [text("User 1")],
         ),
         button(
           style="margin-right: 10px;",
-          on=on(click=Some(fn(_) { router.navigate(base + "/users/2") })),
+          on=events().click(fn(_) { router.navigate(base + "/users/2") }),
           [text("User 2")],
         ),
         button(
-          on=on(click=Some(fn(_) { router.navigate(base + "/users/3") })),
+          on=events().click(fn(_) { router.navigate(base + "/users/3") }),
           [text("User 3")],
         ),
       ]),
@@ -287,12 +275,10 @@ fn settings_index_component(router : @client.BrowserRouter) -> @dom.DomNode {
       li([
         a(
           href=profile_path,
-          on=on(
-            click=Some(fn(e) {
-              e.preventDefault()
-              router.navigate(profile_path)
-            }),
-          ),
+          on=events().click(fn(e) {
+            e.preventDefault()
+            router.navigate(profile_path)
+          }),
           [text("Profile Settings")],
         ),
       ]),
@@ -307,9 +293,10 @@ fn settings_profile_component(router : @client.BrowserRouter) -> @dom.DomNode {
   div(class="settings-profile", [
     h1([text("Profile Settings")]),
     p([text("Edit your profile here.")]),
-    button(on=on(click=Some(fn(_) { router.navigate(base + "/settings") })), [
-      text("Back to Settings"),
-    ]),
+    button(
+      on=events().click(fn(_) { router.navigate(base + "/settings") }),
+      [text("Back to Settings")],
+    ),
   ])
 }
 
@@ -320,7 +307,10 @@ fn not_found_component(router : @client.BrowserRouter) -> @dom.DomNode {
   div(class="not-found", [
     h1([text("404 - Not Found")]),
     p([text("Page not found: "), text_dyn(fn() { router.get_path() })]),
-    button(on=on(click=Some(fn(_) { router.navigate(base) })), [text("Go Home")]),
+    button(
+      on=events().click(fn(_) { router.navigate(base) }),
+      [text("Go Home")],
+    ),
   ])
 }
 

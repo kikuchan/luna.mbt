@@ -575,35 +575,31 @@ pub fn hydrate_element_ref(el : @js_dom.Element, _state : @js.Any) -> Unit {
           attrs=[("data-ref-input", @dom.AttrString("true"))],
         ),
         @dom.button(
-          on=@dom.on(
-            click=Some(fn(_e) {
-              // Use the stored ref to focus the input
-              match input_ref.val {
-                Some(input_el) => {
-                  input_el.as_any()._call("focus", []) |> ignore
-                  focus_count.update(fn(c) { c + 1 })
-                }
-                None => ()
+          on=@dom.events().click(fn(_e) {
+            // Use the stored ref to focus the input
+            match input_ref.val {
+              Some(input_el) => {
+                input_el.as_any()._call("focus", []) |> ignore
+                focus_count.update(fn(c) { c + 1 })
               }
-            }),
-          ),
+              None => ()
+            }
+          }),
           attrs=[("data-focus-btn", @dom.AttrString("true"))],
           [@dom.text("Focus Input")],
         ),
         @dom.button(
-          on=@dom.on(
-            click=Some(fn(_e) {
-              // Use the stored ref to clear and focus the input
-              match input_ref.val {
-                Some(input_el) => {
-                  input_el.as_any()._set("value", @js.any("")) |> ignore
-                  input_el.as_any()._call("focus", []) |> ignore
-                  focus_count.update(fn(c) { c + 1 })
-                }
-                None => ()
+          on=@dom.events().click(fn(_e) {
+            // Use the stored ref to clear and focus the input
+            match input_ref.val {
+              Some(input_el) => {
+                input_el.as_any()._set("value", @js.any("")) |> ignore
+                input_el.as_any()._call("focus", []) |> ignore
+                focus_count.update(fn(c) { c + 1 })
               }
-            }),
-          ),
+              None => ()
+            }
+          }),
           attrs=[("data-clear-focus-btn", @dom.AttrString("true"))],
           [@dom.text("Clear & Focus")],
         ),

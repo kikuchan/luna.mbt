@@ -103,7 +103,7 @@ fn create_todo_app() -> (
       ),
       @element.button(
         id="add-btn",
-        on=@element.on(click=Some(fn(_) { add_todo() })),
+        on=@element.events().click(fn(_) { add_todo() }),
         [@element.text("Add")],
       ),
     ]),
@@ -128,12 +128,12 @@ fn create_todo_app() -> (
           [
             @element.span(
               class="todo-text",
-              on=@element.on(click=Some(fn(_) { toggle_todo(todo.id) })),
+              on=@element.events().click(fn(_) { toggle_todo(todo.id) }),
               [@element.text(todo.text)],
             ),
             @element.button(
               class="delete-btn",
-              on=@element.on(click=Some(fn(_) { delete_todo(todo.id) })),
+              on=@element.events().click(fn(_) { delete_todo(todo.id) }),
               [@element.text("×")],
             ),
           ],

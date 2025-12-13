@@ -342,7 +342,7 @@ test "hydrate_with_click_handler" (b : @bench.T) {
     "button",
     [
       ("class", @luna.attr_dynamic(fn() { "count-" + count.get().to_string() })),
-      ("onClick", @luna.attr_handler(@dom.browser_noop_handler())),
+      ("onClick", @luna.attr_handler(@luna.handler(fn(_) { () }))),
     ],
     [@luna.text_dyn(fn() { "Count: " + count.get().to_string() })],
   )
@@ -359,14 +359,14 @@ test "hydrate_form_with_handlers" (b : @bench.T) {
   let value = @signal.signal("")
   let node = @luna.h(
     "form",
-    [("onSubmit", @luna.attr_handler(@dom.browser_noop_handler()))],
+    [("onSubmit", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [
       @luna.h(
         "input",
         [
           ("type", @luna.attr_static("text")),
           ("value", @luna.attr_dynamic(fn() { value.get() })),
-          ("onInput", @luna.attr_handler(@dom.browser_noop_handler())),
+          ("onInput", @luna.attr_handler(@luna.handler(fn(_) { () }))),
         ],
         [],
       ),
