@@ -18,12 +18,6 @@ test.describe("Browser App - Hydration and Reactivity", () => {
   });
 
   test("counter reactivity: clicks update count display", async ({ page }) => {
-    // Capture console logs
-    const logs: string[] = [];
-    page.on("console", (msg) => {
-      logs.push(`[${msg.type()}] ${msg.text()}`);
-    });
-
     await page.goto("/playground/browser_app");
 
     // Wait for app to mount
@@ -38,12 +32,8 @@ test.describe("Browser App - Hydration and Reactivity", () => {
     // Initial count should be 0
     await expect(countDisplay).toContainText("Count: 0");
 
-    console.log("Before click, logs:", logs);
-
     // Click increment 3 times
     await incrementBtn.click();
-    await page.waitForTimeout(100);
-    console.log("After click, logs:", logs);
     await expect(countDisplay).toContainText("Count: 1");
 
     await incrementBtn.click();
@@ -110,22 +100,14 @@ test.describe("Browser App - Hydration and Reactivity", () => {
   test("CSR navigation: navigates to users page with layout", async ({
     page,
   }) => {
-    // Capture console logs
-    const logs: string[] = [];
-    page.on("console", (msg) => {
-      logs.push(`[${msg.type()}] ${msg.text()}`);
-    });
-
     await page.goto("/playground/browser_app");
     await expect(page.locator(".app")).toBeVisible();
-    console.log("Initial logs:", logs);
 
     // Click Users link
     await page.locator("nav").getByText("Users").click();
 
     // Check URL changed
     await expect(page).toHaveURL(/\/playground\/browser_app\/users$/);
-    console.log("After users click logs:", logs);
 
     // Check layout is applied (users section header)
     await expect(page.locator(".users-layout")).toBeVisible();
@@ -256,5 +238,35 @@ test.describe("Browser App - Hydration and Reactivity", () => {
     // Should show 404 page
     await expect(page.locator(".not-found")).toBeVisible();
     await expect(page.locator(".not-found h1")).toHaveText("404 - Not Found");
+  });
+
+  test("home page structure snapshot", async ({ page }) => {
+    await page.goto("/playground/browser_app");
+    await expect(page.locator(".app")).toBeVisible();
+
+    // Get the app content HTML (without dynamic parts)
+    const appHtml = await page.locator(".app").innerHTML();
+
+    // Normalize the HTML for snapshot comparison
+    const normalizedHtml = appHtml
+      .replace(/\s+/g, " ")
+      .replace(/> </g, ">\n<")
+      .trim();
+
+    expect(normalizedHtml).toMatchSnapshot("home-page-structure.txt");
+  });
+
+  test("users page with layout snapshot", async ({ page }) => {
+    await page.goto("/playground/browser_app/users");
+    await expect(page.locator(".users-layout")).toBeVisible();
+
+    const layoutHtml = await page.locator(".users-layout").innerHTML();
+
+    const normalizedHtml = layoutHtml
+      .replace(/\s+/g, " ")
+      .replace(/> </g, ">\n<")
+      .trim();
+
+    expect(normalizedHtml).toMatchSnapshot("users-page-layout.txt");
   });
 });
