@@ -13,10 +13,6 @@
       "alias": "ssr"
     },
     {
-      "path": "mizchi/luna/platform/dom",
-      "alias": "dom"
-    },
-    {
       "path": "mizchi/luna/platform/dom/client",
       "alias": "client"
     },

@@ -9,10 +9,6 @@
     },
     "mizchi/luna/core/signal",
     {
-      "path": "mizchi/luna/platform/dom/element",
-      "alias": "element"
-    },
-    {
       "path": "mizchi/luna/platform/dom/client",
       "alias": "client"
     },
@@ -21,13 +17,9 @@
       "path": "mizchi/js/browser/dom",
       "alias": "js_dom"
     },
-    "mizchi/js/web/event",
     "mizchi/js/builtins/global"
   ],
-  "test-import": [
-    "mizchi/npm_typed/global_jsdom",
-    { "path": "mizchi/luna/renderer", "alias": "renderer" }
-  ],
+  "test-import": [],
   "link": {
     "js": {
       "exports": [

@@ -11,8 +11,7 @@
     {
       "path": "mizchi/js/browser/dom",
       "alias": "js_dom"
-    },
-    "mizchi/js/web/event"
+    }
   ],
   "link": {
     "js": {

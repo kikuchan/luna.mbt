@@ -22,7 +22,6 @@
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    "mizchi/luna/renderer",
-    { "path": "mizchi/luna/platform/dom", "alias": "dom" }
+    "mizchi/luna/renderer"
   ]
 }
