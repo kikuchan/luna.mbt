@@ -1,25 +1,5 @@
 ///| Node types - DOM-independent interface for signals/dom
 
-// =============================================================================
-// Browser-specific helper functions
-// =============================================================================
-
-///|
-/// Create a browser event handler from a callback
-pub fn browser_event_handler(
-  f : (@js.Any) -> Unit,
-) -> @luna.EventHandler[@js.Any] {
-  @luna.handler(f)
-}
-
-///|
-/// Create a browser event handler from a simple callback (ignores event)
-pub fn browser_handler_from_callback(
-  f : () -> Unit,
-) -> @luna.EventHandler[@js.Any] {
-  @luna.handler(fn(_event) { f() })
-}
-
 ///|
 /// Element wraps a DOM element (internal jsdom.Element)
 pub struct Element {

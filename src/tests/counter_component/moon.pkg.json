@@ -5,7 +5,7 @@
       "alias": "luna"
     },
     "mizchi/luna/core/signal",
-    { "path": "mizchi/luna/renderer", "alias": "renderer" }
+    { "path": "mizchi/luna/core/render", "alias": "render" }
   ],
   "link": {
     "js": {

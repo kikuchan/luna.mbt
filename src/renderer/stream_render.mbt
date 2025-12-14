@@ -1,13 +1,6 @@
 ///| Stream SSR - Streaming server-side rendering with Web Streams API
-
-///|
-
 ///| Provides chunked HTML output for faster Time-To-First-Byte (TTFB)
-
 ///| Uses standard Web Streams API (ReadableStream, WritableStream)
-
-///| Uses shared escape utilities from escape.mbt
-
 ///| VAsync nodes render fallback immediately, then stream resolved content
 
 ///|
@@ -33,8 +26,8 @@ fn render_node_to_stream(
 ) -> Unit {
   let write = writer.0
   match node {
-    Text(content) => write(escape_html(content))
-    DynamicText(getter) => write(escape_html(getter()))
+    Text(content) => write(@render.escape_html(content))
+    DynamicText(getter) => write(@render.escape_html(getter()))
     Fragment(children) =>
       for child in children {
         render_node_to_stream(child, writer)
@@ -45,8 +38,8 @@ fn render_node_to_stream(
       let sb = StringBuilder::new()
       sb.write_char('<')
       sb.write_string(tag)
-      render_attrs_to(sb, elem.attrs)
-      if is_void_element(tag) {
+      @render.render_attrs_to(sb, elem.attrs)
+      if @render.is_void_element(tag) {
         sb.write_string(" />")
         write(sb.to_string())
       } else {
@@ -60,17 +53,17 @@ fn render_node_to_stream(
         write("</" + tag + ">")
       }
     }
-    Show(condition=cond, child=child_fn) =>
-      if cond() {
-        render_node_to_stream(child_fn(), writer)
+    Show(condition~, child~) =>
+      if condition() {
+        render_node_to_stream(child(), writer)
       } else {
         write("<!--show-->")
       }
-    For(render=render_fn) =>
-      for item in render_fn() {
+    For(render~) =>
+      for item in render() {
         render_node_to_stream(item, writer)
       }
-    Component(render=render_fn) => render_node_to_stream(render_fn(), writer)
+    Component(render~) => render_node_to_stream(render(), writer)
     Island(island) => render_island_to_stream(island, writer)
     Async(async_node) =>
       // In stream rendering, render fallback immediately
@@ -127,7 +120,7 @@ fn render_island_to_stream(
   sb.write_string("\" ln:url=\"")
   sb.write_string(island.url)
   sb.write_string("\" ln:state=\"")
-  escape_attr_to(sb, island.state)
+  @render.escape_attr_to(sb, island.state)
   sb.write_string("\" ln:trigger=\"")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
@@ -140,10 +133,6 @@ fn render_island_to_stream(
   // End comment marker
   write("<!--/ln:island:" + island.id + "-->")
 }
-
-// Note: escape_html, escape_attr_to, escape_js_string are defined in escape.mbt
-
-// Note: Attribute rendering uses render_attrs_to from render_to_string.mbt
 
 ///|
 /// Create a ReadableStream for HTTP response (Web Streams API)
@@ -203,8 +192,8 @@ fn render_node_collecting_async(
 ) -> Unit {
   let write = writer.0
   match node {
-    Text(content) => write(escape_html(content))
-    DynamicText(getter) => write(escape_html(getter()))
+    Text(content) => write(@render.escape_html(content))
+    DynamicText(getter) => write(@render.escape_html(getter()))
     Fragment(children) =>
       for child in children {
         render_node_collecting_async(child, writer, boundaries, id_counter)
@@ -214,8 +203,8 @@ fn render_node_collecting_async(
       let sb = StringBuilder::new()
       sb.write_char('<')
       sb.write_string(tag)
-      render_attrs_to(sb, elem.attrs)
-      if is_void_element(tag) {
+      @render.render_attrs_to(sb, elem.attrs)
+      if @render.is_void_element(tag) {
         sb.write_string(" />")
         write(sb.to_string())
       } else {
@@ -227,18 +216,18 @@ fn render_node_collecting_async(
         write("</" + tag + ">")
       }
     }
-    Show(condition=cond, child=child_fn) =>
-      if cond() {
-        render_node_collecting_async(child_fn(), writer, boundaries, id_counter)
+    Show(condition~, child~) =>
+      if condition() {
+        render_node_collecting_async(child(), writer, boundaries, id_counter)
       } else {
         write("<!--show-->")
       }
-    For(render=render_fn) =>
-      for item in render_fn() {
+    For(render~) =>
+      for item in render() {
         render_node_collecting_async(item, writer, boundaries, id_counter)
       }
-    Component(render=render_fn) =>
-      render_node_collecting_async(render_fn(), writer, boundaries, id_counter)
+    Component(render~) =>
+      render_node_collecting_async(render(), writer, boundaries, id_counter)
     Island(island) => render_island_to_stream(island, writer)
     Async(async_node) => {
       let id = id_counter.val

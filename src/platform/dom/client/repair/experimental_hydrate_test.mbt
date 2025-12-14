@@ -550,7 +550,7 @@ test "exp: fallback succeeds when normal hydration works" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let vnode = @luna.h("div", [], [@luna.vtext("Content")])
-  let html = @renderer.render_to_string(vnode)
+  let html = @render.render_to_string(vnode).html
   exp_set_inner_html(container, html)
   let result = hydrate_with_fallback(container, vnode, logger~)
   match result {
@@ -722,7 +722,7 @@ test "report: clean hydration returns clean report" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let vnode = @luna.h("div", [], [@luna.vtext("Content")])
-  let html = @renderer.render_to_string(vnode)
+  let html = @render.render_to_string(vnode).html
   exp_set_inner_html(container, html)
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_true(report.is_clean())

@@ -80,7 +80,7 @@ fn create_distance_html_missing_elements(count : Int, missing : Int) -> String {
 test "distance_0_clean_10_nodes" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(10)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_10_nodes", fn() {
     let container = setup_fixable_container(html)
@@ -92,7 +92,7 @@ test "distance_0_clean_10_nodes" (b : @bench.T) {
 test "distance_0_clean_50_nodes" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(50)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_50_nodes", fn() {
     let container = setup_fixable_container(html)
@@ -104,7 +104,7 @@ test "distance_0_clean_50_nodes" (b : @bench.T) {
 test "distance_0_clean_100_nodes" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(100)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="distance_0_clean_100_nodes", fn() {
     let container = setup_fixable_container(html)
@@ -347,7 +347,7 @@ test "baseline_full_render_100_nodes" (b : @bench.T) {
 test "smart_hydrate_10_nodes_clean" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(10)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_10_nodes_clean", fn() {
     let container = setup_fixable_container(html)
@@ -359,7 +359,7 @@ test "smart_hydrate_10_nodes_clean" (b : @bench.T) {
 test "smart_hydrate_50_nodes_clean" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(50)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_50_nodes_clean", fn() {
     let container = setup_fixable_container(html)
@@ -371,7 +371,7 @@ test "smart_hydrate_50_nodes_clean" (b : @bench.T) {
 test "smart_hydrate_60_nodes_fallback" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(60)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_60_nodes_fallback", fn() {
     let container = setup_fixable_container(html)
@@ -383,7 +383,7 @@ test "smart_hydrate_60_nodes_fallback" (b : @bench.T) {
 test "smart_hydrate_100_nodes_fallback" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_distance_tree(100)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="smart_hydrate_100_nodes_fallback", fn() {
     let container = setup_fixable_container(html)

@@ -7,13 +7,13 @@
 ///|
 /// Render a node tree to HTML string
 pub fn render(node : @luna.Node[Unit]) -> String {
-  @renderer.render_to_string(node)
+  @render.render_to_string(node).html
 }
 
 ///|
 /// Render a node tree to HTML with preload URLs for islands
 pub fn render_with_preloads(node : @luna.Node[Unit]) -> RenderResult {
-  let result = @renderer.render_with_preloads(node)
+  let result = @render.render_to_string(node, preload=true)
   { html: result.html, preload_urls: result.preload_urls }
 }
 
@@ -33,7 +33,7 @@ pub fn render_document_with_preloads(node : @luna.Node[Unit]) -> RenderResult {
 ///|
 /// Generate modulepreload link tags for island scripts
 pub fn generate_preload_tags(urls : Array[String]) -> String {
-  @renderer.generate_preload_tags(urls)
+  @render.generate_preload_tags(urls)
 }
 
 ///|

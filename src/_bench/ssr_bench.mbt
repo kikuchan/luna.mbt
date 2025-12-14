@@ -9,14 +9,14 @@
 ///|
 test "ssr_simple_text" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.vtext("Hello, World!")
-  b.bench(name="ssr_simple_text", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_simple_text", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
 test "ssr_simple_element" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.h("div", [], [@luna.vtext("Hello")])
   b.bench(name="ssr_simple_element", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -31,7 +31,7 @@ test "ssr_element_with_attrs" (b : @bench.T) {
     [@luna.vtext("Content")],
   )
   b.bench(name="ssr_element_with_attrs", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -45,7 +45,7 @@ test "ssr_nested_3_levels" (b : @bench.T) {
     @luna.h("section", [], [@luna.h("p", [], [@luna.vtext("Nested content")])]),
   ])
   b.bench(name="ssr_nested_3_levels", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -59,7 +59,7 @@ test "ssr_nested_5_levels" (b : @bench.T) {
     ]),
   ])
   b.bench(name="ssr_nested_5_levels", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -79,14 +79,14 @@ fn create_list(count : Int) -> @luna.Node[@js.Any] {
 ///|
 test "ssr_list_10_items" (b : @bench.T) {
   let node = create_list(10)
-  b.bench(name="ssr_list_10_items", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_list_10_items", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
 test "ssr_list_100_items" (b : @bench.T) {
   let node = create_list(100)
   b.bench(name="ssr_list_100_items", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -94,7 +94,7 @@ test "ssr_list_100_items" (b : @bench.T) {
 test "ssr_list_1000_items" (b : @bench.T) {
   let node = create_list(1000)
   b.bench(name="ssr_list_1000_items", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -138,20 +138,20 @@ fn create_page(card_count : Int) -> @luna.Node[@js.Any] {
 ///|
 test "ssr_page_10_cards" (b : @bench.T) {
   let node = create_page(10)
-  b.bench(name="ssr_page_10_cards", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_page_10_cards", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
 test "ssr_page_50_cards" (b : @bench.T) {
   let node = create_page(50)
-  b.bench(name="ssr_page_50_cards", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_page_50_cards", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
 test "ssr_page_100_cards" (b : @bench.T) {
   let node = create_page(100)
   b.bench(name="ssr_page_100_cards", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -193,7 +193,7 @@ test "ssr_dynamic_text" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.text_dyn(fn() {
     "Count: " + count.get().to_string()
   })
-  b.bench(name="ssr_dynamic_text", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_dynamic_text", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
@@ -215,7 +215,7 @@ test "ssr_dynamic_attrs" (b : @bench.T) {
     ],
     [@luna.vtext("Toggle")],
   )
-  b.bench(name="ssr_dynamic_attrs", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_dynamic_attrs", fn() { b.keep(@ssr.render_to_string(node).html) })
 }
 
 ///|
@@ -225,7 +225,7 @@ test "ssr_show_conditional" (b : @bench.T) {
     @luna.h("div", [], [@luna.vtext("Visible content")])
   })
   b.bench(name="ssr_show_conditional", fn() {
-    b.keep(@ssr.render_to_string(node))
+    b.keep(@ssr.render_to_string(node).html)
   })
 }
 
@@ -235,5 +235,5 @@ test "ssr_for_loop" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.vfor(fn() {
     items_sig.get().map(fn(item) { @luna.h("li", [], [@luna.vtext(item)]) })
   })
-  b.bench(name="ssr_for_loop", fn() { b.keep(@ssr.render_to_string(node)) })
+  b.bench(name="ssr_for_loop", fn() { b.keep(@ssr.render_to_string(node).html) })
 }

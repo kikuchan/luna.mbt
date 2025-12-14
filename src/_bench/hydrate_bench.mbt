@@ -52,7 +52,7 @@ extern "js" fn hydrate_set_inner_html(
 test "hydrate_simple_text" (b : @bench.T) {
   @global_jsdom.register()
   let node = @luna.vtext("Hello, World!")
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_simple_text", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -63,7 +63,7 @@ test "hydrate_simple_text" (b : @bench.T) {
 test "hydrate_simple_element" (b : @bench.T) {
   @global_jsdom.register()
   let node = @luna.h("div", [], [@luna.vtext("Hello")])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_simple_element", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -81,7 +81,7 @@ test "hydrate_element_with_attrs" (b : @bench.T) {
     ],
     [@luna.vtext("Content")],
   )
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_element_with_attrs", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -98,7 +98,7 @@ test "hydrate_nested_3" (b : @bench.T) {
   let node = @luna.h("div", [], [
     @luna.h("section", [], [@luna.h("p", [], [@luna.vtext("Nested")])]),
   ])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_nested_3", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -115,7 +115,7 @@ test "hydrate_nested_5" (b : @bench.T) {
       ]),
     ]),
   ])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_nested_5", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -139,7 +139,7 @@ fn create_hydrate_list_node(count : Int) -> @luna.Node[@js.Any] {
 test "hydrate_list_10" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_hydrate_list_node(10)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_list_10", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -150,7 +150,7 @@ test "hydrate_list_10" (b : @bench.T) {
 test "hydrate_list_100" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_hydrate_list_node(100)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_list_100", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -312,7 +312,7 @@ fn create_hydrate_page(card_count : Int) -> @luna.Node[@js.Any] {
 test "hydrate_page_10_cards" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_hydrate_page(10)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_page_10_cards", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))
@@ -323,7 +323,7 @@ test "hydrate_page_10_cards" (b : @bench.T) {
 test "hydrate_page_50_cards" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_hydrate_page(50)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   b.bench(name="hydrate_page_50_cards", fn() {
     let container = setup_hydrate_container(html)
     b.keep(@client.hydrate(container, node))

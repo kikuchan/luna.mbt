@@ -52,7 +52,7 @@ extern "js" fn fixable_set_inner_html(
 test "fixable_clean_simple" (b : @bench.T) {
   @global_jsdom.register()
   let node = @luna.h("div", [], [@luna.vtext("Hello")])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_simple", fn() {
     let container = setup_fixable_container(html)
@@ -66,7 +66,7 @@ test "fixable_clean_nested" (b : @bench.T) {
   let node = @luna.h("div", [], [
     @luna.h("section", [], [@luna.h("p", [], [@luna.vtext("Nested content")])]),
   ])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_nested", fn() {
     let container = setup_fixable_container(html)
@@ -87,7 +87,7 @@ fn create_fixable_list_node(count : Int) -> @luna.Node[@js.Any] {
 test "fixable_clean_list_50" (b : @bench.T) {
   @global_jsdom.register()
   let node = create_fixable_list_node(50)
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="fixable_clean_list_50", fn() {
     let container = setup_fixable_container(html)
@@ -261,7 +261,7 @@ test "fixable_repair_multiple_cards" (b : @bench.T) {
 test "fixable_with_report_clean" (b : @bench.T) {
   @global_jsdom.register()
   let node = @luna.h("div", [], [@luna.vtext("Hello")])
-  let html = @ssr.render_to_string(node)
+  let html = @ssr.render_to_string(node).html
   let logger = StringBuilder::new()
   b.bench(name="fixable_with_report_clean", fn() {
     let container = setup_fixable_container(html)

@@ -1,8 +1,5 @@
 ///| HTML/Attribute/JS String Escaping Utilities
-
-///|
-
-///| Shared escape functions used by render_to_string and stream_render
+///| Pure MoonBit - works on all targets (js, wasm-gc, native)
 
 // =============================================================================
 // HTML Escaping

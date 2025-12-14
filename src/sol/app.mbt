@@ -56,9 +56,9 @@ pub fn[E] render_page(
   let head_str = head.unwrap_or("")
   let enable_hydration = hydration.unwrap_or(false)
   let body_html = if enable_hydration {
-    @renderer.render_to_string_with_hydration(node)
+    @render.render_to_string_with_hydration(node)
   } else {
-    @renderer.render_to_string(node)
+    @render.render_to_string(node).html
   }
   "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
   title_str +
@@ -72,7 +72,7 @@ pub fn[E] render_page(
 ///|
 /// Render a VNode to HTML string without document wrapper (for partial/fragment responses)
 pub fn[E] render_fragment(node : @luna.Node[E]) -> String {
-  @renderer.render_to_string_with_hydration(node)
+  @render.render_to_string_with_hydration(node)
 }
 
 ///|
@@ -241,7 +241,7 @@ pub fn[E] render_island(config : IslandConfig[E]) -> String {
     Some(html) => html
     None =>
       match config.content {
-        Some(node) => @renderer.render_to_string_with_hydration(node)
+        Some(node) => @render.render_to_string_with_hydration(node)
         None => ""
       }
   }
@@ -319,7 +319,7 @@ pub fn[E] render_island_with_state_script(
     Some(html) => html
     None =>
       match config.content {
-        Some(node) => @renderer.render_to_string_with_hydration(node)
+        Some(node) => @render.render_to_string_with_hydration(node)
         None => ""
       }
   }
@@ -389,9 +389,9 @@ pub fn[E] render_node(
   hydration? : Bool = false,
 ) -> String {
   if hydration {
-    @renderer.render_to_string_with_hydration(node)
+    @render.render_to_string_with_hydration(node)
   } else {
-    @renderer.render_to_string(node)
+    @render.render_to_string(node).html
   }
 }
 
@@ -399,23 +399,25 @@ pub fn[E] render_node(
 // Streaming SSR Support
 // ============================================================================
 
-// Re-export renderer types for convenience
+// Re-export render types from core/render
+///|
+pub using @render {
+  type SSRResult,
+  generate_preload_tags,
+  escape_html,
+  escape_attr,
+  escape_js_string,
+}
 
+// Re-export streaming types from renderer (JS-only)
 ///|
 pub using @renderer {
   type StreamWriter,
-  type SSRResult,
   render_to_stream,
   render_to_readable_stream,
   render_to_stream_with_async,
   render_to_stream_collecting_async,
   stream_async_replacement,
-  render_with_preloads,
-  render_with_options,
-  generate_preload_tags,
-  escape_html,
-  escape_attr,
-  escape_js_string,
 }
 
 ///|
@@ -525,8 +527,8 @@ pub fn streaming_page(
 /// Returns SSRResult with html and preload_urls
 pub fn[E] render_with_island_preloads(
   node : @luna.Node[E],
-) -> @renderer.SSRResult {
-  @renderer.render_with_preloads(node)
+) -> @render.SSRResult {
+  @render.render_to_string(node, preload=true)
 }
 
 ///|
@@ -541,14 +543,11 @@ pub fn[E] render_page_with_preloads(
   let enable_hydration = hydration.unwrap_or(false)
 
   // Render and collect preload URLs
-  let result = @renderer.render_with_options(
-    node,
-    preload=true,
-    hydration=enable_hydration,
-  )
+  let _ = enable_hydration // Reserved for future use
+  let result = @render.render_to_string(node, preload=true)
 
   // Generate preload tags
-  let preload_tags = @renderer.generate_preload_tags(result.preload_urls)
+  let preload_tags = @render.generate_preload_tags(result.preload_urls)
 
   // Combine head with preload tags
   let head_str = head.unwrap_or("") + preload_tags

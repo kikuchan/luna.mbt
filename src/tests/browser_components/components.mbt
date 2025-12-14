@@ -55,7 +55,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               count_sig.update(fn(c) { c + 1 })
             }),
           ),
@@ -70,7 +70,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               count_sig.update(fn(c) { c - 1 })
             }),
           ),
@@ -85,7 +85,7 @@ pub fn hydrate_signal_effect(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() { count_sig.set(0) }),
+            @luna.handler(fn(_event : @js.Any) { count_sig.set(0) }),
           ),
         ),
       ],
@@ -137,7 +137,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               active.update(fn(a) { not(a) })
             }),
           ),
@@ -152,7 +152,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() { color.set("red") }),
+            @luna.handler(fn(_event : @js.Any) { color.set("red") }),
           ),
         ),
       ],
@@ -165,7 +165,7 @@ pub fn hydrate_dynamic_attrs(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() { color.set("blue") }),
+            @luna.handler(fn(_event : @js.Any) { color.set("blue") }),
           ),
         ),
       ],
@@ -191,7 +191,7 @@ pub fn hydrate_show_toggle(el : @js_dom.Element, state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               visible.update(fn(v) { not(v) })
             }),
           ),
@@ -243,7 +243,7 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @js.Any) -> Unit {
           (
             "onClick",
             @luna.attr_handler(
-              @browser.browser_handler_from_callback(fn() {
+              @luna.handler(fn(_event : @js.Any) {
                 // In a real app, we'd read from the input element
                 // For testing, we'll add a placeholder item
                 let current = items.get()
@@ -284,7 +284,7 @@ pub fn hydrate_for_each(el : @js_dom.Element, state : @js.Any) -> Unit {
                     (
                       "onClick",
                       @luna.attr_handler(
-                        @browser.browser_handler_from_callback(fn() {
+                        @luna.handler(fn(_event : @js.Any) {
                           let current = items.get()
                           let new_arr : Array[String] = []
                           for j = 0; j < current.length(); j = j + 1 {
@@ -336,7 +336,7 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onClick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               click_count.update(fn(c) { c + 1 })
             }),
           ),
@@ -344,7 +344,7 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onDblclick",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               dblclick_count.update(fn(c) { c + 1 })
             }),
           ),
@@ -352,7 +352,7 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onMouseenter",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               hover_state.set("hovering")
             }),
           ),
@@ -360,7 +360,7 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onMouseleave",
           @luna.attr_handler(
-            @browser.browser_handler_from_callback(fn() {
+            @luna.handler(fn(_event : @js.Any) {
               hover_state.set("none")
             }),
           ),
@@ -498,7 +498,7 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @js.Any) -> Unit {
           (
             "onClick",
             @luna.attr_handler(
-              @browser.browser_handler_from_callback(fn() {
+              @luna.handler(fn(_event : @js.Any) {
                 submitted.set(text_value.get())
               }),
             ),
@@ -513,7 +513,7 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @js.Any) -> Unit {
           (
             "onClick",
             @luna.attr_handler(
-              @browser.browser_handler_from_callback(fn() { text_value.set("") }),
+              @luna.handler(fn(_event : @js.Any) { text_value.set("") }),
             ),
           ),
         ],
@@ -526,7 +526,7 @@ pub fn hydrate_input_binding(el : @js_dom.Element, state : @js.Any) -> Unit {
           (
             "onClick",
             @luna.attr_handler(
-              @browser.browser_handler_from_callback(fn() {
+              @luna.handler(fn(_event : @js.Any) {
                 text_value.set("Hello World")
               }),
             ),

@@ -33,10 +33,10 @@ pub fn hydrate(el : @js_dom.Element, state : @js.Any) -> Unit {
   let count_sig = @signal.signal(initial_count)
 
   // Create browser event handlers that update the signal
-  let on_inc = @dom.browser_handler_from_callback(fn() {
+  let on_inc = @luna.handler(fn(_event : @js.Any) {
     count_sig.update(fn(c) { c + 1 })
   })
-  let on_dec = @dom.browser_handler_from_callback(fn() {
+  let on_dec = @luna.handler(fn(_event : @js.Any) {
     count_sig.update(fn(c) { c - 1 })
   })
 

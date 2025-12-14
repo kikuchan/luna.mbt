@@ -4,28 +4,28 @@
 /// Type alias for SSR nodes (Event type = Unit)
 test "render simple text" {
   let node : @luna.Node[Unit] = @luna.vtext("Hello, World!")
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Hello, World!")
 }
 
 ///|
 test "render escaped text" {
   let node : @luna.Node[Unit] = @luna.vtext("<script>alert('xss')</script>")
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;")
 }
 
 ///|
 test "render simple element" {
   let node : @luna.Node[Unit] = @luna.h("div", [], [])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div></div>")
 }
 
 ///|
 test "render element with text child" {
   let node : @luna.Node[Unit] = @luna.h("div", [], [@luna.vtext("Hello")])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Hello</div>")
 }
 
@@ -36,7 +36,7 @@ test "render element with class" {
     [("class", @luna.attr_static("container"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div class=\"container\"></div>")
 }
 
@@ -50,7 +50,7 @@ test "render element with multiple attrs" {
     ],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div id=\"main\" class=\"container\"></div>")
 }
 
@@ -59,7 +59,7 @@ test "render nested elements" {
   let node : @luna.Node[Unit] = @luna.h("div", [], [
     @luna.h("span", [], [@luna.vtext("nested")]),
   ])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div><span>nested</span></div>")
 }
 
@@ -73,7 +73,7 @@ test "render void element" {
     ],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<input type=\"text\" placeholder=\"Enter name\" />")
 }
 
@@ -83,7 +83,7 @@ test "render br and hr" {
     @luna.h("br", [], []),
     @luna.h("hr", [], []),
   ])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<br /><hr />")
 }
 
@@ -94,7 +94,7 @@ test "render fragment" {
     @luna.vtext("B"),
     @luna.vtext("C"),
   ])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "ABC")
 }
 
@@ -104,7 +104,7 @@ test "render dynamic text" {
   let node : @luna.Node[Unit] = @luna.text_dyn(fn() {
     "Count: " + count.to_string()
   })
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Count: 42")
 }
 
@@ -121,7 +121,7 @@ test "render dynamic attribute" {
     ],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div class=\"active\"></div>")
 }
 
@@ -132,7 +132,7 @@ test "render style attribute" {
     [("style", @luna.attr_style("color: red; font-size: 16px"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div style=\"color: red; font-size: 16px\"></div>")
 }
 
@@ -143,14 +143,14 @@ test "render disabled attribute true" {
     [("disabled", @luna.attr_static(""))],
     [@luna.vtext("Submit")],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<button disabled>Submit</button>")
 }
 
 ///|
 test "render disabled attribute false" {
   let node : @luna.Node[Unit] = @luna.h("button", [], [@luna.vtext("Submit")])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<button>Submit</button>")
 }
 
@@ -160,7 +160,7 @@ test "render show when true" {
   let node : @luna.Node[Unit] = @luna.vshow(fn() { visible }, fn() {
     @luna.vtext("Visible!")
   })
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Visible!")
 }
 
@@ -170,7 +170,7 @@ test "render show when false" {
   let node : @luna.Node[Unit] = @luna.vshow(fn() { visible }, fn() {
     @luna.vtext("Visible!")
   })
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<!--show-->")
 }
 
@@ -184,7 +184,7 @@ test "render for list" {
     }
     result
   })
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<li>A</li><li>B</li><li>C</li>")
 }
 
@@ -195,7 +195,7 @@ test "render component" {
   }
 
   let node : @luna.Node[Unit] = @luna.vcomponent(fn() { greeting("World") })
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Hello, World!</div>")
 }
 
@@ -209,7 +209,7 @@ test "handlers are not rendered" {
     ],
     [@luna.vtext("Click me")],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Handler should not appear in output
   assert_eq(html, "<button class=\"btn\">Click me</button>")
 }
@@ -221,7 +221,7 @@ test "escape attribute value" {
     [("data-value", @luna.attr_static("a\"b&c"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div data-value=\"a&quot;b&amp;c\"></div>")
 }
 
@@ -293,7 +293,7 @@ test "complex page render" {
       ),
     ],
   )
-  let html = render_to_string(page)
+  let html = render_to_string(page).html
   assert_true(html.contains("<h1>My App</h1>"))
   assert_true(html.contains("Count: 0"))
   assert_true(html.contains("<li>Item 1</li><li>Item 2</li>"))
@@ -307,14 +307,14 @@ test "complex page render" {
 ///|
 test "render text with ampersand" {
   let node : @luna.Node[Unit] = @luna.vtext("Tom & Jerry")
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Tom &amp; Jerry")
 }
 
 ///|
 test "render text with double quote" {
   let node : @luna.Node[Unit] = @luna.vtext("Say \"hello\"")
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Say &quot;hello&quot;")
 }
 
@@ -325,7 +325,7 @@ test "render void elements img" {
     [("src", @luna.attr_static("/image.png"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<img src=\"/image.png\" />")
 }
 
@@ -336,14 +336,14 @@ test "render void element col" {
     [("span", @luna.attr_static("2"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<col span=\"2\" />")
 }
 
 ///|
 test "render void element wbr" {
   let node : @luna.Node[Unit] = @luna.h("wbr", [], [])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<wbr />")
 }
 
@@ -354,7 +354,7 @@ test "render void element area" {
     [("shape", @luna.attr_static("rect"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<area shape=\"rect\" />")
 }
 
@@ -365,7 +365,7 @@ test "render void element base" {
     [("href", @luna.attr_static("/"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<base href=\"/\" />")
 }
 
@@ -376,7 +376,7 @@ test "render void element link" {
     [("rel", @luna.attr_static("stylesheet"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<link rel=\"stylesheet\" />")
 }
 
@@ -387,7 +387,7 @@ test "render void element meta" {
     [("charset", @luna.attr_static("utf-8"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<meta charset=\"utf-8\" />")
 }
 
@@ -398,7 +398,7 @@ test "render void element embed" {
     [("src", @luna.attr_static("/video.swf"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<embed src=\"/video.swf\" />")
 }
 
@@ -409,7 +409,7 @@ test "render void element track" {
     [("kind", @luna.attr_static("subtitles"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<track kind=\"subtitles\" />")
 }
 
@@ -420,7 +420,7 @@ test "render void element source" {
     [("src", @luna.attr_static("/audio.mp3"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<source src=\"/audio.mp3\" />")
 }
 
@@ -428,7 +428,7 @@ test "render void element source" {
 test "render non-void element with length 7" {
   // "section" has length 7, should not be void element
   let node : @luna.Node[Unit] = @luna.h("section", [], [@luna.vtext("content")])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<section>content</section>")
 }
 
@@ -439,7 +439,7 @@ test "render dynamic style" {
     [("style", @luna.attr_dynamic_style(fn() { "color: blue; margin: 10px" }))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div style=\"color: blue; margin: 10px\"></div>")
 }
 
@@ -450,7 +450,7 @@ test "render empty dynamic style" {
     [("style", @luna.attr_dynamic_style(fn() { "" }))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Empty string results in empty style attribute (no quotes needed)
   assert_eq(html, "<div style></div>")
 }
@@ -471,7 +471,7 @@ test "render island basic" {
       ]),
     ],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Check comment markers
   assert_true(
     html.contains(
@@ -497,7 +497,7 @@ test "render island with idle trigger" {
     [@luna.vtext("Loading...")],
     trigger=@luna.Idle,
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("ln:trigger=\"idle\""))
   assert_true(html.contains("trigger=idle-->"))
 }
@@ -511,7 +511,7 @@ test "render island with visible trigger" {
     [@luna.vtext("Loading...")],
     trigger=@luna.Visible,
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("ln:trigger=\"visible\""))
   assert_true(html.contains("trigger=visible-->"))
 }
@@ -525,7 +525,7 @@ test "render island with media trigger" {
     [@luna.vtext("Content")],
     trigger=@luna.Media("(min-width: 768px)"),
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("ln:trigger=\"media:(min-width: 768px)\""))
   assert_true(html.contains("trigger=media:(min-width: 768px)-->"))
 }
@@ -544,7 +544,7 @@ test "render nested islands" {
     "{}",
     [@luna.h("div", [], [inner_island])],
   )
-  let html = render_to_string(outer_island)
+  let html = render_to_string(outer_island).html
   // Check both islands are present
   assert_true(html.contains("ln:id=\"outer-1\""))
   assert_true(html.contains("ln:id=\"inner-1\""))
@@ -563,7 +563,7 @@ test "render island state escaping" {
     "{\"text\":\"<script>alert(1)</script>\"}",
     [@luna.vtext("Safe")],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Ensure < and > are NOT in the attribute value (they should be entity-escaped)
   // The attribute value should have &lt; and &gt; or be safe
   assert_true(not(html.contains("ln:state=\"{\"text\":\"<script>")))
@@ -592,7 +592,7 @@ test "render island with complex children" {
       @luna.vshow(fn() { true }, fn() { @luna.vtext("Visible text") }),
     ],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("<h2>Title</h2>"))
   assert_true(html.contains("<li>Item 0</li>"))
   assert_true(html.contains("<li>Item 1</li>"))
@@ -727,24 +727,24 @@ test "needs_attr_escape" {
 // =============================================================================
 
 ///|
-test "render_with_preloads collects island urls" {
+test "render_to_string with preload collects island urls" {
   let node : @luna.Node[Unit] = @luna.vfragment([
     @luna.visland("island-1", "/components/a.js", "{}", [@luna.vtext("A")]),
     @luna.visland("island-2", "/components/b.js", "{}", [@luna.vtext("B")]),
   ])
-  let result = render_with_preloads(node)
+  let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 2)
   assert_true(result.preload_urls.contains("/components/a.js"))
   assert_true(result.preload_urls.contains("/components/b.js"))
 }
 
 ///|
-test "render_with_preloads deduplicates urls" {
+test "render_to_string with preload deduplicates urls" {
   let node : @luna.Node[Unit] = @luna.vfragment([
     @luna.visland("island-1", "/components/shared.js", "{}", [@luna.vtext("A")]),
     @luna.visland("island-2", "/components/shared.js", "{}", [@luna.vtext("B")]),
   ])
-  let result = render_with_preloads(node)
+  let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 1)
   assert_true(result.preload_urls.contains("/components/shared.js"))
 }
@@ -775,7 +775,7 @@ test "render async fallback in sync mode" {
     fallback=fn() { @luna.h("div", [], [@luna.vtext("Loading...")]) },
   )
   // In sync rendering, fallback is rendered
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Loading...</div>")
 }
 
@@ -803,7 +803,7 @@ test "render nested async fallback" {
     [("class", @luna.attr_static("container"))],
     [inner],
   )
-  let html = render_to_string(outer)
+  let html = render_to_string(outer).html
   assert_eq(html, "<div class=\"container\">Inner loading...</div>")
 }
 
@@ -819,7 +819,7 @@ test "render async with on_error handler" {
     }),
   )
   // Still renders fallback in sync mode
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Loading...")
 }
 
@@ -900,7 +900,7 @@ test "render error_boundary children when no error" {
     children=fn() { @luna.h("div", [], [@luna.vtext("Success")]) },
     fallback=fn(_err, _reset) { @luna.h("div", [], [@luna.vtext("Error!")]) },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Success</div>")
 }
 
@@ -915,7 +915,7 @@ test "render error_boundary with nested content" {
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("<h1>Title</h1>"))
   assert_true(html.contains("<p>Content</p>"))
 }
@@ -931,7 +931,7 @@ test "render error_boundary with dynamic content" {
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Count: 42</div>")
 }
 
@@ -944,7 +944,7 @@ test "render error_boundary with show" {
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Visible!")
 }
 
@@ -963,7 +963,7 @@ test "render error_boundary with for" {
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<li>A</li><li>B</li><li>C</li>")
 }
 
@@ -995,7 +995,7 @@ test "render nested error_boundaries" {
     },
     fallback=fn(_err, _reset) { @luna.vtext("Outer error") },
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<div>Inner content</div>")
 }
 
@@ -1014,7 +1014,7 @@ test "render error_boundary in island" {
       }),
     ],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_true(html.contains("ln:id=\"eb-island-1\""))
   assert_true(html.contains("Island content"))
 }
@@ -1059,14 +1059,14 @@ test "stream render error_boundary with async boundaries" {
 // =============================================================================
 
 ///|
-test "render_with_options preload=false" {
+test "render_to_string preload=false" {
   let node : @luna.Node[Unit] = @luna.visland(
     "island-1",
     "/components/a.js",
     "{}",
     [@luna.vtext("Content")],
   )
-  let result = render_with_options(node, preload=false)
+  let result = render_to_string(node, preload=false)
   // Should render correctly but not collect URLs
   assert_eq(result.preload_urls.length(), 0)
   assert_true(result.html.contains("ln:id=\"island-1\""))
@@ -1079,7 +1079,7 @@ test "render action attribute" {
     [("onclick", @luna.action("increment"))],
     [@luna.vtext("Click")],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Action should render as data-action-click attribute
   assert_true(html.contains("data-action-click=\"increment\""))
 }
@@ -1091,7 +1091,7 @@ test "render action attribute with special chars" {
     [("onclick", @luna.action("do \"something\""))],
     [@luna.vtext("Click")],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // Action value should be escaped
   assert_true(html.contains("data-action-click="))
   assert_true(html.contains("&quot;"))
@@ -1107,7 +1107,7 @@ test "render __remove__ attribute" {
     ],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // __remove__ attribute should not appear
   assert_eq(html, "<div class=\"visible\"></div>")
 }
@@ -1121,7 +1121,7 @@ test "render switch first case matches" {
     ],
     fallback=Some(fn() { @luna.vtext("Fallback") }),
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "First")
 }
 
@@ -1137,7 +1137,7 @@ test "render switch second case matches" {
     ],
     fallback=Some(fn() { @luna.vtext("Fallback") }),
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Second")
 }
 
@@ -1156,7 +1156,7 @@ test "render switch fallback" {
     ],
     fallback=Some(fn() { @luna.vtext("Fallback") }),
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "Fallback")
 }
 
@@ -1165,7 +1165,7 @@ test "render switch no fallback" {
   let node : @luna.Node[Unit] = @luna.vswitch(cases=[
     @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("First") }),
   ])
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   assert_eq(html, "<!--switch-->")
 }
 
@@ -1178,7 +1178,7 @@ test "render switch with preloads" {
       }),
     ],
   )
-  let result = render_with_preloads(node)
+  let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 1)
   assert_true(result.preload_urls.contains("/sw.js"))
 }
@@ -1296,11 +1296,12 @@ test "stream render collecting async switch" {
 }
 
 ///|
-test "render_with_options hydration parameter reserved" {
-  // Test that hydration parameter is accepted (reserved for future use)
+test "render_to_string returns SSRResult with html field" {
+  // Test that render_to_string returns SSRResult
   let node : @luna.Node[Unit] = @luna.vtext("Hello")
-  let result = render_with_options(node, hydration=false)
+  let result = render_to_string(node)
   assert_eq(result.html, "Hello")
+  assert_eq(result.preload_urls.length(), 0)
 }
 
 ///|
@@ -1325,7 +1326,7 @@ test "escape_attr with special characters" {
     [("data-expr", @luna.attr_static("a < b"))],
     [],
   )
-  let html = render_to_string(node)
+  let html = render_to_string(node).html
   // < should NOT be escaped in attributes
   assert_eq(html, "<div data-expr=\"a < b\"></div>")
 }

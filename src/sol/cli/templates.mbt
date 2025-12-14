@@ -1,7 +1,7 @@
 ///| Sol CLI Templates - Embedded template files for project scaffolding
 
 ///|
-pub fn template_gitignore() -> String {
+fn template_gitignore() -> String {
   (
     #|.mooncakes
     #|target
@@ -10,7 +10,7 @@ pub fn template_gitignore() -> String {
 }
 
 ///|
-pub fn template_moon_mod_json(package_name : String) -> String {
+fn template_moon_mod_json(package_name : String) -> String {
   let tmpl =
     #|{
     #|  "name": "{{PACKAGE_NAME}}",
@@ -25,7 +25,7 @@ pub fn template_moon_mod_json(package_name : String) -> String {
 }
 
 ///|
-pub fn template_package_json(package_name : String) -> String {
+fn template_package_json(package_name : String) -> String {
   let tmpl =
     #|{
     #|  "name": "{{PACKAGE_NAME}}",
@@ -44,7 +44,7 @@ pub fn template_package_json(package_name : String) -> String {
 }
 
 ///|
-pub fn template_rolldown_config() -> String {
+fn template_rolldown_config() -> String {
   (
     #|import { defineConfig } from 'rolldown';
     #|
@@ -62,7 +62,7 @@ pub fn template_rolldown_config() -> String {
 }
 
 ///|
-pub fn template_client_moon_pkg_json() -> String {
+fn template_client_moon_pkg_json() -> String {
   (
     #|{
     #|  "supported-targets": ["js"],
@@ -81,7 +81,7 @@ pub fn template_client_moon_pkg_json() -> String {
 }
 
 ///|
-pub fn template_client_hydrate_mbt() -> String {
+fn template_client_hydrate_mbt() -> String {
   (
     #|///| Counter Hydration
     #|

@@ -56,7 +56,7 @@ pub fn render_counter_html(count : Int) -> String {
   let sig = @signal.signal(count)
   let noop = @luna.event_handler()
   let vnode = render_counter(sig, noop, noop)
-  @renderer.render_to_string_with_hydration(vnode)
+  @render.render_to_string_with_hydration(vnode)
 }
 
 ///|
