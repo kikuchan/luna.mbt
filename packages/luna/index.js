@@ -34,4 +34,18 @@ export {
   createElement,
   events,
   forEach,
+  // Timer utilities
+  debounced,
+  // Route definitions
+  routePage,
+  routePageTitled,
+  routePageFull,
+  routeGroup,
+  routeParam,
+  createRouter,
+  routerNavigate,
+  routerReplace,
+  routerGetPath,
+  routerGetMatch,
+  routerGetBase,
 } from "../../target/js/release/build/lib/api_js/api_js.js";

@@ -178,3 +178,114 @@ test "recommend_state_format - medium state" {
 test "recommend_state_format - large state" {
   assert_eq(@shard.recommend_state_format(200000), "url")
 }
+
+// ============================================================================
+// html_builder.mbt tests
+// ============================================================================
+
+///|
+test "generate_shard_with_state_script - creates script and reference" {
+  let config = @shard.ShardConfig::new("big-1", "./big.js")
+  let output = @shard.generate_shard_with_state_script(config, "{\"data\":[1,2,3]}")
+  // Should have script reference in attributes
+  assert_true(output.html.contains("ln:state=\"#ln-state-big-1\""))
+  // Should have state script element
+  assert_true(output.html.contains("<script id=\"ln-state-big-1\""))
+  assert_true(output.html.contains("type=\"ln/json\""))
+  assert_true(output.state_scripts.length() == 1)
+}
+
+///|
+test "generate_minimal_shard - creates minimal HTML" {
+  let html = @shard.generate_minimal_shard(
+    "min-1",
+    "./min.js",
+    "{\"x\":1}",
+    "<span>Content</span>",
+  )
+  assert_true(html.contains("ln:id=\"min-1\""))
+  assert_true(html.contains("ln:url=\"./min.js\""))
+  assert_true(html.contains("<span>Content</span>"))
+  // Should not have trigger (default load is omitted)
+  assert_true(not(html.contains("ln:trigger")))
+  // Should not have loader script
+  assert_true(not(html.contains("<script type=\"module\"")))
+}
+
+///|
+test "generate_standalone_shard - includes loader" {
+  let html = @shard.generate_standalone_shard(
+    "standalone-1",
+    "./standalone.js",
+    "https://cdn.example.com/loader.js",
+    "{\"y\":2}",
+    "<div>SSR</div>",
+  )
+  assert_true(html.contains("<script type=\"module\" src=\"https://cdn.example.com/loader.js\">"))
+  assert_true(html.contains("ln:id=\"standalone-1\""))
+  assert_true(html.contains("<div>SSR</div>"))
+}
+
+///|
+test "generate_lazy_shard - uses visible trigger" {
+  let html = @shard.generate_lazy_shard(
+    "lazy-1",
+    "./lazy.js",
+    "{\"z\":3}",
+    "<p>Lazy</p>",
+  )
+  assert_true(html.contains("ln:trigger=\"visible\""))
+  assert_true(html.contains("<p>Lazy</p>"))
+}
+
+///|
+test "generate_shard_group - single loader for multiple shards" {
+  let configs = [
+    @shard.ShardConfig::new("s1", "./s1.js"),
+    @shard.ShardConfig::new("s2", "./s2.js"),
+  ]
+  let html = @shard.generate_shard_group("https://cdn.example.com/loader.js", configs)
+  // Should have single loader script at start
+  assert_true(html.has_prefix("<script type=\"module\" src=\"https://cdn.example.com/loader.js\">"))
+  // Should have both shards
+  assert_true(html.contains("ln:id=\"s1\""))
+  assert_true(html.contains("ln:id=\"s2\""))
+}
+
+///|
+test "auto_select_state_format - small state uses inline" {
+  let base = @shard.ShardConfig::new("test-1", "./test.js")
+  let small_json = "{\"x\":1}"
+  let config = @shard.auto_select_state_format(small_json, base)
+  match config.state {
+    Inline(json) => assert_eq(json, small_json)
+    _ => fail("Expected Inline for small state")
+  }
+}
+
+///|
+test "auto_select_state_format - medium state uses script ref" {
+  let base = @shard.ShardConfig::new("test-2", "./test.js")
+  // Create a string larger than 1KB but smaller than 100KB
+  let sb = StringBuilder::new()
+  sb.write_string("{\"data\":\"")
+  for _ in 0..<2000 {
+    sb.write_char('x')
+  }
+  sb.write_string("\"}")
+  let medium_json = sb.to_string()
+  let config = @shard.auto_select_state_format(medium_json, base)
+  match config.state {
+    ScriptRef(id) => assert_eq(id, "ln-state-test-2")
+    _ => fail("Expected ScriptRef for medium state")
+  }
+}
+
+///|
+test "generate_shard - with media trigger" {
+  let config = @shard.ShardConfig::new("media-1", "./media.js").with_trigger(
+    @shard.TriggerType::Media("(min-width: 768px)"),
+  )
+  let output = @shard.generate_shard(config)
+  assert_true(output.html.contains("ln:trigger=\"media:(min-width: 768px)\""))
+}

@@ -20,6 +20,7 @@ import {
   runWithOwner,
   hasOwner,
   onMount,
+  debounced,
   type Signal,
 } from "../index.js";
 
@@ -319,5 +320,49 @@ describe("Type safety", () => {
     const _m: number = memoized();
 
     expect(true).toBe(true);
+  });
+});
+
+describe("Debounced signal", () => {
+  test("debounced creates a signal", () => {
+    const source = createSignal(0);
+    const debouncedSignal = debounced(source, 100);
+    expect(debouncedSignal).toBeDefined();
+  });
+
+  test("debounced signal has initial value", () => {
+    const source = createSignal(42);
+    const debouncedSignal = debounced(source, 100);
+    expect(get(debouncedSignal)).toBe(42);
+  });
+
+  test("debounced signal delays updates", async () => {
+    const source = createSignal(0);
+    const debouncedSignal = debounced(source, 50);
+
+    set(source, 1);
+    // Immediately after set, debounced should still have old value
+    expect(get(debouncedSignal)).toBe(0);
+
+    // After delay, debounced should update
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(get(debouncedSignal)).toBe(1);
+  });
+
+  test("debounced signal cancels intermediate updates", async () => {
+    const source = createSignal(0);
+    const debouncedSignal = debounced(source, 50);
+
+    // Rapid updates
+    set(source, 1);
+    set(source, 2);
+    set(source, 3);
+
+    // Still 0 immediately
+    expect(get(debouncedSignal)).toBe(0);
+
+    // After delay, should have final value
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(get(debouncedSignal)).toBe(3);
   });
 });

@@ -1329,3 +1329,124 @@ test "escape_attr with special characters" {
   // < should NOT be escaped in attributes
   assert_eq(html, "<div data-expr=\"a < b\"></div>")
 }
+
+// ============================================================================
+// escape.mbt tests
+// ============================================================================
+
+///|
+test "needs_html_escape - returns false for safe strings" {
+  assert_eq(needs_html_escape("Hello World"), false)
+  assert_eq(needs_html_escape("12345"), false)
+  assert_eq(needs_html_escape(""), false)
+}
+
+///|
+test "needs_html_escape - returns true for dangerous characters" {
+  assert_eq(needs_html_escape("a < b"), true)
+  assert_eq(needs_html_escape("a > b"), true)
+  assert_eq(needs_html_escape("Tom & Jerry"), true)
+  assert_eq(needs_html_escape("\"quoted\""), true)
+  assert_eq(needs_html_escape("it's"), true)
+}
+
+///|
+test "escape_html - passes through safe strings" {
+  let safe = "Hello World"
+  assert_eq(escape_html(safe), safe)
+}
+
+///|
+test "escape_html - escapes all dangerous characters" {
+  assert_eq(escape_html("<script>"), "&lt;script&gt;")
+  assert_eq(escape_html("&nbsp;"), "&amp;nbsp;")
+  assert_eq(escape_html("\"quote\""), "&quot;quote&quot;")
+  assert_eq(escape_html("it's"), "it&#39;s")
+}
+
+///|
+test "escape_html_to - writes to StringBuilder" {
+  let sb = StringBuilder::new()
+  escape_html_to(sb, "<div>")
+  assert_eq(sb.to_string(), "&lt;div&gt;")
+}
+
+///|
+test "needs_attr_escape - only & and quote need escaping" {
+  assert_eq(needs_attr_escape("Hello World"), false)
+  assert_eq(needs_attr_escape("a < b"), false) // < is safe in attributes
+  assert_eq(needs_attr_escape("a > b"), false) // > is safe in attributes
+  assert_eq(needs_attr_escape("&nbsp;"), true)
+  assert_eq(needs_attr_escape("\"quoted\""), true)
+}
+
+///|
+test "escape_attr - escapes & and quote only" {
+  assert_eq(escape_attr("a < b"), "a < b")
+  assert_eq(escape_attr("Tom & Jerry"), "Tom &amp; Jerry")
+  assert_eq(escape_attr("say \"hi\""), "say &quot;hi&quot;")
+}
+
+///|
+test "escape_attr_to - writes to StringBuilder" {
+  let sb = StringBuilder::new()
+  escape_attr_to(sb, "Tom & \"Jerry\"")
+  assert_eq(sb.to_string(), "Tom &amp; &quot;Jerry&quot;")
+}
+
+///|
+test "escape_js_string - escapes control characters" {
+  assert_eq(escape_js_string("line1\nline2"), "line1\\nline2")
+  assert_eq(escape_js_string("tab\there"), "tab\\there")
+  assert_eq(escape_js_string("return\rhere"), "return\\rhere")
+}
+
+///|
+test "escape_js_string - escapes quotes and backslash" {
+  assert_eq(escape_js_string("say \"hi\""), "say \\\"hi\\\"")
+  assert_eq(escape_js_string("path\\to\\file"), "path\\\\to\\\\file")
+}
+
+///|
+test "escape_js_string - prevents script injection" {
+  let dangerous = "</script><script>alert(1)"
+  let escaped = escape_js_string(dangerous)
+  assert_true(escaped.contains("\\u003c/script\\u003e"))
+  assert_true(not(escaped.contains("</script>")))
+}
+
+///|
+test "is_void_element - recognizes void elements" {
+  assert_eq(is_void_element("br"), true)
+  assert_eq(is_void_element("hr"), true)
+  assert_eq(is_void_element("img"), true)
+  assert_eq(is_void_element("input"), true)
+  assert_eq(is_void_element("meta"), true)
+  assert_eq(is_void_element("link"), true)
+  assert_eq(is_void_element("area"), true)
+  assert_eq(is_void_element("base"), true)
+  assert_eq(is_void_element("col"), true)
+  assert_eq(is_void_element("wbr"), true)
+  assert_eq(is_void_element("embed"), true)
+  assert_eq(is_void_element("track"), true)
+  assert_eq(is_void_element("param"), true)
+  assert_eq(is_void_element("source"), true)
+  assert_eq(is_void_element("keygen"), true)
+}
+
+///|
+test "is_void_element - returns false for regular elements" {
+  assert_eq(is_void_element("div"), false)
+  assert_eq(is_void_element("span"), false)
+  assert_eq(is_void_element("p"), false)
+  assert_eq(is_void_element("a"), false)
+  assert_eq(is_void_element("button"), false)
+  assert_eq(is_void_element("section"), false)
+}
+
+///|
+test "is_void_element - handles edge cases" {
+  assert_eq(is_void_element(""), false)
+  assert_eq(is_void_element("x"), false)
+  assert_eq(is_void_element("verylong"), false)
+}

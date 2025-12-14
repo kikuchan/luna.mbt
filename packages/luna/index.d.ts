@@ -156,3 +156,100 @@ export function createElement(
   attrs: [string, unknown][],
   children: Node[]
 ): Node;
+
+// Timer utilities
+/** Debounce signal updates using setTimeout */
+export function debounced<T>(signal: Signal<T>, delayMs: number): Signal<T>;
+
+// ============================================================================
+// Router API
+// ============================================================================
+
+/** Route definition - Page route */
+export interface PageRoute {
+  readonly $tag: 0;
+  readonly path: string;
+  readonly component: string;
+  readonly title: string;
+  readonly meta: [string, string][];
+}
+
+/** Route definition - Group route */
+export interface GroupRoute {
+  readonly $tag: 1;
+  readonly segment: string;
+  readonly children: Routes[];
+}
+
+/** Route definition - Param route */
+export interface ParamRoute {
+  readonly $tag: 2;
+  readonly key: string;
+  readonly children: Routes[];
+}
+
+/** Route definition union type */
+export type Routes = PageRoute | GroupRoute | ParamRoute;
+
+/** Create a page route */
+export function routePage(path: string, component: string): Routes;
+
+/** Create a page route with title */
+export function routePageTitled(
+  path: string,
+  component: string,
+  title: string
+): Routes;
+
+/** Create a page route with full options */
+export function routePageFull(
+  path: string,
+  component: string,
+  title: string,
+  meta: [string, string][]
+): Routes;
+
+/** Create a route group with a segment prefix */
+export function routeGroup(segment: string, children: Routes[]): Routes;
+
+/** Create a param route (dynamic segment) */
+export function routeParam(key: string, children: Routes[]): Routes;
+
+/** Opaque BrowserRouter type */
+export interface BrowserRouter {
+  readonly __brand: unique symbol;
+}
+
+/** Compiled route info */
+export interface CompiledRoute {
+  readonly pattern: string;
+  readonly param_names: string[];
+  readonly component: string;
+  readonly layouts: string[];
+}
+
+/** Route match result */
+export interface RoutesMatch {
+  readonly route: CompiledRoute;
+  readonly params: { _0: string; _1: string }[];
+  readonly query: { _0: string; _1: string }[];
+  readonly path: string;
+}
+
+/** Create a BrowserRouter from routes definition */
+export function createRouter(routes: Routes[], base?: string): BrowserRouter;
+
+/** Navigate to a path (adds to history) */
+export function routerNavigate(router: BrowserRouter, path: string): void;
+
+/** Replace current path (does not add to history) */
+export function routerReplace(router: BrowserRouter, path: string): void;
+
+/** Get current path */
+export function routerGetPath(router: BrowserRouter): string;
+
+/** Get current match result */
+export function routerGetMatch(router: BrowserRouter): RoutesMatch | undefined;
+
+/** Get base path */
+export function routerGetBase(router: BrowserRouter): string;

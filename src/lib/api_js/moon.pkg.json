@@ -5,8 +5,10 @@
   "import": [
     { "path": "mizchi/luna/core", "alias": "luna" },
     "mizchi/luna/core/signal",
+    { "path": "mizchi/luna/platform/dom", "alias": "dom" },
     { "path": "mizchi/luna/platform/dom/client", "alias": "client" },
     { "path": "mizchi/luna/platform/dom/element", "alias": "element" },
+    "mizchi/luna/router",
     { "path": "mizchi/js/core", "alias": "js" },
     { "path": "mizchi/js/browser/dom", "alias": "js_dom" }
   ],
@@ -46,7 +48,19 @@
         "jsxs",
         "fragment:Fragment",
         "create_element:createElement",
-        "events"
+        "events",
+        "debounced",
+        "route_page:routePage",
+        "route_page_titled:routePageTitled",
+        "route_page_full:routePageFull",
+        "route_group:routeGroup",
+        "route_param:routeParam",
+        "create_router:createRouter",
+        "router_navigate:routerNavigate",
+        "router_replace:routerReplace",
+        "router_get_path:routerGetPath",
+        "router_get_match:routerGetMatch",
+        "router_get_base:routerGetBase"
       ],
       "format": "esm"
     }
