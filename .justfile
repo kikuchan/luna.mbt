@@ -56,6 +56,10 @@ test-e2e: build-moon
 test-e2e-ui: build-moon
     pnpm playwright test --config e2e/playwright.config.mts --ui
 
+# Run E2E coverage tests
+test-e2e-coverage: build-moon
+    pnpm playwright test --config e2e/playwright.config.mts e2e/browser-app/coverage.test.ts
+
 # Run sol new template test
 test-sol-new: build-moon
     node scripts/test-sol-new.ts
@@ -147,4 +151,34 @@ sol *args:
 # Create new sol project
 sol-new name:
     node target/js/release/build/sol/cli/cli.js new {{name}}
+
+# === Coverage Commands ===
+
+# Run MoonBit tests with coverage
+coverage-moonbit:
+    moon test --target js --enable-coverage
+    moon coverage report -f cobertura -o coverage/moonbit-coverage.xml
+    moon coverage report -f summary
+
+# Run vitest with V8 coverage
+coverage-vitest: build-moon
+    pnpm vitest run --coverage --coverage.provider=v8 --coverage.reporter=json --coverage.reportsDirectory=coverage/vitest
+
+# Run E2E tests with V8 coverage
+coverage-e2e: build-moon
+    rm -rf coverage/e2e-v8
+    pnpm playwright test --config e2e/playwright.config.mts e2e/browser-app/coverage.test.mts
+
+# Merge all coverage reports
+coverage-merge:
+    node scripts/coverage-merge.ts
+
+# Run all tests with coverage and merge
+coverage: coverage-moonbit coverage-vitest coverage-e2e coverage-merge
+    @echo "✓ Coverage reports generated in coverage/"
+
+# Clean coverage data
+coverage-clean:
+    rm -rf coverage/
+    moon coverage clean
 

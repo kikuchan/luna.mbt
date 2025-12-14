@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   testDir: __dirname,
-  testMatch: "**/*.test.ts",
+  testMatch: ["**/*.test.ts", "**/*.test.mts"],
   testIgnore: ["**/template-app/**", "**/sol/**"], // template-app has its own config, sol uses vitest
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
