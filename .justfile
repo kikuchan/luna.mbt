@@ -160,6 +160,7 @@ build-debug:
 
 # Run MoonBit tests with coverage
 coverage-moonbit:
+    rm -f target/moonbit_coverage_*.txt
     moon test --target js --enable-coverage
     moon coverage report -f cobertura -o coverage/moonbit-coverage.xml
     moon coverage report -f summary
