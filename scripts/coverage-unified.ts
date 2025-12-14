@@ -68,8 +68,9 @@ async function parseMoonbitCoverage(): Promise<Map<string, FileCoverage>> {
     const filename = classMatch[1];
     const classContent = classMatch[2];
 
-    // Only include project source files (src/*)
+    // Only include project source files (src/*), exclude test files
     if (!filename.startsWith("src/")) continue;
+    if (filename.includes("_test.mbt")) continue;
 
     const lines: LineCoverage[] = [];
 
@@ -167,8 +168,9 @@ async function parseVitestCoverage(
       if (original.source && original.line && original.source.includes(".mbt")) {
         const relPath = original.source.replace(/.*luna\.mbt\//, "");
 
-        // Only include project source files (src/*)
+        // Only include project source files (src/*), exclude test files
         if (!relPath.startsWith("src/")) continue;
+        if (relPath.includes("_test.mbt")) continue;
 
         if (!files.has(relPath)) {
           files.set(relPath, { path: relPath, lines: [] });
@@ -244,8 +246,9 @@ async function parseE2ECoverage(
           if (original.source && original.line && original.source.includes(".mbt")) {
             const relPath = original.source.replace(/.*luna\.mbt\//, "");
 
-            // Only include project source files (src/*)
+            // Only include project source files (src/*), exclude test files
             if (!relPath.startsWith("src/")) continue;
+            if (relPath.includes("_test.mbt")) continue;
 
             if (!files.has(relPath)) {
               files.set(relPath, { path: relPath, lines: [] });
