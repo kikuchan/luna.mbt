@@ -6,7 +6,6 @@
     const a = el.getAttribute('ln:state');
     if (!a) return;
     if (a[0] === '#') return JSON.parse(d.getElementById(a.slice(1))?.textContent);
-    if (a[0] === 'u') return (await fetch(a.slice(4))).json();
     try { return JSON.parse(a); } catch {}
   };
 
