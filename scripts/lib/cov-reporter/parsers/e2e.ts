@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { join, basename } from "node:path";
 import type { SourceMapConsumer } from "source-map";
 import type { FileCoverage, CoverageConfig } from "../types.ts";
+import { shouldExcludeFile } from "../types.ts";
 
 export async function parseE2ECoverage(
   config: CoverageConfig,
@@ -60,7 +61,7 @@ export async function parseE2ECoverage(
             const relPath = original.source.replace(projectPattern, "");
 
             if (config.include && !config.include.test(relPath)) continue;
-            if (config.exclude && config.exclude.test(relPath)) continue;
+            if (shouldExcludeFile(relPath, config)) continue;
 
             if (!files.has(relPath)) {
               files.set(relPath, { path: relPath, lines: [] });

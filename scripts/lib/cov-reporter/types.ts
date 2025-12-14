@@ -31,6 +31,30 @@ export interface CoverageConfig {
   sourceMapDir: string;
   include?: RegExp;
   exclude?: RegExp;
+  /** Additional directories to exclude from coverage reporting */
+  excludeDirs?: string[];
+}
+
+/**
+ * Check if a file path should be excluded based on config
+ */
+export function shouldExcludeFile(
+  filepath: string,
+  config: CoverageConfig
+): boolean {
+  // Check regex exclude pattern
+  if (config.exclude && config.exclude.test(filepath)) {
+    return true;
+  }
+  // Check directory exclusions
+  if (config.excludeDirs) {
+    for (const dir of config.excludeDirs) {
+      if (filepath.startsWith(dir + "/") || filepath === dir) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function createDefaultConfig(projectRoot: string): CoverageConfig {
@@ -40,5 +64,7 @@ export function createDefaultConfig(projectRoot: string): CoverageConfig {
     sourceMapDir: `${projectRoot}/target/js/debug/build`,
     include: /^src\//,
     exclude: /_test\.mbt$/,
+    // Exclude benchmarks, examples, and test infrastructure
+    excludeDirs: ["src/_bench", "src/examples", "src/tests"],
   };
 }

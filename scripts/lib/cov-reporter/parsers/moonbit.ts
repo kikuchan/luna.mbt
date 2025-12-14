@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { FileCoverage, LineCoverage, CoverageConfig } from "../types.ts";
+import { shouldExcludeFile } from "../types.ts";
 
 export async function parseMoonbitCoverage(
   config: CoverageConfig
@@ -26,7 +27,7 @@ export async function parseMoonbitCoverage(
     const classContent = classMatch[2];
 
     if (config.include && !config.include.test(filename)) continue;
-    if (config.exclude && config.exclude.test(filename)) continue;
+    if (shouldExcludeFile(filename, config)) continue;
 
     const lines: LineCoverage[] = [];
 

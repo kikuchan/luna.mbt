@@ -41,7 +41,7 @@ export type {
   DirectoryStats,
   CoverageConfig,
 } from "./types.ts";
-export { createDefaultConfig } from "./types.ts";
+export { createDefaultConfig, shouldExcludeFile } from "./types.ts";
 
 // Source map utilities
 export { loadSourceMaps, destroySourceMaps } from "./sourcemap.ts";
