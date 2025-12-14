@@ -232,6 +232,12 @@ fn hydrate_node(
       ctx.current_id = id + 1
       hydrate_error_boundary(parent, id, boundary, ctx)
     }
+    @luna.Switch(switch_node) => {
+      // Switch hydration: evaluate conditions and hydrate matching case
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+      hydrate_switch(parent, id, switch_node, ctx)
+    }
   }
 }
 
@@ -514,6 +520,21 @@ fn hydrate_child_nodes(
         _ => ()
       }
     }
+    @luna.Switch(switch_node) => {
+      ctx.current_id = ctx.current_id + 1
+      // Find first matching case
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          hydrate_child_nodes(nodes, (case_.render)(), ctx)
+          return
+        }
+      }
+      // No match, try fallback
+      match switch_node.fallback {
+        Some(fallback_fn) => hydrate_child_nodes(nodes, fallback_fn(), ctx)
+        None => ()
+      }
+    }
   }
 }
 
@@ -725,6 +746,9 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
     @luna.ErrorBoundary(boundary) =>
       // Client-side ErrorBoundary with reset support
       render_error_boundary_to_dom(boundary)
+    @luna.Switch(switch_node) =>
+      // Client-side Switch rendering
+      render_switch_to_dom(switch_node)
   }
 }
 
@@ -1001,4 +1025,140 @@ pub fn[State] hydrate_with_actions(
     bind_actions_from_dom(container, dispatch)
   })
 
+}
+
+// =============================================================================
+// Switch Hydration and Rendering
+// =============================================================================
+
+///|
+/// Hydrate switch node
+fn hydrate_switch(
+  parent : @js_dom.Node,
+  id : Int,
+  switch_node : @luna.VSwitch[@js.Any],
+  ctx : HydrationContext,
+) -> Unit raise {
+  // Find the switch markers
+  let marker_start = "sw:" + id.to_string()
+  let children = parent.childNodes()
+  let mut found = false
+  for child in children {
+    if child.nodeType() == 8 { // Comment node
+      let comment_text = get_text_content(child)
+      if comment_text == marker_start {
+        found = true
+        break
+      }
+    }
+  }
+  if found {
+    // Find first matching case and hydrate it
+    for case_ in switch_node.cases {
+      if (case_.when)() {
+        hydrate_node(parent, (case_.render)(), ctx)
+        return
+      }
+    }
+    // No case matched, hydrate fallback if present
+    match switch_node.fallback {
+      Some(fallback_fn) => hydrate_node(parent, fallback_fn(), ctx)
+      None => ()
+    }
+  }
+}
+
+///|
+/// Render Switch to DOM with reactive updates
+fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
+  let doc = @js_dom.document()
+  let placeholder = doc.createComment("switch")
+  let mut current_node : @js_dom.Node? = None
+  let mut current_case_index : Int = -1 // -1 means fallback, -2 means no match
+
+  // Helper to find which case matches
+  let find_matching_case = fn() -> Int {
+    for i, case_ in switch_node.cases {
+      if (case_.when)() {
+        return i
+      }
+    }
+    // No case matched
+    if switch_node.fallback is Some(_) {
+      return -1 // fallback
+    }
+    -2 // no match, no fallback
+  }
+
+  // Initial render
+  let initial_case = find_matching_case()
+  current_case_index = initial_case
+  let fragment = doc.createDocumentFragment()
+  let fragment_node = fragment.as_node()
+
+  if initial_case >= 0 {
+    let node = render_vnode_to_dom((switch_node.cases[initial_case].render)())
+    current_node = Some(node)
+    fragment_node.appendChild(node) |> ignore
+  } else if initial_case == -1 {
+    match switch_node.fallback {
+      Some(fallback_fn) => {
+        let node = render_vnode_to_dom(fallback_fn())
+        current_node = Some(node)
+        fragment_node.appendChild(node) |> ignore
+      }
+      None => ()
+    }
+  }
+  fragment_node.appendChild(placeholder) |> ignore
+
+  // Set up effect for reactive updates
+  let is_first_render : Ref[Bool] = { val: true }
+  let _ = @signal.effect(fn() {
+    let new_case = find_matching_case()
+
+    // Skip first render
+    if is_first_render.val {
+      is_first_render.val = false
+      return
+    }
+
+    // If case hasn't changed, do nothing
+    if new_case == current_case_index {
+      return
+    }
+
+    // Remove current node
+    match current_node {
+      Some(node) =>
+        if node.parentNode() is Some(par) {
+          par.removeChild(node) |> ignore
+        }
+      None => ()
+    }
+    current_node = None
+
+    // Render new content
+    if new_case >= 0 {
+      let node = render_vnode_to_dom((switch_node.cases[new_case].render)())
+      current_node = Some(node)
+      if placeholder.parentNode() is Some(par) {
+        par.insertBefore(node, Some(placeholder)) |> ignore
+      }
+    } else if new_case == -1 {
+      match switch_node.fallback {
+        Some(fallback_fn) => {
+          let node = render_vnode_to_dom(fallback_fn())
+          current_node = Some(node)
+          if placeholder.parentNode() is Some(par) {
+            par.insertBefore(node, Some(placeholder)) |> ignore
+          }
+        }
+        None => ()
+      }
+    }
+    current_case_index = new_case
+  })
+
+  fragment_node
 }

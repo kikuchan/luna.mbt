@@ -232,3 +232,165 @@ pub fn[T] for_each(
   })
   Raw(fragment.as_node())
 }
+
+// =============================================================================
+// Index - Index-based list rendering (like Solid.js <Index>)
+// =============================================================================
+
+///|
+/// Index-based list rendering - optimized for lists where items are identified by index
+/// Unlike for_each which tracks by reference, index_each tracks by index position.
+/// When items change at an index, only that element is re-rendered.
+///
+/// Best used when:
+/// - Items are primitives (strings, numbers)
+/// - Item identity is by position, not by value
+/// - Lists are frequently mutated by index
+///
+/// Example:
+/// ```
+/// index_each(
+///   fn() { items.get() },
+///   fn(item_getter, index) {
+///     div(children=[
+///       // item_getter() returns current item at this index
+///       text_node(fn() { item_getter().to_string() })
+///     ])
+///   }
+/// )
+/// ```
+pub fn[T] index_each(
+  items : () -> Array[T],
+  render_item : (() -> T, Int) -> DomNode,
+) -> DomNode {
+  let doc = @js_dom.document()
+  let placeholder = doc.createComment("index")
+  let nodes : Array[@js_dom.Node] = []
+  let is_first = { val: true }
+
+  // Initial render
+  let fragment = doc.createDocumentFragment()
+  let initial_items = items()
+  for i, _ in initial_items {
+    // Create a getter for this index position
+    let index = i // Capture index
+    let item_getter = fn() -> T { items()[index] }
+    let dom = render_item(item_getter, i).to_jsdom()
+    nodes.push(dom)
+    fragment.as_node().appendChild(dom) |> ignore
+  }
+  fragment.as_node().appendChild(placeholder) |> ignore
+
+  // Update effect
+  let _ = @signal.effect(fn() {
+    let new_items = items()
+    if is_first.val {
+      is_first.val = false
+      return
+    }
+
+    let old_len = nodes.length()
+    let new_len = new_items.length()
+
+    // Remove excess nodes
+    while nodes.length() > new_len {
+      let node = nodes.pop()
+      match node {
+        Some(n) =>
+          if n.parentNode() is Some(par) {
+            par.removeChild(n) |> ignore
+          }
+        None => ()
+      }
+    }
+
+    // Add new nodes for indices beyond old length
+    while nodes.length() < new_len {
+      let i = nodes.length()
+      let index = i
+      let item_getter = fn() -> T { items()[index] }
+      let dom = render_item(item_getter, i).to_jsdom()
+      nodes.push(dom)
+      if placeholder.parentNode() is Some(par) {
+        par.insertBefore(dom, Some(placeholder)) |> ignore
+      }
+    }
+
+    // Note: Existing nodes at indices 0..<min(old_len, new_len) don't need
+    // to be re-created since render_item uses a getter that reads current value
+    let _ = old_len // suppress warning
+  })
+  Raw(fragment.as_node())
+}
+
+// =============================================================================
+// Portal - Render content outside the component tree
+// =============================================================================
+
+///|
+/// Portal - renders content into a different DOM container
+/// Similar to Solid.js <Portal>
+///
+/// Use cases:
+/// - Modals that need to render at body level to avoid z-index issues
+/// - Dropdowns/tooltips that need to escape overflow: hidden
+/// - Full-screen overlays
+///
+/// Example:
+/// ```
+/// portal(
+///   target=@js_dom.document().body_(),
+///   children=[modal_content()]
+/// )
+/// ```
+///
+/// Note: For SSR, portals should be handled separately or use a placeholder.
+/// The portal content won't appear in the SSR output at the original location.
+pub fn portal(
+  target~ : @js_dom.Element,
+  children~ : Array[DomNode],
+) -> DomNode {
+  // Render children into the target container instead of where the portal is placed
+  for child in children {
+    target.as_node().appendChild(child.to_jsdom()) |> ignore
+  }
+
+  // Return a comment placeholder at the original location
+  let doc = @js_dom.document()
+  let placeholder = doc.createComment("portal")
+  Raw(placeholder)
+}
+
+///|
+/// Portal to body - convenience function for rendering to document.body
+pub fn portal_to_body(children : Array[DomNode]) -> DomNode {
+  let doc = @js_dom.document()
+  match doc.body() {
+    Some(body) => portal(target=body.as_element(), children~)
+    None => {
+      // Fallback: render inline if body not available
+      let fragment = doc.createDocumentFragment()
+      for child in children {
+        fragment.as_node().appendChild(child.to_jsdom()) |> ignore
+      }
+      Raw(fragment.as_node())
+    }
+  }
+}
+
+///|
+/// Portal to a selector - find element by CSS selector and portal to it
+pub fn portal_to(selector : String, children : Array[DomNode]) -> DomNode {
+  let doc = @js_dom.document()
+  match doc.querySelector(selector) {
+    Some(target) => portal(target~, children~)
+    None => {
+      // Fallback: render inline if target not found
+      let fragment = doc.createDocumentFragment()
+      for child in children {
+        fragment.as_node().appendChild(child.to_jsdom()) |> ignore
+      }
+      Raw(fragment.as_node())
+    }
+  }
+}

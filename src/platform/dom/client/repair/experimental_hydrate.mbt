@@ -345,6 +345,18 @@ fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
       try 1 + count_vnode_nodes((boundary.children)()) catch {
         _ => 1 // Count just the boundary if children fail
       }
+    @luna.Switch(switch_node) => {
+      // Count the matching case or fallback
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          return 1 + count_vnode_nodes((case_.render)())
+        }
+      }
+      match switch_node.fallback {
+        Some(fallback_fn) => 1 + count_vnode_nodes(fallback_fn())
+        None => 1
+      }
+    }
   }
 }
 
@@ -726,6 +738,22 @@ fn experimental_hydrate_node(
           }
         }
       }
+    @luna.Switch(switch_node) => {
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+      // Find first matching case and hydrate it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          experimental_hydrate_node(parent, (case_.render)(), ctx)
+          return
+        }
+      }
+      // No case matched, hydrate fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => experimental_hydrate_node(parent, fallback_fn(), ctx)
+        None => ()
+      }
+    }
   }
 }
 

@@ -119,6 +119,20 @@ fn[E] render_and_collect_urls(
           }
         }
       }
+    Switch(switch_node) => {
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          render_and_collect_urls(sb, (case_.render)(), urls)
+          return
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => render_and_collect_urls(sb, fallback_fn(), urls)
+        None => sb.write_string("<!--switch-->")
+      }
+    }
   }
 }
 
@@ -280,6 +294,20 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
           }
         }
       }
+    Switch(switch_node) => {
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          render_to_sb(sb, (case_.render)())
+          return
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => render_to_sb(sb, fallback_fn())
+        None => sb.write_string("<!--switch-->")
+      }
+    }
   }
 }
 
@@ -402,6 +430,28 @@ fn[E] render_with_id_to(
         }
       }
       sb.write_string("<!--/eb-->")
+    }
+    Switch(switch_node) => {
+      // Switch with hydration marker
+      let id = id_counter.val
+      id_counter.val = id + 1
+      sb.write_string("<!--sw:")
+      sb.write_object(id)
+      sb.write_string("-->")
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          render_with_id_to(sb, (case_.render)(), id_counter)
+          sb.write_string("<!--/sw-->")
+          return
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => render_with_id_to(sb, fallback_fn(), id_counter)
+        None => ()
+      }
+      sb.write_string("<!--/sw-->")
     }
   }
 }

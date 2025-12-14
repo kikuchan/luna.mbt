@@ -6,6 +6,7 @@
 - [x] ServerComponent
 - [ ] ErrorBoundary
 - [ ] src/sol/ssg で、静的サイト生成に対応
+- [ ] Dynamic https://docs.solidjs.com/reference/components/dynamic
 - [ ] react-hook-form 相当のものを試作する
   - valibot を使うか、自前のバリデータを作るか
 - [ ] sol: chunk hydration

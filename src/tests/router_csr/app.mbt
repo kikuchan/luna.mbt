@@ -150,6 +150,31 @@ fn nav_link(
 }
 
 ///|
+/// Replace link - uses replace instead of navigate (does not add to history)
+fn replace_link(
+  router : @client.BrowserRouter,
+  href : String,
+  label : String,
+) -> @dom.DomNode {
+  @dom.create_element(
+    "a",
+    [
+      ("href", @dom.AttrValue::Static(href)),
+      (
+        "onclick",
+        @dom.AttrValue::Handler(fn(e) {
+          prevent_default_event(e)
+          router.replace(href)
+        }),
+      ),
+      ("data-replace", @dom.AttrValue::Static(href)),
+      ("style", @dom.AttrValue::Static("margin-right: 10px; color: green;")),
+    ],
+    [@dom.text(label)],
+  )
+}
+
+///|
 fn router_app(router : @client.BrowserRouter) -> @dom.DomNode {
   @dom.div(attrs=[("data-router-app", @dom.Attr::AttrString("true"))], [
     // Navigation
@@ -164,10 +189,25 @@ fn router_app(router : @client.BrowserRouter) -> @dom.DomNode {
         nav_link(router, "/csr-router/posts/456", "Post 456"),
       ],
     ),
+    // Replace navigation (does not add to history)
+    @dom.create_element(
+      "nav",
+      [("data-replace-nav-container", @dom.AttrValue::Static("true"))],
+      [
+        @dom.text("Replace: "),
+        replace_link(router, "/csr-router/home", "Home (replace)"),
+        replace_link(router, "/csr-router/about", "About (replace)"),
+      ],
+    ),
     // Current path display (reactive)
     @dom.div(
       attrs=[("data-current-path-container", @dom.Attr::AttrString("true"))],
       [@dom.text("Current path: "), @dom.text_dyn(fn() { router.get_path() })],
+    ),
+    // Base path display
+    @dom.div(
+      attrs=[("data-base-path-container", @dom.Attr::AttrString("true"))],
+      [@dom.text("Base path: "), @dom.text(router.get_base())],
     ),
     // Page content - render based on current match
     @dom.div(attrs=[("data-content", @dom.Attr::AttrString("true"))], [

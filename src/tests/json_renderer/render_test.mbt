@@ -305,3 +305,263 @@ test "signal reactivity captured at render time" {
     _ => assert_true(false)
   }
 }
+
+// =============================================================================
+// Additional Coverage Tests
+// =============================================================================
+
+///|
+test "render island node" {
+  let node : @luna.Node[Unit] = @luna.visland(
+    "island-1",
+    "/components/counter.js",
+    "{\"count\":5}",
+    [@luna.vtext("content")],
+  )
+  let json = render_to_json(node)
+  match json {
+    Element(elem) => {
+      assert_eq(elem.tag, "div")
+      // Check ln:* attributes
+      match elem.attrs.get("ln:id") {
+        Some(Static(v)) => assert_eq(v, "island-1")
+        _ => assert_true(false)
+      }
+      match elem.attrs.get("ln:url") {
+        Some(Static(v)) => assert_eq(v, "/components/counter.js")
+        _ => assert_true(false)
+      }
+      match elem.attrs.get("ln:state") {
+        Some(Static(v)) => assert_eq(v, "{\"count\":5}")
+        _ => assert_true(false)
+      }
+      match elem.attrs.get("ln:trigger") {
+        Some(Static(v)) => assert_eq(v, "load")
+        _ => assert_true(false)
+      }
+      // Check children
+      assert_eq(elem.children.length(), 1)
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render island with idle trigger" {
+  let node : @luna.Node[Unit] = @luna.visland(
+    "lazy-1",
+    "/lazy.js",
+    "{}",
+    [],
+    trigger=@luna.Idle,
+  )
+  let json = render_to_json(node)
+  match json {
+    Element(elem) =>
+      match elem.attrs.get("ln:trigger") {
+        Some(Static(v)) => assert_eq(v, "idle")
+        _ => assert_true(false)
+      }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render async fallback" {
+  let node : @luna.Node[Unit] = @luna.vasync(
+    render=async fn() { @luna.vtext("Loaded") },
+    fallback=fn() { @luna.vtext("Loading...") },
+  )
+  let json = render_to_json(node)
+  // Should render fallback
+  match json {
+    Text(content) => assert_eq(content, "Loading...")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render error_boundary success" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Success")]) },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let json = render_to_json(node)
+  match json {
+    Element(elem) => {
+      assert_eq(elem.tag, "div")
+      assert_eq(elem.children.length(), 1)
+    }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render switch first case match" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.vtext("First") }),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let json = render_to_json(node)
+  match json {
+    Text(content) => assert_eq(content, "First")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render switch second case match" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("First") },
+      ),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let json = render_to_json(node)
+  match json {
+    Text(content) => assert_eq(content, "Second")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render switch fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let json = render_to_json(node)
+  match json {
+    Text(content) => assert_eq(content, "Fallback")
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render switch no fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  let json = render_to_json(node)
+  // Returns empty fragment when no case matches and no fallback
+  match json {
+    Fragment(children) => assert_eq(children.length(), 0)
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "render action attribute" {
+  let node : @luna.Node[Unit] = @luna.h(
+    "button",
+    [("onclick", @luna.action("increment"))],
+    [@luna.vtext("Click")],
+  )
+  let json = render_to_json(node)
+  match json {
+    Element(elem) =>
+      match elem.attrs.get("onclick") {
+        Some(Dynamic(v)) => assert_eq(v, "action:increment")
+        _ => assert_true(false)
+      }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "json_node_to_string element" {
+  let node = json_element("span", { "id": attr_static("test") }, [
+    json_text("content"),
+  ])
+  let str = json_node_to_string(node)
+  assert_true(str.contains("\"type\":\"element\""))
+  assert_true(str.contains("\"tag\":\"span\""))
+  assert_true(str.contains("\"id\""))
+  assert_true(str.contains("content"))
+}
+
+///|
+test "json_node_to_string fragment" {
+  let node = json_fragment([json_text("A"), json_text("B")])
+  let str = json_node_to_string(node)
+  assert_true(str.contains("\"type\":\"fragment\""))
+  assert_true(str.contains("\"children\""))
+}
+
+///|
+test "json_node_to_string dynamic attr" {
+  let node = json_element(
+    "div",
+    { "value": attr_dynamic_value("dynamic-value") },
+    [],
+  )
+  let str = json_node_to_string(node)
+  assert_true(str.contains("\"type\":\"dynamic\""))
+  assert_true(str.contains("dynamic-value"))
+}
+
+///|
+test "json_node_to_string handler attr" {
+  let node = json_element("button", { "onclick": attr_handler_value() }, [])
+  let str = json_node_to_string(node)
+  assert_true(str.contains("\"type\":\"handler\""))
+}
+
+///|
+test "json string special char escaping" {
+  let node = @luna.vtext("tab\there\rcarriage\nreturn\\backslash")
+  let str = render_to_json_string(node)
+  assert_true(str.contains("\\t"))
+  assert_true(str.contains("\\r"))
+  assert_true(str.contains("\\n"))
+  assert_true(str.contains("\\\\"))
+}
+
+///|
+test "json string with multiple attrs" {
+  let node = @luna.h(
+    "div",
+    [
+      ("id", @luna.attr_static("myid")),
+      ("class", @luna.attr_static("myclass")),
+      ("data-x", @luna.attr_dynamic(fn() { "dynamic" })),
+    ],
+    [],
+  )
+  let str = render_to_json_string(node)
+  assert_true(str.contains("\"id\""))
+  assert_true(str.contains("\"class\""))
+  assert_true(str.contains("\"data-x\""))
+}
+
+///|
+test "json_element children rendered in order" {
+  let node = json_element("ul", {}, [
+    json_text("first"),
+    json_text("second"),
+    json_text("third"),
+  ])
+  let str = json_node_to_string(node)
+  // Check all are present in expected order
+  assert_true(str.contains("first"))
+  assert_true(str.contains("second"))
+  assert_true(str.contains("third"))
+}

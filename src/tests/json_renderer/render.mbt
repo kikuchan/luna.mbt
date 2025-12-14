@@ -69,6 +69,19 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
           }
         }
       }
+    @luna.Switch(switch_node) => {
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          return render_to_json((case_.render)())
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => render_to_json(fallback_fn())
+        None => Fragment([])
+      }
+    }
   }
 }
 

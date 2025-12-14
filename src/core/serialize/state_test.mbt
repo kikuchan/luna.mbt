@@ -520,3 +520,248 @@ test "ResumableState from_json string with backslash" {
     None => assert_true(false)
   }
 }
+
+// =============================================================================
+// JSON Module Direct API Tests (for coverage of json.mbt)
+// =============================================================================
+
+///|
+test "state_value_to_json covers all value types" {
+  // Null
+  assert_eq(state_value_to_json(sv_null()), "null")
+
+  // Bool
+  assert_eq(state_value_to_json(sv_bool(true)), "true")
+  assert_eq(state_value_to_json(sv_bool(false)), "false")
+
+  // Int
+  assert_eq(state_value_to_json(sv_int(42)), "42")
+  assert_eq(state_value_to_json(sv_int(-100)), "-100")
+
+  // Number (float with decimal point)
+  let float_json = state_value_to_json(sv_number(3.14))
+  assert_true(float_json.contains("3.14"))
+
+  // Number (integer-like double without decimal)
+  let int_double_json = state_value_to_json(sv_number(5.0))
+  assert_true(int_double_json.contains("5.0"))
+
+  // String
+  assert_eq(state_value_to_json(sv_str("hello")), "\"hello\"")
+
+  // Array
+  assert_eq(state_value_to_json(sv_arr([sv_int(1), sv_int(2)])), "[1,2]")
+}
+
+///|
+test "state_values_to_json" {
+  let values : Array[StateValue] = [sv_int(1), sv_str("two"), sv_bool(true)]
+  assert_eq(state_values_to_json(values), "[1,\"two\",true]")
+
+  // Empty array
+  let empty : Array[StateValue] = []
+  assert_eq(state_values_to_json(empty), "[]")
+}
+
+///|
+test "escape_json_string direct call" {
+  // Normal string
+  assert_eq(escape_json_string("hello"), "hello")
+
+  // String with special chars
+  assert_eq(escape_json_string("a\"b"), "a\\\"b")
+  assert_eq(escape_json_string("a\\b"), "a\\\\b")
+  assert_eq(escape_json_string("a\nb"), "a\\nb")
+  assert_eq(escape_json_string("a\rb"), "a\\rb")
+  assert_eq(escape_json_string("a\tb"), "a\\tb")
+}
+
+///|
+test "escape_json_string control characters" {
+  // Control character (ASCII < 32, not newline/tab/cr)
+  // Form feed (ASCII 12 = 0x0C)
+  let form_feed = (12).unsafe_to_char().to_string()
+  let escaped = escape_json_string(form_feed)
+  assert_eq(escaped, "\\u000c")
+
+  // Bell (ASCII 7 = 0x07)
+  let bell = (7).unsafe_to_char().to_string()
+  let escaped_bell = escape_json_string(bell)
+  assert_eq(escaped_bell, "\\u0007")
+}
+
+///|
+test "state_value_from_json direct call" {
+  // Valid JSON
+  match state_value_from_json("42") {
+    Some(v) => assert_eq(v.as_int(), Some(42))
+    _ => assert_true(false)
+  }
+
+  match state_value_from_json("\"hello\"") {
+    Some(v) => assert_eq(v.as_string(), Some("hello"))
+    _ => assert_true(false)
+  }
+
+  match state_value_from_json("true") {
+    Some(v) => assert_eq(v.as_bool(), Some(true))
+    _ => assert_true(false)
+  }
+
+  match state_value_from_json("null") {
+    Some(v) => assert_true(v.is_null())
+    _ => assert_true(false)
+  }
+
+  // Invalid JSON
+  assert_true(state_value_from_json("invalid") is None)
+}
+
+///|
+test "state_values_from_json direct call" {
+  match state_values_from_json("[1,2,3]") {
+    Some(arr) => {
+      assert_eq(arr.length(), 3)
+      assert_eq(arr[0].as_int(), Some(1))
+      assert_eq(arr[1].as_int(), Some(2))
+      assert_eq(arr[2].as_int(), Some(3))
+    }
+    _ => assert_true(false)
+  }
+
+  // Not an array
+  assert_true(state_values_from_json("42") is None)
+
+  // Invalid JSON
+  assert_true(state_values_from_json("invalid") is None)
+}
+
+///|
+test "state_value_to_json_value conversion" {
+  // Null
+  let null_json = state_value_to_json_value(sv_null())
+  assert_true(null_json is Null)
+
+  // Bool
+  let true_json = state_value_to_json_value(sv_bool(true))
+  assert_true(true_json is True)
+  let false_json = state_value_to_json_value(sv_bool(false))
+  assert_true(false_json is False)
+
+  // Int
+  let int_json = state_value_to_json_value(sv_int(42))
+  assert_true(int_json is Number(_))
+
+  // Number
+  let num_json = state_value_to_json_value(sv_number(3.14))
+  assert_true(num_json is Number(_))
+
+  // String
+  let str_json = state_value_to_json_value(sv_str("hello"))
+  assert_true(str_json is String(_))
+
+  // Array
+  let arr_json = state_value_to_json_value(sv_arr([sv_int(1)]))
+  assert_true(arr_json is Array(_))
+}
+
+///|
+test "json_value_to_state_value with float" {
+  // Float (non-integer)
+  match state_value_from_json("3.14") {
+    Some(v) =>
+      match v.as_number() {
+        Some(f) => assert_true(f > 3.0 && f < 4.0)
+        None => assert_true(false)
+      }
+    _ => assert_true(false)
+  }
+}
+
+///|
+test "json_value_to_state_value rejects object" {
+  // Object is not supported
+  assert_true(state_value_from_json("{}") is None)
+  assert_true(state_value_from_json("{\"a\":1}") is None)
+}
+
+// =============================================================================
+// StateValue Module Tests (for coverage of state_value.mbt)
+// =============================================================================
+
+///|
+test "StateValue::is_null" {
+  assert_true(sv_null().is_null())
+  assert_true(not(sv_bool(true).is_null()))
+  assert_true(not(sv_int(0).is_null()))
+  assert_true(not(sv_number(0.0).is_null()))
+  assert_true(not(sv_str("").is_null()))
+  assert_true(not(sv_arr([]).is_null()))
+}
+
+///|
+test "StateValue::as_bool" {
+  assert_eq(sv_bool(true).as_bool(), Some(true))
+  assert_eq(sv_bool(false).as_bool(), Some(false))
+  assert_eq(sv_int(1).as_bool(), None)
+  assert_eq(sv_null().as_bool(), None)
+}
+
+///|
+test "StateValue::as_int" {
+  assert_eq(sv_int(42).as_int(), Some(42))
+  assert_eq(sv_int(-100).as_int(), Some(-100))
+  assert_eq(sv_bool(true).as_int(), None)
+  assert_eq(sv_null().as_int(), None)
+}
+
+///|
+test "StateValue::as_number" {
+  match sv_number(3.14).as_number() {
+    Some(f) => assert_true(f > 3.0 && f < 4.0)
+    None => assert_true(false)
+  }
+  assert_eq(sv_int(1).as_number(), None)
+  assert_eq(sv_null().as_number(), None)
+}
+
+///|
+test "StateValue::as_string" {
+  assert_eq(sv_str("hello").as_string(), Some("hello"))
+  assert_eq(sv_str("").as_string(), Some(""))
+  assert_eq(sv_int(1).as_string(), None)
+  assert_eq(sv_null().as_string(), None)
+}
+
+///|
+test "StateValue::as_array" {
+  match sv_arr([sv_int(1), sv_int(2)]).as_array() {
+    Some(arr) => assert_eq(arr.length(), 2)
+    None => assert_true(false)
+  }
+  match sv_arr([]).as_array() {
+    Some(arr) => assert_eq(arr.length(), 0)
+    None => assert_true(false)
+  }
+  assert_eq(sv_int(1).as_array(), None)
+  assert_eq(sv_null().as_array(), None)
+}
+
+///|
+test "sv_xxx factory functions" {
+  assert_true(sv_null().is_null())
+  assert_eq(sv_bool(true).as_bool(), Some(true))
+  assert_eq(sv_bool(false).as_bool(), Some(false))
+  assert_eq(sv_int(42).as_int(), Some(42))
+  assert_eq(sv_str("hello").as_string(), Some("hello"))
+
+  match sv_number(3.14).as_number() {
+    Some(f) => assert_true(f > 3.0 && f < 4.0)
+    _ => assert_true(false)
+  }
+
+  match sv_arr([sv_int(1), sv_int(2)]).as_array() {
+    Some(arr) => assert_eq(arr.length(), 2)
+    _ => assert_true(false)
+  }
+}

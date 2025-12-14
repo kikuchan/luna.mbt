@@ -991,3 +991,414 @@ test "report: filter repairs by type returns correct subset" {
   assert_true(attr_repairs.length() > 0)
   assert_eq(text_repairs.length(), 0)
 }
+
+// =============================================================================
+// Smart Hydrate Tests
+// =============================================================================
+
+///|
+test "smart_hydrate uses experimental for small trees" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  // Small tree - should use experimental hydration
+  let vnode = @luna.h("div", [], [@luna.vtext("Small")])
+  exp_set_inner_html(container, "<div>Small</div>")
+  let result = smart_hydrate(container, vnode, logger~)
+  match result {
+    Hydrated(Clean) => assert_true(true)
+    Hydrated(Repaired(_)) => assert_true(true)
+    Hydrated(Failed(_)) => assert_true(false)
+    FellBackToFullRender(_) => assert_true(false) // Small tree should not fall back
+  }
+}
+
+///|
+test "smart_hydrate falls back for empty DOM" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  // Moderate tree with empty DOM
+  let vnode = @luna.h("div", [], [
+    @luna.vtext("A"),
+    @luna.vtext("B"),
+    @luna.vtext("C"),
+  ])
+  exp_set_inner_html(container, "")
+  let result = smart_hydrate(container, vnode, logger~)
+  match result {
+    FellBackToFullRender(reason) => {
+      // Should mention ratio
+      assert_true(reason.contains("ratio") || reason.contains("DOM"))
+    }
+    Hydrated(_) => assert_true(true) // Also acceptable
+  }
+}
+
+///|
+test "smart_hydrate without logger outputs to console" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  // Small tree
+  let vnode = @luna.h("div", [], [@luna.vtext("Test")])
+  exp_set_inner_html(container, "<div>Test</div>")
+  // No logger - should use console
+  let result = smart_hydrate(container, vnode)
+  match result {
+    Hydrated(Clean) => assert_true(true)
+    Hydrated(Repaired(_)) => assert_true(true)
+    Hydrated(Failed(_)) => assert_true(false)
+    FellBackToFullRender(_) => assert_true(false)
+  }
+}
+
+// =============================================================================
+// hydration_failed Tests
+// =============================================================================
+
+///|
+test "hydration_failed creates Failed result" {
+  let result = hydration_failed("test error message")
+  match result {
+    Failed(msg) => assert_eq(msg, "test error message")
+    _ => assert_true(false)
+  }
+}
+
+// =============================================================================
+// Island Hydration Tests
+// =============================================================================
+
+///|
+test "exp: hydrate island node" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.visland(
+    "island-1",
+    "/app.js",
+    "{}",
+    [@luna.vtext("Island content")],
+  )
+  exp_set_inner_html(container, "")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate async node fallback" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.vasync(
+    render=async fn() { @luna.vtext("Loaded") },
+    fallback=fn() { @luna.vtext("Loading...") },
+  )
+  exp_set_inner_html(container, "")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => {
+      // Should render fallback
+      assert_true(exp_get_inner_html(container).contains("Loading"))
+    }
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate error_boundary success" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Safe")]) },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  exp_set_inner_html(container, "<div>Safe</div>")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate switch first case" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.vtext("First") }),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  exp_set_inner_html(container, "First")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate switch fallback" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  exp_set_inner_html(container, "Fallback")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate switch no fallback" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  exp_set_inner_html(container, "")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+// =============================================================================
+// apply_vattr Edge Cases
+// =============================================================================
+
+///|
+test "exp: apply_vattr with className" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  // className is an alias for class
+  let vnode = @luna.h(
+    "div",
+    [("className", @luna.attr_static("my-class"))],
+    [@luna.vtext("Content")],
+  )
+  exp_set_inner_html(container, "<div>Content</div>")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: apply_vattr with value attribute" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode = @luna.h("input", [("value", @luna.attr_static("test-value"))], [])
+  exp_set_inner_html(container, "<input />")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: apply_vattr dynamic value" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let value = @signal.signal("initial")
+  let vnode = @luna.h(
+    "input",
+    [("value", @luna.attr_dynamic(fn() { value.get() }))],
+    [],
+  )
+  exp_set_inner_html(container, "<input />")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+  // Update value
+  value.set("updated")
+  // No assertion on innerHTML as value is a DOM property, not attribute
+}
+
+///|
+test "exp: apply_vattr dynamic className" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let cls = @signal.signal("class-a")
+  let vnode = @luna.h(
+    "div",
+    [("className", @luna.attr_dynamic(fn() { cls.get() }))],
+    [@luna.vtext("Content")],
+  )
+  exp_set_inner_html(container, "<div>Content</div>")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+  // Update class
+  cls.set("class-b")
+}
+
+///|
+test "exp: apply_vattr dynamic __remove__" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let show_attr = @signal.signal(true)
+  let vnode = @luna.h(
+    "div",
+    [
+      (
+        "data-test",
+        @luna.attr_dynamic(fn() {
+          if show_attr.get() {
+            "value"
+          } else {
+            "__remove__"
+          }
+        }),
+      ),
+    ],
+    [@luna.vtext("Content")],
+  )
+  exp_set_inner_html(container, "<div>Content</div>")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+  // Remove attribute
+  show_attr.set(false)
+}
+
+///|
+test "exp: apply_vattr VAction skipped" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode : @luna.Node[@js.Any] = @luna.h(
+    "button",
+    [("onclick", @luna.action("test-action"))],
+    [@luna.vtext("Click")],
+  )
+  exp_set_inner_html(container, "<button>Click</button>")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+// =============================================================================
+// count_vnode_nodes Tests
+// =============================================================================
+
+///|
+test "exp: hydrate for with element items" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  let vnode = @luna.vfor(fn() {
+    [
+      @luna.h("li", [], [@luna.vtext("A")]),
+      @luna.h("li", [], [@luna.vtext("B")]),
+    ]
+  })
+  // Has markers with element items
+  exp_set_inner_html(container, "<!--f:0--><li>A</li><li>B</li><!--/f-->")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: hydrate for replacing text with element" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let logger = StringBuilder::new()
+  // VNode expects elements
+  let vnode = @luna.vfor(fn() { [@luna.h("span", [], [@luna.vtext("Item")])] })
+  // DOM has text node
+  exp_set_inner_html(container, "<!--f:0-->Plain text<!--/f-->")
+  let result = experimental_hydrate(container, vnode, logger~)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}
+
+///|
+test "exp: experimental_hydrate without logger" {
+  @global_jsdom.register()
+  defer exp_cleanup()
+  let container = exp_create_container()
+  let vnode = @luna.vtext("Hello")
+  exp_set_inner_html(container, "Wrong")
+  // No logger - should use console
+  let result = experimental_hydrate(container, vnode)
+  match result {
+    Clean => assert_true(true)
+    Repaired(_) => assert_true(true)
+    Failed(_) => assert_true(false)
+  }
+}

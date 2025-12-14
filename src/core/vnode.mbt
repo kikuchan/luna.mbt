@@ -76,6 +76,9 @@ pub enum Node[E] {
   /// - children: lazy child content (may throw)
   /// - fallback: (error, reset) -> fallback UI
   ErrorBoundary(VErrorBoundary[E])
+  /// Switch node - renders first matching case or fallback
+  /// Similar to Solid.js <Switch>/<Match>
+  Switch(VSwitch[E])
 }
 
 ///|
@@ -98,6 +101,23 @@ pub struct VAsync[E] {
 pub struct VErrorBoundary[E] {
   children : () -> Node[E] raise
   fallback : (Error, () -> Unit) -> Node[E] raise // (error, reset) -> fallbackUI
+}
+
+///|
+/// Match case for Switch - pairs a condition with content
+pub struct MatchCase[E] {
+  when : () -> Bool
+  render : () -> Node[E]
+}
+
+///|
+/// Virtual Switch node - renders first matching case
+/// Similar to Solid.js <Switch>/<Match>
+/// - cases: array of condition-content pairs, evaluated in order
+/// - fallback: optional content when no case matches
+pub struct VSwitch[E] {
+  cases : Array[MatchCase[E]]
+  fallback : (() -> Node[E])?
 }
 
 ///|
@@ -210,6 +230,35 @@ pub fn[E] error_boundary(
   fallback~ : (Error, () -> Unit) -> Node[E] raise,
 ) -> Node[E] {
   ErrorBoundary({ children, fallback })
+}
+
+///|
+/// Create a match case for Switch
+/// - when: condition function, evaluated lazily
+/// - render: content to render when condition is true
+pub fn[E] match_case(when~ : () -> Bool, render~ : () -> Node[E]) -> MatchCase[E] {
+  { when, render }
+}
+
+///|
+/// Create a switch VNode - renders first matching case
+/// Similar to Solid.js <Switch>/<Match>
+///
+/// Example:
+/// ```
+/// vswitch(
+///   cases=[
+///     match_case(when=fn() { state.get() == 1 }, render=fn() { vtext("One") }),
+///     match_case(when=fn() { state.get() == 2 }, render=fn() { vtext("Two") }),
+///   ],
+///   fallback=Some(fn() { vtext("Other") })
+/// )
+/// ```
+pub fn[E] vswitch(
+  cases~ : Array[MatchCase[E]],
+  fallback? : (() -> Node[E])? = None,
+) -> Node[E] {
+  Switch({ cases, fallback })
 }
 
 ///|

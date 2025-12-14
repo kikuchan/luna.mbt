@@ -1053,3 +1053,279 @@ test "stream render error_boundary with async boundaries" {
   assert_true(html.contains("Header"))
   assert_true(html.contains("Loading..."))
 }
+
+// =============================================================================
+// Additional Coverage Tests
+// =============================================================================
+
+///|
+test "render_with_options preload=false" {
+  let node : @luna.Node[Unit] = @luna.visland(
+    "island-1",
+    "/components/a.js",
+    "{}",
+    [@luna.vtext("Content")],
+  )
+  let result = render_with_options(node, preload=false)
+  // Should render correctly but not collect URLs
+  assert_eq(result.preload_urls.length(), 0)
+  assert_true(result.html.contains("ln:id=\"island-1\""))
+}
+
+///|
+test "render action attribute" {
+  let node : @luna.Node[Unit] = @luna.h(
+    "button",
+    [("onclick", @luna.action("increment"))],
+    [@luna.vtext("Click")],
+  )
+  let html = render_to_string(node)
+  // Action should render as data-action-click attribute
+  assert_true(html.contains("data-action-click=\"increment\""))
+}
+
+///|
+test "render action attribute with special chars" {
+  let node : @luna.Node[Unit] = @luna.h(
+    "button",
+    [("onclick", @luna.action("do \"something\""))],
+    [@luna.vtext("Click")],
+  )
+  let html = render_to_string(node)
+  // Action value should be escaped
+  assert_true(html.contains("data-action-click="))
+  assert_true(html.contains("&quot;"))
+}
+
+///|
+test "render __remove__ attribute" {
+  let node : @luna.Node[Unit] = @luna.h(
+    "div",
+    [
+      ("class", @luna.attr_static("visible")),
+      ("hidden", @luna.attr_static("__remove__")),
+    ],
+    [],
+  )
+  let html = render_to_string(node)
+  // __remove__ attribute should not appear
+  assert_eq(html, "<div class=\"visible\"></div>")
+}
+
+///|
+test "render switch first case matches" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.vtext("First") }),
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.vtext("Second") }),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "First")
+}
+
+///|
+test "render switch second case matches" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("First") }),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "Second")
+}
+
+///|
+test "render switch fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("First") },
+      ),
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "Fallback")
+}
+
+///|
+test "render switch no fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("First") }),
+  ])
+  let html = render_to_string(node)
+  assert_eq(html, "<!--switch-->")
+}
+
+///|
+test "render switch with preloads" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() {
+        @luna.visland("sw-island", "/sw.js", "{}", [@luna.vtext("Island")])
+      }),
+    ],
+  )
+  let result = render_with_preloads(node)
+  assert_eq(result.preload_urls.length(), 1)
+  assert_true(result.preload_urls.contains("/sw.js"))
+}
+
+///|
+test "render switch with hydration markers case match" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Matched") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = render_to_string_with_hydration(node)
+  assert_true(html.contains("<!--sw:"))
+  assert_true(html.contains("<!--/sw-->"))
+  assert_true(html.contains("Matched"))
+}
+
+///|
+test "render switch with hydration markers fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = render_to_string_with_hydration(node)
+  assert_true(html.contains("<!--sw:"))
+  assert_true(html.contains("<!--/sw-->"))
+  assert_true(html.contains("Fallback"))
+}
+
+///|
+test "render switch with hydration markers no fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  let html = render_to_string_with_hydration(node)
+  assert_true(html.contains("<!--sw:"))
+  assert_true(html.contains("<!--/sw-->"))
+  // Should be empty between markers
+}
+
+///|
+test "stream render switch first case" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Stream First") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  render_to_stream(node, writer)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_eq(html, "Stream First")
+}
+
+///|
+test "stream render switch fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Stream Fallback") }),
+  )
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  render_to_stream(node, writer)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_eq(html, "Stream Fallback")
+}
+
+///|
+test "stream render switch no fallback" {
+  let node : @luna.Node[Unit] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  render_to_stream(node, writer)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_eq(html, "<!--switch-->")
+}
+
+///|
+test "stream render collecting async switch" {
+  let node : @luna.Node[Unit] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() {
+        @luna.vasync(render=async fn() { @luna.vtext("Loaded") }, fallback=fn() {
+          @luna.vtext("Loading...")
+        })
+      }),
+    ],
+  )
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  let boundaries = render_to_stream_collecting_async(node, writer)
+  assert_eq(boundaries.length(), 1)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_true(html.contains("Loading..."))
+}
+
+///|
+test "render_with_options hydration parameter reserved" {
+  // Test that hydration parameter is accepted (reserved for future use)
+  let node : @luna.Node[Unit] = @luna.vtext("Hello")
+  let result = render_with_options(node, hydration=false)
+  assert_eq(result.html, "Hello")
+}
+
+///|
+test "stream_async_replacement" {
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  stream_async_replacement(42, writer, fn(w) { w.0("Replaced Content") })
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_true(html.contains("<template id=\"T:42\">"))
+  assert_true(html.contains("Replaced Content"))
+  assert_true(html.contains("</template>"))
+  assert_true(html.contains("<script>"))
+  assert_true(html.contains("document.getElementById('T:42')"))
+  assert_true(html.contains("document.getElementById('A:42')"))
+}
+
+///|
+test "escape_attr with special characters" {
+  // Test less-than and greater-than in attributes (should pass through)
+  let node : @luna.Node[Unit] = @luna.h(
+    "div",
+    [("data-expr", @luna.attr_static("a < b"))],
+    [],
+  )
+  let html = render_to_string(node)
+  // < should NOT be escaped in attributes
+  assert_eq(html, "<div data-expr=\"a < b\"></div>")
+}

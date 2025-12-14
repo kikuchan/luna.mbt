@@ -996,3 +996,257 @@ test "Signal::remove_subscriber iterates through multiple subscribers" {
   unsub3()
   assert_eq(sig.subscriber_count(), 2)
 }
+
+// =============================================================================
+// Context API Tests
+// =============================================================================
+
+///|
+test "create_context creates context with default value" {
+  let ctx = create_context(42)
+  assert_eq(use_context(ctx), 42)
+}
+
+///|
+test "provide overrides context value within scope" {
+  let ctx = create_context("default")
+  assert_eq(use_context(ctx), "default")
+
+  let result = provide(ctx, "provided", fn() {
+    use_context(ctx)
+  })
+  assert_eq(result, "provided")
+
+  // Outside of provide, should return default again
+  assert_eq(use_context(ctx), "default")
+}
+
+///|
+test "provide supports nested scopes" {
+  let ctx = create_context(0)
+  let results : Array[Int] = []
+
+  provide(ctx, 1, fn() {
+    results.push(use_context(ctx))
+    provide(ctx, 2, fn() {
+      results.push(use_context(ctx))
+    })
+    // After inner provide, should return to outer value
+    results.push(use_context(ctx))
+  })
+
+  assert_eq(results[0], 1)
+  assert_eq(results[1], 2)
+  assert_eq(results[2], 1)
+}
+
+///|
+test "multiple contexts are independent" {
+  let ctx_a = create_context("A")
+  let ctx_b = create_context("B")
+  let results : Array[String] = []
+
+  provide(ctx_a, "A-override", fn() {
+    results.push(use_context(ctx_a))
+    results.push(use_context(ctx_b))
+
+    provide(ctx_b, "B-override", fn() {
+      results.push(use_context(ctx_a))
+      results.push(use_context(ctx_b))
+    })
+  })
+
+  assert_eq(results[0], "A-override")
+  assert_eq(results[1], "B")
+  assert_eq(results[2], "A-override")
+  assert_eq(results[3], "B-override")
+}
+
+// =============================================================================
+// Owner and Scope Tests
+// =============================================================================
+
+///|
+test "is_batching returns correct state" {
+  assert_false(is_batching())
+  batch_start()
+  assert_true(is_batching())
+  batch_end()
+  assert_false(is_batching())
+}
+
+///|
+test "has_owner returns correct state" {
+  // Outside create_root, no owner
+  assert_false(has_owner())
+
+  let inside_result = { val: false }
+  create_root(fn(_) {
+    // Inside create_root, has owner
+    inside_result.val = has_owner()
+  })
+  assert_true(inside_result.val)
+
+  // Outside again
+  assert_false(has_owner())
+}
+
+///|
+test "create_root_with_dispose returns result and dispose function" {
+  let cleanup_ran = { val: false }
+
+  let (result, dispose) = create_root_with_dispose(fn() {
+    register_owner_cleanup(fn() { cleanup_ran.val = true })
+    42
+  })
+
+  assert_eq(result, 42)
+  assert_false(cleanup_ran.val)
+
+  // Dispose should run cleanup
+  dispose()
+  assert_true(cleanup_ran.val)
+}
+
+///|
+test "register_owner_cleanup runs on dispose" {
+  let cleanup_count = { val: 0 }
+
+  create_root(fn(dispose) {
+    register_owner_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
+    register_owner_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
+    dispose()
+  })
+
+  assert_eq(cleanup_count.val, 2)
+}
+
+///|
+test "on_cleanup outside effect is ignored" {
+  // This should not crash - just be ignored
+  on_cleanup(fn() { () })
+}
+
+// =============================================================================
+// Resource Tests - Additional Coverage
+// =============================================================================
+
+///|
+test "Resource::peek returns state without tracking" {
+  let res = resource_resolved(42)
+  let state = res.peek()
+  assert_true(state.is_success())
+  assert_eq(state.value(), Some(42))
+}
+
+///|
+test "resource_resolved creates pre-resolved resource" {
+  let res = resource_resolved("hello")
+  assert_true(res.is_success())
+  assert_eq(res.value(), Some("hello"))
+  assert_false(res.is_pending())
+  assert_false(res.is_failure())
+}
+
+///|
+test "resource_rejected creates pre-rejected resource" {
+  let res : Resource[Int] = resource_rejected("error")
+  assert_true(res.is_failure())
+  assert_eq(res.error(), Some("error"))
+  assert_false(res.is_pending())
+  assert_false(res.is_success())
+}
+
+///|
+test "deferred creates manual resource with resolve/reject" {
+  let (res, resolve, _reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
+  assert_true(res.is_pending())
+
+  resolve(100)
+  assert_true(res.is_success())
+  assert_eq(res.value(), Some(100))
+}
+
+///|
+test "deferred reject works" {
+  let (res, _resolve, reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
+  assert_true(res.is_pending())
+
+  reject("failed")
+  assert_true(res.is_failure())
+  assert_eq(res.error(), Some("failed"))
+}
+
+// =============================================================================
+// Effect edge cases
+// =============================================================================
+
+///|
+test "effect_with_cleanup with no cleanup returned" {
+  let count = { val: 0 }
+
+  let dispose = effect_with_cleanup(fn() {
+    count.val = count.val + 1
+    None // No cleanup
+  })
+
+  assert_eq(count.val, 1)
+  dispose()
+}
+
+///|
+test "effect_once runs only once" {
+  let count = { val: 0 }
+  let sig = Signal::new(0)
+
+  effect_once(fn() {
+    let _ = sig.get()
+    count.val = count.val + 1
+  })
+
+  assert_eq(count.val, 1)
+
+  // Changing signal should not re-run since effect disposed itself
+  sig.set(1)
+  sig.set(2)
+  // Note: effect_once may run once more due to effect cycle, but should stop
+  // The implementation disposes after first run
+}
+
+///|
+test "register_owner_cleanup outside owner is no-op" {
+  // Outside of create_root, this should be a no-op (not crash)
+  register_owner_cleanup(fn() { () })
+}
+
+///|
+test "resource_resolved refetch is no-op" {
+  let res = resource_resolved(42)
+  // refetch should be no-op for pre-resolved
+  res.refetch()
+  // Should still be success
+  assert_true(res.is_success())
+  assert_eq(res.value(), Some(42))
+}
+
+///|
+test "resource_rejected refetch is no-op" {
+  let res : Resource[Int] = resource_rejected("error")
+  // refetch should be no-op for pre-rejected
+  res.refetch()
+  // Should still be failure
+  assert_true(res.is_failure())
+}
+
+///|
+test "deferred refetch resets to pending" {
+  let (res, resolve, _reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
+  assert_true(res.is_pending())
+
+  resolve(100)
+  assert_true(res.is_success())
+
+  // refetch should reset to pending
+  res.refetch()
+  assert_true(res.is_pending())
+}

@@ -935,3 +935,530 @@ test "hydrate show toggle visibility" {
   visible.set(true)
   assert_true(get_inner_html(container).contains("Toggle content"))
 }
+
+// =============================================================================
+// HydrationResult Factory and Predicate Tests
+// =============================================================================
+
+///|
+test "hydration_result_success factory" {
+  let result = hydration_result_success()
+  assert_true(result.is_success())
+  assert_false(result.is_mismatch())
+  assert_false(result.is_recovered())
+  assert_eq(result.get_message(), "")
+}
+
+///|
+test "hydration_result_mismatch factory" {
+  let result = hydration_result_mismatch("test mismatch")
+  assert_false(result.is_success())
+  assert_true(result.is_mismatch())
+  assert_false(result.is_recovered())
+  assert_eq(result.get_message(), "test mismatch")
+}
+
+///|
+test "hydration_result_recovered factory" {
+  let result = hydration_result_recovered("recovered from error")
+  assert_false(result.is_success())
+  assert_false(result.is_mismatch())
+  assert_true(result.is_recovered())
+  assert_eq(result.get_message(), "recovered from error")
+}
+
+// =============================================================================
+// Island Hydration Tests
+// =============================================================================
+
+///|
+test "hydrate island node" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.visland(
+    "island-1",
+    "/components/counter.js",
+    "{}",
+    [@luna.vtext("Island content")],
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  // Island hydration should succeed (loader handles the actual hydration)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Island content"))
+}
+
+///|
+test "hydrate island with nested elements" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.visland(
+    "island-nested",
+    "/components/nested.js",
+    "{\"count\":0}",
+    [@luna.h("div", [], [@luna.vtext("Nested in island")])],
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Nested in island"))
+}
+
+// =============================================================================
+// Async Node Hydration Tests
+// =============================================================================
+
+///|
+test "hydrate async node renders fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vasync(
+    render=async fn() { @luna.vtext("Loaded") },
+    fallback=fn() { @luna.vtext("Loading...") },
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  // Async hydration should succeed
+  assert_true(result.is_success())
+  // Should show fallback
+  assert_true(get_inner_html(container).contains("Loading..."))
+}
+
+// =============================================================================
+// ErrorBoundary Hydration Tests
+// =============================================================================
+
+///|
+test "hydrate error_boundary success" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Safe content")]) },
+    fallback=fn(_err, _reset) { @luna.vtext("Error occurred") },
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Safe content"))
+}
+
+// =============================================================================
+// Switch Hydration Tests
+// =============================================================================
+
+///|
+test "hydrate switch first case matches" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.vtext("First") }),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("First"))
+}
+
+///|
+test "hydrate switch second case matches" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("First") },
+      ),
+      @luna.match_case(
+        when=fn() { true },
+        render=fn() { @luna.vtext("Second") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Second"))
+}
+
+///|
+test "hydrate switch fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback shown") }),
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Fallback shown"))
+}
+
+///|
+test "hydrate switch no fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  assert_true(result.is_success())
+}
+
+// =============================================================================
+// render_vnode_to_dom Additional Tests
+// =============================================================================
+
+///|
+test "render_vnode_to_dom with Island" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.visland(
+    "island-render",
+    "/module.js",
+    "{\"state\":1}",
+    [@luna.vtext("Island child")],
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  let inner = get_inner_html(container)
+  assert_true(inner.contains("Island child"))
+  assert_true(inner.contains("ln:id"))
+  assert_true(inner.contains("ln:url"))
+}
+
+///|
+test "render_vnode_to_dom with Async renders fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vasync(
+    render=async fn() { @luna.vtext("Async content") },
+    fallback=fn() { @luna.vtext("Fallback content") },
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  assert_true(get_inner_html(container).contains("Fallback content"))
+}
+
+///|
+test "render_vnode_to_dom with ErrorBoundary success" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.error_boundary(
+    children=fn() { @luna.vtext("Safe content") },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  assert_true(get_inner_html(container).contains("Safe content"))
+}
+
+///|
+test "render_vnode_to_dom with Switch" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let condition = @signal.signal(true)
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { condition.get() },
+        render=fn() { @luna.vtext("Case 1") },
+      ),
+      @luna.match_case(
+        when=fn() { not(condition.get()) },
+        render=fn() { @luna.vtext("Case 2") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback") }),
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  assert_true(get_inner_html(container).contains("Case 1"))
+}
+
+///|
+test "render_vnode_to_dom Switch with fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { false },
+        render=fn() { @luna.vtext("Never") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Fallback rendered") }),
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  assert_true(get_inner_html(container).contains("Fallback rendered"))
+}
+
+///|
+test "render_vnode_to_dom Switch no fallback" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(cases=[
+    @luna.match_case(when=fn() { false }, render=fn() { @luna.vtext("Never") }),
+  ])
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  // Should only have the placeholder comment
+  assert_true(true) // No error means success
+}
+
+///|
+test "render_vnode_to_dom Switch reactive update" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let case_index = @signal.signal(0)
+  let vnode : @luna.Node[@js.Any] = @luna.vswitch(
+    cases=[
+      @luna.match_case(
+        when=fn() { case_index.get() == 0 },
+        render=fn() { @luna.vtext("Zero") },
+      ),
+      @luna.match_case(
+        when=fn() { case_index.get() == 1 },
+        render=fn() { @luna.vtext("One") },
+      ),
+    ],
+    fallback=Some(fn() { @luna.vtext("Other") }),
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  // Initial state
+  assert_true(get_inner_html(container).contains("Zero"))
+  // Switch to case 1
+  case_index.set(1)
+  assert_true(get_inner_html(container).contains("One"))
+  // Switch to fallback
+  case_index.set(2)
+  assert_true(get_inner_html(container).contains("Other"))
+}
+
+// =============================================================================
+// Action-based Hydration Tests
+// =============================================================================
+
+///|
+test "hydrate action attribute" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.h(
+    "button",
+    [("onclick", @luna.action("increment"))],
+    [@luna.vtext("Click")],
+  )
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  // Actions are handled by action-based hydration, not standard hydration
+  assert_true(result.is_success())
+  assert_true(get_inner_html(container).contains("Click"))
+}
+
+///|
+test "bind_actions_from_dom" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  set_inner_html(
+    container,
+    "<button data-action-click=\"test-action\">Click</button>",
+  )
+  let dispatched : Array[String] = []
+  bind_actions_from_dom(container, fn(action) { dispatched.push(action) })
+  // Verify binding happened (we can't easily simulate click in jsdom)
+  assert_true(get_inner_html(container).contains("data-action-click"))
+}
+
+///|
+test "hydrate_with_actions" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  // Setup initial HTML with action attribute
+  set_inner_html(container, "<div data-action-click=\"increment\">0</div>")
+  let render_fn : (Int) -> @luna.Node[@js.Any] = fn(state) {
+    @luna.h("div", [("onclick", @luna.action("increment"))], [
+      @luna.vtext(state.to_string()),
+    ])
+  }
+  let update_fn : (Int, String) -> Int = fn(state, action) {
+    if action == "increment" {
+      state + 1
+    } else {
+      state
+    }
+  }
+  // This should bind actions and set up re-rendering
+  hydrate_with_actions(container, 0, render_fn, update_fn)
+  // The hydration should work without error
+  assert_true(true)
+}
+
+// =============================================================================
+// apply_vattr Edge Cases
+// =============================================================================
+
+///|
+test "apply_vattr static __remove__" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode = @luna.h("div", [("data-test", @luna.attr_static("__remove__"))], [
+    @luna.vtext("Content"),
+  ])
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  // __remove__ should not add the attribute
+  assert_false(get_inner_html(container).contains("data-test"))
+}
+
+///|
+test "apply_vattr static boolean attribute" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode = @luna.h("input", [("disabled", @luna.attr_static(""))], [])
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  assert_true(get_inner_html(container).contains("disabled"))
+}
+
+///|
+test "apply_vattr dynamic __remove__" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let show_attr = @signal.signal(true)
+  let vnode = @luna.h(
+    "div",
+    [
+      (
+        "data-custom",
+        @luna.attr_dynamic(fn() {
+          if show_attr.get() {
+            "value"
+          } else {
+            "__remove__"
+          }
+        }),
+      ),
+    ],
+    [@luna.vtext("Content")],
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  // Initially has attribute
+  assert_true(get_inner_html(container).contains("data-custom"))
+  // Remove it
+  show_attr.set(false)
+  // Attribute should be removed
+  assert_false(get_inner_html(container).contains("data-custom"))
+}
+
+///|
+test "apply_vattr VAction without dispatcher" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let vnode : @luna.Node[@js.Any] = @luna.h(
+    "button",
+    [("onclick", @luna.action("test-action"))],
+    [@luna.vtext("Click")],
+  )
+  let dom_node = render_vnode_to_dom(vnode)
+  container.as_node().appendChild(dom_node) |> ignore
+  // VAction without dispatcher does nothing, but shouldn't error
+  assert_true(get_inner_html(container).contains("Click"))
+}
+
+// =============================================================================
+// hydrate_child_nodes Additional Tests
+// =============================================================================
+
+///|
+test "hydrate nested show in for" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let items = @signal.signal(["A", "B"])
+  let visible = @signal.signal(true)
+  let vnode = @luna.vfor(fn() {
+    let arr = items.get()
+    let result : Array[@luna.Node[@js.Any]] = []
+    for item in arr {
+      result.push(
+        @luna.vshow(fn() { visible.get() }, fn() { @luna.vtext(item) }),
+      )
+    }
+    result
+  })
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  // Hydration should succeed (or recover)
+  assert_true(result.is_success() || result.is_recovered())
+}
+
+///|
+test "hydrate nested component in for" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let items = @signal.signal(["X", "Y"])
+  let vnode = @luna.vfor(fn() {
+    let arr = items.get()
+    let result : Array[@luna.Node[@js.Any]] = []
+    for item in arr {
+      result.push(@luna.vcomponent(fn() { @luna.vtext("Item: " + item) }))
+    }
+    result
+  })
+  let html = @renderer.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let _ = hydrate(container, vnode)
+  assert_true(get_inner_html(container).contains("Item: X"))
+  assert_true(get_inner_html(container).contains("Item: Y"))
+}

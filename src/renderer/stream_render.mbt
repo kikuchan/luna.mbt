@@ -86,6 +86,20 @@ fn render_node_to_stream(
           }
         }
       }
+    Switch(switch_node) => {
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          render_node_to_stream((case_.render)(), writer)
+          return
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) => render_node_to_stream(fallback_fn(), writer)
+        None => write("<!--switch-->")
+      }
+    }
   }
 }
 
@@ -263,6 +277,26 @@ fn render_node_collecting_async(
           }
         }
       }
+    Switch(switch_node) => {
+      // Find first matching case and render it
+      for case_ in switch_node.cases {
+        if (case_.when)() {
+          render_node_collecting_async(
+            (case_.render)(),
+            writer,
+            boundaries,
+            id_counter,
+          )
+          return
+        }
+      }
+      // No case matched, render fallback if present
+      match switch_node.fallback {
+        Some(fallback_fn) =>
+          render_node_collecting_async(fallback_fn(), writer, boundaries, id_counter)
+        None => write("<!--switch-->")
+      }
+    }
   }
 }
 
