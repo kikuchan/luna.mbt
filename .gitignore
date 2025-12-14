@@ -12,5 +12,5 @@ test-results/
 wrangler.json
 .metrics.db
 coverage/
-packages/loader/loader.min.js
 docs/private-*
+.wrangler
