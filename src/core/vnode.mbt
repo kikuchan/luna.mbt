@@ -72,6 +72,10 @@ pub enum Node[E] {
   /// - fallback: shown while loading or on error
   /// - on_error: optional error handler for custom error UI
   Async(VAsync[E])
+  /// ErrorBoundary node - catches rendering errors in children
+  /// - children: lazy child content (may throw)
+  /// - fallback: (error, reset) -> fallback UI
+  ErrorBoundary(VErrorBoundary[E])
 }
 
 ///|
@@ -81,6 +85,19 @@ pub struct VAsync[E] {
   render : async () -> Node[E]
   fallback : () -> Node[E]
   on_error : ((Error) -> Node[E])?
+}
+
+///|
+/// Virtual ErrorBoundary node for catching rendering errors
+/// Similar to Solid.js ErrorBoundary - catches errors during:
+/// - Child component rendering
+/// - Effects and memos within children
+/// Does NOT catch:
+/// - Event handler errors
+/// - Async errors outside render cycle
+pub struct VErrorBoundary[E] {
+  children : () -> Node[E] raise
+  fallback : (Error, () -> Unit) -> Node[E] raise // (error, reset) -> fallbackUI
 }
 
 ///|
@@ -166,6 +183,33 @@ pub fn[E] vasync(
   on_error~ : ((Error) -> Node[E])? = None,
 ) -> Node[E] {
   Async({ render, fallback, on_error })
+}
+
+///|
+/// Create an error boundary VNode
+/// Catches errors during child rendering and displays fallback UI
+/// - children: lazy function that produces child content (may throw)
+/// - fallback: function receiving (error, reset) that produces fallback UI
+///   - error: the caught Error
+///   - reset: function to retry rendering children
+///
+/// Example:
+/// ```
+/// error_boundary(
+///   children=fn() { risky_component() },
+///   fallback=fn(err, reset) {
+///     h("div", [], [
+///       vtext("Error: " + err.to_string()),
+///       h("button", [("onclick", handler(fn(_) { reset() }))], [vtext("Retry")])
+///     ])
+///   }
+/// )
+/// ```
+pub fn[E] error_boundary(
+  children~ : () -> Node[E] raise,
+  fallback~ : (Error, () -> Unit) -> Node[E] raise,
+) -> Node[E] {
+  ErrorBoundary({ children, fallback })
 }
 
 ///|

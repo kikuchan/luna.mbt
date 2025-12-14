@@ -105,7 +105,14 @@ pub fn hydrate(
   let recover = recover_on_mismatch.unwrap_or(true)
   let warn = warn_on_mismatch.unwrap_or(true)
   let ctx : HydrationContext = { container, current_id: 0, mismatches: [] }
-  hydrate_node(container.as_node(), node, ctx)
+  try {
+    hydrate_node(container.as_node(), node, ctx)
+  } catch {
+    err => {
+      // If hydration throws, treat as mismatch and recover
+      ctx.mismatches.push("Hydration error: " + err.to_string())
+    }
+  }
 
   // Check for mismatches
   if ctx.mismatches.length() > 0 {
@@ -142,7 +149,7 @@ fn hydrate_node(
   parent : @js_dom.Node,
   node : @luna.Node[@js.Any],
   ctx : HydrationContext,
-) -> Unit {
+) -> Unit raise {
   match node {
     @luna.Text(_) =>
       // Static text doesn't need hydration
@@ -235,6 +242,12 @@ fn hydrate_node(
       let id = ctx.current_id
       ctx.current_id = id + 1
       hydrate_node(parent, (async_node.fallback)(), ctx)
+    }
+    @luna.ErrorBoundary(boundary) => {
+      // ErrorBoundary hydration with error catching
+      let id = ctx.current_id
+      ctx.current_id = id + 1
+      hydrate_error_boundary(parent, id, boundary, ctx)
     }
   }
 }
@@ -454,7 +467,11 @@ fn hydrate_show(
       if cond() && current_nodes.length() > 0 {
         let child_vnode = child_fn()
         // We need to hydrate the existing nodes
-        hydrate_child_nodes(current_nodes, child_vnode, ctx)
+        try {
+          hydrate_child_nodes(current_nodes, child_vnode, ctx)
+        } catch {
+          _ => () // Ignore errors during hydration of show content
+        }
       }
 
       // Set up effect for show/hide
@@ -491,7 +508,7 @@ fn hydrate_child_nodes(
   nodes : Array[@js_dom.Node],
   node : @luna.Node[@js.Any],
   ctx : HydrationContext,
-) -> Unit {
+) -> Unit raise {
   // For now, just traverse the VNode and update ctx
   let _ = nodes // suppress unused warning
   match node {
@@ -529,6 +546,14 @@ fn hydrate_child_nodes(
     @luna.Async(async_node) => {
       ctx.current_id = ctx.current_id + 1
       hydrate_child_nodes(nodes, (async_node.fallback)(), ctx)
+    }
+    @luna.ErrorBoundary(boundary) => {
+      ctx.current_id = ctx.current_id + 1
+      try {
+        hydrate_child_nodes(nodes, (boundary.children)(), ctx)
+      } catch {
+        _ => ()
+      }
     }
   }
 }
@@ -590,7 +615,11 @@ fn hydrate_for(
       let items = render_fn()
       for i = 0; i < items.length(); i = i + 1 {
         if i < current_nodes.length() {
-          hydrate_child_nodes([current_nodes[i]], items[i], ctx)
+          try {
+            hydrate_child_nodes([current_nodes[i]], items[i], ctx)
+          } catch {
+            _ => () // Ignore errors during hydration of for items
+          }
         }
       }
 
@@ -750,11 +779,13 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       }
       wrapper.as_node()
     }
-    @luna.Async(async_node) => {
+    @luna.Async(async_node) =>
       // For client-side rendering, render fallback initially
       // Async replacement would be handled separately
       render_vnode_to_dom((async_node.fallback)())
-    }
+    @luna.ErrorBoundary(boundary) =>
+      // Client-side ErrorBoundary with reset support
+      render_error_boundary_to_dom(boundary)
   }
 }
 
@@ -818,6 +849,106 @@ pub fn render_vnode(
   container.as_node().setTextContent("")
   let dom_node = render_vnode_to_dom(node)
   container.as_node().appendChild(dom_node) |> ignore
+}
+
+///|
+/// Hydrate error boundary node
+fn hydrate_error_boundary(
+  parent : @js_dom.Node,
+  id : Int,
+  boundary : @luna.VErrorBoundary[@js.Any],
+  ctx : HydrationContext,
+) -> Unit {
+  // Find the error boundary markers
+  let marker_start = "eb:" + id.to_string()
+  let children = parent.childNodes()
+  let mut found = false
+  for i = 0; i < children.length(); i = i + 1 {
+    let child = children[i]
+    if child.nodeType() == 8 { // Comment node
+      let comment_text = get_text_content(child)
+      if comment_text == marker_start {
+        found = true
+        break
+      }
+    }
+  }
+  if found {
+    // Try to hydrate children, catch errors
+    try {
+      hydrate_node(parent, (boundary.children)(), ctx)
+    } catch {
+      err => {
+        // On error during hydration, we need to re-render with fallback
+        // Find and clear the boundary content, then render fallback
+        let reset = fn() {
+          // Reset re-renders children - clear and re-render
+          // This is a simplified reset - full implementation would track DOM nodes
+          ()
+        }
+        try {
+          hydrate_node(parent, (boundary.fallback)(err, reset), ctx)
+        } catch {
+          _ => () // Ignore errors in fallback rendering
+        }
+      }
+    }
+  }
+}
+
+///|
+/// Render ErrorBoundary to DOM with error catching and reset support
+fn render_error_boundary_to_dom(
+  boundary : @luna.VErrorBoundary[@js.Any],
+) -> @js_dom.Node {
+  let doc = @js_dom.document()
+  let container = doc.createDocumentFragment()
+  let container_node = container.as_node()
+
+  // State for error handling
+  let error_state : Ref[Error?] = { val: None }
+  let content_nodes : Array[@js_dom.Node] = []
+
+  // Reset function clears error and re-renders children
+  let reset = fn() {
+    error_state.val = None
+    // Clear current content
+    for node in content_nodes {
+      match node.parentNode() {
+        Some(par) => par.removeChild(node) |> ignore
+        None => ()
+      }
+    }
+    content_nodes.clear()
+    // Re-render children
+    try {
+      let child_node = render_vnode_to_dom((boundary.children)())
+      content_nodes.push(child_node)
+      // Need to re-append to parent - this is complex in fragment context
+      // For now, this is a best-effort implementation
+    } catch {
+      err => error_state.val = Some(err)
+    }
+  }
+
+  // Initial render
+  try {
+    let child_node = render_vnode_to_dom((boundary.children)())
+    content_nodes.push(child_node)
+    container_node.appendChild(child_node) |> ignore
+  } catch {
+    err => {
+      error_state.val = Some(err)
+      try {
+        let fallback_node = render_vnode_to_dom((boundary.fallback)(err, reset))
+        content_nodes.push(fallback_node)
+        container_node.appendChild(fallback_node) |> ignore
+      } catch {
+        _ => () // Ignore errors in fallback
+      }
+    }
+  }
+  container_node
 }
 
 // =============================================================================

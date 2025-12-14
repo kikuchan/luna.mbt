@@ -915,3 +915,166 @@ test "render_to_stream nested async" {
   assert_true(html.contains("Loading..."))
   assert_true(html.contains("id=\"A:0\""))
 }
+
+// =============================================================================
+// ErrorBoundary Tests
+// =============================================================================
+
+///|
+test "render error_boundary children when no error" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Success")]) },
+    fallback=fn(_err, _reset) { @luna.h("div", [], [@luna.vtext("Error!")]) },
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "<div>Success</div>")
+}
+
+///|
+test "render error_boundary with nested content" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.h(
+        "div",
+        [("class", @luna.attr_static("container"))],
+        [
+          @luna.h("h1", [], [@luna.vtext("Title")]),
+          @luna.h("p", [], [@luna.vtext("Content")]),
+        ],
+      )
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let html = render_to_string(node)
+  assert_true(html.contains("<h1>Title</h1>"))
+  assert_true(html.contains("<p>Content</p>"))
+}
+
+///|
+test "render error_boundary with dynamic content" {
+  let count = 42
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.h("div", [], [@luna.text_dyn(fn() { "Count: " + count.to_string() })])
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "<div>Count: 42</div>")
+}
+
+///|
+test "render error_boundary with show" {
+  let visible = true
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.vshow(fn() { visible }, fn() { @luna.vtext("Visible!") })
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "Visible!")
+}
+
+///|
+test "render error_boundary with for" {
+  let items = ["A", "B", "C"]
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.vfor(fn() {
+        let result : Array[@luna.Node[Unit]] = []
+        for item in items {
+          result.push(@luna.h("li", [], [@luna.vtext(item)]))
+        }
+        result
+      })
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "<li>A</li><li>B</li><li>C</li>")
+}
+
+///|
+test "render error_boundary with hydration markers" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Content")]) },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let html = render_to_string_with_hydration(node)
+  // Should have error boundary markers
+  assert_true(html.contains("<!--eb:"))
+  assert_true(html.contains("<!--/eb-->"))
+  assert_true(html.contains("Content"))
+}
+
+///|
+test "render nested error_boundaries" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.h("div", [], [
+        @luna.error_boundary(
+          children=fn() { @luna.vtext("Inner content") },
+          fallback=fn(_err, _reset) { @luna.vtext("Inner error") },
+        ),
+      ])
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Outer error") },
+  )
+  let html = render_to_string(node)
+  assert_eq(html, "<div>Inner content</div>")
+}
+
+///|
+test "render error_boundary in island" {
+  let node : @luna.Node[Unit] = @luna.visland(
+    "eb-island-1",
+    "/components/test.js",
+    "{}",
+    [
+      @luna.error_boundary(
+        children=fn() { @luna.vtext("Island content") },
+        fallback=fn(_err, _reset) { @luna.vtext("Error") },
+      ),
+    ],
+  )
+  let html = render_to_string(node)
+  assert_true(html.contains("ln:id=\"eb-island-1\""))
+  assert_true(html.contains("Island content"))
+}
+
+///|
+test "stream render error_boundary children when no error" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() { @luna.h("div", [], [@luna.vtext("Stream Success")]) },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  render_to_stream(node, writer)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_eq(html, "<div>Stream Success</div>")
+}
+
+///|
+test "stream render error_boundary with async boundaries" {
+  let node : @luna.Node[Unit] = @luna.error_boundary(
+    children=fn() {
+      @luna.vfragment([
+        @luna.h("div", [], [@luna.vtext("Header")]),
+        @luna.vasync(
+          render=async fn() { @luna.vtext("Async content") },
+          fallback=fn() { @luna.vtext("Loading...") },
+        ),
+      ])
+    },
+    fallback=fn(_err, _reset) { @luna.vtext("Error") },
+  )
+  let chunks : Array[String] = []
+  let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
+  let boundaries = render_to_stream_collecting_async(node, writer)
+  assert_eq(boundaries.length(), 1)
+  let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
+  assert_true(html.contains("Header"))
+  assert_true(html.contains("Loading..."))
+}

@@ -77,6 +77,20 @@ fn render_node_to_stream(
       // Async resolution happens via Suspense/render_with_suspense
       render_node_to_stream((async_node.fallback)(), writer)
     }
+    ErrorBoundary(boundary) =>
+      // ErrorBoundary: try rendering children, catch errors and render fallback
+      try {
+        render_node_to_stream((boundary.children)(), writer)
+      } catch {
+        err => {
+          let reset = fn() { () }
+          try {
+            render_node_to_stream((boundary.fallback)(err, reset), writer)
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
   }
 }
 
@@ -234,6 +248,30 @@ fn render_node_collecting_async(
       // Collect for later resolution
       boundaries.push({ id, async_node })
     }
+    ErrorBoundary(boundary) =>
+      // ErrorBoundary: try rendering children, catch errors and render fallback
+      try {
+        render_node_collecting_async(
+          (boundary.children)(),
+          writer,
+          boundaries,
+          id_counter,
+        )
+      } catch {
+        err => {
+          let reset = fn() { () }
+          try {
+            render_node_collecting_async(
+              (boundary.fallback)(err, reset),
+              writer,
+              boundaries,
+              id_counter,
+            )
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
   }
 }
 

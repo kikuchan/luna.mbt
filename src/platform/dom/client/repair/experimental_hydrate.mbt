@@ -370,6 +370,12 @@ fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
       count
     }
     @luna.Async(async_node) => 1 + count_vnode_nodes((async_node.fallback)())
+    @luna.ErrorBoundary(boundary) =>
+      try {
+        1 + count_vnode_nodes((boundary.children)())
+      } catch {
+        _ => 1 // Count just the boundary if children fail
+      }
   }
 }
 
@@ -737,6 +743,21 @@ fn experimental_hydrate_node(
       let id = ctx.current_id
       ctx.current_id = id + 1
       experimental_hydrate_node(parent, (async_node.fallback)(), ctx)
+    }
+    @luna.ErrorBoundary(boundary) => {
+      // ErrorBoundary: try rendering children, catch errors and render fallback
+      try {
+        experimental_hydrate_node(parent, (boundary.children)(), ctx)
+      } catch {
+        err => {
+          let reset = fn() { () }
+          try {
+            experimental_hydrate_node(parent, (boundary.fallback)(err, reset), ctx)
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
     }
   }
 }

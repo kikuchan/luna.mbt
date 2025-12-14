@@ -108,6 +108,21 @@ fn[E] render_and_collect_urls(
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_and_collect_urls(sb, (async_node.fallback)(), urls)
+    ErrorBoundary(boundary) =>
+      // ErrorBoundary: try rendering children, catch errors and render fallback
+      try {
+        render_and_collect_urls(sb, (boundary.children)(), urls)
+      } catch {
+        err => {
+          // reset function is a no-op in SSR context
+          let reset = fn() { () }
+          try {
+            render_and_collect_urls(sb, (boundary.fallback)(err, reset), urls)
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
   }
 }
 
@@ -264,6 +279,20 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_to_sb(sb, (async_node.fallback)())
+    ErrorBoundary(boundary) =>
+      // ErrorBoundary: try rendering children, catch errors and render fallback
+      try {
+        render_to_sb(sb, (boundary.children)())
+      } catch {
+        err => {
+          let reset = fn() { () }
+          try {
+            render_to_sb(sb, (boundary.fallback)(err, reset))
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
   }
 }
 
@@ -369,6 +398,27 @@ fn[E] render_with_id_to(
       sb.write_string("-->")
       render_with_id_to(sb, (async_node.fallback)(), id_counter)
       sb.write_string("<!--/a-->")
+    }
+    ErrorBoundary(boundary) => {
+      // ErrorBoundary with hydration marker
+      let id = id_counter.val
+      id_counter.val = id + 1
+      sb.write_string("<!--eb:")
+      sb.write_object(id)
+      sb.write_string("-->")
+      try {
+        render_with_id_to(sb, (boundary.children)(), id_counter)
+      } catch {
+        err => {
+          let reset = fn() { () }
+          try {
+            render_with_id_to(sb, (boundary.fallback)(err, reset), id_counter)
+          } catch {
+            _ => () // Ignore errors in fallback
+          }
+        }
+      }
+      sb.write_string("<!--/eb-->")
     }
   }
 }
