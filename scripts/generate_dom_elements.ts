@@ -279,22 +279,20 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
 
     const htmlAttr = attr.htmlAttr ?? attr.name;
     if (attr.type === "bool") {
-      bodyLines.push(`match ${attr.name} {`);
+      bodyLines.push(`if ${attr.name} is Some(true) {`);
       if (opts.target === "dom") {
-        bodyLines.push(`  Some(true) => props.push(("${htmlAttr}", Static("true")))`);
+        bodyLines.push(`  props.push(("${htmlAttr}", Static("true")))`);
       } else {
-        bodyLines.push(`  Some(true) => props.push(("${htmlAttr}", static_attr("")))`);
+        bodyLines.push(`  props.push(("${htmlAttr}", static_attr("")))`);
       }
-      bodyLines.push("  _ => ()");
       bodyLines.push("}");
     } else {
-      bodyLines.push(`match ${attr.name} {`);
+      bodyLines.push(`if ${attr.name} is Some(v) {`);
       if (opts.target === "dom") {
-        bodyLines.push(`  Some(v) => props.push(("${htmlAttr}", Static(v)))`);
+        bodyLines.push(`  props.push(("${htmlAttr}", Static(v)))`);
       } else {
-        bodyLines.push(`  Some(v) => props.push(("${htmlAttr}", static_attr(v)))`);
+        bodyLines.push(`  props.push(("${htmlAttr}", static_attr(v)))`);
       }
-      bodyLines.push("  None => ()");
       bodyLines.push("}");
     }
   }
@@ -308,9 +306,10 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
       bodyLines.push("create_element(\"" + elem.tag + '", props, [text(content)])');
     } else if (elem.tag === "script") {
       // script: content is optional, no children param
-      bodyLines.push("let script_children : Array[@luna.Node[Unit]] = match content {");
-      bodyLines.push("  Some(c) => [text(c)]");
-      bodyLines.push("  None => []");
+      bodyLines.push("let script_children : Array[@luna.Node[Unit]] = if content is Some(c) {");
+      bodyLines.push("  [text(c)]");
+      bodyLines.push("} else {");
+      bodyLines.push("  []");
       bodyLines.push("}");
       bodyLines.push(`create_element("${elem.tag}", props, script_children)`);
     }
@@ -395,24 +394,19 @@ fn build_attrs(
   attrs : Array[(String, @luna.Attr[Unit])]?
 ) -> Array[(String, @luna.Attr[Unit])] {
   let result : Array[(String, @luna.Attr[Unit])] = []
-  match id {
-    Some(v) => result.push(("id", static_attr(v)))
-    None => ()
+  if id is Some(v) {
+    result.push(("id", static_attr(v)))
   }
-  match class {
-    Some(v) => result.push(("class", static_attr(v)))
-    None => ()
+  if class is Some(v) {
+    result.push(("class", static_attr(v)))
   }
-  match style {
-    Some(v) => result.push(("style", static_attr(v)))
-    None => ()
+  if style is Some(v) {
+    result.push(("style", static_attr(v)))
   }
-  match attrs {
-    Some(extra) =>
-      for attr in extra {
-        result.push(attr)
-      }
-    None => ()
+  if attrs is Some(extra) {
+    for attr in extra {
+      result.push(attr)
+    }
   }
   result
 }

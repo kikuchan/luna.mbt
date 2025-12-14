@@ -21,10 +21,6 @@ pub fn generate_shard(config : ShardConfig) -> ShardOutput {
 
   // 2. State script (if using ScriptRef)
   // Note: actual script generation is done by generate_shard_with_state_script
-  match config.state {
-    ScriptRef(_) => ()
-    _ => ()
-  }
 
   // 3. Main container div
   sb.write_string("<div ln:id=\"")
@@ -37,30 +33,23 @@ pub fn generate_shard(config : ShardConfig) -> ShardOutput {
   sb.write_char('"')
 
   // ln:trigger attribute (only if not default)
-  match config.trigger {
-    Load => () // default, no need to specify
-    _ => {
-      sb.write_string(" ln:trigger=\"")
-      sb.write_string(config.trigger.to_string())
-      sb.write_char('"')
-    }
+  if not(config.trigger is Load) {
+    sb.write_string(" ln:trigger=\"")
+    sb.write_string(config.trigger.to_string())
+    sb.write_char('"')
   }
 
   // ln:state attribute
-  match format_state_attr(config.state) {
-    Some(state_value) => {
-      sb.write_string(" ln:state=\"")
-      sb.write_string(state_value)
-      sb.write_char('"')
-    }
-    None => ()
+  if format_state_attr(config.state) is Some(state_value) {
+    sb.write_string(" ln:state=\"")
+    sb.write_string(state_value)
+    sb.write_char('"')
   }
   sb.write_char('>')
 
   // 4. SSR content (if any)
-  match config.ssr_content {
-    Some(content) => sb.write_string(content)
-    None => ()
+  if config.ssr_content is Some(content) {
+    sb.write_string(content)
   }
 
   // 5. Close container

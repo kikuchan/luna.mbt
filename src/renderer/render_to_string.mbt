@@ -110,15 +110,11 @@ fn[E] render_and_collect_urls(
       render_and_collect_urls(sb, (async_node.fallback)(), urls)
     ErrorBoundary(boundary) =>
       // ErrorBoundary: try rendering children, catch errors and render fallback
-      try {
-        render_and_collect_urls(sb, (boundary.children)(), urls)
-      } catch {
+      render_and_collect_urls(sb, (boundary.children)(), urls) catch {
         err => {
           // reset function is a no-op in SSR context
           let reset = fn() { () }
-          try {
-            render_and_collect_urls(sb, (boundary.fallback)(err, reset), urls)
-          } catch {
+          render_and_collect_urls(sb, (boundary.fallback)(err, reset), urls) catch {
             _ => () // Ignore errors in fallback
           }
         }
@@ -148,7 +144,10 @@ fn[E] render_island_and_collect_urls(
 
 ///|
 /// Render Island wrapper opening (comment + div with attributes)
-fn[E] render_island_open_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
+fn[E] render_island_open_to(
+  sb : StringBuilder,
+  island : @luna.VIsland[E],
+) -> Unit {
   sb.write_string("<!--ln:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
@@ -169,7 +168,10 @@ fn[E] render_island_open_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Un
 
 ///|
 /// Render Island wrapper closing (div + comment)
-fn[E] render_island_close_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
+fn[E] render_island_close_to(
+  sb : StringBuilder,
+  island : @luna.VIsland[E],
+) -> Unit {
   sb.write_string("</div>")
   sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
@@ -185,45 +187,14 @@ fn[E] render_attrs_to(
   for attr in attrs {
     let (name, value) = attr
     match value {
-      VStatic(s) =>
-        if s != "__remove__" {
-          if s == "" {
-            // Boolean attribute (like disabled)
-            sb.write_char(' ')
-            sb.write_string(name)
-          } else {
-            sb.write_char(' ')
-            sb.write_string(name)
-            sb.write_string("=\"")
-            escape_attr_to(sb, s)
-            sb.write_char('"')
-          }
-        }
-      VDynamic(getter) => {
-        let s = getter()
-        if s != "__remove__" {
-          if s == "" {
-            sb.write_char(' ')
-            sb.write_string(name)
-          } else {
-            sb.write_char(' ')
-            sb.write_string(name)
-            sb.write_string("=\"")
-            escape_attr_to(sb, s)
-            sb.write_char('"')
-          }
-        }
-      }
-      VHandler(_) =>
-        // Event handlers are not rendered in SSR
-        ()
+      VStatic(s) => render_attr_value(sb, name, s)
+      VDynamic(getter) => render_attr_value(sb, name, getter())
+      VHandler(_) => () // Event handlers are not rendered in SSR
       VAction(action_name) => {
         // Render action as data-action attribute for hydration
         // onclick -> data-action-click="increment"
         let event_name = if name.has_prefix("on") {
-          name[2:].to_string() catch {
-            _ => name
-          }
+          name[2:].to_string() catch { _ => name }
         } else {
           name
         }
@@ -233,6 +204,26 @@ fn[E] render_attrs_to(
         escape_attr_to(sb, action_name)
         sb.write_char('"')
       }
+    }
+  }
+}
+
+///|
+/// Render a single attribute value
+fn render_attr_value(sb : StringBuilder, name : String, s : String) -> Unit {
+  match s {
+    "__remove__" => () // Special marker to skip attribute
+    "" => {
+      // Boolean attribute (like disabled)
+      sb.write_char(' ')
+      sb.write_string(name)
+    }
+    _ => {
+      sb.write_char(' ')
+      sb.write_string(name)
+      sb.write_string("=\"")
+      escape_attr_to(sb, s)
+      sb.write_char('"')
     }
   }
 }
@@ -281,14 +272,10 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
       render_to_sb(sb, (async_node.fallback)())
     ErrorBoundary(boundary) =>
       // ErrorBoundary: try rendering children, catch errors and render fallback
-      try {
-        render_to_sb(sb, (boundary.children)())
-      } catch {
+      render_to_sb(sb, (boundary.children)()) catch {
         err => {
           let reset = fn() { () }
-          try {
-            render_to_sb(sb, (boundary.fallback)(err, reset))
-          } catch {
+          render_to_sb(sb, (boundary.fallback)(err, reset)) catch {
             _ => () // Ignore errors in fallback
           }
         }
@@ -406,14 +393,10 @@ fn[E] render_with_id_to(
       sb.write_string("<!--eb:")
       sb.write_object(id)
       sb.write_string("-->")
-      try {
-        render_with_id_to(sb, (boundary.children)(), id_counter)
-      } catch {
+      render_with_id_to(sb, (boundary.children)(), id_counter) catch {
         err => {
           let reset = fn() { () }
-          try {
-            render_with_id_to(sb, (boundary.fallback)(err, reset), id_counter)
-          } catch {
+          render_with_id_to(sb, (boundary.fallback)(err, reset), id_counter) catch {
             _ => () // Ignore errors in fallback
           }
         }

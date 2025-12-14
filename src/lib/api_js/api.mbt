@@ -164,22 +164,27 @@ pub fn for_each(
 // Re-export from @element for JS API
 // ============================================================================
 
+///|
 pub fn text(content : String) -> @element.DomNode {
   @element.text(content)
 }
 
+///|
 pub fn text_dyn(get_content : () -> String) -> @element.DomNode {
   @element.text_dyn(get_content)
 }
 
+///|
 pub fn render_to(root : @js_dom.Element, node : @element.DomNode) -> Unit {
   @element.render_to(root, node)
 }
 
+///|
 pub fn mount_to(root : @js_dom.Element, node : @element.DomNode) -> Unit {
   @element.mount_to(root, node)
 }
 
+///|
 pub fn show(
   cond : () -> Bool,
   render : () -> @element.DomNode,
@@ -187,6 +192,7 @@ pub fn show(
   @element.show(cond, render)
 }
 
+///|
 pub fn jsx(
   tag : String,
   attrs : Array[(String, @element.AttrValue)],
@@ -195,6 +201,7 @@ pub fn jsx(
   @element.jsx(tag, attrs, children)
 }
 
+///|
 pub fn jsxs(
   tag : String,
   attrs : Array[(String, @element.AttrValue)],
@@ -203,10 +210,12 @@ pub fn jsxs(
   @element.jsxs(tag, attrs, children)
 }
 
+///|
 pub fn fragment(children : Array[@element.DomNode]) -> @element.DomNode {
   @element.fragment(children)
 }
 
+///|
 pub fn create_element(
   tag : String,
   attrs : Array[(String, @element.AttrValue)],
@@ -215,6 +224,7 @@ pub fn create_element(
   @element.create_element(tag, attrs, children)
 }
 
+///|
 pub fn events() -> @element.HandlerMap {
   @element.events()
 }

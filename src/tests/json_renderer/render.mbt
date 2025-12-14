@@ -61,14 +61,10 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       render_to_json((async_node.fallback)())
     @luna.ErrorBoundary(boundary) =>
       // For JSON rendering, try to render children, fallback on error
-      try {
-        render_to_json((boundary.children)())
-      } catch {
+      render_to_json((boundary.children)()) catch {
         err => {
           let reset = fn() { () }
-          try {
-            render_to_json((boundary.fallback)(err, reset))
-          } catch {
+          render_to_json((boundary.fallback)(err, reset)) catch {
             _ => Fragment([]) // Return empty fragment if fallback also fails
           }
         }

@@ -36,7 +36,11 @@ fn run_new_command(args : Array[String]) -> Unit {
   let name = result.positionals[0]
   // Get project directory path
   let cwd = @process.cwd()
-  let project_dir = if @path.isAbsolute(name) { name } else { @path.join2(cwd, name) }
+  let project_dir = if @path.isAbsolute(name) {
+    name
+  } else {
+    @path.join2(cwd, name)
+  }
   // Check if project directory already exists
   if @fs.existsSync(project_dir) {
     console_error(@colorette.red("Error: Directory '\{name}' already exists"))

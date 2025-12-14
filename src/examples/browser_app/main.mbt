@@ -293,10 +293,9 @@ fn settings_profile_component(router : @client.BrowserRouter) -> @dom.DomNode {
   div(class="settings-profile", [
     h1([text("Profile Settings")]),
     p([text("Edit your profile here.")]),
-    button(
-      on=events().click(fn(_) { router.navigate(base + "/settings") }),
-      [text("Back to Settings")],
-    ),
+    button(on=events().click(fn(_) { router.navigate(base + "/settings") }), [
+      text("Back to Settings"),
+    ]),
   ])
 }
 
@@ -307,10 +306,7 @@ fn not_found_component(router : @client.BrowserRouter) -> @dom.DomNode {
   div(class="not-found", [
     h1([text("404 - Not Found")]),
     p([text("Page not found: "), text_dyn(fn() { router.get_path() })]),
-    button(
-      on=events().click(fn(_) { router.navigate(base) }),
-      [text("Go Home")],
-    ),
+    button(on=events().click(fn(_) { router.navigate(base) }), [text("Go Home")]),
   ])
 }
 

@@ -21,11 +21,11 @@ pub fn state_value_to_json(value : StateValue) -> String {
 pub fn state_values_to_json(values : Array[StateValue]) -> String {
   let buf = StringBuilder::new()
   buf.write_string("[")
-  for i = 0; i < values.length(); i = i + 1 {
+  for i, value in values {
     if i > 0 {
       buf.write_string(",")
     }
-    write_json(values[i], buf)
+    write_json(value, buf)
   }
   buf.write_string("]")
   buf.to_string()
@@ -46,11 +46,11 @@ fn write_json(value : StateValue, buf : StringBuilder) -> Unit {
     }
     Arr(arr) => {
       buf.write_string("[")
-      for i = 0; i < arr.length(); i = i + 1 {
+      for i, item in arr {
         if i > 0 {
           buf.write_string(",")
         }
-        write_json(arr[i], buf)
+        write_json(item, buf)
       }
       buf.write_string("]")
     }
@@ -132,19 +132,13 @@ pub fn state_value_from_json(json : String) -> StateValue? {
 pub fn state_values_from_json(json : String) -> Array[StateValue]? {
   try {
     let json_value = @json.parse(json.view())
-    match json_value {
-      Array(arr) => {
-        let result : Array[StateValue] = []
-        for item in arr {
-          match json_value_to_state_value(item) {
-            Some(v) => result.push(v)
-            None => return None
-          }
-        }
-        Some(result)
-      }
-      _ => None
+    guard json_value is Array(arr) else { return None }
+    let result : Array[StateValue] = []
+    for item in arr {
+      guard json_value_to_state_value(item) is Some(v) else { return None }
+      result.push(v)
     }
+    Some(result)
   } catch {
     _ => None
   }
@@ -170,10 +164,8 @@ fn json_value_to_state_value(value : Json) -> StateValue? {
     Array(arr) => {
       let result : Array[StateValue] = []
       for item in arr {
-        match json_value_to_state_value(item) {
-          Some(v) => result.push(v)
-          None => return None
-        }
+        guard json_value_to_state_value(item) is Some(v) else { return None }
+        result.push(v)
       }
       Some(Arr(result))
     }
@@ -190,12 +182,6 @@ pub fn state_value_to_json_value(value : StateValue) -> Json {
     Int(n) => Json::number(n.to_double())
     Number(f) => Json::number(f)
     Str(s) => Json::string(s)
-    Arr(arr) => {
-      let result : Array[Json] = []
-      for item in arr {
-        result.push(state_value_to_json_value(item))
-      }
-      Json::array(result)
-    }
+    Arr(arr) => Json::array(arr.map(state_value_to_json_value))
   }
 }

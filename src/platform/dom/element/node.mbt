@@ -110,9 +110,5 @@ pub fn[T : ToDomNode] dom_node(value : T) -> DomNode {
 ///|
 /// Collect children with ToDomNode conversion
 pub fn[T : ToDomNode] dom_children(items : Array[T]) -> Array[DomNode] {
-  let result : Array[DomNode] = []
-  for item in items {
-    result.push(ToDomNode::to_dom_node(item))
-  }
-  result
+  items.map(ToDomNode::to_dom_node)
 }

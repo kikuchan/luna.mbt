@@ -181,13 +181,11 @@ pub fn a(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match href {
-    Some(v) => props.push(("href", Static(v)))
-    None => ()
+  if href is Some(v) {
+    props.push(("href", Static(v)))
   }
-  match target {
-    Some(v) => props.push(("target", Static(v)))
-    None => ()
+  if target is Some(v) {
+    props.push(("target", Static(v)))
   }
   create_element("a", props, children)
 }
@@ -340,9 +338,8 @@ pub fn button(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match disabled {
-    Some(true) => props.push(("disabled", Static("true")))
-    _ => ()
+  if disabled is Some(true) {
+    props.push(("disabled", Static("true")))
   }
   create_element("button", props, children)
 }
@@ -362,21 +359,17 @@ pub fn input(
   attrs? : Array[(String, Attr)],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match type_ {
-    Some(v) => props.push(("type", Static(v)))
-    None => ()
+  if type_ is Some(v) {
+    props.push(("type", Static(v)))
   }
-  match value {
-    Some(v) => props.push(("value", Static(v)))
-    None => ()
+  if value is Some(v) {
+    props.push(("value", Static(v)))
   }
-  match placeholder {
-    Some(v) => props.push(("placeholder", Static(v)))
-    None => ()
+  if placeholder is Some(v) {
+    props.push(("placeholder", Static(v)))
   }
-  match disabled {
-    Some(true) => props.push(("disabled", Static("true")))
-    _ => ()
+  if disabled is Some(true) {
+    props.push(("disabled", Static("true")))
   }
   create_element("input", props, [])
 }
@@ -395,13 +388,11 @@ pub fn textarea(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match placeholder {
-    Some(v) => props.push(("placeholder", Static(v)))
-    None => ()
+  if placeholder is Some(v) {
+    props.push(("placeholder", Static(v)))
   }
-  match disabled {
-    Some(true) => props.push(("disabled", Static("true")))
-    _ => ()
+  if disabled is Some(true) {
+    props.push(("disabled", Static("true")))
   }
   create_element("textarea", props, children)
 }
@@ -434,9 +425,8 @@ pub fn label(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match for_ {
-    Some(v) => props.push(("for", Static(v)))
-    None => ()
+  if for_ is Some(v) {
+    props.push(("for", Static(v)))
   }
   create_element("label", props, children)
 }
@@ -456,21 +446,17 @@ pub fn img(
   attrs? : Array[(String, Attr)],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
-  match src {
-    Some(v) => props.push(("src", Static(v)))
-    None => ()
+  if src is Some(v) {
+    props.push(("src", Static(v)))
   }
-  match alt {
-    Some(v) => props.push(("alt", Static(v)))
-    None => ()
+  if alt is Some(v) {
+    props.push(("alt", Static(v)))
   }
-  match width {
-    Some(v) => props.push(("width", Static(v)))
-    None => ()
+  if width is Some(v) {
+    props.push(("width", Static(v)))
   }
-  match height {
-    Some(v) => props.push(("height", Static(v)))
-    None => ()
+  if height is Some(v) {
+    props.push(("height", Static(v)))
   }
   create_element("img", props, [])
 }

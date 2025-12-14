@@ -180,7 +180,7 @@ pub fn[E] visland(
 pub fn[E] vasync(
   render~ : async () -> Node[E],
   fallback~ : () -> Node[E],
-  on_error~ : ((Error) -> Node[E])? = None,
+  on_error? : ((Error) -> Node[E])? = None,
 ) -> Node[E] {
   Async({ render, fallback, on_error })
 }

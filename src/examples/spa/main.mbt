@@ -50,10 +50,9 @@ fn counter_example() -> @dom.DomNode {
         on=@dom.events().click(fn(_) { count.update(fn(n) { n + 1 }) }),
         [@dom.text("+")],
       ),
-      @dom.button(
-        on=@dom.events().click(fn(_) { count.set(0) }),
-        [@dom.text("Reset")],
-      ),
+      @dom.button(on=@dom.events().click(fn(_) { count.set(0) }), [
+        @dom.text("Reset"),
+      ]),
     ]),
   ])
 }

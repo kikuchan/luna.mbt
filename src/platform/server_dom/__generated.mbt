@@ -40,24 +40,19 @@ fn build_attrs(
   attrs : Array[(String, @luna.Attr[Unit])]?,
 ) -> Array[(String, @luna.Attr[Unit])] {
   let result : Array[(String, @luna.Attr[Unit])] = []
-  match id {
-    Some(v) => result.push(("id", static_attr(v)))
-    None => ()
+  if id is Some(v) {
+    result.push(("id", static_attr(v)))
   }
-  match class {
-    Some(v) => result.push(("class", static_attr(v)))
-    None => ()
+  if class is Some(v) {
+    result.push(("class", static_attr(v)))
   }
-  match style {
-    Some(v) => result.push(("style", static_attr(v)))
-    None => ()
+  if style is Some(v) {
+    result.push(("style", static_attr(v)))
   }
-  match attrs {
-    Some(extra) =>
-      for attr in extra {
-        result.push(attr)
-      }
-    None => ()
+  if attrs is Some(extra) {
+    for attr in extra {
+      result.push(attr)
+    }
   }
   result
 }
@@ -79,9 +74,8 @@ pub fn html(
   children~ : Array[@luna.Node[Unit]],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match lang {
-    Some(v) => props.push(("lang", static_attr(v)))
-    None => ()
+  if lang is Some(v) {
+    props.push(("lang", static_attr(v)))
   }
   create_element("html", props, children)
 }
@@ -138,21 +132,17 @@ pub fn meta(
   attrs? : Array[(String, @luna.Attr[Unit])],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match charset {
-    Some(v) => props.push(("charset", static_attr(v)))
-    None => ()
+  if charset is Some(v) {
+    props.push(("charset", static_attr(v)))
   }
-  match name {
-    Some(v) => props.push(("name", static_attr(v)))
-    None => ()
+  if name is Some(v) {
+    props.push(("name", static_attr(v)))
   }
-  match content {
-    Some(v) => props.push(("content", static_attr(v)))
-    None => ()
+  if content is Some(v) {
+    props.push(("content", static_attr(v)))
   }
-  match http_equiv {
-    Some(v) => props.push(("http-equiv", static_attr(v)))
-    None => ()
+  if http_equiv is Some(v) {
+    props.push(("http-equiv", static_attr(v)))
   }
   create_element("meta", props, [])
 }
@@ -169,17 +159,14 @@ pub fn link(
   attrs? : Array[(String, @luna.Attr[Unit])],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match rel {
-    Some(v) => props.push(("rel", static_attr(v)))
-    None => ()
+  if rel is Some(v) {
+    props.push(("rel", static_attr(v)))
   }
-  match href {
-    Some(v) => props.push(("href", static_attr(v)))
-    None => ()
+  if href is Some(v) {
+    props.push(("href", static_attr(v)))
   }
-  match type_ {
-    Some(v) => props.push(("type", static_attr(v)))
-    None => ()
+  if type_ is Some(v) {
+    props.push(("type", static_attr(v)))
   }
   create_element("link", props, [])
 }
@@ -198,25 +185,22 @@ pub fn script(
   attrs? : Array[(String, @luna.Attr[Unit])],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match src {
-    Some(v) => props.push(("src", static_attr(v)))
-    None => ()
+  if src is Some(v) {
+    props.push(("src", static_attr(v)))
   }
-  match type_ {
-    Some(v) => props.push(("type", static_attr(v)))
-    None => ()
+  if type_ is Some(v) {
+    props.push(("type", static_attr(v)))
   }
-  match defer_ {
-    Some(true) => props.push(("defer", static_attr("")))
-    _ => ()
+  if defer_ is Some(true) {
+    props.push(("defer", static_attr("")))
   }
-  match async_ {
-    Some(true) => props.push(("async", static_attr("")))
-    _ => ()
+  if async_ is Some(true) {
+    props.push(("async", static_attr("")))
   }
-  let script_children : Array[@luna.Node[Unit]] = match content {
-    Some(c) => [text(c)]
-    None => []
+  let script_children : Array[@luna.Node[Unit]] = if content is Some(c) {
+    [text(c)]
+  } else {
+    []
   }
   create_element("script", props, script_children)
 }
@@ -232,9 +216,8 @@ pub fn style_(
   attrs? : Array[(String, @luna.Attr[Unit])],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match type_ {
-    Some(v) => props.push(("type", static_attr(v)))
-    None => ()
+  if type_ is Some(v) {
+    props.push(("type", static_attr(v)))
   }
   create_element("style", props, [text(content)])
 }
@@ -381,13 +364,11 @@ pub fn a(
   children~ : Array[@luna.Node[Unit]],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match href {
-    Some(v) => props.push(("href", static_attr(v)))
-    None => ()
+  if href is Some(v) {
+    props.push(("href", static_attr(v)))
   }
-  match target {
-    Some(v) => props.push(("target", static_attr(v)))
-    None => ()
+  if target is Some(v) {
+    props.push(("target", static_attr(v)))
   }
   create_element("a", props, children)
 }
@@ -522,21 +503,17 @@ pub fn img(
   attrs? : Array[(String, @luna.Attr[Unit])],
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
-  match src {
-    Some(v) => props.push(("src", static_attr(v)))
-    None => ()
+  if src is Some(v) {
+    props.push(("src", static_attr(v)))
   }
-  match alt {
-    Some(v) => props.push(("alt", static_attr(v)))
-    None => ()
+  if alt is Some(v) {
+    props.push(("alt", static_attr(v)))
   }
-  match width {
-    Some(v) => props.push(("width", static_attr(v)))
-    None => ()
+  if width is Some(v) {
+    props.push(("width", static_attr(v)))
   }
-  match height {
-    Some(v) => props.push(("height", static_attr(v)))
-    None => ()
+  if height is Some(v) {
+    props.push(("height", static_attr(v)))
   }
   create_element("img", props, [])
 }

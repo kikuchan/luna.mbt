@@ -562,65 +562,60 @@ pub fn hydrate_element_ref(el : @js_dom.Element, _state : @js.Any) -> Unit {
 
   // Build UI using @dom DSL with ref_ support
   let container = @dom.div([
-    @dom.div(
-      class="ref-demo",
-      [
-        @dom.input(
-          type_="text",
-          placeholder="This input has a ref",
-          ref_=fn(input_el) {
-            // Store the element reference
-            input_ref.val = Some(input_el)
-          },
-          attrs=[("data-ref-input", @dom.AttrString("true"))],
-        ),
-        @dom.button(
-          on=@dom.events().click(fn(_e) {
-            // Use the stored ref to focus the input
-            match input_ref.val {
-              Some(input_el) => {
-                input_el.as_any()._call("focus", []) |> ignore
-                focus_count.update(fn(c) { c + 1 })
-              }
-              None => ()
+    @dom.div(class="ref-demo", [
+      @dom.input(
+        type_="text",
+        placeholder="This input has a ref",
+        ref_=fn(input_el) {
+          // Store the element reference
+          input_ref.val = Some(input_el)
+        },
+        attrs=[("data-ref-input", @dom.AttrString("true"))],
+      ),
+      @dom.button(
+        on=@dom.events().click(fn(_e) {
+          // Use the stored ref to focus the input
+          match input_ref.val {
+            Some(input_el) => {
+              input_el.as_any()._call("focus", []) |> ignore
+              focus_count.update(fn(c) { c + 1 })
             }
-          }),
-          attrs=[("data-focus-btn", @dom.AttrString("true"))],
-          [@dom.text("Focus Input")],
-        ),
-        @dom.button(
-          on=@dom.events().click(fn(_e) {
-            // Use the stored ref to clear and focus the input
-            match input_ref.val {
-              Some(input_el) => {
-                input_el.as_any()._set("value", @js.any("")) |> ignore
-                input_el.as_any()._call("focus", []) |> ignore
-                focus_count.update(fn(c) { c + 1 })
-              }
-              None => ()
+            None => ()
+          }
+        }),
+        attrs=[("data-focus-btn", @dom.AttrString("true"))],
+        [@dom.text("Focus Input")],
+      ),
+      @dom.button(
+        on=@dom.events().click(fn(_e) {
+          // Use the stored ref to clear and focus the input
+          match input_ref.val {
+            Some(input_el) => {
+              input_el.as_any()._set("value", @js.any("")) |> ignore
+              input_el.as_any()._call("focus", []) |> ignore
+              focus_count.update(fn(c) { c + 1 })
             }
-          }),
-          attrs=[("data-clear-focus-btn", @dom.AttrString("true"))],
-          [@dom.text("Clear & Focus")],
-        ),
-      ],
-    ),
-    @dom.div([
-      @dom.span(
-        attrs=[("data-focus-count", @dom.AttrString("true"))],
-        [@dom.text_dyn(fn() { "Focus count: " + focus_count.get().to_string() })],
+            None => ()
+          }
+        }),
+        attrs=[("data-clear-focus-btn", @dom.AttrString("true"))],
+        [@dom.text("Clear & Focus")],
       ),
     ]),
     @dom.div([
-      @dom.span(
-        attrs=[("data-ref-status", @dom.AttrString("true"))],
-        [@dom.text_dyn(fn() {
+      @dom.span(attrs=[("data-focus-count", @dom.AttrString("true"))], [
+        @dom.text_dyn(fn() { "Focus count: " + focus_count.get().to_string() }),
+      ]),
+    ]),
+    @dom.div([
+      @dom.span(attrs=[("data-ref-status", @dom.AttrString("true"))], [
+        @dom.text_dyn(fn() {
           match input_ref.val {
             Some(_) => "Ref captured: yes"
             None => "Ref captured: no"
           }
-        })],
-      ),
+        }),
+      ]),
     ]),
   ])
 

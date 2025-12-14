@@ -1,9 +1,14 @@
 ///|
 /// Client-Side Router - SPA navigation with History API
+
 ///|
+
 ///| 2つのRouter API:
+
 ///| - ClientRouter: 旧API (Route enum使用) - 後方互換性のため維持
-///| - SpaRouter: 新API (Routes enum使用) - ServerComponent/Island対応
+
+///|
+/// - SpaRouter: 新API (Routes enum使用) - ServerComponent/Island対応
 
 // =============================================================================
 // Browser API FFI (History API)
@@ -59,7 +64,7 @@ pub struct BrowserRouter {
 /// base~ : ベースパス（例: "/playground/browser_app"）
 pub fn BrowserRouter::new(
   routes : Array[@router.Routes],
-  base~ : String = "",
+  base? : String = "",
 ) -> BrowserRouter {
   let compiled = @router.compile_with_base(routes, base)
   let initial_path = get_current_url()
@@ -78,7 +83,7 @@ pub fn BrowserRouter::new(
 /// コンパイル済みルートから BrowserRouter を作成
 pub fn BrowserRouter::from_compiled(
   routes : Array[@router.CompiledRoutes],
-  base~ : String = "",
+  base? : String = "",
 ) -> BrowserRouter {
   let initial_path = get_current_url()
   let initial_match = @router.match_url(initial_path, routes)
@@ -153,12 +158,16 @@ pub fn BrowserRouter::get_navigate(self : BrowserRouter) -> (String) -> Unit {
 
 ///|
 /// パスSignalを取得（リアクティブUI用）
-pub fn BrowserRouter::path_signal(self : BrowserRouter) -> @signal.Signal[String] {
+pub fn BrowserRouter::path_signal(
+  self : BrowserRouter,
+) -> @signal.Signal[String] {
   self.current_path
 }
 
 ///|
 /// マッチ結果Signalを取得（リアクティブUI用）
-pub fn BrowserRouter::match_signal(self : BrowserRouter) -> @signal.Signal[@router.RoutesMatch?] {
+pub fn BrowserRouter::match_signal(
+  self : BrowserRouter,
+) -> @signal.Signal[@router.RoutesMatch?] {
   self.current_match
 }

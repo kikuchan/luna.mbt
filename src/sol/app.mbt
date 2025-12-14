@@ -446,7 +446,9 @@ pub async fn render_streaming_page(
   let footer_html = "</div></body></html>"
 
   // Create streaming response with async resolution
-  let stream = create_streaming_response_with_async(header_html, footer_html, shell)
+  let stream = create_streaming_response_with_async(
+    header_html, footer_html, shell,
+  )
   ffi_create_stream_response(stream)
 }
 
@@ -511,7 +513,9 @@ pub fn streaming_page(
       loader +
       "\"></script></head><body><div id=\"app\">"
     let footer_html = "</div></body></html>"
-    let stream = create_streaming_response_with_async(header_html, footer_html, shell)
+    let stream = create_streaming_response_with_async(
+      header_html, footer_html, shell,
+    )
     ffi_create_stream_response(stream)
   })
 }
@@ -519,7 +523,9 @@ pub fn streaming_page(
 ///|
 /// Render a VNode to HTML with preload URLs for islands
 /// Returns SSRResult with html and preload_urls
-pub fn[E] render_with_island_preloads(node : @luna.Node[E]) -> @renderer.SSRResult {
+pub fn[E] render_with_island_preloads(
+  node : @luna.Node[E],
+) -> @renderer.SSRResult {
   @renderer.render_with_preloads(node)
 }
 
@@ -535,14 +541,17 @@ pub fn[E] render_page_with_preloads(
   let enable_hydration = hydration.unwrap_or(false)
 
   // Render and collect preload URLs
-  let result = @renderer.render_with_options(node, preload=true, hydration=enable_hydration)
+  let result = @renderer.render_with_options(
+    node,
+    preload=true,
+    hydration=enable_hydration,
+  )
 
   // Generate preload tags
   let preload_tags = @renderer.generate_preload_tags(result.preload_urls)
 
   // Combine head with preload tags
   let head_str = head.unwrap_or("") + preload_tags
-
   "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
   title_str +
   "</title>" +

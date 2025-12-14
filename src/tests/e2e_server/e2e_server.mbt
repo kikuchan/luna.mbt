@@ -258,18 +258,14 @@ async fn create_async_app() -> @sol.App {
       ]),
       @luna.vasync(
         render=async fn() {
-          @luna.h(
-            "div",
-            [("class", @luna.attr_static("resolved"))],
-            [@luna.vtext("Async content loaded!")],
-          )
+          @luna.h("div", [("class", @luna.attr_static("resolved"))], [
+            @luna.vtext("Async content loaded!"),
+          ])
         },
         fallback=fn() {
-          @luna.h(
-            "div",
-            [("class", @luna.attr_static("loading"))],
-            [@luna.vtext("Loading...")],
-          )
+          @luna.h("div", [("class", @luna.attr_static("loading"))], [
+            @luna.vtext("Loading..."),
+          ])
         },
       ),
     ])
@@ -283,7 +279,9 @@ async fn create_async_app() -> @sol.App {
 
     // Build the HTML with template replacement
     let sb = StringBuilder::new()
-    sb.write_string("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Async Streaming Test</title></head><body>")
+    sb.write_string(
+      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Async Streaming Test</title></head><body>",
+    )
     for chunk in chunks {
       sb.write_string(chunk)
     }
@@ -293,14 +291,17 @@ async fn create_async_app() -> @sol.App {
       let id = boundary.id
       sb.write_string("<template id=\"T:")
       sb.write_string(id.to_string())
-      sb.write_string("\"><div class=\"resolved\">Async content loaded!</div></template>")
+      sb.write_string(
+        "\"><div class=\"resolved\">Async content loaded!</div></template>",
+      )
       sb.write_string("<script>(function(){var t=document.getElementById('T:")
       sb.write_string(id.to_string())
       sb.write_string("'),p=document.getElementById('A:")
       sb.write_string(id.to_string())
-      sb.write_string("');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>")
+      sb.write_string(
+        "');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>",
+      )
     }
-
     sb.write_string("</body></html>")
     c.html(sb.to_string())
   })
@@ -337,13 +338,11 @@ async fn create_async_app() -> @sol.App {
         },
       ),
     ])
-
     let chunks : Array[String] = []
     let writer = @renderer.StreamWriter::from_callback(fn(chunk) {
       chunks.push(chunk)
     })
     let boundaries = @renderer.render_to_stream_collecting_async(node, writer)
-
     let sb = StringBuilder::new()
     sb.write_string(
       "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Multiple Async Test</title></head><body>",
@@ -355,12 +354,12 @@ async fn create_async_app() -> @sol.App {
     // Add templates - first one with content, second with different content
     for i, boundary in boundaries {
       let id = boundary.id
-      let content = if i == 0 {
-        "First resolved"
+      let content = if i == 0 { "First resolved" } else { "Second resolved" }
+      let resolved_id = if i == 0 {
+        "first-resolved"
       } else {
-        "Second resolved"
+        "second-resolved"
       }
-      let resolved_id = if i == 0 { "first-resolved" } else { "second-resolved" }
       sb.write_string("<template id=\"T:")
       sb.write_string(id.to_string())
       sb.write_string("\"><div id=\"")
@@ -372,9 +371,10 @@ async fn create_async_app() -> @sol.App {
       sb.write_string(id.to_string())
       sb.write_string("'),p=document.getElementById('A:")
       sb.write_string(id.to_string())
-      sb.write_string("');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>")
+      sb.write_string(
+        "');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>",
+      )
     }
-
     sb.write_string("</body></html>")
     c.html(sb.to_string())
   })
@@ -405,13 +405,11 @@ async fn create_async_app() -> @sol.App {
         @luna.h("footer", [], [@luna.vtext("Footer")]),
       ],
     )
-
     let chunks : Array[String] = []
     let writer = @renderer.StreamWriter::from_callback(fn(chunk) {
       chunks.push(chunk)
     })
     let boundaries = @renderer.render_to_stream_collecting_async(node, writer)
-
     let sb = StringBuilder::new()
     sb.write_string(
       "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Nested Async Test</title></head><body>",
@@ -419,19 +417,21 @@ async fn create_async_app() -> @sol.App {
     for chunk in chunks {
       sb.write_string(chunk)
     }
-
     for boundary in boundaries {
       let id = boundary.id
       sb.write_string("<template id=\"T:")
       sb.write_string(id.to_string())
-      sb.write_string("\"><main id=\"main-content\"><p>Main content loaded</p><ul><li>Item 1</li><li>Item 2</li></ul></main></template>")
+      sb.write_string(
+        "\"><main id=\"main-content\"><p>Main content loaded</p><ul><li>Item 1</li><li>Item 2</li></ul></main></template>",
+      )
       sb.write_string("<script>(function(){var t=document.getElementById('T:")
       sb.write_string(id.to_string())
       sb.write_string("'),p=document.getElementById('A:")
       sb.write_string(id.to_string())
-      sb.write_string("');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>")
+      sb.write_string(
+        "');if(t&&p){p.replaceWith(t.content);t.remove();}})()</script>",
+      )
     }
-
     sb.write_string("</body></html>")
     c.html(sb.to_string())
   })
@@ -453,13 +453,11 @@ async fn create_async_app() -> @sol.App {
         },
       ),
     ])
-
     let chunks : Array[String] = []
     let writer = @renderer.StreamWriter::from_callback(fn(chunk) {
       chunks.push(chunk)
     })
     let _ = @renderer.render_to_stream_collecting_async(node, writer)
-
     let sb = StringBuilder::new()
     sb.write_string(
       "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Fallback Only Test</title></head><body>",
@@ -471,6 +469,5 @@ async fn create_async_app() -> @sol.App {
     sb.write_string("</body></html>")
     c.html(sb.to_string())
   })
-
   app
 }

@@ -105,13 +105,10 @@ pub fn hydrate(
   let recover = recover_on_mismatch.unwrap_or(true)
   let warn = warn_on_mismatch.unwrap_or(true)
   let ctx : HydrationContext = { container, current_id: 0, mismatches: [] }
-  try {
-    hydrate_node(container.as_node(), node, ctx)
-  } catch {
-    err => {
+  hydrate_node(container.as_node(), node, ctx) catch {
+    err =>
       // If hydration throws, treat as mismatch and recover
       ctx.mismatches.push("Hydration error: " + err.to_string())
-    }
   }
 
   // Check for mismatches
@@ -464,9 +461,7 @@ fn hydrate_show(
       if cond() && current_nodes.length() > 0 {
         let child_vnode = child_fn()
         // We need to hydrate the existing nodes
-        try {
-          hydrate_child_nodes(current_nodes, child_vnode, ctx)
-        } catch {
+        hydrate_child_nodes(current_nodes, child_vnode, ctx) catch {
           _ => () // Ignore errors during hydration of show content
         }
       }
@@ -546,9 +541,7 @@ fn hydrate_child_nodes(
     }
     @luna.ErrorBoundary(boundary) => {
       ctx.current_id = ctx.current_id + 1
-      try {
-        hydrate_child_nodes(nodes, (boundary.children)(), ctx)
-      } catch {
+      hydrate_child_nodes(nodes, (boundary.children)(), ctx) catch {
         _ => ()
       }
     }
@@ -611,9 +604,7 @@ fn hydrate_for(
       let items = render_fn()
       for i = 0; i < items.length(); i = i + 1 {
         if i < current_nodes.length() {
-          try {
-            hydrate_child_nodes([current_nodes[i]], items[i], ctx)
-          } catch {
+          hydrate_child_nodes([current_nodes[i]], items[i], ctx) catch {
             _ => () // Ignore errors during hydration of for items
           }
         }
@@ -868,9 +859,7 @@ fn hydrate_error_boundary(
   }
   if found {
     // Try to hydrate children, catch errors
-    try {
-      hydrate_node(parent, (boundary.children)(), ctx)
-    } catch {
+    hydrate_node(parent, (boundary.children)(), ctx) catch {
       err => {
         // On error during hydration, we need to re-render with fallback
         // Find and clear the boundary content, then render fallback
@@ -879,9 +868,7 @@ fn hydrate_error_boundary(
           // This is a simplified reset - full implementation would track DOM nodes
           ()
         }
-        try {
-          hydrate_node(parent, (boundary.fallback)(err, reset), ctx)
-        } catch {
+        hydrate_node(parent, (boundary.fallback)(err, reset), ctx) catch {
           _ => () // Ignore errors in fallback rendering
         }
       }

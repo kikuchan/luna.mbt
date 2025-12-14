@@ -119,9 +119,5 @@ pub fn[T : ToNode] node(value : T) -> Node {
 ///|
 /// Collect children with ToNode conversion
 pub fn[T : ToNode] children(items : Array[T]) -> Array[Node] {
-  let result : Array[Node] = []
-  for item in items {
-    result.push(ToNode::to_node(item))
-  }
-  result
+  items.map(ToNode::to_node)
 }

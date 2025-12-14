@@ -1,6 +1,9 @@
 ///| Routes - Unified route definition with component binding
+
 ///|
+
 ///| ServerComponent: サーバーでのみ実行、async データ取得可能
+
 ///| ClientComponent: Island としてHydration可能、ln:url でスクリプト指定
 
 ///|
@@ -116,6 +119,7 @@ fn normalize_path(path : String) -> String {
   let len = result.length()
   if len > 1 && result[len - 1] == '/' {
     let _ = result.pop()
+
   }
   String::from_array(result)
 }
@@ -206,17 +210,23 @@ fn compile_inner(
         let new_prefix = normalize_path(prefix + "/:" + key)
         let new_params = inherited_params.copy()
         new_params.push(key)
-        compile_inner(children, new_prefix, new_params, inherited_layouts, result)
+        compile_inner(
+          children, new_prefix, new_params, inherited_layouts, result,
+        )
       }
       Layout(segment~, children~, layout~) => {
         let new_prefix = normalize_path(prefix + segment)
         let new_layouts = inherited_layouts.copy()
         new_layouts.push(layout)
-        compile_inner(children, new_prefix, inherited_params, new_layouts, result)
+        compile_inner(
+          children, new_prefix, inherited_params, new_layouts, result,
+        )
       }
       Group(segment~, children~) => {
         let new_prefix = normalize_path(prefix + segment)
-        compile_inner(children, new_prefix, inherited_params, inherited_layouts, result)
+        compile_inner(
+          children, new_prefix, inherited_params, inherited_layouts, result,
+        )
       }
     }
   }
@@ -233,15 +243,11 @@ pub struct RoutesMatch {
 
 ///|
 /// URLをルートにマッチング
-pub fn match_url(
-  url : String,
-  routes : Array[CompiledRoutes],
-) -> RoutesMatch? {
+pub fn match_url(url : String, routes : Array[CompiledRoutes]) -> RoutesMatch? {
   let (path, query) = parse_url_parts(url)
   for route in routes {
-    match try_match_pattern(path, route) {
-      Some(params) => return Some({ route, params, query, path })
-      None => continue
+    if try_match_pattern(path, route) is Some(params) {
+      return Some({ route, params, query, path })
     }
   }
   None
@@ -268,12 +274,9 @@ fn parse_url_parts(url : String) -> (String, Array[(String, String)]) {
 
 ///|
 fn parse_query(query : String) -> Array[(String, String)] {
-  if query == "" {
-    return []
-  }
+  guard query != "" else { return [] }
   let result : Array[(String, String)] = []
-  let pairs = split_by(query, '&')
-  for pair in pairs {
+  for pair in split_by(query, '&') {
     let kv = split_by(pair, '=')
     if kv.length() == 2 {
       result.push((kv[0], kv[1]))
@@ -308,11 +311,9 @@ fn try_match_pattern(
 ) -> Array[(String, String)]? {
   let pattern_segments = split_path_segments(route.pattern)
   let path_segments = split_path_segments(path)
-
   if pattern_segments.length() != path_segments.length() {
     return None
   }
-
   let params : Array[(String, String)] = []
   let mut param_idx = 0
   for i, pattern_seg in pattern_segments {

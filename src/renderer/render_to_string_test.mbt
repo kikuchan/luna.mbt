@@ -729,18 +729,8 @@ test "needs_attr_escape" {
 ///|
 test "render_with_preloads collects island urls" {
   let node : @luna.Node[Unit] = @luna.vfragment([
-    @luna.visland(
-      "island-1",
-      "/components/a.js",
-      "{}",
-      [@luna.vtext("A")],
-    ),
-    @luna.visland(
-      "island-2",
-      "/components/b.js",
-      "{}",
-      [@luna.vtext("B")],
-    ),
+    @luna.visland("island-1", "/components/a.js", "{}", [@luna.vtext("A")]),
+    @luna.visland("island-2", "/components/b.js", "{}", [@luna.vtext("B")]),
   ])
   let result = render_with_preloads(node)
   assert_eq(result.preload_urls.length(), 2)
@@ -751,18 +741,8 @@ test "render_with_preloads collects island urls" {
 ///|
 test "render_with_preloads deduplicates urls" {
   let node : @luna.Node[Unit] = @luna.vfragment([
-    @luna.visland(
-      "island-1",
-      "/components/shared.js",
-      "{}",
-      [@luna.vtext("A")],
-    ),
-    @luna.visland(
-      "island-2",
-      "/components/shared.js",
-      "{}",
-      [@luna.vtext("B")],
-    ),
+    @luna.visland("island-1", "/components/shared.js", "{}", [@luna.vtext("A")]),
+    @luna.visland("island-2", "/components/shared.js", "{}", [@luna.vtext("B")]),
   ])
   let result = render_with_preloads(node)
   assert_eq(result.preload_urls.length(), 1)
@@ -832,7 +812,11 @@ test "render async with on_error handler" {
   let node : @luna.Node[Unit] = @luna.vasync(
     render=async fn() { @luna.vtext("Success") },
     fallback=fn() { @luna.vtext("Loading...") },
-    on_error=Some(fn(_e) { @luna.h("div", [("class", @luna.attr_static("error"))], [@luna.vtext("Error occurred")]) }),
+    on_error=Some(fn(_e) {
+      @luna.h("div", [("class", @luna.attr_static("error"))], [
+        @luna.vtext("Error occurred"),
+      ])
+    }),
   )
   // Still renders fallback in sync mode
   let html = render_to_string(node)
@@ -857,7 +841,6 @@ test "render_to_stream_collecting_async collects boundaries" {
     ),
     @luna.h("div", [], [@luna.vtext("Footer")]),
   ])
-
   let chunks : Array[String] = []
   let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
   let boundaries = render_to_stream_collecting_async(node, writer)
@@ -880,37 +863,28 @@ test "render_to_stream_collecting_async collects boundaries" {
 ///|
 test "render_to_stream no async returns empty boundaries" {
   let node : @luna.Node[Unit] = @luna.h("div", [], [@luna.vtext("Simple")])
-
   let chunks : Array[String] = []
   let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
   let boundaries = render_to_stream_collecting_async(node, writer)
 
   // No async nodes = no boundaries
   assert_eq(boundaries.length(), 0)
-
   let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
   assert_eq(html, "<div>Simple</div>")
 }
 
 ///|
 test "render_to_stream nested async" {
-  let node : @luna.Node[Unit] = @luna.h(
-    "div",
-    [],
-    [
-      @luna.vasync(
-        render=async fn() { @luna.h("span", [], [@luna.vtext("Loaded")]) },
-        fallback=fn() { @luna.h("span", [], [@luna.vtext("Loading...")]) },
-      ),
-    ],
-  )
-
+  let node : @luna.Node[Unit] = @luna.h("div", [], [
+    @luna.vasync(
+      render=async fn() { @luna.h("span", [], [@luna.vtext("Loaded")]) },
+      fallback=fn() { @luna.h("span", [], [@luna.vtext("Loading...")]) },
+    ),
+  ])
   let chunks : Array[String] = []
   let writer = StreamWriter::from_callback(fn(chunk) { chunks.push(chunk) })
   let boundaries = render_to_stream_collecting_async(node, writer)
-
   assert_eq(boundaries.length(), 1)
-
   let html = chunks.iter().fold(init="", fn(acc, chunk) { acc + chunk })
   assert_true(html.contains("Loading..."))
   assert_true(html.contains("id=\"A:0\""))
@@ -934,14 +908,10 @@ test "render error_boundary children when no error" {
 test "render error_boundary with nested content" {
   let node : @luna.Node[Unit] = @luna.error_boundary(
     children=fn() {
-      @luna.h(
-        "div",
-        [("class", @luna.attr_static("container"))],
-        [
-          @luna.h("h1", [], [@luna.vtext("Title")]),
-          @luna.h("p", [], [@luna.vtext("Content")]),
-        ],
-      )
+      @luna.h("div", [("class", @luna.attr_static("container"))], [
+        @luna.h("h1", [], [@luna.vtext("Title")]),
+        @luna.h("p", [], [@luna.vtext("Content")]),
+      ])
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
@@ -955,7 +925,9 @@ test "render error_boundary with dynamic content" {
   let count = 42
   let node : @luna.Node[Unit] = @luna.error_boundary(
     children=fn() {
-      @luna.h("div", [], [@luna.text_dyn(fn() { "Count: " + count.to_string() })])
+      @luna.h("div", [], [
+        @luna.text_dyn(fn() { "Count: " + count.to_string() }),
+      ])
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },
   )
@@ -1013,10 +985,12 @@ test "render nested error_boundaries" {
   let node : @luna.Node[Unit] = @luna.error_boundary(
     children=fn() {
       @luna.h("div", [], [
-        @luna.error_boundary(
-          children=fn() { @luna.vtext("Inner content") },
-          fallback=fn(_err, _reset) { @luna.vtext("Inner error") },
-        ),
+        @luna.error_boundary(children=fn() { @luna.vtext("Inner content") }, fallback=fn(
+          _err,
+          _reset,
+        ) {
+          @luna.vtext("Inner error")
+        }),
       ])
     },
     fallback=fn(_err, _reset) { @luna.vtext("Outer error") },
@@ -1032,10 +1006,12 @@ test "render error_boundary in island" {
     "/components/test.js",
     "{}",
     [
-      @luna.error_boundary(
-        children=fn() { @luna.vtext("Island content") },
-        fallback=fn(_err, _reset) { @luna.vtext("Error") },
-      ),
+      @luna.error_boundary(children=fn() { @luna.vtext("Island content") }, fallback=fn(
+        _err,
+        _reset,
+      ) {
+        @luna.vtext("Error")
+      }),
     ],
   )
   let html = render_to_string(node)
@@ -1062,10 +1038,9 @@ test "stream render error_boundary with async boundaries" {
     children=fn() {
       @luna.vfragment([
         @luna.h("div", [], [@luna.vtext("Header")]),
-        @luna.vasync(
-          render=async fn() { @luna.vtext("Async content") },
-          fallback=fn() { @luna.vtext("Loading...") },
-        ),
+        @luna.vasync(render=async fn() { @luna.vtext("Async content") }, fallback=fn() {
+          @luna.vtext("Loading...")
+        }),
       ])
     },
     fallback=fn(_err, _reset) { @luna.vtext("Error") },

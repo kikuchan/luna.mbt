@@ -1,9 +1,15 @@
 ///| Async Exception Handling Tests
+
 ///|
+
 ///| Exploring MoonBit's try-catch expression for error handling patterns.
+
 ///| MoonBit's try-catch is an expression that returns a value,
+
 ///| making synchronous error handling natural and composable.
+
 ///|
+
 ///| For async rendering, use @luna.vasync() with on_error handler.
 
 // =============================================================================
@@ -40,11 +46,7 @@ test "try-catch returns value on success" {
     }
   }
 
-  let result = try {
-    may_fail(true)
-  } catch {
-    _ => -1
-  }
+  let result = may_fail(true) catch { _ => -1 }
   assert_eq(result, 42)
 }
 
@@ -58,9 +60,7 @@ test "try-catch returns fallback on error" {
     }
   }
 
-  let result = try {
-    may_fail(false)
-  } catch {
+  let result = may_fail(false) catch {
     NetworkError(_) => -1
     _ => -2
   }
@@ -78,9 +78,7 @@ test "try-catch with pattern matching on error type" {
     }
   }
 
-  let result = try {
-    fetch_data(404)
-  } catch {
+  let result = fetch_data(404) catch {
     NotFound(msg) => "Not Found: " + msg
     NetworkError(msg) => "Network Error: " + msg
     Timeout => "Request timed out"
@@ -95,29 +93,21 @@ test "try-catch with pattern matching on error type" {
 ///|
 /// Render a node with error handling - returns error UI on failure
 fn render_with_error_boundary(
-  fetch : () -> @luna.Node[Unit] raise FetchError
+  fetch : () -> @luna.Node[Unit] raise FetchError,
 ) -> @luna.Node[Unit] {
-  try {
-    fetch()
-  } catch {
+  fetch() catch {
     NetworkError(msg) =>
-      @luna.h(
-        "div",
-        [("class", @luna.attr_static("error network-error"))],
-        [@luna.vtext("Network Error: " + msg)],
-      )
+      @luna.h("div", [("class", @luna.attr_static("error network-error"))], [
+        @luna.vtext("Network Error: " + msg),
+      ])
     NotFound(msg) =>
-      @luna.h(
-        "div",
-        [("class", @luna.attr_static("error not-found"))],
-        [@luna.vtext("Not Found: " + msg)],
-      )
+      @luna.h("div", [("class", @luna.attr_static("error not-found"))], [
+        @luna.vtext("Not Found: " + msg),
+      ])
     Timeout =>
-      @luna.h(
-        "div",
-        [("class", @luna.attr_static("error timeout"))],
-        [@luna.vtext("Request timed out")],
-      )
+      @luna.h("div", [("class", @luna.attr_static("error timeout"))], [
+        @luna.vtext("Request timed out"),
+      ])
   }
 }
 
@@ -142,9 +132,7 @@ test "render_with_error_boundary network error" {
 
 ///|
 test "render_with_error_boundary not found" {
-  let node = render_with_error_boundary(fn() {
-    raise NotFound("/api/user/123")
-  })
+  let node = render_with_error_boundary(fn() { raise NotFound("/api/user/123") })
   let html = render_to_string(node)
   assert_true(html.contains("Not Found: /api/user/123"))
   assert_true(html.contains("not-found"))
@@ -152,9 +140,7 @@ test "render_with_error_boundary not found" {
 
 ///|
 test "render_with_error_boundary timeout" {
-  let node = render_with_error_boundary(fn() {
-    raise Timeout
-  })
+  let node = render_with_error_boundary(fn() { raise Timeout })
   let html = render_to_string(node)
   assert_true(html.contains("Request timed out"))
   assert_true(html.contains("timeout"))
@@ -206,9 +192,7 @@ fn render_with_config(
   config : ErrorBoundaryConfig,
   fetch : () -> @luna.Node[Unit] raise FetchError,
 ) -> @luna.Node[Unit] {
-  try {
-    fetch()
-  } catch {
+  fetch() catch {
     NetworkError(msg) => (config.on_network_error)(msg)
     NotFound(msg) => (config.on_not_found)(msg)
     Timeout => (config.on_timeout)()
@@ -228,7 +212,6 @@ test "configurable error boundary" {
     on_timeout: ErrorBoundaryConfig::default().on_timeout,
     on_unknown: ErrorBoundaryConfig::default().on_unknown,
   }
-
   let node = render_with_config(config, fn() {
     raise NetworkError("server unavailable")
   })
@@ -276,7 +259,11 @@ test "render_async_result loading" {
   let node = render_async_result(
     result,
     fn(s) { @luna.h("div", [], [@luna.vtext(s)]) },
-    fn() { @luna.h("div", [("class", @luna.attr_static("spinner"))], [@luna.vtext("Loading...")]) },
+    fn() {
+      @luna.h("div", [("class", @luna.attr_static("spinner"))], [
+        @luna.vtext("Loading..."),
+      ])
+    },
     fn(_e) { @luna.h("div", [], [@luna.vtext("Error")]) },
   )
   let html = render_to_string(node)
@@ -331,9 +318,7 @@ fn fetch_and_transform(id : Int) -> @luna.Node[Unit] raise FetchError {
 
 ///|
 test "chained operations success" {
-  let node = try {
-    fetch_and_transform(42)
-  } catch {
+  let node = fetch_and_transform(42) catch {
     _ => @luna.h("div", [], [@luna.vtext("Error")])
   }
   let html = render_to_string(node)
@@ -343,12 +328,11 @@ test "chained operations success" {
 
 ///|
 test "chained operations not found" {
-  let node = try {
-    fetch_and_transform(-1)
-  } catch {
-    NotFound(msg) => @luna.h("div", [("class", @luna.attr_static("error"))], [
-      @luna.vtext("Resource not found: " + msg),
-    ])
+  let node = fetch_and_transform(-1) catch {
+    NotFound(msg) =>
+      @luna.h("div", [("class", @luna.attr_static("error"))], [
+        @luna.vtext("Resource not found: " + msg),
+      ])
     _ => @luna.h("div", [], [@luna.vtext("Error")])
   }
   let html = render_to_string(node)
@@ -358,13 +342,12 @@ test "chained operations not found" {
 
 ///|
 test "chained operations timeout" {
-  let node = try {
-    fetch_and_transform(999)
-  } catch {
-    Timeout => @luna.h("div", [("class", @luna.attr_static("retry"))], [
-      @luna.vtext("Request timed out. "),
-      @luna.h("button", [], [@luna.vtext("Retry")]),
-    ])
+  let node = fetch_and_transform(999) catch {
+    Timeout =>
+      @luna.h("div", [("class", @luna.attr_static("retry"))], [
+        @luna.vtext("Request timed out. "),
+        @luna.h("button", [], [@luna.vtext("Retry")]),
+      ])
     _ => @luna.h("div", [], [@luna.vtext("Error")])
   }
   let html = render_to_string(node)
@@ -408,9 +391,7 @@ test "combined pattern: try-catch for sync error handling" {
     fetch : () -> @luna.Node[Unit] raise FetchError,
     fallback : @luna.Node[Unit],
   ) -> @luna.Node[Unit] {
-    try {
-      fetch()
-    } catch {
+    fetch() catch {
       _ => fallback
     }
   }
