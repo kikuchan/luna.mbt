@@ -1,14 +1,7 @@
+///| BrowserRouter - Client-side SPA router with History API
 ///|
-/// Client-Side Router - SPA navigation with History API
-
-///|
-
-///| 2つのRouter API:
-
-///| - ClientRouter: 旧API (Route enum使用) - 後方互換性のため維持
-
-///|
-/// - SpaRouter: 新API (Routes enum使用) - ServerComponent/Island対応
+///| Provides reactive routing for single-page applications using
+///| the browser's History API and Signals for state management.
 
 // =============================================================================
 // Browser API FFI (History API)
@@ -46,29 +39,29 @@ fn get_current_url() -> String {
 }
 
 // =============================================================================
-// BrowserRouter - シンプルなクライアントサイドルーター
+// BrowserRouter
 // =============================================================================
 
 ///|
 /// ブラウザルーター
 /// History API と Signal を使ったSPAナビゲーション
 pub struct BrowserRouter {
-  routes : Array[@router.CompiledRoutes]
+  routes : Array[@routes.CompiledRoutes]
   base : String
   current_path : @signal.Signal[String]
-  current_match : @signal.Signal[@router.RoutesMatch?]
+  current_match : @signal.Signal[@routes.RoutesMatch?]
 }
 
 ///|
 /// Routes定義から BrowserRouter を作成
 /// base~ : ベースパス（例: "/playground/browser_app"）
 pub fn BrowserRouter::new(
-  routes : Array[@router.Routes],
+  routes : Array[@routes.Routes],
   base? : String = "",
 ) -> BrowserRouter {
-  let compiled = @router.compile(routes, base~)
+  let compiled = @routes.compile(routes, base~)
   let initial_path = get_current_url()
-  let initial_match = @router.match_url(initial_path, compiled)
+  let initial_match = @routes.match_url(initial_path, compiled)
   let router : BrowserRouter = {
     routes: compiled,
     base,
@@ -82,11 +75,11 @@ pub fn BrowserRouter::new(
 ///|
 /// コンパイル済みルートから BrowserRouter を作成
 pub fn BrowserRouter::from_compiled(
-  routes : Array[@router.CompiledRoutes],
+  routes : Array[@routes.CompiledRoutes],
   base? : String = "",
 ) -> BrowserRouter {
   let initial_path = get_current_url()
-  let initial_match = @router.match_url(initial_path, routes)
+  let initial_match = @routes.match_url(initial_path, routes)
   let router : BrowserRouter = {
     routes,
     base,
@@ -108,14 +101,14 @@ pub fn BrowserRouter::get_base(self : BrowserRouter) -> String {
 fn BrowserRouter::sync_from_url(self : BrowserRouter) -> Unit {
   let path = get_current_url()
   self.current_path.set(path)
-  self.current_match.set(@router.match_url(path, self.routes))
+  self.current_match.set(@routes.match_url(path, self.routes))
 }
 
 ///|
 /// 指定パスでSignal状態を更新
 fn BrowserRouter::update_state(self : BrowserRouter, path : String) -> Unit {
   self.current_path.set(path)
-  self.current_match.set(@router.match_url(path, self.routes))
+  self.current_match.set(@routes.match_url(path, self.routes))
 }
 
 ///|
@@ -140,7 +133,7 @@ pub fn BrowserRouter::get_path(self : BrowserRouter) -> String {
 
 ///|
 /// 現在のマッチ結果を取得
-pub fn BrowserRouter::get_match(self : BrowserRouter) -> @router.RoutesMatch? {
+pub fn BrowserRouter::get_match(self : BrowserRouter) -> @routes.RoutesMatch? {
   self.current_match.get()
 }
 
@@ -168,6 +161,6 @@ pub fn BrowserRouter::path_signal(
 /// マッチ結果Signalを取得（リアクティブUI用）
 pub fn BrowserRouter::match_signal(
   self : BrowserRouter,
-) -> @signal.Signal[@router.RoutesMatch?] {
+) -> @signal.Signal[@routes.RoutesMatch?] {
   self.current_match
 }

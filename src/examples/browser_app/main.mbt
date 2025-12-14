@@ -40,7 +40,7 @@ fn console_log(msg : String) -> Unit {
 ///|
 /// ルート定義
 /// ベースパスは BrowserRouter::new の base~ パラメータで指定
-fn create_routes() -> Array[@router.Routes] {
+fn create_routes() -> Array[@routes.Routes] {
   [
     // ホームページ
     Page(path="", component="home", title="Home", meta=[]),
@@ -74,7 +74,7 @@ fn create_routes() -> Array[@router.Routes] {
 
 ///|
 /// ナビゲーションコンポーネント
-fn nav_component(router : @client.BrowserRouter) -> @dom.DomNode {
+fn nav_component(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   fn nav_link(href : String, label : String) -> @dom.DomNode {
     a(
@@ -146,7 +146,7 @@ fn counter_component() -> @dom.DomNode {
 
 ///|
 /// ホームページ
-fn home_component(router : @client.BrowserRouter) -> @dom.DomNode {
+fn home_component(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   div(class="page home", attrs=[("data-page", AttrString("home"))], [
     h1([text("Welcome to Browser App")]),
     p([text("This is an example of the new Routes-based routing system.")]),
@@ -170,7 +170,7 @@ fn home_component(router : @client.BrowserRouter) -> @dom.DomNode {
 
 ///|
 /// About ページ
-fn about_component(_router : @client.BrowserRouter) -> @dom.DomNode {
+fn about_component(_router : @browser_router.BrowserRouter) -> @dom.DomNode {
   div(class="page about", attrs=[("data-page", AttrString("about"))], [
     h1([text("About")]),
     p([text("This app demonstrates the new routing architecture:")]),
@@ -185,7 +185,7 @@ fn about_component(_router : @client.BrowserRouter) -> @dom.DomNode {
 ///|
 /// ユーザーレイアウト
 fn users_layout_component(
-  router : @client.BrowserRouter,
+  router : @browser_router.BrowserRouter,
   children : @dom.DomNode,
 ) -> @dom.DomNode {
   let base = router.get_base()
@@ -230,7 +230,7 @@ fn users_layout_component(
 
 ///|
 /// ユーザー一覧
-fn users_list_component(_router : @client.BrowserRouter) -> @dom.DomNode {
+fn users_list_component(_router : @browser_router.BrowserRouter) -> @dom.DomNode {
   div(class="users-list", [
     h3([text("User List")]),
     ul([
@@ -244,8 +244,8 @@ fn users_list_component(_router : @client.BrowserRouter) -> @dom.DomNode {
 ///|
 /// ユーザー詳細
 fn user_detail_component(
-  _router : @client.BrowserRouter,
-  m : @router.RoutesMatch,
+  _router : @browser_router.BrowserRouter,
+  m : @routes.RoutesMatch,
 ) -> @dom.DomNode {
   let user_id = m.get_param("id").unwrap_or("unknown")
   let user_name = match user_id {
@@ -266,7 +266,7 @@ fn user_detail_component(
 
 ///|
 /// 設定インデックス
-fn settings_index_component(router : @client.BrowserRouter) -> @dom.DomNode {
+fn settings_index_component(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   let profile_path = base + "/settings/profile"
   div(class="settings-index", [
@@ -288,7 +288,7 @@ fn settings_index_component(router : @client.BrowserRouter) -> @dom.DomNode {
 
 ///|
 /// プロファイル設定
-fn settings_profile_component(router : @client.BrowserRouter) -> @dom.DomNode {
+fn settings_profile_component(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   div(class="settings-profile", [
     h1([text("Profile Settings")]),
@@ -301,7 +301,7 @@ fn settings_profile_component(router : @client.BrowserRouter) -> @dom.DomNode {
 
 ///|
 /// 404 ページ
-fn not_found_component(router : @client.BrowserRouter) -> @dom.DomNode {
+fn not_found_component(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   div(class="not-found", [
     h1([text("404 - Not Found")]),
@@ -317,8 +317,8 @@ fn not_found_component(router : @client.BrowserRouter) -> @dom.DomNode {
 ///|
 /// コンポーネントIDからコンポーネントを解決
 fn resolve_component(
-  router : @client.BrowserRouter,
-  m : @router.RoutesMatch,
+  router : @browser_router.BrowserRouter,
+  m : @routes.RoutesMatch,
 ) -> @dom.DomNode {
   let component_id = m.component()
   let layouts = m.layouts()
@@ -361,7 +361,7 @@ fn resolve_component(
 ///|
 /// ルートをレンダリング
 fn render_route(
-  router : @client.BrowserRouter,
+  router : @browser_router.BrowserRouter,
   container : @dom.DomElement,
 ) -> Unit {
   let _ = @signal.effect(fn() {
@@ -411,7 +411,7 @@ fn main {
       // ルーターを作成（ベースパスを指定）
       let base = "/playground/browser_app"
       let routes = create_routes()
-      let router = @client.BrowserRouter::new(routes, base~)
+      let router = @browser_router.BrowserRouter::new(routes, base~)
 
       // Debug: log compiled routes
       for route in router.routes {

@@ -250,8 +250,8 @@ pub fn debounced(
 
 ///|
 /// Create a page route (simple version for JS)
-pub fn route_page(path : String, component : String) -> @router.Routes {
-  @router.Routes::Page(path~, component~, title="", meta=[])
+pub fn route_page(path : String, component : String) -> @routes.Routes {
+  @routes.Routes::Page(path~, component~, title="", meta=[])
 }
 
 ///|
@@ -260,8 +260,8 @@ pub fn route_page_titled(
   path : String,
   component : String,
   title : String,
-) -> @router.Routes {
-  @router.Routes::Page(path~, component~, title~, meta=[])
+) -> @routes.Routes {
+  @routes.Routes::Page(path~, component~, title~, meta=[])
 }
 
 ///|
@@ -271,23 +271,23 @@ pub fn route_page_full(
   component : String,
   title : String,
   meta : Array[(String, String)],
-) -> @router.Routes {
-  @router.Routes::Page(path~, component~, title~, meta~)
+) -> @routes.Routes {
+  @routes.Routes::Page(path~, component~, title~, meta~)
 }
 
 ///|
 /// Create a route group with a segment prefix
 pub fn route_group(
   segment : String,
-  children : Array[@router.Routes],
-) -> @router.Routes {
-  @router.Routes::Group(segment~, children~)
+  children : Array[@routes.Routes],
+) -> @routes.Routes {
+  @routes.Routes::Group(segment~, children~)
 }
 
 ///|
 /// Create a param route (dynamic segment)
-pub fn route_param(key : String, children : Array[@router.Routes]) -> @router.Routes {
-  @router.Routes::Param(key~, children~)
+pub fn route_param(key : String, children : Array[@routes.Routes]) -> @routes.Routes {
+  @routes.Routes::Param(key~, children~)
 }
 
 // ============================================================================
@@ -296,15 +296,15 @@ pub fn route_param(key : String, children : Array[@router.Routes]) -> @router.Ro
 
 ///|
 /// BrowserRouter for SPA navigation
-pub struct BrowserRouter(@client.BrowserRouter)
+pub struct BrowserRouter(@browser_router.BrowserRouter)
 
 ///|
 /// Create a BrowserRouter from routes definition
 pub fn create_router(
-  routes : Array[@router.Routes],
+  routes : Array[@routes.Routes],
   base? : String = "",
 ) -> BrowserRouter {
-  @client.BrowserRouter::new(routes, base~)
+  @browser_router.BrowserRouter::new(routes, base~)
 }
 
 ///|
@@ -327,7 +327,7 @@ pub fn router_get_path(router : BrowserRouter) -> String {
 
 ///|
 /// Get current match result
-pub fn router_get_match(router : BrowserRouter) -> @router.RoutesMatch? {
+pub fn router_get_match(router : BrowserRouter) -> @routes.RoutesMatch? {
   router.0.get_match()
 }
 

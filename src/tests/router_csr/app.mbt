@@ -25,20 +25,20 @@ extern "js" fn prevent_default_event(e : @js.Any) -> Unit =
 // =============================================================================
 
 ///|
-fn get_routes() -> Array[@router.Routes] {
+fn get_routes() -> Array[@routes.Routes] {
   [
-    @router.Routes::Group(segment="/csr-router", children=[
-      @router.Routes::Page(path="/home", component="home", title="Home", meta=[]),
-      @router.Routes::Page(path="/about", component="about", title="About", meta=[]),
-      @router.Routes::Page(
+    @routes.Routes::Group(segment="/csr-router", children=[
+      @routes.Routes::Page(path="/home", component="home", title="Home", meta=[]),
+      @routes.Routes::Page(path="/about", component="about", title="About", meta=[]),
+      @routes.Routes::Page(
         path="/contact",
         component="contact",
         title="Contact",
         meta=[],
       ),
-      @router.Routes::Group(segment="/posts", children=[
-        @router.Routes::Param(key="id", children=[
-          @router.Routes::Page(path="", component="post", title="Post Detail", meta=[]),
+      @routes.Routes::Group(segment="/posts", children=[
+        @routes.Routes::Param(key="id", children=[
+          @routes.Routes::Page(path="", component="post", title="Post Detail", meta=[]),
         ]),
       ]),
     ]),
@@ -101,7 +101,7 @@ fn not_found_page() -> @dom.DomNode {
 
 ///|
 /// 現在のマッチに基づいてページをレンダリング
-fn render_page_for_match(router : @client.BrowserRouter) -> @dom.DomNode {
+fn render_page_for_match(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   match router.get_match() {
     Some(m) => {
       let component = m.component()
@@ -127,7 +127,7 @@ fn render_page_for_match(router : @client.BrowserRouter) -> @dom.DomNode {
 
 ///|
 fn nav_link(
-  router : @client.BrowserRouter,
+  router : @browser_router.BrowserRouter,
   href : String,
   label : String,
 ) -> @dom.DomNode {
@@ -152,7 +152,7 @@ fn nav_link(
 ///|
 /// Replace link - uses replace instead of navigate (does not add to history)
 fn replace_link(
-  router : @client.BrowserRouter,
+  router : @browser_router.BrowserRouter,
   href : String,
   label : String,
 ) -> @dom.DomNode {
@@ -175,7 +175,7 @@ fn replace_link(
 }
 
 ///|
-fn router_app(router : @client.BrowserRouter) -> @dom.DomNode {
+fn router_app(router : @browser_router.BrowserRouter) -> @dom.DomNode {
   @dom.div(attrs=[("data-router-app", @dom.Attr::AttrString("true"))], [
     // Navigation
     @dom.create_element(
@@ -224,7 +224,7 @@ fn router_app(router : @client.BrowserRouter) -> @dom.DomNode {
 /// Mount the router app to #app element
 pub fn mount_router_app() -> Unit {
   let routes = get_routes()
-  let router = @client.BrowserRouter::new(routes)
+  let router = @browser_router.BrowserRouter::new(routes)
   let app = router_app(router)
   let container = js_querySelector("#app")
   @dom.mount_to(container, app)

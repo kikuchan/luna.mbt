@@ -32,13 +32,19 @@ size-check:
 # === Test Commands ===
 
 # Run all tests
-test: test-moonbit test-vitest test-browser test-e2e
+test: test-moonbit test-xplat test-vitest test-browser test-e2e
     @echo "✓ All tests passed"
 
 # Run MoonBit unit tests
 test-moonbit:
     moon test --target js
     moon test --target all src/core/signal
+
+# Run cross-platform tests (core modules on all targets: js, wasm-gc, native)
+test-xplat:
+    moon test --target all src/core/signal
+    moon test --target all src/core/routes
+    moon test --target all src/core/render
 
 # Run vitest tests
 test-vitest: build-moon
