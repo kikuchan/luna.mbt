@@ -1,11 +1,18 @@
 /**
- * moveBefore API benchmark tests
+ * DOM operation benchmark tests
  * Run with: pnpm test:browser
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
 
-// Benchmark helper
+// Extend Element interface for moveBefore (Chrome 133+)
+declare global {
+  interface Element {
+    moveBefore(node: Node, child: Node | null): Node;
+  }
+}
+
+// Benchmark helper (silent - no console output)
 function bench(name: string, fn: () => void, iterations = 1000, warmup = 100) {
   // Warmup
   for (let i = 0; i < warmup; i++) {
@@ -20,7 +27,6 @@ function bench(name: string, fn: () => void, iterations = 1000, warmup = 100) {
   const elapsed = performance.now() - start;
   const perOp = elapsed / iterations;
 
-  console.log(`${name}: ${elapsed.toFixed(2)}ms total, ${perOp.toFixed(4)}ms/op`);
   return { name, elapsed, perOp };
 }
 
@@ -36,20 +42,7 @@ describe("moveBefore API", () => {
     container.remove();
   });
 
-  test("moveBefore is supported in Chromium", () => {
-    const supported = typeof Element.prototype.moveBefore === "function";
-    console.log(`moveBefore supported: ${supported}`);
-    // This test documents the support status, doesn't fail if unsupported
-    expect(typeof supported).toBe("boolean");
-  });
-
   test("moveBefore preserves element reference", () => {
-    const supported = typeof Element.prototype.moveBefore === "function";
-    if (!supported) {
-      console.log("Skipping: moveBefore not supported");
-      return;
-    }
-
     const ul = document.createElement("ul");
     const li1 = document.createElement("li");
     const li2 = document.createElement("li");
@@ -63,7 +56,7 @@ describe("moveBefore API", () => {
     const originalLi1 = li1;
 
     // Move li1 to end
-    (ul as any).moveBefore(li1, null);
+    ul.moveBefore(li1, null);
 
     // Verify it's the same element
     expect(ul.lastChild).toBe(originalLi1);
@@ -115,10 +108,8 @@ describe("moveBefore vs insertBefore benchmark", () => {
   };
 
   test("benchmark: single element move", () => {
-    const moveBeforeSupported = typeof Element.prototype.moveBefore === "function";
     const results: { name: string; perOp: number }[] = [];
 
-    // insertBefore benchmark
     results.push(
       bench("insertBefore_single", () => {
         const ul = setupList(10);
@@ -128,26 +119,21 @@ describe("moveBefore vs insertBefore benchmark", () => {
       })
     );
 
-    if (moveBeforeSupported) {
-      results.push(
-        bench("moveBefore_single", () => {
-          const ul = setupList(10);
-          const first = ul.firstChild!;
-          (ul as any).moveBefore(first, null);
-          ul.remove();
-        })
-      );
-    }
+    results.push(
+      bench("moveBefore_single", () => {
+        const ul = setupList(10);
+        const first = ul.firstChild!;
+        ul.moveBefore(first, null);
+        ul.remove();
+      })
+    );
 
-    console.table(results);
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBe(2);
   });
 
   test("benchmark: shuffle 10 elements", () => {
-    const moveBeforeSupported = typeof Element.prototype.moveBefore === "function";
     const results: { name: string; perOp: number }[] = [];
 
-    // insertBefore shuffle
     results.push(
       bench("insertBefore_shuffle_10", () => {
         const ul = setupList(10);
@@ -159,28 +145,23 @@ describe("moveBefore vs insertBefore benchmark", () => {
       })
     );
 
-    if (moveBeforeSupported) {
-      results.push(
-        bench("moveBefore_shuffle_10", () => {
-          const ul = setupList(10);
-          const children = Array.from(ul.children);
-          for (let i = children.length - 1; i >= 0; i--) {
-            (ul as any).moveBefore(children[i], ul.firstChild);
-          }
-          ul.remove();
-        })
-      );
-    }
+    results.push(
+      bench("moveBefore_shuffle_10", () => {
+        const ul = setupList(10);
+        const children = Array.from(ul.children);
+        for (let i = children.length - 1; i >= 0; i--) {
+          ul.moveBefore(children[i], ul.firstChild);
+        }
+        ul.remove();
+      })
+    );
 
-    console.table(results);
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBe(2);
   });
 
   test("benchmark: shuffle 50 elements", () => {
-    const moveBeforeSupported = typeof Element.prototype.moveBefore === "function";
     const results: { name: string; perOp: number }[] = [];
 
-    // insertBefore shuffle
     results.push(
       bench(
         "insertBefore_shuffle_50",
@@ -196,34 +177,25 @@ describe("moveBefore vs insertBefore benchmark", () => {
       )
     );
 
-    if (moveBeforeSupported) {
-      results.push(
-        bench(
-          "moveBefore_shuffle_50",
-          () => {
-            const ul = setupList(50);
-            const children = Array.from(ul.children);
-            for (let i = children.length - 1; i >= 0; i--) {
-              (ul as any).moveBefore(children[i], ul.firstChild);
-            }
-            ul.remove();
-          },
-          500
-        )
-      );
-    }
+    results.push(
+      bench(
+        "moveBefore_shuffle_50",
+        () => {
+          const ul = setupList(50);
+          const children = Array.from(ul.children);
+          for (let i = children.length - 1; i >= 0; i--) {
+            ul.moveBefore(children[i], ul.firstChild);
+          }
+          ul.remove();
+        },
+        500
+      )
+    );
 
-    console.table(results);
-    expect(results.length).toBeGreaterThan(0);
+    expect(results.length).toBe(2);
   });
 
-  test("benchmark: move with iframe (state preservation)", async () => {
-    const moveBeforeSupported = typeof Element.prototype.moveBefore === "function";
-    if (!moveBeforeSupported) {
-      console.log("Skipping: moveBefore not supported");
-      return;
-    }
-
+  test("moveBefore preserves iframe state", async () => {
     // Create container with iframe
     const wrapper = document.createElement("div");
     const section1 = document.createElement("section");
@@ -246,18 +218,14 @@ describe("moveBefore vs insertBefore benchmark", () => {
     const contentBefore = iframe.contentDocument?.body?.textContent;
 
     // Move iframe to section2 using moveBefore
-    (section2 as any).moveBefore(iframe, null);
+    section2.moveBefore(iframe, null);
 
     // Check iframe content after move
     const contentAfter = iframe.contentDocument?.body?.textContent;
 
-    console.log(`iframe content before: "${contentBefore}"`);
-    console.log(`iframe content after: "${contentAfter}"`);
-
     // moveBefore should preserve iframe state
     expect(iframe.parentElement).toBe(section2);
-    // Note: In a real browser, contentAfter should equal contentBefore
-    // because moveBefore preserves iframe state
+    expect(contentAfter).toBe(contentBefore);
   });
 });
 
@@ -277,7 +245,7 @@ describe("DOM operation microbenchmarks", () => {
     const result = bench("createElement_div", () => {
       document.createElement("div");
     }, 10000);
-    expect(result.perOp).toBeLessThan(1); // Should be very fast
+    expect(result.perOp).toBeLessThan(1);
   });
 
   test("benchmark: appendChild", () => {

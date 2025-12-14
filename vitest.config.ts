@@ -6,7 +6,7 @@ export default defineConfig({
     environment: "jsdom",
     include: [
       "src/**/*.test.ts",
-      "packages/**/*.test.ts",
+      "packages/loader/**/*.test.ts",
       "e2e/sol/**/*.test.ts",
     ],
     exclude: [

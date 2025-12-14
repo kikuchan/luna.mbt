@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, "..");
 
 // Load static assets
-const loaderPath = join(rootDir, "packages", "loader", "ln-loader-v1.js");
+const loaderPath = join(rootDir, "packages", "loader", "src", "loader.js");
 const loaderCode = readFileSync(loaderPath, "utf-8");
 
 // Import MoonBit counter_component module for SSR
@@ -137,8 +137,13 @@ const app = new Hono();
 // Health check
 app.get("/", (c) => c.text("ok"));
 
-// Serve static assets
-app.get("/ln-loader-v1.js", (c) => {
+// Serve static assets (both loader.js and loader.min.js for compatibility)
+app.get("/loader.js", (c) => {
+  return c.body(loaderCode, 200, {
+    "Content-Type": "application/javascript",
+  });
+});
+app.get("/loader.min.js", (c) => {
   return c.body(loaderCode, 200, {
     "Content-Type": "application/javascript",
   });
@@ -259,7 +264,7 @@ const browserTestPage = (
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-  <script type="module" src="/ln-loader-v1.js"></script>
+  <script type="module" src="/loader.js"></script>
   <style>
     .box { padding: 20px; border: 1px solid #ccc; margin: 10px 0; }
     .box.active { background-color: #e0ffe0; border-color: green; }
@@ -563,13 +568,13 @@ app.get("/chunked-counter", async (c) => {
 // Island Node SSR test routes
 // These test the visland() VNode rendering with ln:* attributes and HTML comment markers
 
-// Helper to generate island page with ln-loader
+// Helper to generate island page with loader
 const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-  <script type="module" src="/ln-loader-v1.js"></script>
+  <script type="module" src="/loader.js"></script>
 </head>
 <body>
   <h1>${title}</h1>
@@ -672,7 +677,7 @@ app.get("/test/idempotent-hydrate", async (c) => {
 <head>
   <meta charset="UTF-8">
   <title>Idempotent Hydration Test</title>
-  <script type="module" src="/ln-loader-v1.js"></script>
+  <script type="module" src="/loader.js"></script>
 </head>
 <body>
   <h1>Idempotent Hydration Test</h1>

@@ -153,12 +153,12 @@ test "generate_shard - with SSR content" {
 ///|
 test "generate_shard - with loader" {
   let config = @shard.ShardConfig::new("standalone-1", "./standalone.js").with_loader(
-    "https://cdn.example.com/ln-loader-v1.js",
+    "https://cdn.example.com/loader.min.js",
   )
   let output = @shard.generate_shard(config)
   assert_true(
     output.html.contains(
-      "<script type=\"module\" src=\"https://cdn.example.com/ln-loader-v1.js\">",
+      "<script type=\"module\" src=\"https://cdn.example.com/loader.min.js\">",
     ),
   )
   assert_eq(output.head_scripts.length(), 1)

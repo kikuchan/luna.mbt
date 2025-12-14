@@ -139,7 +139,7 @@ extern "js" fn ffi_serve(app : @js.Any, port : Int) -> Unit =
 
 ///|
 /// Default loader script URL
-pub let default_loader_url : String = "/ln-loader-v1.js"
+pub let default_loader_url : String = "/loader.min.js"
 
 // Re-export shard types for convenience
 
@@ -620,7 +620,7 @@ pub fn StaticFileConfig::default() -> StaticFileConfig {
   {
     path_prefix: "/static",
     local_dir: "static",
-    mappings: [("ln-loader-v1.js", "static/ln-loader-v1.js")],
+    mappings: [("loader.min.js", "static/loader.min.js")],
   }
 }
 

@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 
 export default defineConfig({
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "@mizchi/luna",
+  },
   test: {
     browser: {
       enabled: true,
@@ -12,18 +16,15 @@ export default defineConfig({
       ],
     },
     include: [
-      "packages/**/*.test.ts",
-      "packages/**/*.bench.ts",
+      "packages/luna/**/*.test.ts",
+      "packages/luna/**/*.bench.ts",
     ],
     exclude: [
       "**/node_modules/**",
       "**/.mooncakes/**",
-      // Exclude tests that use Node.js-specific features
-      "src/resume/**",
-      "packages/loader/**",
-      // Exclude CLI e2e tests (run with playwright) and temp directories
-      "packages/cli/e2e/**",
       "packages/**/tmp/**",
+      // TSX tests use old bun:test format - need migration
+      "packages/luna/**/*.test.tsx",
     ],
   },
 });

@@ -131,7 +131,7 @@ describe("Sol CLI - new command", () => {
     expect(existsSync(join(projectPath, "rolldown.config.mjs"))).toBe(true);
     expect(existsSync(join(projectPath, "src/client/hydrate.mbt"))).toBe(true);
     expect(existsSync(join(projectPath, "src/server/run/main.mbt"))).toBe(true);
-    expect(existsSync(join(projectPath, "static/ln-loader-v1.js"))).toBe(true);
+    expect(existsSync(join(projectPath, "static/loader.min.js"))).toBe(true);
   });
 
   test("fails if directory already exists", () => {

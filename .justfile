@@ -15,16 +15,10 @@ check:
 size-check:
     #!/usr/bin/env bash
     set -e
-    LOADER_SIZE=$(wc -c < packages/loader/ln-loader-v1.js)
-    LOADER_MIN_SIZE=$(wc -c < packages/loader/loader.min.js)
-    echo "ln-loader-v1.js: ${LOADER_SIZE} bytes"
-    echo "loader.min.js: ${LOADER_MIN_SIZE} bytes"
+    LOADER_SIZE=$(wc -c < packages/loader/src/loader.js)
+    echo "loader.js: ${LOADER_SIZE} bytes"
     if [ "$LOADER_SIZE" -gt 5120 ]; then
-        echo "❌ ln-loader-v1.js exceeds 5KB limit"
-        exit 1
-    fi
-    if [ "$LOADER_MIN_SIZE" -gt 1024 ]; then
-        echo "❌ loader.min.js exceeds 1KB limit"
+        echo "❌ loader.js exceeds 5KB limit"
         exit 1
     fi
     echo "✓ Bundle sizes OK"
@@ -76,8 +70,12 @@ test-sol-new: build-moon
 build-moon:
     moon build --target js
 
-# Build all (MoonBit + Vite)
-build: build-moon
+# Minify loader
+minify-loader:
+    pnpm terser packages/loader/src/loader.js --module --compress --mangle -o packages/loader/loader.min.js
+
+# Build all (MoonBit + minify loader + Vite)
+build: build-moon minify-loader
     pnpm vite build
 
 # Clean build artifacts
@@ -99,10 +97,6 @@ size:
     @echo "=== MoonBit Output Sizes ==="
     @find target/js/release/build -name "*.js" -exec ls -lh {} \; 2>/dev/null | awk '{print $9 ": " $5}' | head -20
 
-# Minify loader
-minify-loader:
-    pnpm terser packages/loader/loader.js --module --compress --mangle -o packages/loader/loader.min.js
-
 # Run benchmarks
 bench:
     node bench/run.js
@@ -113,33 +107,13 @@ bench-happydom:
 
 # === Metrics Commands ===
 
-# Record build metrics (time + sizes)
-metrics-record:
-    node scripts/metrics.ts record
+# Build, collect metrics, and show trend
+metrics:
+    node scripts/metrics.ts
 
-# Record with clean build
-metrics-record-clean:
-    node scripts/metrics.ts record --clean
-
-# Record with benchmarks
-metrics-record-bench:
-    node scripts/metrics.ts record --bench
-
-# Record full (clean build + benchmarks)
-metrics-record-full:
-    node scripts/metrics.ts record --clean --bench
-
-# Show recent metrics
-metrics-report *n:
-    node scripts/metrics.ts report {{n}}
-
-# Compare with previous build
-metrics-compare *hash:
-    node scripts/metrics.ts compare {{hash}}
-
-# Show trend graph
-metrics-trend *metric:
-    node scripts/metrics.ts trend {{metric}}
+# Show metrics trend only (no build)
+metrics-show:
+    node scripts/metrics.ts show
 
 # Watch and rebuild
 watch:

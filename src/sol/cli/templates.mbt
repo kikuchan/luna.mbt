@@ -85,7 +85,7 @@ fn template_client_hydrate_mbt() -> String {
   (
     #|///| Counter Hydration
     #|
-    #|///| Hydration entry point (called by ln-loader)
+    #|///| Hydration entry point (called by loader)
     #|pub fn hydrate(element : @core.Any, state : @core.Any, id : String) -> Unit {
     #|  @dom.hydrate_island(element, state, id, fn(ctx) {
     #|    let count = ctx.signal_int("count", 0)
@@ -201,7 +201,7 @@ pub fn template_server_main_mbt() -> String {
     #|fn configure_app(app : @sol.App) -> @sol.App {
     #|  let style = "<style>body { font-family: system-ui; max-width: 800px; margin: 0 auto; padding: 2rem; } .counter { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; } .buttons { margin-top: 1rem; } .buttons button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0 0.5rem; cursor: pointer; }</style>"
     #|
-    #|  let app = @sol.page(app, "/", home_page, title="Home", head=style, hydration=true, loader_url="/static/ln-loader-v1.js")
+    #|  let app = @sol.page(app, "/", home_page, title="Home", head=style, hydration=true, loader_url="/static/loader.min.js")
     #|  let app = @sol.page(app, "/about", about_page, title="About", head=style)
     #|  let app = @sol.api(app, "/api/health", fn(_c) { @core.any({ "status": "ok" }) })
     #|  let app = @sol.serve_static(app)
@@ -334,6 +334,6 @@ pub fn generate_templates(package_name : String) -> Array[TemplateFile] {
       content: template_server_moon_pkg_json(package_name),
     },
     { path: "src/server/run/main.mbt", content: template_server_main_mbt() },
-    { path: "static/ln-loader-v1.js", content: template_ln_loader_js() },
+    { path: "static/loader.min.js", content: template_ln_loader_js() },
   ]
 }
