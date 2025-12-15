@@ -16,15 +16,15 @@ export default defineConfig({
       ],
     },
     include: [
-      "packages/luna/**/*.test.ts",
-      "packages/luna/**/*.bench.ts",
+      "js/luna/**/*.test.ts",
+      "js/luna/**/*.bench.ts",
     ],
     exclude: [
       "**/node_modules/**",
       "**/.mooncakes/**",
-      "packages/**/tmp/**",
+      "js/**/tmp/**",
       // TSX tests use old bun:test format - need migration
-      "packages/luna/**/*.test.tsx",
+      "js/luna/**/*.test.tsx",
     ],
   },
 });

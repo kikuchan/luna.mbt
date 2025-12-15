@@ -15,7 +15,7 @@ check:
 size-check:
     #!/usr/bin/env bash
     set -e
-    LOADER_SIZE=$(wc -c < packages/loader/src/loader.js)
+    LOADER_SIZE=$(wc -c < js/loader/src/loader.js)
     echo "loader.js: ${LOADER_SIZE} bytes"
     if [ "$LOADER_SIZE" -gt 5120 ]; then
         echo "❌ loader.js exceeds 5KB limit"
@@ -72,7 +72,7 @@ build-moon:
 
 # Minify loader
 minify-loader:
-    pnpm terser packages/loader/src/loader.js --module --compress --mangle -o packages/loader/loader.min.js
+    pnpm terser js/loader/src/loader.js --module --compress --mangle -o js/loader/loader.min.js
 
 # Build all (MoonBit + minify loader + Vite)
 build: build-moon minify-loader
@@ -92,7 +92,7 @@ fmt:
 # Show bundle sizes
 size:
     @echo "=== Bundle Sizes ==="
-    @ls -lh packages/loader/*.js 2>/dev/null | awk '{print $9 ": " $5}'
+    @ls -lh js/loader/*.js 2>/dev/null | awk '{print $9 ": " $5}'
     @echo ""
     @echo "=== MoonBit Output Sizes ==="
     @find target/js/release/build -name "*.js" -exec ls -lh {} \; 2>/dev/null | awk '{print $9 ": " $5}' | head -20

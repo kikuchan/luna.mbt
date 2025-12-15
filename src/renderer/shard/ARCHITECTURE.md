@@ -189,9 +189,9 @@ let output = generate_embed(config)
 // output.html contains the complete snippet
 ```
 
-## Integration with packages/loader
+## Integration with js/loader
 
-The `packages/loader/` directory contains:
+The `js/loader/` directory contains:
 - `ln-loader-v1.js` - Production loader
 - `ln-loader-v1.min.js` - Minified version
 
@@ -220,7 +220,7 @@ src/embedding/
 ├── html_builder.mbt   # HTML snippet generation
 └── embedding_test.mbt # Tests
 
-packages/loader/
+js/loader/
 ├── ln-loader-v1.js    # Loader script (renamed from loader.js)
 ├── ln-loader-v1.min.js
 └── loader.test.ts     # Tests

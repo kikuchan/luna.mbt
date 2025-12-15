@@ -29,7 +29,7 @@ export const test = base.extend({
       const url = entry.url;
       return (
         url.includes("/target/js/") ||
-        url.includes("/packages/loader/") ||
+        url.includes("/js/loader/") ||
         url.includes("browser_app") ||
         url.includes("playground")
       );

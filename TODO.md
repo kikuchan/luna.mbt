@@ -22,4 +22,4 @@
 - [ ] shadcn
 - [ ] React Bridge
 - [ ] Fix playwright
-- [ ] packages/cli を src/eclipse/cli で、CLIをMoonbitで書き直す
+- [ ] js/cli を src/eclipse/cli で、CLIをMoonbitで書き直す

@@ -6,13 +6,13 @@ export default defineConfig({
     environment: "jsdom",
     include: [
       "src/**/*.test.ts",
-      "packages/loader/**/*.test.ts",
+      "js/loader/**/*.test.ts",
       "e2e/sol/cli/**/*.test.ts", // Only CLI tests (Vitest)
     ],
     exclude: [
       "**/node_modules/**",
       "**/.mooncakes/**",
-      "packages/**/tmp/**",
+      "js/**/tmp/**",
       "e2e/sol/ssr-hydration.test.ts", // Playwright test
     ],
   },

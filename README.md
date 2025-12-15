@@ -196,7 +196,7 @@ src/
 ├── router/            # Client-side routing
 └── examples/          # Example applications
 
-packages/
+js/
 ├── luna/              # npm package (@mizchi/luna)
 ├── loader/            # Island hydration loader
 └── cli/               # CLI tools

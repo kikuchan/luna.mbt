@@ -29,7 +29,7 @@ src/
 ├── lib/api_js/                # JS向け公開API
 ├── examples/
 └── tests/
-packages/                      # NPMパッケージ
+js/                      # NPMパッケージ
 ├── luna/                      # @mizchi/luna
 ├── loader/                    # @mizchi/luna-loader
 └── cli/                       # CLIツール
@@ -218,7 +218,7 @@ PRマージ前に以下を確認：
 | レイヤー | ディレクトリ | 対象 |
 |---------|-------------|------|
 | MoonBit Unit | `src/**/*_test.mbt` | 純粋ロジック（DOM非依存） |
-| Browser | `packages/luna/tests/*.test.ts` | DOM操作、Hydration |
+| Browser | `js/luna/tests/*.test.ts` | DOM操作、Hydration |
 | E2E | `e2e/**/*.test.ts` | SSR統合、複数ページ |
 
 ### 判断基準
@@ -245,7 +245,7 @@ PRマージ前に以下を確認：
 ### テスト追加時のルール
 
 1. **まず MoonBit Unit を検討** - DOM不要なら `*_test.mbt` に追加
-2. **DOM必須なら Browser Test** - `packages/luna/tests/` に追加
+2. **DOM必須なら Browser Test** - `js/luna/tests/` に追加
 3. **統合が必要なら E2E** - `e2e/` に追加（件数は最小限に）
 
 ### 重複禁止

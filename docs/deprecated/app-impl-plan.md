@@ -101,7 +101,7 @@ luna validate       # client/server境界チェック
 Node.js CLI として実装（MoonBitではなくTypeScript）:
 
 ```
-packages/cli/
+js/cli/
 ├── src/
 │   ├── index.ts
 │   ├── commands/
@@ -215,7 +215,7 @@ async fn post_page(ctx : @sol.Ctx) -> @luna.Node {
 `moon.pkg.json` の依存関係を静的解析:
 
 ```typescript
-// packages/cli/src/commands/validate.ts
+// js/cli/src/commands/validate.ts
 function validateClientServerBoundary(projectDir: string) {
   // client/components/ の moon.pkg.json を読み取り
   // server/ へのimportがないかチェック
@@ -233,7 +233,7 @@ function validateClientServerBoundary(projectDir: string) {
 4. [ ] `moon test --target all ./src/core/serialize/`
 
 ### Step 2: CLI 基盤
-1. [ ] `packages/cli/` 作成
+1. [ ] `js/cli/` 作成
 2. [ ] `luna new` コマンド（テンプレートコピー）
 3. [ ] `luna dev` コマンド（moon build + serve）
 

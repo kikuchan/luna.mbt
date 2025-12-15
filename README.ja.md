@@ -161,7 +161,7 @@ src/
 ├── js_api/         # JavaScript API エクスポート
 └── examples/       # サンプルコード
 
-packages/ui/        # npm パッケージ (@mizchi/ui)
+js/ui/        # npm パッケージ (@mizchi/ui)
 ├── index.js        # コアエクスポート
 ├── dom.js          # DOM レンダリング
 ├── jsx-runtime.js  # JSX ランタイム

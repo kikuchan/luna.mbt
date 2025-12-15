@@ -80,7 +80,7 @@ Preactの軽量ランタイム + Qwikのresumability + Solidのシグナルを�
 ```
 
 - [x] `src/embedding/html_builder.mbt` - ln:* 属性出力
-- [x] `packages/loader/kg-loader-v1.js` - ln:* 属性読み取り
+- [x] `js/loader/kg-loader-v1.js` - ln:* 属性読み取り
 - [x] E2Eテストで ln:* 使用
 
 ---
@@ -155,7 +155,7 @@ customElements.define('kg-counter', KgCounter);
 ```
 
 - [ ] WebComponentsラッパー実装
-- [ ] `packages/loader/` にWebComponentsローダー追加
+- [ ] `js/loader/` にWebComponentsローダー追加
 - [ ] E2Eテスト追加
 
 ---

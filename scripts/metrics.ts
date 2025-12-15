@@ -128,13 +128,13 @@ function collect() {
   execSync("moon build --target js", { cwd: PROJECT_ROOT, stdio: "inherit" });
 
   console.log("\n🔨 Minifying loader...");
-  execSync("pnpm terser packages/loader/src/loader.js --module --compress --mangle -o packages/loader/loader.min.js", { cwd: PROJECT_ROOT, stdio: "inherit" });
+  execSync("pnpm terser js/loader/src/loader.js --module --compress --mangle -o js/loader/loader.min.js", { cwd: PROJECT_ROOT, stdio: "inherit" });
 
   console.log("\n🔨 Building Vite...");
   execSync("pnpm vite build", { cwd: PROJECT_ROOT, stdio: "inherit" });
 
   // Get file sizes (use minified loader)
-  const loaderSize = getFileSize("packages/loader/loader.min.js");
+  const loaderSize = getFileSize("js/loader/loader.min.js");
 
   // Find bundled files with hash in name
   const spaFile = findFileByPattern("dist/assets", /^spa-.*\.js$/);
@@ -284,7 +284,7 @@ Usage:
   node scripts/metrics.ts show    Show trend only (no build)
 
 Tracked metrics:
-  - packages/loader/loader.min.js size (minified)
+  - js/loader/loader.min.js size (minified)
   - dist/assets/spa-*.js bundle size
   - dist/assets/playground/browser_app-*.js bundle size
   - moon test execution time

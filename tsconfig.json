@@ -10,9 +10,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@mizchi/luna": ["./packages/ui"],
-      "@mizchi/luna/*": ["./packages/ui/*"]
+      "@mizchi/luna": ["./js/ui"],
+      "@mizchi/luna/*": ["./js/ui/*"]
     }
   },
-  "include": ["packages/**/*.ts", "packages/**/*.tsx"]
+  "include": ["js/**/*.ts", "js/**/*.tsx"]
 }
