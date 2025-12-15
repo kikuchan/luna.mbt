@@ -295,12 +295,7 @@ pub fn template_server_main_mbt() -> String {
     #|
     #|///|
     #|fn main {
-    #|  let port = @sol.get_port()
-    #|  @sol.create_app_then(fn(app) {
-    #|    let app = configure_app(app)
-    #|    println("Starting server on port " + port.to_string() + "...")
-    #|    @sol.serve(app, port)
-    #|  })
+    #|  @sol.run(configure_app)
     #|}
   )
 }

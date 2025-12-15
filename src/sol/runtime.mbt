@@ -49,6 +49,32 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
   })
 }
 
+// ============================================================================
+// Application Runner (reduces boilerplate)
+// ============================================================================
+
+///|
+/// Run a Sol application with standard configuration
+/// This is the recommended way to start a Sol server.
+///
+/// Example:
+/// ```moonbit
+/// fn main {
+///   @sol.run(fn(app) {
+///     @sol.page(app, "/", home_page)
+///     |> @sol.serve_static()
+///   })
+/// }
+/// ```
+pub fn run(configure : (App) -> App, port? : Int) -> Unit {
+  let port = port.unwrap_or_else(get_port)
+  create_app_then(fn(app) {
+    let app = configure(app)
+    println("Server running at http://localhost:" + port.to_string())
+    serve(app, port)
+  })
+}
+
 ///|
 /// Render a VNode to HTML string with full document wrapper
 /// Use hydration=true to enable hydration markers (for pages with Islands)
