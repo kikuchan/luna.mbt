@@ -18,7 +18,7 @@ fn show_generate_help() -> Unit {
 // =============================================================================
 
 ///| Sol configuration
-struct SolConfig {
+pub struct SolConfig {
   /// Component directories (SSR only)
   components : Array[String]
   /// Island directories (client hydration)
@@ -50,7 +50,7 @@ struct ExportEntry {
 // =============================================================================
 
 ///| Parse sol.config.json
-fn parse_sol_config(json_str : String) -> SolConfig? {
+pub fn parse_sol_config(json_str : String) -> SolConfig? {
   try {
     let json = @json.parse(json_str.view())
     guard json is Object(obj) else { return None }
@@ -87,7 +87,7 @@ fn parse_string_array(obj : Map[String, Json], key : String) -> Array[String] {
 // =============================================================================
 
 ///| Parse mbti imports to build alias mapping
-fn parse_mbti_imports(content : String) -> Map[String, String] {
+pub fn parse_mbti_imports(content : String) -> Map[String, String] {
   // Returns: Map[alias -> package_path]
   let result : Map[String, String] = {}
   let lines = content.split("\n").to_array()
@@ -130,7 +130,7 @@ fn parse_mbti_imports(content : String) -> Map[String, String] {
 }
 
 ///| Rewrite type references from mbti format to exports format
-fn rewrite_type_refs(sig : String, _imports : Map[String, String]) -> String {
+pub fn rewrite_type_refs(sig : String, _imports : Map[String, String]) -> String {
   // mbti uses @alias.Type where alias is the last part of package path
   // We need to map to the correct alias in exports module
   // Use known type patterns for robust mapping
@@ -145,7 +145,7 @@ fn rewrite_type_refs(sig : String, _imports : Map[String, String]) -> String {
 }
 
 ///| Parse mbti file and extract pub fn declarations
-fn parse_mbti(content : String) -> Array[(String, String)] {
+pub fn parse_mbti(content : String) -> Array[(String, String)] {
   let result : Array[(String, String)] = []
   let imports = parse_mbti_imports(content)
   let lines = content.split("\n").to_array()
@@ -217,7 +217,7 @@ fn find_mbti_files(
 }
 
 ///| Extract package path from mbti content
-fn extract_package_path(mbti_content : String) -> String? {
+pub fn extract_package_path(mbti_content : String) -> String? {
   let lines = mbti_content.split("\n").to_array()
   for line in lines {
     let line_str = line.to_string()
@@ -244,8 +244,20 @@ fn extract_package_path(mbti_content : String) -> String? {
 // Code Generators
 // =============================================================================
 
+///| Extract clean island name from export name
+///| Removes "island_client_" or "island_" prefix
+pub fn extract_island_name(name : String) -> String {
+  if name.has_prefix("island_client_") {
+    name.substring(start=14)
+  } else if name.has_prefix("island_") {
+    name.substring(start=7)
+  } else {
+    name
+  }
+}
+
 ///| Generate import alias from package path
-fn generate_import_alias(package_path : String, category : String) -> String {
+pub fn generate_import_alias(package_path : String, category : String) -> String {
   // e.g., "myproject/islands/counter" -> "island_counter"
   // e.g., "myproject/pages/home" -> "page_home"
   // e.g., "myproject/components" -> "components"
@@ -262,7 +274,7 @@ fn generate_import_alias(package_path : String, category : String) -> String {
 }
 
 ///| Generate export name
-fn generate_export_name(
+pub fn generate_export_name(
   fn_name : String,
   import_alias : String,
   category : String
@@ -361,7 +373,7 @@ fn collect_exports(cwd : String, config : SolConfig) -> Array[ExportEntry] {
 }
 
 ///| Split parameters respecting nested brackets
-fn split_params(params_str : String) -> Array[String] {
+pub fn split_params(params_str : String) -> Array[String] {
   let result : Array[String] = []
   let current = StringBuilder::new()
   let mut depth = 0
@@ -397,7 +409,7 @@ fn split_params(params_str : String) -> Array[String] {
 }
 
 ///| Find matching closing paren position
-fn find_matching_paren(s : String, start : Int) -> Int? {
+pub fn find_matching_paren(s : String, start : Int) -> Int? {
   let mut depth = 0
   let chars = s.to_array()
   for i = start; i < chars.length(); i = i + 1 {
@@ -416,7 +428,7 @@ fn find_matching_paren(s : String, start : Int) -> Int? {
 }
 
 ///| Generate parameter names for signature
-fn generate_params_with_names(signature : String) -> (String, String) {
+pub fn generate_params_with_names(signature : String) -> (String, String) {
   // signature: "(Type1, Type2) -> RetType" or "() -> RetType"
   // Returns: (signature_with_names, call_args)
   // e.g., "(String, Int) -> Unit" => ("(p0 : String, p1 : Int) -> Unit", "(p0, p1)")
@@ -533,22 +545,22 @@ fn generate_exports_mbt(
 }
 
 ///| Check if signature uses @luna types
-fn uses_luna_types(signature : String) -> Bool {
+pub fn uses_luna_types(signature : String) -> Bool {
   signature.contains("@luna.")
 }
 
 ///| Check if signature uses @js types
-fn uses_js_types(signature : String) -> Bool {
+pub fn uses_js_types(signature : String) -> Bool {
   signature.contains("@js.")
 }
 
 ///| Check if signature uses @signal types
-fn uses_signal_types(signature : String) -> Bool {
+pub fn uses_signal_types(signature : String) -> Bool {
   signature.contains("@signal.")
 }
 
 ///| Check if signature uses @hono types
-fn uses_hono_types(signature : String) -> Bool {
+pub fn uses_hono_types(signature : String) -> Bool {
   signature.contains("@hono.")
 }
 
@@ -669,13 +681,7 @@ fn generate_island_entry(entry : ExportEntry) -> String {
     "import { \{entry.name} } from '../../target/js/release/build/_gen/client/client.js';\n\n",
   )
   // Extract the hydrate function name (remove island_client_ prefix)
-  let export_name = if entry.name.has_prefix("island_client_") {
-    entry.name.substring(start=14)
-  } else if entry.name.has_prefix("island_") {
-    entry.name.substring(start=7)
-  } else {
-    entry.name
-  }
+  let export_name = extract_island_name(entry.name)
   // Export both the original and the shortened name
   buf.write_string("export { \{entry.name} };\n")
   buf.write_string("export const \{export_name} = \{entry.name};\n")
@@ -691,13 +697,7 @@ fn generate_rolldown_config(islands : Array[ExportEntry]) -> String {
   buf.write_string("  input: {\n")
   // Add each island as a separate entry point
   for i, entry in islands {
-    let island_name = if entry.name.has_prefix("island_client_") {
-      entry.name.substring(start=14)
-    } else if entry.name.has_prefix("island_") {
-      entry.name.substring(start=7)
-    } else {
-      entry.name
-    }
+    let island_name = extract_island_name(entry.name)
     buf.write_string("    '\{island_name}': './.sol/islands/\{entry.name}.js'")
     if i < islands.length() - 1 {
       buf.write_string(",")
@@ -722,14 +722,8 @@ fn generate_client_js(islands : Array[ExportEntry]) -> String {
   buf.write_string("// Generated by: sol generate\n\n")
   buf.write_string("const islands = {\n")
   for i, entry in islands {
-    // Extract island name from export name (e.g., "island_counter" -> "counter")
-    let island_name = if entry.name.has_prefix("island_") {
-      entry.name.substring(start=7)
-    } else if entry.name.has_prefix("hydrate_") {
-      entry.name.substring(start=8)
-    } else {
-      entry.name
-    }
+    // Extract island name from export name
+    let island_name = extract_island_name(entry.name)
     buf.write_string(
       "  \{island_name}: () => import('./chunks/\{entry.name}.js').then(m => m.\{entry.name})",
     )
@@ -781,26 +775,12 @@ fn generate_luna_client_entry(islands : Array[ExportEntry]) -> String {
   )
   // Export each island hydrate function
   for entry in islands {
-    // island_client_hydrate_counter -> hydrate_counter
-    let export_name = if entry.name.has_prefix("island_client_") {
-      entry.name.substring(start=14)
-    } else if entry.name.has_prefix("island_") {
-      entry.name.substring(start=7)
-    } else {
-      entry.name
-    }
+    let export_name = extract_island_name(entry.name)
     buf.write_string("export const \{export_name} = exports.\{entry.name};\n")
   }
   // Export first island as default (for Luna loader)
   if not(islands.is_empty()) {
-    let first = islands[0]
-    let export_name = if first.name.has_prefix("island_client_") {
-      first.name.substring(start=14)
-    } else if first.name.has_prefix("island_") {
-      first.name.substring(start=7)
-    } else {
-      first.name
-    }
+    let export_name = extract_island_name(islands[0].name)
     buf.write_string("\nexport default \{export_name};\n")
   }
   buf.to_string()

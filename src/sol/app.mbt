@@ -162,6 +162,16 @@ pub fn get_port() -> Int {
 extern "js" fn ffi_get_port() -> Int =
   #| () => parseInt(process.env.PORT || '3000', 10)
 
+///|
+/// Set environment variable
+pub fn set_env(key : String, value : String) -> Unit {
+  ffi_set_env(key, value)
+}
+
+///|
+extern "js" fn ffi_set_env(key : String, value : String) -> Unit =
+  #| (key, value) => { process.env[key] = value }
+
 // ============================================================================
 // Island Architecture Support
 // ============================================================================
