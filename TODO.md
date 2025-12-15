@@ -5,10 +5,10 @@
 - [x] ref 対応
 - [x] ServerComponent
 - [x] ErrorBoundary
-- [ ] 非同期コンポーネントの設計
+- [x] 非同期コンポーネントの設計
   - 中間ビルドファイルの生成
   - dynamic_component() 中間ビルドを作る
-- [ ] Vite Enviroment Apiに対応
+- [ ] Vite Enviroment Apiに対応? -> やらない。やるにしても最後
 - [ ] src/sol/ssg で、静的サイト生成に対応
 - [ ] Dynamic https://docs.solidjs.com/reference/components/dynamic
 - [ ] react-hook-form 相当のものを試作する

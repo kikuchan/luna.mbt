@@ -1,4 +1,5 @@
 ///| SSR - Server-Side Rendering for VNode
+
 ///| Pure MoonBit - works on all targets (js, wasm-gc, native)
 
 ///|
@@ -13,7 +14,7 @@ pub struct SSRResult {
 /// - preload: Whether to collect preload URLs from islands (default: false)
 pub fn[E] render_to_string(
   node : @luna.Node[E],
-  preload~ : Bool = false,
+  preload? : Bool = false,
 ) -> SSRResult {
   let sb = StringBuilder::new(size_hint=256)
   if preload {
@@ -135,7 +136,10 @@ fn[E] render_island_and_collect_urls(
 
 ///|
 /// Render Island wrapper opening (comment + div with attributes)
-fn[E] render_island_open_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
+fn[E] render_island_open_to(
+  sb : StringBuilder,
+  island : @luna.VIsland[E],
+) -> Unit {
   sb.write_string("<!--ln:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
@@ -156,7 +160,10 @@ fn[E] render_island_open_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Un
 
 ///|
 /// Render Island wrapper closing (div + comment)
-fn[E] render_island_close_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
+fn[E] render_island_close_to(
+  sb : StringBuilder,
+  island : @luna.VIsland[E],
+) -> Unit {
   sb.write_string("</div>")
   sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
@@ -179,7 +186,9 @@ pub fn[E] render_attrs_to(
         // Render action as data-action attribute for hydration
         // onclick -> data-action-click="increment"
         let event_name = if name.has_prefix("on") {
-          name[2:].to_string() catch { _ => name }
+          name[2:].to_string() catch {
+            _ => name
+          }
         } else {
           name
         }

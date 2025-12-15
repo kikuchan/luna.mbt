@@ -9,7 +9,9 @@
 ///|
 test "ssr_simple_text" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.vtext("Hello, World!")
-  b.bench(name="ssr_simple_text", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_simple_text", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|
@@ -79,7 +81,9 @@ fn create_list(count : Int) -> @luna.Node[@js.Any] {
 ///|
 test "ssr_list_10_items" (b : @bench.T) {
   let node = create_list(10)
-  b.bench(name="ssr_list_10_items", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_list_10_items", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|
@@ -138,13 +142,17 @@ fn create_page(card_count : Int) -> @luna.Node[@js.Any] {
 ///|
 test "ssr_page_10_cards" (b : @bench.T) {
   let node = create_page(10)
-  b.bench(name="ssr_page_10_cards", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_page_10_cards", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|
 test "ssr_page_50_cards" (b : @bench.T) {
   let node = create_page(50)
-  b.bench(name="ssr_page_50_cards", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_page_50_cards", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|
@@ -193,7 +201,9 @@ test "ssr_dynamic_text" (b : @bench.T) {
   let node : @luna.Node[Unit] = @luna.text_dyn(fn() {
     "Count: " + count.get().to_string()
   })
-  b.bench(name="ssr_dynamic_text", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_dynamic_text", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|
@@ -215,7 +225,9 @@ test "ssr_dynamic_attrs" (b : @bench.T) {
     ],
     [@luna.vtext("Toggle")],
   )
-  b.bench(name="ssr_dynamic_attrs", fn() { b.keep(@ssr.render_to_string(node).html) })
+  b.bench(name="ssr_dynamic_attrs", fn() {
+    b.keep(@ssr.render_to_string(node).html)
+  })
 }
 
 ///|

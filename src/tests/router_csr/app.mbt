@@ -101,7 +101,9 @@ fn not_found_page() -> @dom.DomNode {
 
 ///|
 /// 現在のマッチに基づいてページをレンダリング
-fn render_page_for_match(router : @browser_router.BrowserRouter) -> @dom.DomNode {
+fn render_page_for_match(
+  router : @browser_router.BrowserRouter,
+) -> @dom.DomNode {
   match router.get_match() {
     Some(m) => {
       let component = m.component()

@@ -988,10 +988,7 @@ test "create_context creates context with default value" {
 test "provide overrides context value within scope" {
   let ctx = create_context("default")
   assert_eq(use_context(ctx), "default")
-
-  let result = provide(ctx, "provided", fn() {
-    use_context(ctx)
-  })
+  let result = provide(ctx, "provided", fn() { use_context(ctx) })
   assert_eq(result, "provided")
 
   // Outside of provide, should return default again
@@ -1002,16 +999,12 @@ test "provide overrides context value within scope" {
 test "provide supports nested scopes" {
   let ctx = create_context(0)
   let results : Array[Int] = []
-
   provide(ctx, 1, fn() {
     results.push(use_context(ctx))
-    provide(ctx, 2, fn() {
-      results.push(use_context(ctx))
-    })
+    provide(ctx, 2, fn() { results.push(use_context(ctx)) })
     // After inner provide, should return to outer value
     results.push(use_context(ctx))
   })
-
   assert_eq(results[0], 1)
   assert_eq(results[1], 2)
   assert_eq(results[2], 1)
@@ -1022,17 +1015,14 @@ test "multiple contexts are independent" {
   let ctx_a = create_context("A")
   let ctx_b = create_context("B")
   let results : Array[String] = []
-
   provide(ctx_a, "A-override", fn() {
     results.push(use_context(ctx_a))
     results.push(use_context(ctx_b))
-
     provide(ctx_b, "B-override", fn() {
       results.push(use_context(ctx_a))
       results.push(use_context(ctx_b))
     })
   })
-
   assert_eq(results[0], "A-override")
   assert_eq(results[1], "B")
   assert_eq(results[2], "A-override")
@@ -1056,7 +1046,6 @@ test "is_batching returns correct state" {
 test "has_owner returns correct state" {
   // Outside create_root, no owner
   assert_false(has_owner())
-
   let inside_result = { val: false }
   create_root(fn(_) {
     // Inside create_root, has owner
@@ -1071,12 +1060,10 @@ test "has_owner returns correct state" {
 ///|
 test "create_root_with_dispose returns result and dispose function" {
   let cleanup_ran = { val: false }
-
   let (result, dispose) = create_root_with_dispose(fn() {
     register_owner_cleanup(fn() { cleanup_ran.val = true })
     42
   })
-
   assert_eq(result, 42)
   assert_false(cleanup_ran.val)
 
@@ -1088,13 +1075,11 @@ test "create_root_with_dispose returns result and dispose function" {
 ///|
 test "register_owner_cleanup runs on dispose" {
   let cleanup_count = { val: 0 }
-
   create_root(fn(dispose) {
     register_owner_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
     register_owner_cleanup(fn() { cleanup_count.val = cleanup_count.val + 1 })
     dispose()
   })
-
   assert_eq(cleanup_count.val, 2)
 }
 
@@ -1138,7 +1123,6 @@ test "resource_rejected creates pre-rejected resource" {
 test "deferred creates manual resource with resolve/reject" {
   let (res, resolve, _reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
   assert_true(res.is_pending())
-
   resolve(100)
   assert_true(res.is_success())
   assert_eq(res.value(), Some(100))
@@ -1148,7 +1132,6 @@ test "deferred creates manual resource with resolve/reject" {
 test "deferred reject works" {
   let (res, _resolve, reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
   assert_true(res.is_pending())
-
   reject("failed")
   assert_true(res.is_failure())
   assert_eq(res.error(), Some("failed"))
@@ -1162,12 +1145,10 @@ test "deferred reject works" {
 test "effect_once runs only once" {
   let count = { val: 0 }
   let sig = Signal::new(0)
-
   effect_once(fn() {
     let _ = sig.get()
     count.val = count.val + 1
   })
-
   assert_eq(count.val, 1)
 
   // Changing signal should not re-run since effect disposed itself
@@ -1206,7 +1187,6 @@ test "resource_rejected refetch is no-op" {
 test "deferred refetch resets to pending" {
   let (res, resolve, _reject) : (Resource[Int], (Int) -> Unit, (String) -> Unit) = deferred()
   assert_true(res.is_pending())
-
   resolve(100)
   assert_true(res.is_success())
 

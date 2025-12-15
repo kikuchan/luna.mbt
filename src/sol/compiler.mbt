@@ -5,7 +5,9 @@
 // ============================================================================
 
 ///|
-extern "js" fn ffi_rolldown_build(options : @js.Any) -> @js.Promise[RolldownOutput] =
+extern "js" fn ffi_rolldown_build(
+  options : @js.Any,
+) -> @js.Promise[RolldownOutput] =
   #| async (options) => {
   #|   const { build } = await import('rolldown');
   #|   return await build(options);
@@ -78,16 +80,12 @@ pub fn RolldownChunk::is_entry(self : RolldownChunk) -> Bool {
 /// Output format for bundled code
 pub enum OutputFormat {
   Esm
-  Cjs
-  Iife
 }
 
 ///|
 pub fn OutputFormat::to_string(self : OutputFormat) -> String {
   match self {
     Esm => "esm"
-    Cjs => "cjs"
-    Iife => "iife"
   }
 }
 
@@ -133,7 +131,7 @@ pub fn BundleConfig::with_format(
   self : BundleConfig,
   format : OutputFormat,
 ) -> BundleConfig {
-  { ..self, format }
+  { ..self, format, }
 }
 
 ///|
@@ -142,7 +140,7 @@ pub fn BundleConfig::with_minify(
   self : BundleConfig,
   minify : Bool,
 ) -> BundleConfig {
-  { ..self, minify }
+  { ..self, minify, }
 }
 
 ///|
@@ -151,7 +149,7 @@ pub fn BundleConfig::with_sourcemap(
   self : BundleConfig,
   sourcemap : Bool,
 ) -> BundleConfig {
-  { ..self, sourcemap }
+  { ..self, sourcemap, }
 }
 
 // ============================================================================
@@ -180,7 +178,6 @@ fn make_rolldown_options(config : BundleConfig) -> @js.Any {
     output_obj._set("sourcemap", @js.any(true))
   }
   opts._set("output", output_obj)
-
   opts
 }
 
@@ -344,6 +341,7 @@ pub fn build_from_manifest_file(
   on_error : (String) -> Unit,
 ) -> Unit {
   let _ = ffi_build_from_manifest(manifest_path, cwd, on_success, on_error)
+
 }
 
 ///|

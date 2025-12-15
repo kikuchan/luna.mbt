@@ -9,6 +9,7 @@ enum TestAction {
   DoSomething
 } derive(Show)
 
+///|
 test "render simple text" {
   let node : @luna.Node[Unit] = @luna.vtext("Hello, World!")
   let html = render_to_string(node).html

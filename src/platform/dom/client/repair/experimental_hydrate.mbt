@@ -750,7 +750,8 @@ fn experimental_hydrate_node(
       }
       // No case matched, hydrate fallback if present
       match switch_node.fallback {
-        Some(fallback_fn) => experimental_hydrate_node(parent, fallback_fn(), ctx)
+        Some(fallback_fn) =>
+          experimental_hydrate_node(parent, fallback_fn(), ctx)
         None => ()
       }
     }

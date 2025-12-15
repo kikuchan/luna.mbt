@@ -1,4 +1,5 @@
-///| Tests for JSON Renderer
+///|
+/// Tests for JSON Renderer
 
 // Test enum for action
 enum TestAction {

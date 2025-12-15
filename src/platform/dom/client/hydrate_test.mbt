@@ -1,4 +1,5 @@
-///| Hydration Tests
+///|
+/// Hydration Tests
 
 // Test enum for action
 enum TestAction {

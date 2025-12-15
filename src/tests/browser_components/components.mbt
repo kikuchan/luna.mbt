@@ -352,17 +352,13 @@ pub fn hydrate_events(el : @js_dom.Element, _state : @js.Any) -> Unit {
         (
           "onMouseenter",
           @luna.attr_handler(
-            @luna.handler(fn(_event : @js.Any) {
-              hover_state.set("hovering")
-            }),
+            @luna.handler(fn(_event : @js.Any) { hover_state.set("hovering") }),
           ),
         ),
         (
           "onMouseleave",
           @luna.attr_handler(
-            @luna.handler(fn(_event : @js.Any) {
-              hover_state.set("none")
-            }),
+            @luna.handler(fn(_event : @js.Any) { hover_state.set("none") }),
           ),
         ),
       ],

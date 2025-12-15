@@ -1,4 +1,5 @@
 ///| HTML/Attribute/JS String Escaping Utilities
+
 ///| Pure MoonBit - works on all targets (js, wasm-gc, native)
 
 // =============================================================================

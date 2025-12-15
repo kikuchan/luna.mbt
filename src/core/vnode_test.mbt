@@ -68,6 +68,8 @@ test "attr_dynamic_style" {
 }
 
 // Test enum for action
+
+///|
 enum TestAction {
   Increment
   Decrement

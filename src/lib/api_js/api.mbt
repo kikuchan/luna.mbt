@@ -286,7 +286,10 @@ pub fn route_group(
 
 ///|
 /// Create a param route (dynamic segment)
-pub fn route_param(key : String, children : Array[@routes.Routes]) -> @routes.Routes {
+pub fn route_param(
+  key : String,
+  children : Array[@routes.Routes],
+) -> @routes.Routes {
   @routes.Routes::Param(key~, children~)
 }
 

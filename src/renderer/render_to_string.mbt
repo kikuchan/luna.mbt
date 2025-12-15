@@ -1,8 +1,13 @@
 ///| SSR - Re-exports from core/render for backward compatibility
+
 ///| Stream rendering functionality remains in this module (JS-only)
+
 ///|
+
 ///| NOTE: This file is kept for backward compatibility.
-///| New code should import from @render (mizchi/luna/core/render) directly.
+
+///|
+/// New code should import from @render (mizchi/luna/core/render) directly.
 
 // Re-export using statement for backward compatibility
 pub using @render {

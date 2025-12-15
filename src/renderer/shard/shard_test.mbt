@@ -186,7 +186,9 @@ test "recommend_state_format - large state" {
 ///|
 test "generate_shard_with_state_script - creates script and reference" {
   let config = @shard.ShardConfig::new("big-1", "./big.js")
-  let output = @shard.generate_shard_with_state_script(config, "{\"data\":[1,2,3]}")
+  let output = @shard.generate_shard_with_state_script(
+    config, "{\"data\":[1,2,3]}",
+  )
   // Should have script reference in attributes
   assert_true(output.html.contains("ln:state=\"#ln-state-big-1\""))
   // Should have state script element
@@ -198,10 +200,7 @@ test "generate_shard_with_state_script - creates script and reference" {
 ///|
 test "generate_minimal_shard - creates minimal HTML" {
   let html = @shard.generate_minimal_shard(
-    "min-1",
-    "./min.js",
-    "{\"x\":1}",
-    "<span>Content</span>",
+    "min-1", "./min.js", "{\"x\":1}", "<span>Content</span>",
   )
   assert_true(html.contains("ln:id=\"min-1\""))
   assert_true(html.contains("ln:url=\"./min.js\""))
@@ -215,13 +214,14 @@ test "generate_minimal_shard - creates minimal HTML" {
 ///|
 test "generate_standalone_shard - includes loader" {
   let html = @shard.generate_standalone_shard(
-    "standalone-1",
-    "./standalone.js",
-    "https://cdn.example.com/loader.js",
-    "{\"y\":2}",
+    "standalone-1", "./standalone.js", "https://cdn.example.com/loader.js", "{\"y\":2}",
     "<div>SSR</div>",
   )
-  assert_true(html.contains("<script type=\"module\" src=\"https://cdn.example.com/loader.js\">"))
+  assert_true(
+    html.contains(
+      "<script type=\"module\" src=\"https://cdn.example.com/loader.js\">",
+    ),
+  )
   assert_true(html.contains("ln:id=\"standalone-1\""))
   assert_true(html.contains("<div>SSR</div>"))
 }
@@ -229,10 +229,7 @@ test "generate_standalone_shard - includes loader" {
 ///|
 test "generate_lazy_shard - uses visible trigger" {
   let html = @shard.generate_lazy_shard(
-    "lazy-1",
-    "./lazy.js",
-    "{\"z\":3}",
-    "<p>Lazy</p>",
+    "lazy-1", "./lazy.js", "{\"z\":3}", "<p>Lazy</p>",
   )
   assert_true(html.contains("ln:trigger=\"visible\""))
   assert_true(html.contains("<p>Lazy</p>"))
@@ -244,9 +241,15 @@ test "generate_shard_group - single loader for multiple shards" {
     @shard.ShardConfig::new("s1", "./s1.js"),
     @shard.ShardConfig::new("s2", "./s2.js"),
   ]
-  let html = @shard.generate_shard_group("https://cdn.example.com/loader.js", configs)
+  let html = @shard.generate_shard_group(
+    "https://cdn.example.com/loader.js", configs,
+  )
   // Should have single loader script at start
-  assert_true(html.has_prefix("<script type=\"module\" src=\"https://cdn.example.com/loader.js\">"))
+  assert_true(
+    html.has_prefix(
+      "<script type=\"module\" src=\"https://cdn.example.com/loader.js\">",
+    ),
+  )
   // Should have both shards
   assert_true(html.contains("ln:id=\"s1\""))
   assert_true(html.contains("ln:id=\"s2\""))

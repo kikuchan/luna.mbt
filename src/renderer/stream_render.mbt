@@ -1,6 +1,9 @@
 ///| Stream SSR - Streaming server-side rendering with Web Streams API
+
 ///| Provides chunked HTML output for faster Time-To-First-Byte (TTFB)
+
 ///| Uses standard Web Streams API (ReadableStream, WritableStream)
+
 ///| VAsync nodes render fallback immediately, then stream resolved content
 
 ///|
@@ -282,7 +285,12 @@ fn render_node_collecting_async(
       // No case matched, render fallback if present
       match switch_node.fallback {
         Some(fallback_fn) =>
-          render_node_collecting_async(fallback_fn(), writer, boundaries, id_counter)
+          render_node_collecting_async(
+            fallback_fn(),
+            writer,
+            boundaries,
+            id_counter,
+          )
         None => write("<!--switch-->")
       }
     }

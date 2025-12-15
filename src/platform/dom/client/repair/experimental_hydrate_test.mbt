@@ -1,4 +1,5 @@
-///| Experimental Hydration Tests - jsdom based testing
+///|
+/// Experimental Hydration Tests - jsdom based testing
 
 // Test enum for action
 enum TestAction {

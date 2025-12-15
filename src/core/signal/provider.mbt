@@ -1,6 +1,9 @@
 ///| Context Provider - Component-level value sharing (Solid.js style)
+
 ///|
+
 ///| Unlike ReactiveContext (internal effect tracking), this provides
+
 ///| application-level context for sharing values across component trees.
 
 ///|

@@ -1,6 +1,9 @@
 ///| Sol Router - Server-side routing based on core/routes
+
 ///|
+
 ///| This module bridges core/routes definitions to Hono server routing.
+
 ///| It provides type-safe routing with support for Pages, Islands, and APIs.
 
 // ============================================================================
@@ -86,7 +89,6 @@ pub fn PageProps::from_ctx(ctx : Ctx) -> PageProps {
   { ctx, params }
 }
 
-
 // ============================================================================
 // Route Registration from Routes Definition
 // ============================================================================
@@ -99,10 +101,10 @@ pub fn[E] register_routes(
   routes : Array[@routes.Routes],
   page_resolver : (String, Ctx, RouteParams) -> @luna.Node[E]?,
   api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
-  title_prefix~ : String = "",
-  default_title~ : String = "App",
-  default_head~ : String = "",
-  loader_url~ : String = "/static/loader.min.js",
+  title_prefix? : String = "",
+  default_title? : String = "App",
+  default_head? : String = "",
+  loader_url? : String = "/static/loader.min.js",
 ) -> App {
   register_routes_inner(
     app,
@@ -139,7 +141,11 @@ fn[E] register_routes_inner(
           let params = extract_route_params(c)
           match page_resolver(component, c, params) {
             Some(node) => {
-              let page_title = format_title(title, title_prefix~, default_title~)
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
               let html = render_page_html(node, page_title, default_head, false)
               c.html(html)
             }
@@ -154,7 +160,11 @@ fn[E] register_routes_inner(
           let params = extract_route_params(c)
           match page_resolver(component, c, params) {
             Some(node) => {
-              let page_title = format_title(title, title_prefix~, default_title~)
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
               let loader_script = "<script type=\"module\" src=\"" +
                 loader_url +
                 "\"></script>"

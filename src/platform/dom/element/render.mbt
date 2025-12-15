@@ -288,7 +288,6 @@ pub fn[T] index_each(
       is_first.val = false
       return
     }
-
     let old_len = nodes.length()
     let new_len = new_items.length()
 
@@ -318,7 +317,8 @@ pub fn[T] index_each(
 
     // Note: Existing nodes at indices 0..<min(old_len, new_len) don't need
     // to be re-created since render_item uses a getter that reads current value
-    let _ = old_len // suppress warning
+    let _ = old_len
+    // suppress warning
   })
   Raw(fragment.as_node())
 }
@@ -346,10 +346,7 @@ pub fn[T] index_each(
 ///
 /// Note: For SSR, portals should be handled separately or use a placeholder.
 /// The portal content won't appear in the SSR output at the original location.
-pub fn portal(
-  target~ : @js_dom.Element,
-  children~ : Array[DomNode],
-) -> DomNode {
+pub fn portal(target~ : @js_dom.Element, children~ : Array[DomNode]) -> DomNode {
   // Render children into the target container instead of where the portal is placed
   for child in children {
     target.as_node().appendChild(child.to_jsdom()) |> ignore

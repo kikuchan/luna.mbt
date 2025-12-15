@@ -76,7 +76,11 @@ fn run_dev_command(args : Array[String]) -> Unit {
       manifest_path,
       cwd,
       fn(files) {
-        println(@colorette.green("✓ Client bundle complete (\{files.length()} files)"))
+        println(
+          @colorette.green(
+            "✓ Client bundle complete (\{files.length()} files)",
+          ),
+        )
         // Continue to step 4: run server
         run_server(cwd, port)
       },

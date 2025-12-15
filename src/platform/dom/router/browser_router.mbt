@@ -1,7 +1,11 @@
 ///| BrowserRouter - Client-side SPA router with History API
+
 ///|
+
 ///| Provides reactive routing for single-page applications using
-///| the browser's History API and Signals for state management.
+
+///|
+/// the browser's History API and Signals for state management.
 
 // =============================================================================
 // Browser API FFI (History API)

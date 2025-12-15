@@ -597,17 +597,14 @@ test "state_value_from_json direct call" {
     Some(v) => assert_eq(v.as_int(), Some(42))
     _ => assert_true(false)
   }
-
   match state_value_from_json("\"hello\"") {
     Some(v) => assert_eq(v.as_string(), Some("hello"))
     _ => assert_true(false)
   }
-
   match state_value_from_json("true") {
     Some(v) => assert_eq(v.as_bool(), Some(true))
     _ => assert_true(false)
   }
-
   match state_value_from_json("null") {
     Some(v) => assert_true(v.is_null())
     _ => assert_true(false)
@@ -754,12 +751,10 @@ test "sv_xxx factory functions" {
   assert_eq(sv_bool(false).as_bool(), Some(false))
   assert_eq(sv_int(42).as_int(), Some(42))
   assert_eq(sv_str("hello").as_string(), Some("hello"))
-
   match sv_number(3.14).as_number() {
     Some(f) => assert_true(f > 3.0 && f < 4.0)
     _ => assert_true(false)
   }
-
   match sv_arr([sv_int(1), sv_int(2)]).as_array() {
     Some(arr) => assert_eq(arr.length(), 2)
     _ => assert_true(false)

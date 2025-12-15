@@ -47,6 +47,7 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
       @js.Promise::resolve(@js.any(()))
     })
   })
+
 }
 
 // ============================================================================
@@ -60,10 +61,7 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
 /// Example:
 /// ```moonbit
 /// fn main {
-///   @sol.run(fn(app) {
-///     @sol.page(app, "/", home_page)
-///     |> @sol.serve_static()
-///   })
+///   @sol.run(fn(app) { @sol.page(app, "/", home_page) |> @sol.serve_static() })
 /// }
 /// ```
 pub fn run(configure : (App) -> App, port? : Int) -> Unit {
@@ -465,6 +463,7 @@ pub fn[E] render_node(
 // ============================================================================
 
 // Re-export render types from core/render
+
 ///|
 pub using @render {
   type SSRResult,
@@ -475,6 +474,7 @@ pub using @render {
 }
 
 // Re-export streaming types from renderer (JS-only)
+
 ///|
 pub using @renderer {
   type StreamWriter,

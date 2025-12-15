@@ -291,6 +291,7 @@ fn hydrate_dynamic_text(
             let new_text = getter()
             text_node.setTextContent(new_text)
           })
+
         }
         break
       }
@@ -358,7 +359,7 @@ fn hydrate_element_with_dispatch(
           .as_event_target()
           .addEventListener(event_name, @js.any(wrapper).cast())
         }
-        // No dispatcher provided, action won't work
+      // No dispatcher provided, action won't work
     }
   }
 }
@@ -467,6 +468,7 @@ fn hydrate_show(
       current_nodes.clear()
     }
   })
+
 }
 
 ///|
@@ -1095,7 +1097,6 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
   current_case_index = initial_case
   let fragment = doc.createDocumentFragment()
   let fragment_node = fragment.as_node()
-
   if initial_case >= 0 {
     let node = render_vnode_to_dom((switch_node.cases[initial_case].render)())
     current_node = Some(node)
@@ -1159,6 +1160,5 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
     }
     current_case_index = new_case
   })
-
   fragment_node
 }
