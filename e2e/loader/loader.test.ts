@@ -160,24 +160,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     });
   });
 
-  test.describe("URL State", () => {
-    test("fetches state from URL endpoint", async ({ page }) => {
-      await page.goto("/loader/url-state");
-
-      const component = page.locator('[ln\\:id="user-1"]');
-
-      // Wait for hydration (includes fetch)
-      await expect(component).toHaveAttribute("data-hydrated", "true", {
-        timeout: 5000,
-      });
-
-      // State from API should be rendered
-      await expect(page.locator("[data-name]")).toHaveText("Alice");
-      await expect(page.locator("[data-email]")).toHaveText(
-        "alice@example.com"
-      );
-    });
-  });
+  // URL State tests removed - feature removed in ab4b582 for SSRF mitigation
 
   test.describe("Manual Trigger (none)", () => {
     test("does not auto-hydrate with trigger=none", async ({ page }) => {

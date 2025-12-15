@@ -1,6 +1,5 @@
 {
-  "components": ["app/client/components/*"],
   "islands": ["app/client"],
-  "pages": ["app/server/pages/*"],
+  "routes": "app/server",
   "output": "app/_gen"
 }

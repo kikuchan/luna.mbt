@@ -64,7 +64,7 @@ fn template_package_json(project_name : String) -> String {
     #|  "scripts": {
     #|    "dev": "sol dev",
     #|    "build": "sol build",
-    #|    "start": "node target/js/release/build/server/run/run.js"
+    #|    "start": "node target/js/release/build/_gen/server/server.js"
     #|  },
     #|  "dependencies": {
     #|    "hono": "^4.0.0",
@@ -81,9 +81,8 @@ fn template_package_json(project_name : String) -> String {
 fn template_sol_config_json() -> String {
   (
     #|{
-    #|  "components": ["app/client/components/*"],
-    #|  "islands": ["app/client"],
-    #|  "pages": ["app/server/pages/*"],
+    #|  "islands": ["app/client/*"],
+    #|  "routes": "app/routes",
     #|  "output": "app/_gen"
     #|}
   )
@@ -279,6 +278,221 @@ pub fn template_server_main_mbt() -> String {
   )
 }
 
+// ============================================================================
+// New Architecture Templates (routes-based)
+// ============================================================================
+
+///| Layout template - provides basic HTML structure
+/// Users explicitly call layout([...inner]) in their pages
+pub fn template_layout_mbt() -> String {
+  (
+    #|///| Layout - Basic HTML structure for pages
+    #|///|
+    #|///| Usage: Wrap your page content with layout([...inner_content])
+    #|///| The layout is explicitly invoked, not implicitly applied.
+    #|
+    #|///| Default page styles
+    #|let default_style : String = "<style>body { font-family: system-ui; max-width: 800px; margin: 0 auto; padding: 2rem; } .counter { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; } .buttons { margin-top: 1rem; } .buttons button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0 0.5rem; cursor: pointer; } nav { margin-bottom: 1rem; } nav a { margin-right: 1rem; }</style>"
+    #|
+    #|///|
+    #|/// Get default head HTML (styles)
+    #|pub fn head() -> String {
+    #|  default_style
+    #|}
+    #|
+    #|///|
+    #|/// Basic layout wrapper - wraps content in container with navigation
+    #|pub fn layout(inner : Array[@luna.Node[Unit]]) -> @luna.Node[Unit] {
+    #|  @luna.h("div", [("class", @luna.attr_static("container"))], [
+    #|    @luna.h("nav", [], [
+    #|      @luna.h("a", [("href", @luna.attr_static("/"))], [@luna.vtext("Home")]),
+    #|      @luna.h("a", [("href", @luna.attr_static("/about"))], [@luna.vtext("About")]),
+    #|    ]),
+    #|    @luna.vfragment(inner),
+    #|  ])
+    #|}
+  )
+}
+
+///| Layout moon.pkg.json
+pub fn template_layout_moon_pkg_json() -> String {
+  (
+    #|{
+    #|  "supported-targets": ["js"],
+    #|  "import": [
+    #|    { "path": "mizchi/luna/core", "alias": "luna" }
+    #|  ]
+    #|}
+  )
+}
+
+///| Routes template - single source of truth for all routes
+pub fn template_routes_mbt(package_name : String) -> String {
+  let tmpl =
+    #|///| Route Definitions
+    #|///|
+    #|///| This is the single source of truth for all routes.
+    #|///| Both server (SSR) and client (CSR) use these definitions.
+    #|///|
+    #|///| IMPORTANT: This is a magic file - sol generate reads this to:
+    #|///| - Generate server entry point
+    #|///| - Generate client hydration router
+    #|///| - Setup route handlers
+    #|
+    #|///|
+    #|/// Application routes - defines all pages and API endpoints
+    #|pub fn routes() -> Array[@routes.Routes] {
+    #|  [
+    #|    // Home page with counter island
+    #|    @routes.Island(
+    #|      path="/",
+    #|      component="home",
+    #|      url="/static/hydrate_counter.js",
+    #|      trigger=@luna.Load,
+    #|      title="Home",
+    #|      meta=[]
+    #|    ),
+    #|    // About page (static, no hydration)
+    #|    @routes.Page(
+    #|      path="/about",
+    #|      component="about",
+    #|      title="About",
+    #|      meta=[]
+    #|    ),
+    #|    // API endpoint
+    #|    @routes.Get(path="/api/health", handler="health"),
+    #|  ]
+    #|}
+    #|
+    #|///|
+    #|/// Router configuration
+    #|pub fn config() -> @router.RouterConfig {
+    #|  @router.RouterConfig::default()
+    #|    .with_default_head(@layout.head())
+    #|    .with_loader_url("/static/loader.min.js")
+    #|}
+    #|
+    #|// ============================================================================
+    #|// Page Definitions (inline in routes.mbt)
+    #|// ============================================================================
+    #|
+    #|///|
+    #|/// Home page - with counter island
+    #|pub fn page_home(props : @router.PageProps) -> @luna.Node[Unit] {
+    #|  let _ = props  // Available for dynamic pages
+    #|  let initial_count = 0
+    #|  let state_json = "{\"count\":" + initial_count.to_string() + "}"
+    #|  let count_signal = @signal.signal(initial_count)
+    #|
+    #|  @layout.layout([
+    #|    @luna.h("h1", [], [@luna.vtext("Welcome to Sol")]),
+    #|    @luna.h("p", [], [@luna.vtext("A SSR-first web framework for MoonBit")]),
+    #|    @sol.island(
+    #|      "counter",
+    #|      "/static/hydrate_counter.js",
+    #|      state_json,
+    #|      [@counter.counter(count_signal)],
+    #|    ),
+    #|  ])
+    #|}
+    #|
+    #|///|
+    #|/// About page - static
+    #|pub fn page_about(props : @router.PageProps) -> @luna.Node[Unit] {
+    #|  let _ = props
+    #|  @layout.layout([
+    #|    @luna.h("h1", [], [@luna.vtext("About")]),
+    #|    @luna.h("p", [], [@luna.vtext("Built with MoonBit and Sol framework.")]),
+    #|  ])
+    #|}
+    #|
+    #|///|
+    #|/// API handler: health check
+    #|pub fn api_health(_props : @router.PageProps) -> @core.Any {
+    #|  @sol.json_obj([("status", @core.any("ok"))])
+    #|}
+  tmpl.replace_all(old="{{PACKAGE_NAME}}", new=package_name)
+}
+
+///| Routes moon.pkg.json
+pub fn template_routes_moon_pkg_json(package_name : String) -> String {
+  let tmpl =
+    #|{
+    #|  "supported-targets": ["js"],
+    #|  "import": [
+    #|    { "path": "mizchi/luna/core/routes", "alias": "routes" },
+    #|    { "path": "mizchi/luna/core", "alias": "luna" },
+    #|    { "path": "mizchi/luna/core/signal", "alias": "signal" },
+    #|    { "path": "mizchi/luna/sol", "alias": "sol" },
+    #|    { "path": "mizchi/luna/sol/router", "alias": "router" },
+    #|    { "path": "mizchi/js/core", "alias": "core" },
+    #|    { "path": "{{PACKAGE_NAME}}/layout", "alias": "layout" },
+    #|    { "path": "{{PACKAGE_NAME}}/client/counter", "alias": "counter" }
+    #|  ]
+    #|}
+  tmpl.replace_all(old="{{PACKAGE_NAME}}", new=package_name)
+}
+
+///| Client island template (counter example)
+pub fn template_client_counter_mbt() -> String {
+  (
+    #|///| Counter Island
+    #|///|
+    #|///| Component + Hydration in one file.
+    #|///| - `counter` is the component function (SSR and client shared)
+    #|///| - `hydrate_counter` is auto-invoked by the loader
+    #|
+    #|///| Counter component VNode
+    #|pub fn counter(count : @signal.Signal[Int]) -> @luna.Node[Unit] {
+    #|  @luna.h("div", [("class", @luna.attr_static("counter"))], [
+    #|    @luna.h("span", [("class", @luna.attr_static("count-display"))], [
+    #|      @luna.vtext_sig(count),
+    #|    ]),
+    #|    @luna.h("div", [("class", @luna.attr_static("buttons"))], [
+    #|      @luna.h("button", [
+    #|        ("class", @luna.attr_static("dec")),
+    #|        ("onclick", @luna.action("decrement")),
+    #|      ], [@luna.vtext("-")]),
+    #|      @luna.h("button", [
+    #|        ("class", @luna.attr_static("inc")),
+    #|        ("onclick", @luna.action("increment")),
+    #|      ], [@luna.vtext("+")]),
+    #|    ]),
+    #|  ])
+    #|}
+    #|
+    #|///| Hydration entry point (auto-invoked by loader)
+    #|pub fn hydrate_counter(element : @core.Any, state : @core.Any, id : String) -> Unit {
+    #|  @dom.hydrate_island(element, state, id, fn(ctx) {
+    #|    let count = ctx.signal_int("count", 0)
+    #|    ctx.bind_actions(fn(action) {
+    #|      match action {
+    #|        "increment" => count.set(count.get() + 1)
+    #|        "decrement" => count.set(count.get() - 1)
+    #|        _ => ()
+    #|      }
+    #|    })
+    #|    ctx.on_update(".count-display", fn() { count.get().to_string() })
+    #|  })
+    #|}
+  )
+}
+
+///| Client counter moon.pkg.json
+pub fn template_client_counter_moon_pkg_json() -> String {
+  (
+    #|{
+    #|  "supported-targets": ["js"],
+    #|  "import": [
+    #|    { "path": "mizchi/luna/core", "alias": "luna" },
+    #|    { "path": "mizchi/luna/core/signal", "alias": "signal" },
+    #|    { "path": "mizchi/luna/platform/dom", "alias": "dom" },
+    #|    { "path": "mizchi/js/core", "alias": "core" }
+    #|  ]
+    #|}
+  )
+}
+
 ///|
 pub fn template_ln_loader_js() -> String {
   (
@@ -382,44 +596,30 @@ pub fn generate_templates(
     },
     { path: "package.json", content: template_package_json(project_name) },
     { path: "sol.config.json", content: template_sol_config_json() },
-    // Client - components (shared SSR/client)
+    // Layout (explicit layout wrapper)
     {
-      path: "app/client/components/moon.pkg.json",
-      content: template_components_moon_pkg_json(),
+      path: "app/layout/moon.pkg.json",
+      content: template_layout_moon_pkg_json(),
+    },
+    { path: "app/layout/layout.mbt", content: template_layout_mbt() },
+    // Routes (single source of truth)
+    {
+      path: "app/routes/moon.pkg.json",
+      content: template_routes_moon_pkg_json(package_name),
     },
     {
-      path: "app/client/components/counter.mbt",
-      content: template_counter_mbt(),
+      path: "app/routes/routes.mbt",
+      content: template_routes_mbt(package_name),
     },
-    // Client - hydration entry
+    // Client islands (render + hydrate in same file)
     {
-      path: "app/client/moon.pkg.json",
-      content: template_client_moon_pkg_json(package_name),
-    },
-    { path: "app/client/hydrate.mbt", content: template_client_hydrate_mbt() },
-    // Server - pages (each page in its own package)
-    {
-      path: "app/server/pages/home/moon.pkg.json",
-      content: template_page_with_island_moon_pkg_json(package_name),
+      path: "app/client/counter/moon.pkg.json",
+      content: template_client_counter_moon_pkg_json(),
     },
     {
-      path: "app/server/pages/home/home.mbt",
-      content: template_home_page_mbt(),
+      path: "app/client/counter/counter.mbt",
+      content: template_client_counter_mbt(),
     },
-    {
-      path: "app/server/pages/about/moon.pkg.json",
-      content: template_page_simple_moon_pkg_json(),
-    },
-    {
-      path: "app/server/pages/about/about.mbt",
-      content: template_about_page_mbt(),
-    },
-    // Server - entry point
-    {
-      path: "app/server/run/moon.pkg.json",
-      content: template_server_run_moon_pkg_json(package_name),
-    },
-    { path: "app/server/run/main.mbt", content: template_server_main_mbt() },
     // Static assets
     { path: "static/loader.min.js", content: template_ln_loader_js() },
   ]

@@ -1,10 +1,14 @@
 これは開発者が次にやりたいことをメモとして残していく場所だから、AIは言われるまで修正しない。
 
-- [ ] CI 棚卸し
+- [x] CI 棚卸し
 - [x] src/server_dom
 - [x] ref 対応
 - [x] ServerComponent
-- [ ] ErrorBoundary
+- [x] ErrorBoundary
+- [ ] 非同期コンポーネントの設計
+  - 中間ビルドファイルの生成
+  - dynamic_component() 中間ビルドを作る
+- [ ] Vite Enviroment Apiに対応
 - [ ] src/sol/ssg で、静的サイト生成に対応
 - [ ] Dynamic https://docs.solidjs.com/reference/components/dynamic
 - [ ] react-hook-form 相当のものを試作する

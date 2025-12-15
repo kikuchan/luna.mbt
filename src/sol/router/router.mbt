@@ -67,6 +67,26 @@ pub fn RouteParams::get_query(self : RouteParams, key : String) -> String? {
 }
 
 // ============================================================================
+// Page Props
+// ============================================================================
+
+///|
+/// Props passed to page components
+pub struct PageProps {
+  /// Request context (Hono Context)
+  ctx : Ctx
+  /// Route parameters (path params, query params)
+  params : RouteParams
+}
+
+///|
+/// Create PageProps from context
+pub fn PageProps::from_ctx(ctx : Ctx) -> PageProps {
+  let params = extract_route_params(ctx)
+  { ctx, params }
+}
+
+// ============================================================================
 // Router Configuration
 // ============================================================================
 

@@ -43,4 +43,4 @@ npx rolldown -c rolldown.config.mjs
 # Start server
 echo "Starting server on port $PORT..."
 export PORT="$PORT"
-exec node target/js/release/build/server/run/run.js
+exec node target/js/release/build/_gen/server/server.js

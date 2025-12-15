@@ -6,26 +6,23 @@
 
 test "parse_sol_config: valid config" {
   let json = #|{
-    #|  "components": ["app/client/components/*"],
-    #|  "islands": ["app/client"],
-    #|  "pages": ["app/server/pages/*"],
+    #|  "islands": ["app/client/*"],
+    #|  "routes": "app/routes",
     #|  "output": "app/_gen"
     #|}
   let config = parse_sol_config(json)
   assert_true!(config.is_some())
   let c = config.unwrap()
-  assert_eq!(c.components.length(), 1)
-  assert_eq!(c.components[0], "app/client/components/*")
   assert_eq!(c.islands.length(), 1)
-  assert_eq!(c.pages.length(), 1)
+  assert_eq!(c.islands[0], "app/client/*")
+  assert_eq!(c.routes, "app/routes")
   assert_eq!(c.output, "app/_gen")
 }
 
 test "parse_sol_config: default output" {
   let json = #|{
-    #|  "components": [],
     #|  "islands": [],
-    #|  "pages": []
+    #|  "routes": "app/routes"
     #|}
   let config = parse_sol_config(json)
   assert_true!(config.is_some())

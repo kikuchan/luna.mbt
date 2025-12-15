@@ -117,7 +117,7 @@ describe("Sol CLI - new command", () => {
 
   test("creates new project with embedded templates", () => {
     const projectName = "my-app";
-    const result = runCli(["new", projectName], tempDir);
+    const result = runCli(["new", projectName, "--user", "testuser"], tempDir);
 
     // Should succeed with embedded templates
     expect(result.status).toBe(0);
@@ -128,9 +128,10 @@ describe("Sol CLI - new command", () => {
     expect(existsSync(join(projectPath, "moon.mod.json"))).toBe(true);
     expect(existsSync(join(projectPath, "package.json"))).toBe(true);
     expect(existsSync(join(projectPath, ".gitignore"))).toBe(true);
-    expect(existsSync(join(projectPath, "rolldown.config.mjs"))).toBe(true);
-    expect(existsSync(join(projectPath, "src/client/hydrate.mbt"))).toBe(true);
-    expect(existsSync(join(projectPath, "src/server/run/main.mbt"))).toBe(true);
+    expect(existsSync(join(projectPath, "sol.config.json"))).toBe(true);
+    expect(existsSync(join(projectPath, "app/layout/layout.mbt"))).toBe(true);
+    expect(existsSync(join(projectPath, "app/routes/routes.mbt"))).toBe(true);
+    expect(existsSync(join(projectPath, "app/client/counter/counter.mbt"))).toBe(true);
     expect(existsSync(join(projectPath, "static/loader.min.js"))).toBe(true);
   });
 
@@ -141,7 +142,7 @@ describe("Sol CLI - new command", () => {
     // Create the directory first
     execSync(`mkdir -p ${projectPath}`);
 
-    const result = runCli(["new", projectName], tempDir);
+    const result = runCli(["new", projectName, "--user", "testuser"], tempDir);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("already exists");
   });
