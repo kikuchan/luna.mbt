@@ -7,6 +7,70 @@
 ///| It provides type-safe routing with support for Pages, Islands, and APIs.
 
 // ============================================================================
+// Router Configuration
+// ============================================================================
+
+///|
+/// Router configuration for customizing routing behavior
+pub struct RouterConfig {
+  /// Prefix for page titles (e.g., "MyApp - ")
+  title_prefix : String
+  /// Default title when page has no title
+  default_title : String
+  /// Default head HTML (styles, meta tags, etc.)
+  default_head : String
+  /// URL for the island loader script
+  loader_url : String
+}
+
+///|
+/// Create default router configuration
+pub fn RouterConfig::default() -> RouterConfig {
+  {
+    title_prefix: "",
+    default_title: "App",
+    default_head: "",
+    loader_url: "/static/loader.min.js",
+  }
+}
+
+///|
+/// Set default head HTML
+pub fn RouterConfig::with_default_head(
+  self : RouterConfig,
+  head : String
+) -> RouterConfig {
+  { ..self, default_head: head }
+}
+
+///|
+/// Set loader URL
+pub fn RouterConfig::with_loader_url(
+  self : RouterConfig,
+  url : String
+) -> RouterConfig {
+  { ..self, loader_url: url }
+}
+
+///|
+/// Set title prefix
+pub fn RouterConfig::with_title_prefix(
+  self : RouterConfig,
+  prefix : String
+) -> RouterConfig {
+  { ..self, title_prefix: prefix }
+}
+
+///|
+/// Set default title
+pub fn RouterConfig::with_default_title(
+  self : RouterConfig,
+  title : String
+) -> RouterConfig {
+  { ..self, default_title: title }
+}
+
+// ============================================================================
 // Type Aliases
 // ============================================================================
 
@@ -101,21 +165,27 @@ pub fn[E] register_routes(
   routes : Array[@routes.Routes],
   page_resolver : (String, Ctx, RouteParams) -> @luna.Node[E]?,
   api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
+  config? : RouterConfig,
   title_prefix? : String = "",
   default_title? : String = "App",
   default_head? : String = "",
   loader_url? : String = "/static/loader.min.js",
 ) -> App {
+  // Use config if provided, otherwise use individual parameters
+  let (tp, dt, dh, lu) = match config {
+    Some(c) => (c.title_prefix, c.default_title, c.default_head, c.loader_url)
+    None => (title_prefix, default_title, default_head, loader_url)
+  }
   register_routes_inner(
     app,
     routes,
     "",
     page_resolver,
     api_resolver,
-    title_prefix~,
-    default_title~,
-    default_head~,
-    loader_url~,
+    title_prefix=tp,
+    default_title=dt,
+    default_head=dh,
+    loader_url=lu,
   )
 }
 

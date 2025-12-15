@@ -309,7 +309,49 @@ pub fn generate_export_name(
 }
 
 ///|
-/// Collect island exports from config
+/// Exported function with signature
+pub(all) struct FuncExport {
+  name : String
+  signature : String
+  package_path : String
+  import_alias : String
+}
+
+///|
+/// Collect all pub functions from island directories
+fn collect_island_functions(
+  cwd : String,
+  config : SolConfig
+) -> Array[FuncExport] {
+  let exports : Array[FuncExport] = []
+  let island_files = find_mbti_files(cwd, config.islands)
+  for pair in island_files {
+    let (dir_path, content) = pair
+    let _ = dir_path
+    guard extract_package_path(content) is Some(pkg_path) else { continue }
+    // Use last part of package path as alias
+    let parts = pkg_path.split("/").to_array()
+    let import_alias = if parts.length() > 0 {
+      parts[parts.length() - 1].to_string()
+    } else {
+      "unknown"
+    }
+    let funcs = parse_mbti(content)
+    for func in funcs {
+      let (name, sig) = func
+      exports.push(FuncExport::{
+        name,
+        signature: sig,
+        package_path: pkg_path,
+        import_alias,
+      })
+    }
+  }
+  exports
+}
+
+///|
+/// Collect island exports from config (legacy, for hydrate_* pattern)
 fn collect_exports(cwd : String, config : SolConfig) -> Array[ExportEntry] {
   let entries : Array[ExportEntry] = []
   // Islands only (new architecture)
@@ -472,7 +514,73 @@ pub fn uses_hono_types(signature : String) -> Bool {
 // =============================================================================
 
 ///|
-/// Generate client exports.mbt for islands
+/// Rewrite types in signature to use fully qualified names
+fn rewrite_signature_types(sig : String, import_alias : String) -> String {
+  let result = sig
+  // Rewrite @xxx.Type patterns - keep them as is (they reference imported packages)
+  // Rewrite bare types (like CounterProps) to @import_alias.Type
+  // Simple heuristic: if a word starts with uppercase and is not prefixed with @, qualify it
+  let chars = result.to_array()
+  let new_buf = StringBuilder::new()
+  let word_buf = StringBuilder::new()
+  let mut i = 0
+  while i < chars.length() {
+    let c = chars[i]
+    if c >= 'A' && c <= 'Z' {
+      // Start of potential type name
+      word_buf.write_char(c)
+      i += 1
+      while i < chars.length() {
+        let nc = chars[i]
+        if (nc >= 'a' && nc <= 'z') || (nc >= 'A' && nc <= 'Z') || (nc >= '0' && nc <= '9') || nc == '_' {
+          word_buf.write_char(nc)
+          i += 1
+        } else {
+          break
+        }
+      }
+      let word = word_buf.to_string()
+      word_buf.reset()
+      // Check if it's a known primitive type
+      let primitives = ["Int", "String", "Bool", "Unit", "Float", "Double", "Byte", "Char", "Array", "Self"]
+      let is_primitive = primitives.contains(word)
+      // Check if this type is already qualified with @xxx. pattern
+      // by checking if previous char is '.' (from @package.Type)
+      let prev_str = new_buf.to_string()
+      let already_qualified = prev_str.has_suffix(".")
+      if is_primitive || already_qualified {
+        new_buf.write_string(word)
+      } else {
+        // Qualify with import alias
+        new_buf.write_string("@\{import_alias}.\{word}")
+      }
+    } else {
+      new_buf.write_char(c)
+      i += 1
+    }
+  }
+  new_buf.to_string()
+}
+
+///|
+/// Generate client exports.mbt for islands (new architecture - all pub fns)
+fn generate_client_exports_mbt_v2(funcs : Array[FuncExport]) -> String {
+  let buf = StringBuilder::new()
+  buf.write_string("///| Auto-generated client exports\n")
+  buf.write_string("///| Re-exports all public functions from app/client/*\n\n")
+  for func in funcs {
+    let rewritten_sig = rewrite_signature_types(func.signature, func.import_alias)
+    let (sig_with_names, call_args) = generate_params_with_names(rewritten_sig)
+    buf.write_string("///| Re-export \{func.name} from @\{func.import_alias}\n")
+    buf.write_string("pub fn \{func.name}\{sig_with_names} {\n")
+    buf.write_string("  @\{func.import_alias}.\{func.name}\{call_args}\n")
+    buf.write_string("}\n\n")
+  }
+  buf.to_string()
+}
+
+///|
+/// Generate client exports.mbt for islands (legacy)
 fn generate_client_exports_mbt(islands : Array[ExportEntry]) -> String {
   let buf = StringBuilder::new()
   buf.write_string("///| Auto-generated client exports\n")
@@ -491,7 +599,106 @@ fn generate_client_exports_mbt(islands : Array[ExportEntry]) -> String {
 }
 
 ///|
-/// Generate client moon.pkg.json for islands
+/// Extract package aliases used in signatures (patterns like @xxx.)
+fn extract_used_packages(funcs : Array[FuncExport]) -> Array[String] {
+  let used : Map[String, Bool] = {}
+  for func in funcs {
+    let sig = func.signature
+    // Find @xxx. patterns
+    let chars = sig.to_array()
+    let mut i = 0
+    while i < chars.length() {
+      if chars[i] == '@' {
+        i += 1
+        let alias_buf = StringBuilder::new()
+        while i < chars.length() {
+          let c = chars[i]
+          if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
+            alias_buf.write_char(c)
+            i += 1
+          } else {
+            break
+          }
+        }
+        let alias_str = alias_buf.to_string()
+        if not(alias_str.is_empty()) {
+          used[alias_str] = true
+        }
+      } else {
+        i += 1
+      }
+    }
+  }
+  used.keys().to_array()
+}
+
+///|
+/// Map common aliases to their full package paths
+fn alias_to_package_path(pkg_alias : String) -> String? {
+  match pkg_alias {
+    "element" => Some("mizchi/luna/platform/dom/element")
+    "signal" => Some("mizchi/luna/core/signal")
+    "luna" => Some("mizchi/luna/core")
+    "js" => Some("mizchi/js/core")
+    _ => None
+  }
+}
+
+///|
+/// Generate client moon.pkg.json for islands (new architecture - all pub fns)
+fn generate_client_pkg_json_v2(funcs : Array[FuncExport]) -> String {
+  let buf = StringBuilder::new()
+  buf.write_string("{\n")
+  buf.write_string("  \"supported-targets\": [\"js\"],\n")
+  buf.write_string("  \"import\": [\n")
+  // Collect unique imports from function packages
+  let seen : Map[String, Bool] = {}
+  let imports : Array[(String, String)] = []
+  for func in funcs {
+    if not(seen.contains(func.package_path)) {
+      seen[func.package_path] = true
+      imports.push((func.package_path, func.import_alias))
+    }
+  }
+  // Also add packages used in signatures
+  let used_packages = extract_used_packages(funcs)
+  for pkg_alias in used_packages {
+    match alias_to_package_path(pkg_alias) {
+      Some(pkg_path) =>
+        if not(seen.contains(pkg_path)) {
+          seen[pkg_path] = true
+          imports.push((pkg_path, pkg_alias))
+        }
+      None => ()
+    }
+  }
+  for i, imp in imports {
+    let (pkg_path, pkg_alias) = imp
+    if i > 0 {
+      buf.write_string(",\n")
+    }
+    buf.write_string("    { \"path\": \"\{pkg_path}\", \"alias\": \"\{pkg_alias}\" }")
+  }
+  buf.write_string("\n  ],\n")
+  buf.write_string("  \"link\": {\n")
+  buf.write_string("    \"js\": {\n")
+  buf.write_string("      \"exports\": [")
+  for i, func in funcs {
+    if i > 0 {
+      buf.write_string(", ")
+    }
+    buf.write_string("\"\{func.name}\"")
+  }
+  buf.write_string("],\n")
+  buf.write_string("      \"format\": \"esm\"\n")
+  buf.write_string("    }\n")
+  buf.write_string("  }\n")
+  buf.write_string("}\n")
+  buf.to_string()
+}
+
+///|
+/// Generate client moon.pkg.json for islands (legacy)
 fn generate_client_pkg_json(islands : Array[ExportEntry]) -> String {
   let buf = StringBuilder::new()
   buf.write_string("{\n")
@@ -620,7 +827,46 @@ fn generate_server_pkg_json(routes_pkg : String) -> String {
 }
 
 ///|
-/// Generate island entry JS file
+/// Generate island entry JS file (new architecture)
+fn generate_island_entry_js_v2(func : FuncExport) -> String {
+  let buf = StringBuilder::new()
+  buf.write_string("// Island entry for: \{func.name}\n")
+  buf.write_string("// Generated by: sol generate\n\n")
+  buf.write_string(
+    "import { \{func.name} } from '../../target/js/release/build/__gen__/client/client.js';\n\n",
+  )
+  buf.write_string("export { \{func.name} };\n")
+  buf.write_string("export default \{func.name};\n")
+  buf.to_string()
+}
+
+///|
+/// Generate rolldown.config.mjs (new architecture)
+fn generate_rolldown_config_v2(funcs : Array[FuncExport]) -> String {
+  let buf = StringBuilder::new()
+  buf.write_string("import { defineConfig } from 'rolldown';\n\n")
+  buf.write_string("export default defineConfig({\n")
+  buf.write_string("  input: {\n")
+  for i, func in funcs {
+    buf.write_string("    '\{func.name}': './.sol/islands/\{func.name}.js'")
+    if i < funcs.length() - 1 {
+      buf.write_string(",")
+    }
+    buf.write_string("\n")
+  }
+  buf.write_string("  },\n")
+  buf.write_string("  output: {\n")
+  buf.write_string("    dir: './.sol/static',\n")
+  buf.write_string("    format: 'esm',\n")
+  buf.write_string("    entryFileNames: '[name].js',\n")
+  buf.write_string("    chunkFileNames: '_shared/[name]-[hash].js',\n")
+  buf.write_string("  },\n")
+  buf.write_string("});\n")
+  buf.to_string()
+}
+
+///|
+/// Generate island entry JS file (legacy)
 fn generate_island_entry_js(entry : ExportEntry) -> String {
   let buf = StringBuilder::new()
   buf.write_string("// Island entry for: \{entry.name}\n")
@@ -634,7 +880,7 @@ fn generate_island_entry_js(entry : ExportEntry) -> String {
 }
 
 ///|
-/// Generate rolldown.config.mjs
+/// Generate rolldown.config.mjs (legacy)
 fn generate_rolldown_config_new(islands : Array[ExportEntry]) -> String {
   let buf = StringBuilder::new()
   buf.write_string("import { defineConfig } from 'rolldown';\n\n")
@@ -725,9 +971,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
       @process.exit(1)
     }
   }
-  // Collect island exports
-  let islands = collect_exports(cwd, config)
-  println(@colorette.gray("  Found \{islands.length()} island exports"))
+  // Collect all pub functions from island directories
+  let funcs = collect_island_functions(cwd, config)
+  println(@colorette.gray("  Found \{funcs.length()} island exports"))
   // Create output directories
   let output_dir = @path.join2(cwd, config.output) // app/_gen
   let client_dir = @path.join2(output_dir, "client")
@@ -746,9 +992,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
   }
   // Get routes package path from config
   let routes_pkg = get_routes_package_path(cwd, config.routes)
-  // Generate client exports.mbt (re-exports hydrate functions)
-  if not(islands.is_empty()) {
-    let client_exports_mbt = generate_client_exports_mbt(islands)
+  // Generate client exports.mbt (re-exports all pub functions)
+  if not(funcs.is_empty()) {
+    let client_exports_mbt = generate_client_exports_mbt_v2(funcs)
     let client_exports_path = @path.join2(client_dir, "exports.mbt")
     try {
       @fs.writeFileSync(client_exports_path, @js.any(client_exports_mbt))
@@ -759,8 +1005,8 @@ fn run_generate_command(args : Array[String]) -> Unit {
         @process.exit(1)
       }
     }
-    // Generate client moon.pkg.json
-    let client_pkg = generate_client_pkg_json(islands)
+    // Generate client moon.pkg.json with link.js.exports
+    let client_pkg = generate_client_pkg_json_v2(funcs)
     let client_pkg_path = @path.join2(client_dir, "moon.pkg.json")
     try {
       @fs.writeFileSync(client_pkg_path, @js.any(client_pkg))
@@ -799,14 +1045,14 @@ fn run_generate_command(args : Array[String]) -> Unit {
     }
   }
   // Generate island entry files for rolldown
-  if not(islands.is_empty()) {
-    for entry in islands {
-      let island_entry_content = generate_island_entry_js(entry)
-      let island_entry_path = @path.join2(islands_dir, "\{entry.name}.js")
+  if not(funcs.is_empty()) {
+    for func in funcs {
+      let island_entry_content = generate_island_entry_js_v2(func)
+      let island_entry_path = @path.join2(islands_dir, "\{func.name}.js")
       @fs.writeFileSync(island_entry_path, @js.any(island_entry_content)) catch {
         e => {
           console_error(
-            @colorette.red("Error writing island entry \{entry.name}.js: \{e}"),
+            @colorette.red("Error writing island entry \{func.name}.js: \{e}"),
           )
           @process.exit(1)
         }
@@ -814,11 +1060,11 @@ fn run_generate_command(args : Array[String]) -> Unit {
     }
     println(
       @colorette.gray(
-        "  Generated \{islands.length()} island entries in .sol/islands/",
+        "  Generated \{funcs.length()} island entries in .sol/islands/",
       ),
     )
     // Generate rolldown.config.mjs
-    let rolldown_config = generate_rolldown_config_new(islands)
+    let rolldown_config = generate_rolldown_config_v2(funcs)
     let rolldown_path = @path.join2(cwd, "rolldown.config.mjs")
     try {
       @fs.writeFileSync(rolldown_path, @js.any(rolldown_config))

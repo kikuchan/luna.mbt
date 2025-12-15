@@ -16,6 +16,7 @@ fn show_help() -> Unit {
     #|  dev            Start development server
     #|  build          Build for production
     #|  generate       Generate _sol directory from config
+    #|  clean          Remove generated files and caches
     #|
     #|Options:
     #|  -h, --help     Show help
@@ -61,6 +62,7 @@ fn main {
     "dev" => run_dev_command(command_args)
     "build" => run_build_command(command_args)
     "generate" => run_generate_command(command_args)
+    "clean" => run_clean_command(command_args)
     _ => {
       console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")

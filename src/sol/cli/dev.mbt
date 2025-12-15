@@ -42,14 +42,27 @@ fn run_dev_command(args : Array[String]) -> Unit {
     @process.exit(1)
   }
   println(@colorette.cyan("Starting Sol development server..."))
-  // Step 1: Run generate if sol.config.json exists
+  // Step 1: Clean generated files to avoid stale cache issues
+  let sol_dir = @path.join2(cwd, ".sol")
+  let gen_dir = @path.join2(cwd, "app/__gen__")
+  if @fs.existsSync(sol_dir) || @fs.existsSync(gen_dir) {
+    println(@colorette.gray("Cleaning generated files..."))
+    if @fs.existsSync(sol_dir) {
+      rm_rf_sync(sol_dir)
+    }
+    if @fs.existsSync(gen_dir) {
+      rm_rf_sync(gen_dir)
+    }
+    println(@colorette.green("✓ Clean complete"))
+  }
+  // Step 2: Run generate if sol.config.json exists
   let sol_config_path = @path.join2(cwd, "sol.config.json")
   if @fs.existsSync(sol_config_path) {
     println(@colorette.gray("Generating .sol directory..."))
     run_generate_command([])
     println(@colorette.green("✓ Generate complete"))
   }
-  // Step 2: Build MoonBit project
+  // Step 3: Build MoonBit project
   println(@colorette.gray("Building MoonBit project..."))
   try {
     let build_result = @child_process.spawnSync(
@@ -68,7 +81,7 @@ fn run_dev_command(args : Array[String]) -> Unit {
     }
   }
   println(@colorette.green("✓ Build complete"))
-  // Step 3: Bundle client code with rolldown if manifest exists
+  // Step 4: Bundle client code with rolldown if manifest exists
   let manifest_path = @path.join2(cwd, ".sol/manifest.json")
   if @fs.existsSync(manifest_path) {
     println(@colorette.gray("Bundling client code with rolldown..."))
@@ -97,9 +110,11 @@ fn run_dev_command(args : Array[String]) -> Unit {
 
 ///|
 fn run_server(cwd : String, port : String) -> Unit {
-  // Step 4: Find and run the server entry point
+  // Step 5: Find and run the server entry point
   let possible_entries = [
-    "target/js/release/build/server/run/run.js", "target/js/release/build/examples/example_app/example_app.js",
+    "target/js/release/build/__gen__/server/server.js",
+    "target/js/release/build/server/run/run.js",
+    "target/js/release/build/examples/example_app/example_app.js",
     "target/js/release/build/main/main.js",
   ]
   let mut entry_point : String? = None
