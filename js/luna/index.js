@@ -48,4 +48,4 @@ export {
   routerGetPath,
   routerGetMatch,
   routerGetBase,
-} from "../../target/js/release/build/lib/api_js/api_js.js";
+} from "../../target/js/release/build/platform/js/api/api.js";

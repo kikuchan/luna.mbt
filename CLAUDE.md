@@ -20,13 +20,14 @@ src/
 │   │   ├── hydrate.mbt        # Hydration
 │   │   ├── island.mbt         # Island hydration
 │   │   └── repair/            # 実験的Hydration
+│   ├── js/                    # JS固有
+│   │   └── api/               # JS向け公開API (@mizchi/luna)
 │   └── server_dom/            # サーバーサイドSSR (イベントハンドラなし)
 │       ├── elements.mbt       # html, head, body等の要素ファクトリ
 │       ├── island.mbt         # Islandヘルパー
 │       └── render.mbt         # レンダリング関数
 ├── router/                    # ルーティング
 ├── sol/                       # SSRフレームワーク (将来分離候補)
-├── lib/api_js/                # JS向け公開API
 ├── examples/
 └── tests/
 js/                      # NPMパッケージ
