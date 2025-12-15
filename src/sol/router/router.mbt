@@ -86,69 +86,6 @@ pub fn PageProps::from_ctx(ctx : Ctx) -> PageProps {
   { ctx, params }
 }
 
-// ============================================================================
-// Router Configuration
-// ============================================================================
-
-///|
-/// Router configuration
-pub struct RouterConfig {
-  /// Page title prefix
-  title_prefix : String
-  /// Default title for pages without title
-  default_title : String
-  /// Head HTML to include in all pages
-  default_head : String
-  /// Loader script URL for hydration
-  loader_url : String
-}
-
-///|
-/// Create default router config
-pub fn RouterConfig::default() -> RouterConfig {
-  {
-    title_prefix: "",
-    default_title: "App",
-    default_head: "",
-    loader_url: "/static/loader.min.js",
-  }
-}
-
-///|
-/// Builder: set title prefix
-pub fn RouterConfig::with_title_prefix(
-  self : RouterConfig,
-  prefix : String,
-) -> RouterConfig {
-  { ..self, title_prefix: prefix }
-}
-
-///|
-/// Builder: set default title
-pub fn RouterConfig::with_default_title(
-  self : RouterConfig,
-  title : String,
-) -> RouterConfig {
-  { ..self, default_title: title }
-}
-
-///|
-/// Builder: set default head
-pub fn RouterConfig::with_default_head(
-  self : RouterConfig,
-  head : String,
-) -> RouterConfig {
-  { ..self, default_head: head }
-}
-
-///|
-/// Builder: set loader URL
-pub fn RouterConfig::with_loader_url(
-  self : RouterConfig,
-  url : String,
-) -> RouterConfig {
-  { ..self, loader_url: url }
-}
 
 // ============================================================================
 // Route Registration from Routes Definition
@@ -162,10 +99,22 @@ pub fn[E] register_routes(
   routes : Array[@routes.Routes],
   page_resolver : (String, Ctx, RouteParams) -> @luna.Node[E]?,
   api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
-  config? : RouterConfig,
+  title_prefix~ : String = "",
+  default_title~ : String = "App",
+  default_head~ : String = "",
+  loader_url~ : String = "/static/loader.min.js",
 ) -> App {
-  let cfg = config.unwrap_or(RouterConfig::default())
-  register_routes_inner(app, routes, "", page_resolver, api_resolver, cfg)
+  register_routes_inner(
+    app,
+    routes,
+    "",
+    page_resolver,
+    api_resolver,
+    title_prefix~,
+    default_title~,
+    default_head~,
+    loader_url~,
+  )
 }
 
 ///|
@@ -175,7 +124,10 @@ fn[E] register_routes_inner(
   prefix : String,
   page_resolver : (String, Ctx, RouteParams) -> @luna.Node[E]?,
   api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
-  config : RouterConfig,
+  title_prefix~ : String,
+  default_title~ : String,
+  default_head~ : String,
+  loader_url~ : String,
 ) -> App {
   let mut result = app
   for route in routes {
@@ -187,8 +139,8 @@ fn[E] register_routes_inner(
           let params = extract_route_params(c)
           match page_resolver(component, c, params) {
             Some(node) => {
-              let page_title = format_title(title, config)
-              let html = render_page_html(node, page_title, config.default_head, false)
+              let page_title = format_title(title, title_prefix~, default_title~)
+              let html = render_page_html(node, page_title, default_head, false)
               c.html(html)
             }
             None => c.text("Page not found: " + component)
@@ -202,11 +154,11 @@ fn[E] register_routes_inner(
           let params = extract_route_params(c)
           match page_resolver(component, c, params) {
             Some(node) => {
-              let page_title = format_title(title, config)
+              let page_title = format_title(title, title_prefix~, default_title~)
               let loader_script = "<script type=\"module\" src=\"" +
-                config.loader_url +
+                loader_url +
                 "\"></script>"
-              let head = config.default_head + loader_script
+              let head = default_head + loader_script
               let html = render_page_html(node, page_title, head, true)
               c.html(html)
             }
@@ -217,20 +169,44 @@ fn[E] register_routes_inner(
       @routes.Param(key~, children~) => {
         let new_prefix = prefix + "/:" + key
         register_routes_inner(
-          result, children, new_prefix, page_resolver, api_resolver, config,
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
         )
       }
       @routes.Layout(segment~, children~, layout~) => {
         let _ = layout // TODO: Layout support
         let new_prefix = prefix + segment
         register_routes_inner(
-          result, children, new_prefix, page_resolver, api_resolver, config,
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
         )
       }
       @routes.Group(segment~, children~) => {
         let new_prefix = prefix + segment
         register_routes_inner(
-          result, children, new_prefix, page_resolver, api_resolver, config,
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
         )
       }
       @routes.Get(path~, handler~) => {
@@ -287,13 +263,17 @@ extern "js" fn ffi_get_path(c : @js.Any) -> String =
 
 ///|
 /// Format page title with prefix
-fn format_title(title : String, config : RouterConfig) -> String {
+fn format_title(
+  title : String,
+  title_prefix~ : String,
+  default_title~ : String,
+) -> String {
   if title.is_empty() {
-    config.default_title
-  } else if config.title_prefix.is_empty() {
+    default_title
+  } else if title_prefix.is_empty() {
     title
   } else {
-    config.title_prefix + " - " + title
+    title_prefix + " - " + title
   }
 }
 
