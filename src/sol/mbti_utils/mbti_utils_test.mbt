@@ -50,3 +50,41 @@ test "get standalone funcs" {
   assert_eq(standalone[0], "counter")
   assert_eq(standalone[1], "render")
 }
+
+///|
+test "parse struct definitions" {
+  let content =
+    #|package "example/sol-app/client"
+    #|
+    #|pub fn counter(CounterProps) -> @element.DomNode
+    #|
+    #|pub(all) struct CounterProps {
+    #|  initial_count : Int
+    #|}
+  let structs = parse_struct_defs(content, "test.mbti")
+  assert_eq(structs.length(), 1)
+  assert_eq(structs[0].name, "CounterProps")
+  assert_eq(structs[0].visibility, "pub(all)")
+  assert_true(structs[0].raw_definition.contains("initial_count"))
+}
+
+///|
+test "get props structs" {
+  let content =
+    #|package "test"
+    #|
+    #|pub(all) struct CounterProps {
+    #|  count : Int
+    #|}
+    #|pub(all) struct UserState {
+    #|  name : String
+    #|}
+    #|pub(all) struct ButtonProps {
+    #|  label : String
+    #|}
+  let structs = parse_struct_defs(content, "test.mbti")
+  let props = get_props_structs(structs)
+  assert_eq(props.length(), 2)
+  assert_eq(props[0].name, "CounterProps")
+  assert_eq(props[1].name, "ButtonProps")
+}

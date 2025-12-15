@@ -10,6 +10,14 @@ pub(all) struct PubFunc {
 }
 
 ///|
+/// Represents a struct definition extracted from mbti
+pub(all) struct StructDef {
+  name : String
+  visibility : String // "pub(all)", "pub", "priv", etc.
+  raw_definition : String // The full struct definition as text
+}
+
+///|
 /// Parse mbti content and extract public functions
 pub fn parse_pub_funcs(content : String, filename : String) -> Array[PubFunc] raise {
   // Tokenize
@@ -64,4 +72,100 @@ pub fn get_methods_for_type(
     }
   })
   .map(fn(f) { f.name })
+}
+
+///|
+/// Parse mbti content and extract struct definitions using simple string parsing
+/// (The full parser doesn't handle `pub fn` format from moon info)
+pub fn parse_struct_defs(content : String, _filename : String) -> Array[StructDef] {
+  let structs : Array[StructDef] = []
+  let lines = content.split("\n").to_array()
+  let mut i = 0
+  while i < lines.length() {
+    let line = lines[i].to_string().trim_space().to_string()
+    // Look for struct definitions: pub(all) struct Name { or pub struct Name {
+    if line.has_prefix("pub(all) struct ") || line.has_prefix("pub struct ") {
+      let visibility = if line.has_prefix("pub(all)") { "pub(all)" } else { "pub" }
+      // Extract struct name
+      let after_struct = if visibility == "pub(all)" {
+        line.substring(start=16) // after "pub(all) struct "
+      } else {
+        line.substring(start=11) // after "pub struct "
+      }
+      // Find name (up to space or {)
+      let name = extract_until(after_struct, [' ', '{'])
+      // Extract full struct definition
+      let raw_def = extract_struct_raw(content, name, visibility)
+      structs.push({ name, visibility, raw_definition: raw_def })
+    }
+    i += 1
+  }
+  structs
+}
+
+///|
+/// Extract string until one of the delimiter characters
+fn extract_until(s : String, delimiters : Array[Char]) -> String {
+  let buf = StringBuilder::new()
+  for c in s {
+    if delimiters.contains(c) {
+      break
+    }
+    buf.write_char(c)
+  }
+  buf.to_string()
+}
+
+///|
+/// Extract raw struct definition from content by name
+fn extract_struct_raw(content : String, name : String, visibility : String) -> String {
+  // Look for pattern: visibility struct Name { ... }
+  let vis_prefix = if visibility.length() > 0 { "\{visibility} " } else { "" }
+  let pattern = "\{vis_prefix}struct \{name}"
+  let lines = content.split("\n")
+  let mut in_struct = false
+  let mut brace_count = 0
+  let buf = StringBuilder::new()
+  for line in lines {
+    let line_str = line.to_string()
+    if not(in_struct) {
+      if line_str.contains(pattern) {
+        in_struct = true
+        buf.write_string(line_str)
+        buf.write_string("\n")
+        // Count braces
+        for c in line {
+          if c == '{' {
+            brace_count += 1
+          } else if c == '}' {
+            brace_count -= 1
+          }
+        }
+        if brace_count == 0 {
+          // Single line struct definition
+          break
+        }
+      }
+    } else {
+      buf.write_string(line_str)
+      buf.write_string("\n")
+      for c in line {
+        if c == '{' {
+          brace_count += 1
+        } else if c == '}' {
+          brace_count -= 1
+        }
+      }
+      if brace_count == 0 {
+        break
+      }
+    }
+  }
+  buf.to_string().trim_space().to_string()
+}
+
+///|
+/// Extract only Props structs (names ending with "Props")
+pub fn get_props_structs(structs : Array[StructDef]) -> Array[StructDef] {
+  structs.filter(fn(s) { s.name.has_suffix("Props") })
 }

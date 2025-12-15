@@ -82,6 +82,26 @@ fn parse_string_array(obj : Map[String, Json], key : String) -> Array[String] {
   }
 }
 
+///|
+/// Get project name from moon.mod.json
+fn get_project_name(cwd : String) -> String {
+  let mod_path = @path.join2(cwd, "moon.mod.json")
+  if not(@fs.existsSync(mod_path)) {
+    return "unknown"
+  }
+  try {
+    let content = @fs.readFileSync(mod_path).to_string()
+    let json = @json.parse(content.view())
+    guard json is Object(obj) else { return "unknown" }
+    match obj.get("name") {
+      Some(String(name)) => name
+      _ => "unknown"
+    }
+  } catch {
+    _ => "unknown"
+  }
+}
+
 // =============================================================================
 // MBTI Parser
 // =============================================================================
@@ -318,6 +338,15 @@ pub(all) struct FuncExport {
 }
 
 ///|
+/// Exported struct definition (Props types)
+pub(all) struct StructExport {
+  name : String
+  raw_definition : String
+  package_path : String
+  import_alias : String
+}
+
+///|
 /// Collect all pub functions from island directories
 fn collect_island_functions(
   cwd : String,
@@ -348,6 +377,79 @@ fn collect_island_functions(
     }
   }
   exports
+}
+
+///|
+/// Collect Props struct definitions from island directories
+fn collect_island_structs(
+  cwd : String,
+  config : SolConfig
+) -> Array[StructExport] {
+  let exports : Array[StructExport] = []
+  let island_files = find_mbti_files(cwd, config.islands)
+  for pair in island_files {
+    let (dir_path, content) = pair
+    let _ = dir_path
+    guard extract_package_path(content) is Some(pkg_path) else { continue }
+    // Use last part of package path as alias
+    let parts = pkg_path.split("/").to_array()
+    let import_alias = if parts.length() > 0 {
+      parts[parts.length() - 1].to_string()
+    } else {
+      "unknown"
+    }
+    // Parse struct definitions using mbti_utils (simple string parsing)
+    let structs = @mbti_utils.parse_struct_defs(content, "pkg.generated.mbti")
+    let props_structs = @mbti_utils.get_props_structs(structs)
+    for s in props_structs {
+      exports.push(StructExport::{
+        name: s.name,
+        raw_definition: s.raw_definition,
+        package_path: pkg_path,
+        import_alias,
+      })
+    }
+  }
+  exports
+}
+
+///|
+/// Generate types.mbt content with all Props struct definitions
+fn generate_types_mbt(structs : Array[StructExport]) -> String {
+  let buf = StringBuilder::new()
+  buf.write_string("///| Auto-generated types for island props\n")
+  buf.write_string("///| Re-exports Props structs from client packages\n\n")
+  for s in structs {
+    // Add derive for JSON serialization
+    buf.write_string("///| Props type from @\{s.import_alias}\n")
+    buf.write_string(s.raw_definition)
+    buf.write_string(" derive(ToJson, FromJson)\n\n")
+  }
+  buf.to_string()
+}
+
+///|
+/// Generate types/moon.pkg.json
+fn generate_types_pkg_json(
+  structs : Array[StructExport],
+  project_name : String
+) -> String {
+  let _ = project_name
+  let buf = StringBuilder::new()
+  buf.write_string("{\n")
+  buf.write_string("  \"supported-targets\": [\"js\"],\n")
+  // No imports needed - @json is part of standard library
+  buf.write_string("  \"link\": {\n")
+  buf.write_string("    \"js\": {\n")
+  // Export all struct names
+  let struct_names : Array[String] = structs.map(fn(s) { s.name })
+  let exports_str = struct_names.map(fn(n) { "\"\{n}\"" }).join(", ")
+  buf.write_string("      \"exports\": [\{exports_str}],\n")
+  buf.write_string("      \"format\": \"esm\"\n")
+  buf.write_string("    }\n")
+  buf.write_string("  }\n")
+  buf.write_string("}\n")
+  buf.to_string()
 }
 
 ///|
@@ -515,11 +617,15 @@ pub fn uses_hono_types(signature : String) -> Bool {
 
 ///|
 /// Rewrite types in signature to use fully qualified names
-fn rewrite_signature_types(sig : String, import_alias : String) -> String {
+/// All types are qualified with @import_alias
+fn rewrite_signature_types(
+  sig : String,
+  import_alias : String,
+  _props_names : Array[String]
+) -> String {
   let result = sig
   // Rewrite @xxx.Type patterns - keep them as is (they reference imported packages)
   // Rewrite bare types (like CounterProps) to @import_alias.Type
-  // Simple heuristic: if a word starts with uppercase and is not prefixed with @, qualify it
   let chars = result.to_array()
   let new_buf = StringBuilder::new()
   let word_buf = StringBuilder::new()
@@ -551,7 +657,7 @@ fn rewrite_signature_types(sig : String, import_alias : String) -> String {
       if is_primitive || already_qualified {
         new_buf.write_string(word)
       } else {
-        // Qualify with import alias
+        // All types use import alias (client's own types)
         new_buf.write_string("@\{import_alias}.\{word}")
       }
     } else {
@@ -564,12 +670,19 @@ fn rewrite_signature_types(sig : String, import_alias : String) -> String {
 
 ///|
 /// Generate client exports.mbt for islands (new architecture - all pub fns)
-fn generate_client_exports_mbt_v2(funcs : Array[FuncExport]) -> String {
+fn generate_client_exports_mbt_v2(
+  funcs : Array[FuncExport],
+  props_names : Array[String]
+) -> String {
   let buf = StringBuilder::new()
   buf.write_string("///| Auto-generated client exports\n")
   buf.write_string("///| Re-exports all public functions from app/client/*\n\n")
   for func in funcs {
-    let rewritten_sig = rewrite_signature_types(func.signature, func.import_alias)
+    let rewritten_sig = rewrite_signature_types(
+      func.signature,
+      func.import_alias,
+      props_names,
+    )
     let (sig_with_names, call_args) = generate_params_with_names(rewritten_sig)
     buf.write_string("///| Re-export \{func.name} from @\{func.import_alias}\n")
     buf.write_string("pub fn \{func.name}\{sig_with_names} {\n")
@@ -974,15 +1087,21 @@ fn run_generate_command(args : Array[String]) -> Unit {
   // Collect all pub functions from island directories
   let funcs = collect_island_functions(cwd, config)
   println(@colorette.gray("  Found \{funcs.length()} island exports"))
+  // Collect Props struct definitions
+  let structs = collect_island_structs(cwd, config)
+  let props_names : Array[String] = structs.map(fn(s) { s.name })
+  println(@colorette.gray("  Found \{structs.length()} Props types"))
   // Create output directories
   let output_dir = @path.join2(cwd, config.output) // app/_gen
   let client_dir = @path.join2(output_dir, "client")
   let server_dir = @path.join2(output_dir, "server")
+  let types_dir = @path.join2(output_dir, "types")
   let sol_dir = @path.join2(cwd, ".sol")
   let islands_dir = @path.join2(sol_dir, "islands")
   try {
     @fs.mkdirSync(client_dir, recursive=true)
     @fs.mkdirSync(server_dir, recursive=true)
+    @fs.mkdirSync(types_dir, recursive=true)
     @fs.mkdirSync(islands_dir, recursive=true)
   } catch {
     e => {
@@ -992,9 +1111,41 @@ fn run_generate_command(args : Array[String]) -> Unit {
   }
   // Get routes package path from config
   let routes_pkg = get_routes_package_path(cwd, config.routes)
+  // Get project name from moon.mod.json
+  let project_name = get_project_name(cwd)
+  // Calculate types package path
+  let _ = project_name // types_pkg_path not needed for client anymore
+  // Generate types.mbt (Props struct definitions)
+  if not(structs.is_empty()) {
+    let types_mbt = generate_types_mbt(structs)
+    let types_mbt_path = @path.join2(types_dir, "types.mbt")
+    try {
+      @fs.writeFileSync(types_mbt_path, @js.any(types_mbt))
+      println(@colorette.gray("  Generated __gen__/types/types.mbt"))
+    } catch {
+      e => {
+        console_error(@colorette.red("Error writing types/types.mbt: \{e}"))
+        @process.exit(1)
+      }
+    }
+    // Generate types moon.pkg.json
+    let types_pkg = generate_types_pkg_json(structs, project_name)
+    let types_pkg_path_file = @path.join2(types_dir, "moon.pkg.json")
+    try {
+      @fs.writeFileSync(types_pkg_path_file, @js.any(types_pkg))
+      println(@colorette.gray("  Generated __gen__/types/moon.pkg.json"))
+    } catch {
+      e => {
+        console_error(
+          @colorette.red("Error writing types/moon.pkg.json: \{e}"),
+        )
+        @process.exit(1)
+      }
+    }
+  }
   // Generate client exports.mbt (re-exports all pub functions)
   if not(funcs.is_empty()) {
-    let client_exports_mbt = generate_client_exports_mbt_v2(funcs)
+    let client_exports_mbt = generate_client_exports_mbt_v2(funcs, props_names)
     let client_exports_path = @path.join2(client_dir, "exports.mbt")
     try {
       @fs.writeFileSync(client_exports_path, @js.any(client_exports_mbt))
