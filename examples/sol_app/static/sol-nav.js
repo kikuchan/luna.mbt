@@ -26,7 +26,7 @@
 					const name = tpl.dataset.solOutlet;
 					const target = d.querySelector(`[data-sol-outlet="${name}"]`);
 					if (target) {
-						w.__LN_UNLOAD_ALL__?.(target);
+						w.__LUNA_UNLOAD_ALL__?.(target);
 						setHTML(target, tpl.innerHTML);
 					}
 				});
@@ -36,7 +36,7 @@
 				const app = doc.querySelector("#app");
 				const target = d.querySelector("#app");
 				if (app && target) {
-					w.__LN_UNLOAD_ALL__?.(target);
+					w.__LUNA_UNLOAD_ALL__?.(target);
 					setHTML(target, app.innerHTML);
 				}
 				const title = doc.querySelector("title");
@@ -45,8 +45,8 @@
 			if (replace) w.history.replaceState({ sol: true }, "", url);
 			else w.history.pushState({ sol: true }, "", url);
 			w.scrollTo(0, 0);
-			w.__LN_SCAN__?.();
-			w.__WC_SCAN__?.();
+			w.__LUNA_SCAN__?.();
+			w.__LUNA_WC_SCAN__?.();
 		} catch (e) {
 			console.error("Sol navigation failed:", e);
 			w.location.href = url;
