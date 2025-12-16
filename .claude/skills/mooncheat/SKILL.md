@@ -19,3 +19,5 @@ allowed-tools: Read, Grep, Glob
     - moon.mod.json's jsonschema https://raw.githubusercontent.com/moonbitlang/moon/71abb232f9b661c079246a85a19ff8fe3421170a/crates/moonbuild/template/mod.schema.json
   - `moon check` warning and alert configuration
     - Get warning list by `moonc build-package -warn-help`
+  - cross target build
+    - [xplat-build.md](./xplat-build.md)
