@@ -5,11 +5,11 @@ test.describe("Shard Module E2E Tests", () => {
     test("generates correct HTML structure", async ({ page }) => {
       await page.goto("/shard/minimal");
 
-      // Check ln:* attributes are present
-      const component = page.locator('[ln\\:id="counter-1"]');
-      await expect(component).toHaveAttribute("ln:url", "/components/counter.js");
+      // Check luna:* attributes are present
+      const component = page.locator('[luna\\:id="counter-1"]');
+      await expect(component).toHaveAttribute("luna:url", "/components/counter.js");
       // State attribute is HTML-escaped in source but browser parses it correctly
-      const state = await component.getAttribute("ln:state");
+      const state = await component.getAttribute("luna:state");
       expect(state).toBe('{"count":42}');
     });
 
@@ -17,7 +17,7 @@ test.describe("Shard Module E2E Tests", () => {
       await page.goto("/shard/minimal");
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -47,7 +47,7 @@ test.describe("Shard Module E2E Tests", () => {
     test("hydrates correctly", async ({ page }) => {
       await page.goto("/shard/standalone");
 
-      await expect(page.locator('[ln\\:id="greeting-1"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="greeting-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -60,14 +60,14 @@ test.describe("Shard Module E2E Tests", () => {
     test("sets visible trigger", async ({ page }) => {
       await page.goto("/shard/lazy");
 
-      const component = page.locator('[ln\\:id="lazy-counter"]');
-      await expect(component).toHaveAttribute("ln:trigger", "visible");
+      const component = page.locator('[luna\\:id="lazy-counter"]');
+      await expect(component).toHaveAttribute("luna:trigger", "visible");
     });
 
     test("does not hydrate until visible", async ({ page }) => {
       await page.goto("/shard/lazy");
 
-      const component = page.locator('[ln\\:id="lazy-counter"]');
+      const component = page.locator('[luna\\:id="lazy-counter"]');
 
       // Should not be hydrated yet (below fold)
       await expect(component).not.toHaveAttribute("data-hydrated", "true");
@@ -76,7 +76,7 @@ test.describe("Shard Module E2E Tests", () => {
     test("hydrates when scrolled into view", async ({ page }) => {
       await page.goto("/shard/lazy");
 
-      const component = page.locator('[ln\\:id="lazy-counter"]');
+      const component = page.locator('[luna\\:id="lazy-counter"]');
 
       // Scroll to component
       await component.scrollIntoViewIfNeeded();
@@ -104,12 +104,12 @@ test.describe("Shard Module E2E Tests", () => {
       await page.goto("/shard/xss-safety");
 
       // Verify the component rendered (was not broken by XSS)
-      const component = page.locator('[ln\\:id="xss-test"]');
+      const component = page.locator('[luna\\:id="xss-test"]');
       await expect(component).toBeVisible();
 
       // The state value contains dangerous content but it was safely escaped in HTML
       // Browser parses the HTML entities back, so we just verify the component exists
-      const stateValue = await component.getAttribute("ln:state");
+      const stateValue = await component.getAttribute("luna:state");
       expect(stateValue).toContain("<script>");
       expect(stateValue).toContain("</script>");
 
@@ -123,14 +123,14 @@ test.describe("Shard Module E2E Tests", () => {
     test("creates script element with correct type", async ({ page }) => {
       await page.goto("/shard/state-script");
 
-      const stateScript = page.locator('script[type="ln/json"]#counter-state');
+      const stateScript = page.locator('script[type="luna/json"]#counter-state');
       await expect(stateScript).toHaveCount(1);
     });
 
     test("state is loaded from script reference", async ({ page }) => {
       await page.goto("/shard/state-script");
 
-      await expect(page.locator('[ln\\:id="counter-script"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-script"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -141,7 +141,7 @@ test.describe("Shard Module E2E Tests", () => {
     test("interactions work with script-referenced state", async ({ page }) => {
       await page.goto("/shard/state-script");
 
-      await expect(page.locator('[ln\\:id="counter-script"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-script"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );

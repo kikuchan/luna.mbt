@@ -11,19 +11,11 @@ interface WCModule {
 }
 
 interface WCWindow extends Window {
-  __WC_STATE__: Record<string, unknown>;
-  __WC_SCAN__: () => void;
-  __WC_HYDRATE__: (el: Element) => Promise<void>;
-  __WC_UNLOAD__: (name: string) => boolean;
-  __WC_CLEAR_LOADED__: () => void;
-}
-
-interface WCElement extends HTMLElement {
-  dataset: DOMStringMap & {
-    state?: string;
-    wcUrl?: string;
-    trigger?: string;
-  };
+  __LUNA_WC_STATE__: Record<string, unknown>;
+  __LUNA_WC_SCAN__: () => void;
+  __LUNA_WC_HYDRATE__: (el: Element) => Promise<void>;
+  __LUNA_WC_UNLOAD__: (name: string) => boolean;
+  __LUNA_WC_CLEAR_LOADED__: () => void;
 }
 
 const d = document;
@@ -31,8 +23,8 @@ const w = window as unknown as WCWindow;
 const S: Record<string, unknown> = {};
 const { loaded, unload, clear } = createLoadedTracker();
 
-const parseState = async (el: WCElement): Promise<unknown> => {
-  const s = el.dataset.state;
+const parseState = async (el: Element): Promise<unknown> => {
+  const s = el.getAttribute('luna:wc-state');
   if (!s) return {};
   // Handle script ref (starts with #)
   if (s.startsWith('#')) {
@@ -54,11 +46,11 @@ const parseState = async (el: WCElement): Promise<unknown> => {
   }
 };
 
-const hydrate = async (el: WCElement): Promise<void> => {
+const hydrate = async (el: Element): Promise<void> => {
   const name = el.tagName.toLowerCase();
   if (loaded.has(name)) return;
 
-  const url = el.dataset.wcUrl;
+  const url = el.getAttribute('luna:wc-url');
   if (!url) return;
   loaded.add(name);
 
@@ -81,25 +73,25 @@ const hydrate = async (el: WCElement): Promise<void> => {
   }
 };
 
-const setup = (el: WCElement): void => {
-  const t = el.dataset.trigger ?? 'load';
+const setup = (el: Element): void => {
+  const t = el.getAttribute('luna:wc-trigger') ?? 'load';
   setupTrigger(el, t, () => hydrate(el));
 };
 
 const scan = (): void => {
-  d.querySelectorAll<WCElement>('[data-wc-url]').forEach(setup);
+  d.querySelectorAll('[luna\\:wc-url]').forEach(setup);
 };
 
 onReady(scan);
 
 // Watch for dynamically added Web Components
 observeAdditions(
-  el => !!(el as WCElement).dataset?.wcUrl,
-  el => setup(el as WCElement)
+  el => el.hasAttribute('luna:wc-url'),
+  setup
 );
 
-w.__WC_STATE__ = S;
-w.__WC_SCAN__ = scan;
-w.__WC_HYDRATE__ = hydrate;
-w.__WC_UNLOAD__ = unload;
-w.__WC_CLEAR_LOADED__ = clear;
+w.__LUNA_WC_STATE__ = S;
+w.__LUNA_WC_SCAN__ = scan;
+w.__LUNA_WC_HYDRATE__ = hydrate;
+w.__LUNA_WC_UNLOAD__ = unload;
+w.__LUNA_WC_CLEAR_LOADED__ = clear;

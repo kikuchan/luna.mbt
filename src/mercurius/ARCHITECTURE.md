@@ -16,32 +16,32 @@ Inspired by [Qwik's Resumability](https://qwik.dev/docs/concepts/resumable/) and
 
 ```html
 <!-- Minimal snippet -->
-<div ln:id="counter-1"
-     ln:url="https://cdn.example.com/components/counter.js"
-     ln:trigger="visible"
-     ln:state='{"count":0}'>
+<div luna:id="counter-1"
+     luna:url="https://cdn.example.com/components/counter.js"
+     luna:trigger="visible"
+     luna:state='{"count":0}'>
   <span>0</span>
   <button>+1</button>
 </div>
 
 <!-- With loader (standalone) -->
-<script type="module" src="https://cdn.example.com/ln-loader-v1.js"></script>
-<div ln:id="counter-1" ...>...</div>
+<script type="module" src="https://cdn.example.com/luna-loader-v1.js"></script>
+<div luna:id="counter-1" ...>...</div>
 
 <!-- With inline state for large data -->
-<div ln:id="app-1"
-     ln:url="./app.js"
-     ln:trigger="load"
-     ln:state="#ln-state-app-1">
+<div luna:id="app-1"
+     luna:url="./app.js"
+     luna:trigger="load"
+     luna:state="#luna-state-app-1">
   <!-- SSR content -->
 </div>
-<script id="ln-state-app-1" type="ln/json">{"large":"data","nested":{"items":[1,2,3]}}<\/script>
+<script id="luna-state-app-1" type="luna/json">{"large":"data","nested":{"items":[1,2,3]}}<\/script>
 
 <!-- With remote state -->
-<div ln:id="user-1"
-     ln:url="./user-profile.js"
-     ln:trigger="idle"
-     ln:state="url:https://api.example.com/user/123/state">
+<div luna:id="user-1"
+     luna:url="./user-profile.js"
+     luna:trigger="idle"
+     luna:state="url:https://api.example.com/user/123/state">
   <span>Loading...</span>
 </div>
 ```
@@ -50,10 +50,10 @@ Inspired by [Qwik's Resumability](https://qwik.dev/docs/concepts/resumable/) and
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `ln:id` | Yes | Unique identifier for the component |
-| `ln:url` | Yes | ES module URL to load for hydration |
-| `ln:trigger` | No | When to hydrate (default: `load`) |
-| `ln:state` | No | Initial state (inline JSON, `#id` ref, or `url:` prefix) |
+| `luna:id` | Yes | Unique identifier for the component |
+| `luna:url` | Yes | ES module URL to load for hydration |
+| `luna:trigger` | No | When to hydrate (default: `load`) |
+| `luna:state` | No | Initial state (inline JSON, `#id` ref, or `url:` prefix) |
 
 ## Trigger Types
 
@@ -72,7 +72,7 @@ Following Astro's naming convention:
 ### Inline JSON (default for small state)
 
 ```html
-<div ln:state='{"count":0}'></div>
+<div luna:state='{"count":0}'></div>
 ```
 
 - Pros: Single HTTP request, no async loading
@@ -82,8 +82,8 @@ Following Astro's naming convention:
 ### Script Reference (for medium state)
 
 ```html
-<div ln:state="#ln-state-123"></div>
-<script id="ln-state-123" type="ln/json">{"data":"..."}<\/script>
+<div luna:state="#luna-state-123"></div>
+<script id="luna-state-123" type="luna/json">{"data":"..."}<\/script>
 ```
 
 - Pros: Cleaner HTML attributes, larger capacity
@@ -93,7 +93,7 @@ Following Astro's naming convention:
 ### URL Reference (for large state)
 
 ```html
-<div ln:state="url:https://api.example.com/state/123"></div>
+<div luna:state="url:https://api.example.com/state/123"></div>
 ```
 
 - Pros: Minimal HTML size, CDN cacheable
@@ -119,31 +119,31 @@ fn escape_json_for_html(json: String) -> String {
 The loader supports CSP nonces:
 
 ```html
-<script type="module" src="ln-loader-v1.js" nonce="abc123"></script>
+<script type="module" src="luna-loader-v1.js" nonce="abc123"></script>
 ```
 
 ## Loader Script
 
-`ln-loader-v1.js` (~1KB minified):
+`luna-loader-v1.js` (~1KB minified):
 
 1. Scans for `[ln\\:id]` elements
 2. Sets up trigger listeners (IntersectionObserver, idle callback, etc.)
 3. On trigger:
-   - Parse state from `ln:state`
-   - Dynamic import `ln:url`
+   - Parse state from `luna:state`
+   - Dynamic import `luna:url`
    - Call exported `hydrate(element, state)` function
 
 ### Versioning
 
-Loader uses versioned filenames (`ln-loader-v1.js`) to:
+Loader uses versioned filenames (`luna-loader-v1.js`) to:
 - Prevent duplicate loading via `type="module"` deduplication
 - Allow multiple versions on same page
 - Enable breaking changes without conflicts
 
 ```html
 <!-- These won't conflict -->
-<script type="module" src="ln-loader-v1.js"></script>
-<script type="module" src="ln-loader-v2.js"></script>
+<script type="module" src="luna-loader-v1.js"></script>
+<script type="module" src="luna-loader-v2.js"></script>
 ```
 
 ## API
@@ -158,7 +158,7 @@ struct EmbedConfig {
   state: StateConfig         // Inline(String) | ScriptRef(String) | Url(String) | Empty
   ssr_content: String?       // Pre-rendered HTML or None
   include_loader: Bool       // Include loader script tag
-  loader_url: String         // Loader URL (default: ln-loader-v1.js)
+  loader_url: String         // Loader URL (default: luna-loader-v1.js)
 }
 ```
 
@@ -182,7 +182,7 @@ let config = EmbedConfig::{
   state: Inline(@json.stringify(initial_state)),
   ssr_content: Some(@ssr.render_to_string(vnode)),
   include_loader: true,
-  loader_url: "https://cdn.example.com/ln-loader-v1.js",
+  loader_url: "https://cdn.example.com/luna-loader-v1.js",
 }
 
 let output = generate_embed(config)
@@ -192,8 +192,8 @@ let output = generate_embed(config)
 ## Integration with js/loader
 
 The `js/loader/` directory contains:
-- `ln-loader-v1.js` - Production loader
-- `ln-loader-v1.min.js` - Minified version
+- `luna-loader-v1.js` - Production loader
+- `luna-loader-v1.min.js` - Minified version
 
 Loader expects components to export:
 
@@ -221,8 +221,8 @@ src/embedding/
 └── embedding_test.mbt # Tests
 
 js/loader/
-├── ln-loader-v1.js    # Loader script (renamed from loader.js)
-├── ln-loader-v1.min.js
+├── luna-loader-v1.js    # Loader script (renamed from loader.js)
+├── luna-loader-v1.min.js
 └── loader.test.ts     # Tests
 ```
 
@@ -231,7 +231,7 @@ js/loader/
 This module is currently a **proof of concept**. The current implementation:
 
 ### What Works
-- ✅ HTML snippet generation with `ln:*` attributes
+- ✅ HTML snippet generation with `luna:*` attributes
 - ✅ XSS escaping for inline JSON state (`escape_json_for_html`)
 - ✅ Various trigger modes (load, visible, idle, none)
 - ✅ Script reference state (`#id` format)

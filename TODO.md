@@ -1,23 +1,24 @@
 これは開発者が次にやりたいことをメモとして残していく場所だから、AIは言われるまで修正しない。
 
-playwright test でデバッグメッセージがが出過ぎなので、これらはアサーショ
-  ンで別の方法でテストするか、環境変数でデバッグ用のフラグを立てた時だけ表
-  示できるようにする。 [Browser log] Luna WC Sample Application
-  [Browser log] ==========================
-
+- data 属性を修正する
+  `luna:*` と `sol:*` にする
+- [ ] Sol PageProps
+  - Server Route から Client を Route に登録するとき、 Props を取らないといけない
+  - Server Component 同士は呼び出せる。
+  - `__gen__/types` には Client/Server 共に使える Opaque Type を定義して、それを呼び出す
+- [ ] Async Server Function
+  - [ ] src/sol/rpc: capnweb
+  - [ ] -prod と --dev に分割して、デバッグ用のビルドを注入する
 - [ ] Prototype: src/platform/native/server
 - [ ] Prototype: ViewTransition
-- [x] 再 export するのに、moonbitlang/parser を使用する
-- [ ] BF Cache 最適化
+  - [ ] BF Cache 最適化
+- [ ] Prototype: 内部的に cbor encoder を使う
 - [ ] sol/test_utils
   - playwright テストをビルトインできないか
 - [ ] sol dev コード監視を最適化を追加
 - [ ] src/sol/ssg で、静的サイト生成に対応
-- [ ] src/sol/rpc: capnweb
-- [x] - -prod と --dev でデバッグ用のビルドを注入する
 - [ ] react-hook-form 相当のものを試作する
   - valibot を使うか、自前のバリデータを作るか
-- [x] sol: chunk hydration
 - [ ] src/platform/dom/portal
 - [ ] src/integrations
   - [ ] src/platform/dom/integrations/react
@@ -31,7 +32,6 @@ playwright test でデバッグメッセージがが出過ぎなので、これ�
   - Native: extern "C" で C 実装を検討
 - [ ] virtual package を導入してクロスプラットフォーム化の基盤を作る
   - https://www.moonbitlang.com/blog/virtual-package
-- [ ] 内部的に cbor encoder を使う
 - [ ] Inline Editor
 - [ ] ドキュメントの英語化
 
@@ -42,5 +42,9 @@ playwright test でデバッグメッセージがが出過ぎなので、これ�
 - [ ] shadcn
 - [ ] React Bridge
 - [ ] Fix playwright
-- [x] js/cli を src/eclipse/cli で、CLIをMoonbitで書き直す
 - [ ] Vite Enviroment Apiに対応? -> やらない。やるにしても最後
+
+## Done
+
+- [x] 再 export するのに、moonbitlang/parser を使用する
+- [x] js/cli を src/eclipse/cli で、CLIをMoonbitで書き直す

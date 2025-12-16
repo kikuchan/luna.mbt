@@ -83,10 +83,10 @@ test.describe("Sol CSR Navigation", () => {
 
       // Manually hydrate the counter
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import("/static/counter.js");
-          const state = JSON.parse(counterEl.getAttribute("ln:state") || "{}");
+          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
           const fn = mod.hydrate_counter || mod.hydrate || mod.default;
           if (fn) fn(counterEl, state, "counter");
         }
@@ -117,10 +117,10 @@ test.describe("Sol CSR Navigation", () => {
       // Re-hydrate manually since we need to test this works
       await page.evaluate(async () => {
         // Clear loaded state to allow re-hydration
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import("/static/counter.js");
-          const state = JSON.parse(counterEl.getAttribute("ln:state") || "{}");
+          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
           const fn = mod.hydrate_counter || mod.hydrate || mod.default;
           if (fn) fn(counterEl, state, "counter");
         }
@@ -162,7 +162,7 @@ test.describe("Sol CSR Navigation", () => {
       const incButton = page.locator('button.inc');
 
       // Check that island exists
-      await expect(page.locator('[ln\\:id="counter"]')).toBeVisible();
+      await expect(page.locator('[luna\\:id="counter"]')).toBeVisible();
 
       // Click the button
       await incButton.click();

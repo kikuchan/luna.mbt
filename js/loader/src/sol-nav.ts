@@ -1,9 +1,9 @@
 /*! sol-nav v1 - CSR Navigation for Sol Framework */
 
 interface SolWindow extends Window {
-  __LN_UNLOAD_ALL__?: (target: Element) => void;
-  __LN_SCAN__?: () => void;
-  __WC_SCAN__?: () => void;
+  __LUNA_UNLOAD_ALL__?: (target: Element) => void;
+  __LUNA_SCAN__?: () => void;
+  __LUNA_WC_SCAN__?: () => void;
   __SOL_NAVIGATE__: (url: string, replace?: boolean) => Promise<void>;
   __SOL_PREFETCH__: (url: string) => void;
   __SOL_CACHE__: Map<string, string>;
@@ -64,7 +64,7 @@ interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
           const target = d.querySelector<HTMLElementWithSetHTMLUnsafe>(`[data-sol-outlet="${name}"]`);
           if (target) {
             // Unload existing islands before updating DOM
-            w.__LN_UNLOAD_ALL__?.(target);
+            w.__LUNA_UNLOAD_ALL__?.(target);
             setHTML(target, tpl.innerHTML);
           }
         });
@@ -80,7 +80,7 @@ interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
         const target = d.querySelector<HTMLElementWithSetHTMLUnsafe>('#app');
         if (app && target) {
           // Unload existing islands before updating DOM
-          w.__LN_UNLOAD_ALL__?.(target);
+          w.__LUNA_UNLOAD_ALL__?.(target);
           setHTML(target, app.innerHTML);
         }
 
@@ -102,9 +102,9 @@ interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
       w.scrollTo(0, 0);
 
       // Re-scan for islands (if loader is available)
-      w.__LN_SCAN__?.();
+      w.__LUNA_SCAN__?.();
       // Re-scan for Web Components (if wc-loader is available)
-      w.__WC_SCAN__?.();
+      w.__LUNA_WC_SCAN__?.();
     } catch (e) {
       console.error('Sol navigation failed:', e);
       // Fallback to full page load

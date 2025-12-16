@@ -194,7 +194,7 @@ test "render error_boundary in island" {
     ],
   )
   let html = @render.render_to_string(node).html
-  assert_true(html.contains("ln:id=\"eb-island-1\""))
+  assert_true(html.contains("luna:id=\"eb-island-1\""))
   assert_true(html.contains("Island content"))
 }
 
@@ -248,7 +248,7 @@ test "render_to_string preload=false" {
   let result = @render.render_to_string(node, preload=false)
   // Should render correctly but not collect URLs
   assert_eq(result.preload_urls.length(), 0)
-  assert_true(result.html.contains("ln:id=\"island-1\""))
+  assert_true(result.html.contains("luna:id=\"island-1\""))
 }
 
 ///|

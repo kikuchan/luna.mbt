@@ -267,15 +267,15 @@ pub fn hydrate_counter(element : @core.Any, state : @core.Any, id : String) -> U
 @sol.island("counter", url, state, children, trigger=@luna.Idle)
 ```
 
-### ln:* 属性
+### luna:* 属性
 
 Island は以下の属性でマークアップされる:
 
 ```html
-<div ln:id="counter"
-     ln:url="/static/hydrate_counter.js"
-     ln:state='{"count":0}'
-     ln:trigger="load">
+<div luna:id="counter"
+     luna:url="/static/hydrate_counter.js"
+     luna:state='{"count":0}'
+     luna:trigger="load">
   <!-- SSR 済みコンテンツ -->
 </div>
 ```
@@ -366,8 +366,8 @@ pub fn config() -> @router.RouterConfig {
    │  1. routes() でページ解決            │
    │  2. page() 実行、VNode 生成          │
    │  3. island() で SSR レンダリング      │
-   │  4. HTML + ln:* 属性を送信  ─────────→│
-   │                                     │  5. loader.js が ln:* を検知
+   │  4. HTML + luna:* 属性を送信  ─────────→│
+   │                                     │  5. loader.js が luna:* を検知
    │                                     │  6. hydrate_*.js をロード
    │                                     │  7. hydrate_*() 実行
    │                                     │  8. イベントハンドラ接続

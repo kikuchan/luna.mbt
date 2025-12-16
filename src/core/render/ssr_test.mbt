@@ -477,15 +477,15 @@ test "render island basic" {
   // Check comment markers
   assert_true(
     html.contains(
-      "<!--ln:island:counter-1 url=/components/counter.js trigger=load-->",
+      "<!--luna:island:counter-1 url=/components/counter.js trigger=load-->",
     ),
   )
-  assert_true(html.contains("<!--/ln:island:counter-1-->"))
-  // Check wrapper div with ln:* attributes
-  assert_true(html.contains("ln:id=\"counter-1\""))
-  assert_true(html.contains("ln:url=\"/components/counter.js\""))
-  assert_true(html.contains("ln:state=\"{&quot;count&quot;:5}\""))
-  assert_true(html.contains("ln:trigger=\"load\""))
+  assert_true(html.contains("<!--/luna:island:counter-1-->"))
+  // Check wrapper div with luna:* attributes
+  assert_true(html.contains("luna:id=\"counter-1\""))
+  assert_true(html.contains("luna:url=\"/components/counter.js\""))
+  assert_true(html.contains("luna:state=\"{&quot;count&quot;:5}\""))
+  assert_true(html.contains("luna:trigger=\"load\""))
   // Check children are rendered
   assert_true(html.contains("<span data-count>5</span>"))
 }
@@ -500,7 +500,7 @@ test "render island with idle trigger" {
     trigger=@luna.Idle,
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("ln:trigger=\"idle\""))
+  assert_true(html.contains("luna:trigger=\"idle\""))
   assert_true(html.contains("trigger=idle-->"))
 }
 
@@ -514,7 +514,7 @@ test "render island with visible trigger" {
     trigger=@luna.Visible,
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("ln:trigger=\"visible\""))
+  assert_true(html.contains("luna:trigger=\"visible\""))
   assert_true(html.contains("trigger=visible-->"))
 }
 
@@ -528,7 +528,7 @@ test "render island with media trigger" {
     trigger=@luna.Media("(min-width: 768px)"),
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("ln:trigger=\"media:(min-width: 768px)\""))
+  assert_true(html.contains("luna:trigger=\"media:(min-width: 768px)\""))
   assert_true(html.contains("trigger=media:(min-width: 768px)-->"))
 }
 
@@ -548,12 +548,12 @@ test "render nested islands" {
   )
   let html = render_to_string(outer_island).html
   // Check both islands are present
-  assert_true(html.contains("ln:id=\"outer-1\""))
-  assert_true(html.contains("ln:id=\"inner-1\""))
-  assert_true(html.contains("<!--ln:island:outer-1"))
-  assert_true(html.contains("<!--ln:island:inner-1"))
-  assert_true(html.contains("<!--/ln:island:outer-1-->"))
-  assert_true(html.contains("<!--/ln:island:inner-1-->"))
+  assert_true(html.contains("luna:id=\"outer-1\""))
+  assert_true(html.contains("luna:id=\"inner-1\""))
+  assert_true(html.contains("<!--luna:island:outer-1"))
+  assert_true(html.contains("<!--luna:island:inner-1"))
+  assert_true(html.contains("<!--/luna:island:outer-1-->"))
+  assert_true(html.contains("<!--/luna:island:inner-1-->"))
 }
 
 ///|
@@ -568,7 +568,7 @@ test "render island state escaping" {
   let html = render_to_string(node).html
   // Ensure < and > are NOT in the attribute value (they should be entity-escaped)
   // The attribute value should have &lt; and &gt; or be safe
-  assert_true(not(html.contains("ln:state=\"{\"text\":\"<script>")))
+  assert_true(not(html.contains("luna:state=\"{\"text\":\"<script>")))
 }
 
 ///|
@@ -612,8 +612,8 @@ test "render island with hydration markers" {
   )
   let html = render_to_string_with_hydration(node)
   // Should have island markers
-  assert_true(html.contains("<!--ln:island:hyd-1"))
-  assert_true(html.contains("<!--/ln:island:hyd-1-->"))
+  assert_true(html.contains("<!--luna:island:hyd-1"))
+  assert_true(html.contains("<!--/luna:island:hyd-1-->"))
   // Should have hydration markers for dynamic text inside
   assert_true(html.contains("<!--t:"))
   assert_true(html.contains("<!--/t-->"))
@@ -841,8 +841,8 @@ test "render wc_island basic" {
   let html = render_to_string(node).html
   // Check custom element with data attributes
   assert_true(html.contains("<wc-counter"))
-  assert_true(html.contains("data-wc-url=\"/static/wc-counter.js\""))
-  assert_true(html.contains("data-state=\"{&quot;count&quot;:5}\""))
+  assert_true(html.contains("luna:wc-url=\"/static/wc-counter.js\""))
+  assert_true(html.contains("luna:wc-state=\"{&quot;count&quot;:5}\""))
   // Check Declarative Shadow DOM template
   assert_true(html.contains("<template shadowrootmode=\"open\">"))
   assert_true(html.contains("<style>:host { display: block; }</style>"))
@@ -877,7 +877,7 @@ test "render wc_island with idle trigger" {
     trigger=@luna.Idle,
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("data-trigger=\"idle\""))
+  assert_true(html.contains("luna:wc-trigger=\"idle\""))
 }
 
 ///|
@@ -891,7 +891,7 @@ test "render wc_island with visible trigger" {
     trigger=@luna.Visible,
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("data-trigger=\"visible\""))
+  assert_true(html.contains("luna:wc-trigger=\"visible\""))
 }
 
 ///|
@@ -905,12 +905,12 @@ test "render wc_island with media trigger" {
     trigger=@luna.Media("(min-width: 768px)"),
   )
   let html = render_to_string(node).html
-  assert_true(html.contains("data-trigger=\"media:(min-width: 768px)\""))
+  assert_true(html.contains("luna:wc-trigger=\"media:(min-width: 768px)\""))
 }
 
 ///|
-test "render wc_island load trigger omits data-trigger" {
-  // Load trigger is the default, should not render data-trigger attribute
+test "render wc_island load trigger omits luna:wc-trigger" {
+  // Load trigger is the default, should not render luna:wc-trigger attribute
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-default",
     "/static/wc-default.js",
@@ -920,8 +920,8 @@ test "render wc_island load trigger omits data-trigger" {
     trigger=@luna.Load,
   )
   let html = render_to_string(node).html
-  // Should NOT have data-trigger for load (it's the default)
-  assert_true(not(html.contains("data-trigger=")))
+  // Should NOT have luna:wc-trigger for load (it's the default)
+  assert_true(not(html.contains("luna:wc-trigger=")))
 }
 
 ///|

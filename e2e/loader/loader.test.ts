@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("ln-loader-v1 E2E Tests", () => {
+test.describe("luna-loader-v1 E2E Tests", () => {
   test.describe("Basic Hydration (trigger: load)", () => {
     test("hydrates component on page load", async ({ page }) => {
       await page.goto("/loader/basic");
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -21,7 +21,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
       await page.goto("/loader/basic");
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -52,7 +52,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
       await page.goto("/loader/visible");
 
       // Component should not be hydrated yet (it's below the fold)
-      const component = page.locator('[ln\\:id="lazy-1"]');
+      const component = page.locator('[luna\\:id="lazy-1"]');
       await expect(component).not.toHaveAttribute("data-hydrated", "true");
 
       // Content should still be the SSR placeholder
@@ -63,7 +63,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     test("hydrates when scrolled into view", async ({ page }) => {
       await page.goto("/loader/visible");
 
-      const component = page.locator('[ln\\:id="lazy-1"]');
+      const component = page.locator('[luna\\:id="lazy-1"]');
       const content = page.locator("[data-content]");
 
       // Scroll to the component
@@ -83,7 +83,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     test("hydrates when browser becomes idle", async ({ page }) => {
       await page.goto("/loader/idle");
 
-      const component = page.locator('[ln\\:id="idle-1"]');
+      const component = page.locator('[luna\\:id="idle-1"]');
       const content = page.locator("[data-content]");
 
       // Wait for idle hydration (should happen relatively quickly)
@@ -99,7 +99,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     test("loads state from script element", async ({ page }) => {
       await page.goto("/loader/script-ref");
 
-      const component = page.locator('[ln\\:id="counter-ref"]');
+      const component = page.locator('[luna\\:id="counter-ref"]');
       await expect(component).toHaveAttribute("data-hydrated", "true");
 
       const count = page.locator("[data-count]");
@@ -116,18 +116,18 @@ test.describe("ln-loader-v1 E2E Tests", () => {
       await page.goto("/loader/multiple");
 
       // Both should hydrate
-      await expect(page.locator('[ln\\:id="counter-a"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-a"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
-      await expect(page.locator('[ln\\:id="counter-b"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-b"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
       // Each has its own state
-      const countA = page.locator('[ln\\:id="counter-a"] [data-count]');
-      const countB = page.locator('[ln\\:id="counter-b"] [data-count]');
+      const countA = page.locator('[luna\\:id="counter-a"] [data-count]');
+      const countB = page.locator('[luna\\:id="counter-b"] [data-count]');
 
       await expect(countA).toHaveText("1");
       await expect(countB).toHaveText("100");
@@ -136,24 +136,24 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     test("components have independent state", async ({ page }) => {
       await page.goto("/loader/multiple");
 
-      await expect(page.locator('[ln\\:id="counter-a"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-a"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
-      const countA = page.locator('[ln\\:id="counter-a"] [data-count]');
-      const countB = page.locator('[ln\\:id="counter-b"] [data-count]');
+      const countA = page.locator('[luna\\:id="counter-a"] [data-count]');
+      const countB = page.locator('[luna\\:id="counter-b"] [data-count]');
 
       // Increment counter A
-      await page.locator('[ln\\:id="counter-a"] [data-inc]').click();
-      await page.locator('[ln\\:id="counter-a"] [data-inc]').click();
+      await page.locator('[luna\\:id="counter-a"] [data-inc]').click();
+      await page.locator('[luna\\:id="counter-a"] [data-inc]').click();
 
       // Counter A should be 3, Counter B should still be 100
       await expect(countA).toHaveText("3");
       await expect(countB).toHaveText("100");
 
       // Decrement counter B
-      await page.locator('[ln\\:id="counter-b"] [data-dec]').click();
+      await page.locator('[luna\\:id="counter-b"] [data-dec]').click();
 
       await expect(countA).toHaveText("3");
       await expect(countB).toHaveText("99");
@@ -166,7 +166,7 @@ test.describe("ln-loader-v1 E2E Tests", () => {
     test("does not auto-hydrate with trigger=none", async ({ page }) => {
       await page.goto("/loader/manual");
 
-      const component = page.locator('[ln\\:id="manual-1"]');
+      const component = page.locator('[luna\\:id="manual-1"]');
       const content = page.locator("[data-content]");
 
       // Wait a bit to ensure no auto-hydration
@@ -176,12 +176,12 @@ test.describe("ln-loader-v1 E2E Tests", () => {
       await expect(content).toHaveText("Should not auto-hydrate");
     });
 
-    test("hydrates when manually triggered via __LN_HYDRATE__", async ({
+    test("hydrates when manually triggered via __LUNA_HYDRATE__", async ({
       page,
     }) => {
       await page.goto("/loader/manual");
 
-      const component = page.locator('[ln\\:id="manual-1"]');
+      const component = page.locator('[luna\\:id="manual-1"]');
       const content = page.locator("[data-content]");
 
       // Not hydrated yet
@@ -197,36 +197,36 @@ test.describe("ln-loader-v1 E2E Tests", () => {
   });
 
   test.describe("Global API", () => {
-    test("exposes __LN_STATE__ on window", async ({ page }) => {
+    test("exposes __LUNA_STATE__ on window", async ({ page }) => {
       await page.goto("/loader/basic");
 
-      await expect(page.locator('[ln\\:id="counter-1"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-1"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
 
       const stateExists = await page.evaluate(() => {
-        return typeof (window as any).__LN_STATE__ === "object";
+        return typeof (window as any).__LUNA_STATE__ === "object";
       });
 
       expect(stateExists).toBe(true);
     });
 
-    test("exposes __LN_HYDRATE__ on window", async ({ page }) => {
+    test("exposes __LUNA_HYDRATE__ on window", async ({ page }) => {
       await page.goto("/loader/basic");
 
       const fnExists = await page.evaluate(() => {
-        return typeof (window as any).__LN_HYDRATE__ === "function";
+        return typeof (window as any).__LUNA_HYDRATE__ === "function";
       });
 
       expect(fnExists).toBe(true);
     });
 
-    test("exposes __LN_SCAN__ on window", async ({ page }) => {
+    test("exposes __LUNA_SCAN__ on window", async ({ page }) => {
       await page.goto("/loader/basic");
 
       const fnExists = await page.evaluate(() => {
-        return typeof (window as any).__LN_SCAN__ === "function";
+        return typeof (window as any).__LUNA_SCAN__ === "function";
       });
 
       expect(fnExists).toBe(true);

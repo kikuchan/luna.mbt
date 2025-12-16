@@ -25,13 +25,13 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/ssr-basic`);
 
       // Verify basic structure
-      const counter = page.locator('[ln\\:id="counter"]');
+      const counter = page.locator('[luna\\:id="counter"]');
       await expect(counter).toBeVisible();
 
-      // Verify ln:* attributes are present
-      await expect(counter).toHaveAttribute("ln:url");
-      await expect(counter).toHaveAttribute("ln:state");
-      await expect(counter).toHaveAttribute("ln:trigger", "load");
+      // Verify luna:* attributes are present
+      await expect(counter).toHaveAttribute("luna:url");
+      await expect(counter).toHaveAttribute("luna:state");
+      await expect(counter).toHaveAttribute("luna:trigger", "load");
     });
 
     test("escapes HTML special characters in text content", async ({
@@ -51,11 +51,11 @@ test.describe("Sol SSR/Hydration E2E", () => {
       expect(xssTriggered).toBe(false);
     });
 
-    test("escapes JSON in ln:state attribute correctly", async ({ page }) => {
+    test("escapes JSON in luna:state attribute correctly", async ({ page }) => {
       await page.goto(`${BASE_URL}/sol-test/ssr-state-escape`);
 
-      const island = page.locator('[ln\\:id="json-test"]');
-      const stateAttr = await island.getAttribute("ln:state");
+      const island = page.locator('[luna\\:id="json-test"]');
+      const stateAttr = await island.getAttribute("luna:state");
 
       // State should be valid JSON after parsing
       expect(() => JSON.parse(stateAttr!)).not.toThrow();
@@ -89,7 +89,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       const ssrHtml = await page.locator("#island-container").innerHTML();
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -113,7 +113,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/hydration-state`);
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -127,7 +127,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/hydration-interactive`);
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -158,7 +158,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
 
       // Wait for hydration
       await expect(
-        page.locator('[ln\\:id="mismatch-text"]')
+        page.locator('[luna\\:id="mismatch-text"]')
       ).toHaveAttribute("data-hydrated", "true", { timeout: 3000 });
 
       // Expect warning about mismatch
@@ -172,7 +172,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/mismatch-element`);
 
       await expect(
-        page.locator('[ln\\:id="mismatch-element"]')
+        page.locator('[luna\\:id="mismatch-element"]')
       ).toHaveAttribute("data-hydrated", "true", { timeout: 3000 });
 
       expect(logs.some((log) => log.includes("mismatch"))).toBe(true);
@@ -185,7 +185,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/mismatch-attr`);
 
       await expect(
-        page.locator('[ln\\:id="mismatch-attr"]')
+        page.locator('[luna\\:id="mismatch-attr"]')
       ).toHaveAttribute("data-hydrated", "true", { timeout: 3000 });
 
       expect(logs.some((log) => log.includes("mismatch"))).toBe(true);
@@ -198,7 +198,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/mismatch-extra-client`);
 
       await expect(
-        page.locator('[ln\\:id="mismatch-extra"]')
+        page.locator('[luna\\:id="mismatch-extra"]')
       ).toHaveAttribute("data-hydrated", "true", { timeout: 3000 });
 
       expect(logs.some((log) => log.includes("mismatch"))).toBe(true);
@@ -211,7 +211,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/mismatch-extra-server`);
 
       await expect(
-        page.locator('[ln\\:id="mismatch-extra-server"]')
+        page.locator('[luna\\:id="mismatch-extra-server"]')
       ).toHaveAttribute("data-hydrated", "true", { timeout: 3000 });
 
       expect(logs.some((log) => log.includes("mismatch"))).toBe(true);
@@ -226,11 +226,11 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/multi-island`);
 
       // Wait for both islands to hydrate
-      await expect(page.locator('[ln\\:id="counter-a"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-a"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
-      await expect(page.locator('[ln\\:id="counter-b"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-b"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -246,11 +246,11 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/multi-island`);
 
       // Wait for hydration
-      await expect(page.locator('[ln\\:id="counter-a"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-a"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
-      await expect(page.locator('[ln\\:id="counter-b"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="counter-b"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -278,7 +278,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/island-failure`);
 
       // Wait for working island to hydrate
-      await expect(page.locator('[ln\\:id="working"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="working"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -303,7 +303,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
     }) => {
       await page.goto(`${BASE_URL}/sol-test/state-types`);
 
-      await expect(page.locator('[ln\\:id="state-test"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="state-test"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -318,7 +318,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
     test("serializes special characters safely", async ({ page }) => {
       await page.goto(`${BASE_URL}/sol-test/state-special-chars`);
 
-      await expect(page.locator('[ln\\:id="special"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="special"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -334,7 +334,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
     test("serializes nested objects correctly", async ({ page }) => {
       await page.goto(`${BASE_URL}/sol-test/state-nested`);
 
-      await expect(page.locator('[ln\\:id="nested"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="nested"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );
@@ -351,12 +351,12 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/state-large`);
 
       // Verify state script exists
-      const stateScript = page.locator('script[type="ln/json"]');
+      const stateScript = page.locator('script[type="luna/json"]');
       await expect(stateScript).toHaveCount(1);
 
-      // Verify ln:state references the script
-      const island = page.locator('[ln\\:id="large-state"]');
-      const stateAttr = await island.getAttribute("ln:state");
+      // Verify luna:state references the script
+      const island = page.locator('[luna\\:id="large-state"]');
+      const stateAttr = await island.getAttribute("luna:state");
       expect(stateAttr).toMatch(/^#/); // Should be a reference like #state-id
 
       // Hydration should still work
@@ -372,7 +372,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/trigger-load`);
 
       // Should hydrate within reasonable time
-      await expect(page.locator('[ln\\:id="load-trigger"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="load-trigger"]')).toHaveAttribute(
         "data-hydrated",
         "true",
         { timeout: 2000 }
@@ -383,7 +383,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/trigger-idle`);
 
       // May take a moment for idle callback
-      await expect(page.locator('[ln\\:id="idle-trigger"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="idle-trigger"]')).toHaveAttribute(
         "data-hydrated",
         "true",
         { timeout: 5000 }
@@ -395,7 +395,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
     }) => {
       await page.goto(`${BASE_URL}/sol-test/trigger-visible`);
 
-      const island = page.locator('[ln\\:id="visible-trigger"]');
+      const island = page.locator('[luna\\:id="visible-trigger"]');
 
       // Should not be hydrated yet (below fold)
       await page.waitForTimeout(500);
@@ -416,7 +416,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.setViewportSize({ width: 800, height: 600 });
       await page.goto(`${BASE_URL}/sol-test/trigger-media`);
 
-      const island = page.locator('[ln\\:id="media-trigger"]');
+      const island = page.locator('[luna\\:id="media-trigger"]');
 
       // Should not be hydrated initially (viewport > 600px)
       await page.waitForTimeout(500);
@@ -480,7 +480,7 @@ test.describe("Sol SSR/Hydration E2E", () => {
       await page.goto(`${BASE_URL}/sol-test/recovery-minor`);
 
       // Component should still work after recovery
-      await expect(page.locator('[ln\\:id="recoverable"]')).toHaveAttribute(
+      await expect(page.locator('[luna\\:id="recoverable"]')).toHaveAttribute(
         "data-hydrated",
         "true"
       );

@@ -1146,8 +1146,8 @@ test "render_vnode_to_dom with Island" {
   container.as_node().appendChild(dom_node) |> ignore
   let inner = get_inner_html(container)
   assert_true(inner.contains("Island child"))
-  assert_true(inner.contains("ln:id"))
-  assert_true(inner.contains("ln:url"))
+  assert_true(inner.contains("luna:id"))
+  assert_true(inner.contains("luna:url"))
 }
 
 ///|

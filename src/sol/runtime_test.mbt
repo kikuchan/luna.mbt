@@ -150,8 +150,8 @@ test "render_island: with ssr_html" {
     "<div>SSR Content</div>",
   )
   let html = render_island(config)
-  assert_true(html.contains("ln:id=\"test-island\""))
-  assert_true(html.contains("ln:url=\"/test.js\""))
+  assert_true(html.contains("luna:id=\"test-island\""))
+  assert_true(html.contains("luna:url=\"/test.js\""))
   assert_true(html.contains("SSR Content"))
 }
 
@@ -161,7 +161,7 @@ test "render_island: with state" {
     .with_state("{\"count\":0}")
     .with_ssr_html("<span>0</span>")
   let html = render_island(config)
-  assert_true(html.contains("ln:state"))
+  assert_true(html.contains("luna:state"))
   assert_true(html.contains("count"))
 }
 
@@ -171,7 +171,7 @@ test "render_island: with trigger" {
     .with_trigger(@mercurius.TriggerType::Visible)
     .with_ssr_html("<div>Lazy</div>")
   let html = render_island(config)
-  assert_true(html.contains("ln:trigger=\"visible\""))
+  assert_true(html.contains("luna:trigger=\"visible\""))
 }
 
 // =============================================================================

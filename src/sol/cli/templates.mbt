@@ -504,7 +504,7 @@ pub fn template_ln_loader_js() -> String {
     #|  const loaded = new Set();
     #|
     #|  const parseState = async (el) => {
-    #|    const attr = el.getAttribute('ln:state');
+    #|    const attr = el.getAttribute('luna:state');
     #|    if (!attr) return null;
     #|    if (attr.startsWith('#')) {
     #|      const script = d.getElementById(attr.slice(1));
@@ -514,25 +514,25 @@ pub fn template_ln_loader_js() -> String {
     #|  };
     #|
     #|  const hydrate = async (el) => {
-    #|    const id = el.getAttribute('ln:id');
+    #|    const id = el.getAttribute('luna:id');
     #|    if (!id || loaded.has(id)) return;
     #|    loaded.add(id);
-    #|    const url = el.getAttribute('ln:url');
+    #|    const url = el.getAttribute('luna:url');
     #|    if (!url) return;
     #|    const state = await parseState(el);
     #|    S[id] = state;
     #|    try {
     #|      const mod = await import(url);
-    #|      const exportName = el.getAttribute('ln:export');
+    #|      const exportName = el.getAttribute('luna:export');
     #|      const fn = exportName ? mod[exportName] : (mod.hydrate || mod.default);
     #|      if (fn) fn(el, state, id);
     #|    } catch (e) {
-    #|      console.error(`[ln-loader] Failed to hydrate ${id}:`, e);
+    #|      console.error(`[luna-loader] Failed to hydrate ${id}:`, e);
     #|    }
     #|  };
     #|
     #|  const setupTrigger = (el) => {
-    #|    const trigger = el.getAttribute('ln:trigger') || 'load';
+    #|    const trigger = el.getAttribute('luna:trigger') || 'load';
     #|    if (trigger === 'load') {
     #|      if (d.readyState === 'loading') {
     #|        d.addEventListener('DOMContentLoaded', () => hydrate(el), { once: true });
@@ -555,19 +555,19 @@ pub fn template_ln_loader_js() -> String {
     #|
     #|  const scan = () => { d.querySelectorAll('[ln\\:id]').forEach(setupTrigger); };
     #|
-    #|  d.querySelectorAll('script[type="ln/json"]').forEach(s => { if (s.id) S[s.id] = JSON.parse(s.textContent); });
+    #|  d.querySelectorAll('script[type="luna/json"]').forEach(s => { if (s.id) S[s.id] = JSON.parse(s.textContent); });
     #|
     #|  if (d.readyState === 'loading') { d.addEventListener('DOMContentLoaded', scan, { once: true }); }
     #|  else { scan(); }
     #|
     #|  const mo = new MutationObserver((mutations) => {
-    #|    mutations.forEach(m => { m.addedNodes.forEach(node => { if (node.nodeType === 1 && node.hasAttribute('ln:id')) setupTrigger(node); }); });
+    #|    mutations.forEach(m => { m.addedNodes.forEach(node => { if (node.nodeType === 1 && node.hasAttribute('luna:id')) setupTrigger(node); }); });
     #|  });
     #|  mo.observe(d.body || d.documentElement, { childList: true, subtree: true });
     #|
-    #|  w.__LN_STATE__ = S;
-    #|  w.__LN_HYDRATE__ = hydrate;
-    #|  w.__LN_SCAN__ = scan;
+    #|  w.__LUNA_STATE__ = S;
+    #|  w.__LUNA_HYDRATE__ = hydrate;
+    #|  w.__LUNA_SCAN__ = scan;
     #|})(document, window);
   )
 }

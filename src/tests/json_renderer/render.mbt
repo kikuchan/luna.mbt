@@ -44,12 +44,12 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
     }
     @luna.Component(render~) => render_to_json(render())
     @luna.Island(island) => {
-      // Render Island as an element with ln:* attributes
+      // Render Island as an element with luna:* attributes
       let attrs : Map[String, JsonAttrValue] = {}
-      attrs.set("ln:id", Static(island.id))
-      attrs.set("ln:url", Static(island.url))
-      attrs.set("ln:state", Static(island.state))
-      attrs.set("ln:trigger", Static(@luna.trigger_to_string(island.trigger)))
+      attrs.set("luna:id", Static(island.id))
+      attrs.set("luna:url", Static(island.url))
+      attrs.set("luna:state", Static(island.state))
+      attrs.set("luna:trigger", Static(@luna.trigger_to_string(island.trigger)))
       let children : Array[JsonNode] = []
       for child in island.children {
         children.push(render_to_json(child))

@@ -20,7 +20,7 @@ pub struct IslandContext {
   element : @js_dom.Element
   /// Component ID
   id : String
-  /// Parsed state from ln:state attribute
+  /// Parsed state from luna:state attribute
   priv state_json : String
 }
 

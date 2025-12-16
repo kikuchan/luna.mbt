@@ -32,7 +32,7 @@ test "escape_json_for_html - escapes uppercase Script tag" {
 test "generate_state_script - generates script element" {
   let result = @mercurius.generate_state_script("my-state", "{\"count\":42}")
   assert_true(result.has_prefix("<script id=\"my-state\""))
-  assert_true(result.contains("type=\"ln/json\""))
+  assert_true(result.contains("type=\"luna/json\""))
   assert_true(result.contains("{\"count\":42}"))
   assert_true(result.has_suffix("</script>"))
 }
@@ -118,10 +118,10 @@ test "format_state_attr - empty returns None" {
 test "generate_shard - minimal config" {
   let config = @mercurius.ShardConfig::new("counter-1", "./counter.js")
   let output = @mercurius.generate_shard(config)
-  assert_true(output.html.contains("ln:id=\"counter-1\""))
-  assert_true(output.html.contains("ln:url=\"./counter.js\""))
+  assert_true(output.html.contains("luna:id=\"counter-1\""))
+  assert_true(output.html.contains("luna:url=\"./counter.js\""))
   // load is default, should not be included
-  assert_true(not(output.html.contains("ln:trigger")))
+  assert_true(not(output.html.contains("luna:trigger")))
 }
 
 ///|
@@ -130,7 +130,7 @@ test "generate_shard - with visible trigger" {
     @mercurius.TriggerType::Visible,
   )
   let output = @mercurius.generate_shard(config)
-  assert_true(output.html.contains("ln:trigger=\"visible\""))
+  assert_true(output.html.contains("luna:trigger=\"visible\""))
 }
 
 ///|
@@ -140,7 +140,7 @@ test "generate_shard - with inline state" {
   )
   let output = @mercurius.generate_shard(config)
   // State is HTML-escaped for attribute safety
-  assert_true(output.html.contains("ln:state=\"{&quot;count&quot;:0}\""))
+  assert_true(output.html.contains("luna:state=\"{&quot;count&quot;:0}\""))
 }
 
 ///|
@@ -192,10 +192,10 @@ test "generate_shard_with_state_script - creates script and reference" {
     config, "{\"data\":[1,2,3]}",
   )
   // Should have script reference in attributes
-  assert_true(output.html.contains("ln:state=\"#ln-state-big-1\""))
+  assert_true(output.html.contains("luna:state=\"#luna-state-big-1\""))
   // Should have state script element
-  assert_true(output.html.contains("<script id=\"ln-state-big-1\""))
-  assert_true(output.html.contains("type=\"ln/json\""))
+  assert_true(output.html.contains("<script id=\"luna-state-big-1\""))
+  assert_true(output.html.contains("type=\"luna/json\""))
   assert_true(output.state_scripts.length() == 1)
 }
 
@@ -204,11 +204,11 @@ test "generate_minimal_shard - creates minimal HTML" {
   let html = @mercurius.generate_minimal_shard(
     "min-1", "./min.js", "{\"x\":1}", "<span>Content</span>",
   )
-  assert_true(html.contains("ln:id=\"min-1\""))
-  assert_true(html.contains("ln:url=\"./min.js\""))
+  assert_true(html.contains("luna:id=\"min-1\""))
+  assert_true(html.contains("luna:url=\"./min.js\""))
   assert_true(html.contains("<span>Content</span>"))
   // Should not have trigger (default load is omitted)
-  assert_true(not(html.contains("ln:trigger")))
+  assert_true(not(html.contains("luna:trigger")))
   // Should not have loader script
   assert_true(not(html.contains("<script type=\"module\"")))
 }
@@ -224,7 +224,7 @@ test "generate_standalone_shard - includes loader" {
       "<script type=\"module\" src=\"https://cdn.example.com/loader.js\">",
     ),
   )
-  assert_true(html.contains("ln:id=\"standalone-1\""))
+  assert_true(html.contains("luna:id=\"standalone-1\""))
   assert_true(html.contains("<div>SSR</div>"))
 }
 
@@ -233,7 +233,7 @@ test "generate_lazy_shard - uses visible trigger" {
   let html = @mercurius.generate_lazy_shard(
     "lazy-1", "./lazy.js", "{\"z\":3}", "<p>Lazy</p>",
   )
-  assert_true(html.contains("ln:trigger=\"visible\""))
+  assert_true(html.contains("luna:trigger=\"visible\""))
   assert_true(html.contains("<p>Lazy</p>"))
 }
 
@@ -253,8 +253,8 @@ test "generate_shard_group - single loader for multiple shards" {
     ),
   )
   // Should have both shards
-  assert_true(html.contains("ln:id=\"s1\""))
-  assert_true(html.contains("ln:id=\"s2\""))
+  assert_true(html.contains("luna:id=\"s1\""))
+  assert_true(html.contains("luna:id=\"s2\""))
 }
 
 ///|
@@ -281,7 +281,7 @@ test "auto_select_state_format - medium state uses script ref" {
   let medium_json = sb.to_string()
   let config = @mercurius.auto_select_state_format(medium_json, base)
   match config.state {
-    ScriptRef(id) => assert_eq(id, "ln-state-test-2")
+    ScriptRef(id) => assert_eq(id, "luna-state-test-2")
     _ => fail("Expected ScriptRef for medium state")
   }
 }
@@ -292,5 +292,5 @@ test "generate_shard - with media trigger" {
     @mercurius.TriggerType::Media("(min-width: 768px)"),
   )
   let output = @mercurius.generate_shard(config)
-  assert_true(output.html.contains("ln:trigger=\"media:(min-width: 768px)\""))
+  assert_true(output.html.contains("luna:trigger=\"media:(min-width: 768px)\""))
 }

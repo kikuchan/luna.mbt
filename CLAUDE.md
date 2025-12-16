@@ -44,7 +44,7 @@ e2e/                           # Playwrightテスト
 |------|------|
 | Signal | リアクティブな値コンテナ。get/set/updateで操作 |
 | VNode | 仮想DOMノード。Element/Text/Fragment等のバリアント |
-| Shard | Island埋め込み可能なHTML断片。ln:*属性付き |
+| Shard | Island埋め込み可能なHTML断片。luna:*属性付き |
 
 ### 処理フェーズ
 | 用語 | 説明 |
@@ -62,11 +62,16 @@ e2e/                           # Playwrightテスト
 
 ## 命名規約
 
-### HTML属性 (ln:*)
-- `ln:id` - コンポーネントID
-- `ln:url` - Hydration用モジュールURL
-- `ln:trigger` - Hydrationトリガー (load, idle, visible, media)
-- `ln:state` - シリアライズされた状態JSON
+### HTML属性 (luna:*)
+- `luna:id` - コンポーネントID
+- `luna:url` - Hydration用モジュールURL
+- `luna:trigger` - Hydrationトリガー (load, idle, visible, media)
+- `luna:state` - シリアライズされた状態JSON
+
+### Web Components属性 (luna:wc-*)
+- `luna:wc-url` - Web Component Hydration用モジュールURL
+- `luna:wc-state` - シリアライズされた状態JSON
+- `luna:wc-trigger` - Hydrationトリガー (load, idle, visible, media)
 
 ### MoonBit名前空間
 - `mizchi/luna` - コアパッケージ
@@ -150,7 +155,7 @@ just metrics-trend         # トレンドグラフ表示
 ## 開発ポリシー
 
 ### パフォーマンス要件
-- **ln-loader-v1.js**: < 5KB（現在 ~4.2KB）
+- **luna-loader-v1.js**: < 5KB（現在 ~4.2KB）
 - **loader.min.js**: < 1KB（現在 ~933B）
 - Hydration は非同期で実行し、メインスレッドをブロックしない
 - 不要なリフローを避ける
@@ -162,7 +167,7 @@ just metrics-trend         # トレンドグラフ表示
 
 ### セキュリティ
 - XSSエスケープは `src/mercurius/serializer.mbt` で処理
-- ln:state に含まれるJSONは必ずエスケープ
+- luna:state に含まれるJSONは必ずエスケープ
 - `</script>` インジェクション対策済み
 
 ### コード品質
@@ -190,7 +195,7 @@ PRマージ前に以下を確認：
 | `idle` | requestIdleCallback時 |
 | `visible` | IntersectionObserver検知時 |
 | `media` | メディアクエリマッチ時 |
-| `none` | 手動トリガー（__LN_HYDRATE__経由） |
+| `none` | 手動トリガー（__LUNA_HYDRATE__経由） |
 
 ## テストポリシー
 

@@ -16,14 +16,14 @@ test.describe("Sol App E2E", () => {
     test("renders counter island with correct attributes", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      const counter = page.locator('[ln\\:id="counter"]');
+      const counter = page.locator('[luna\\:id="counter"]');
       await expect(counter).toBeVisible();
 
       // Verify hydration attributes
-      const url = await counter.getAttribute("ln:url");
+      const url = await counter.getAttribute("luna:url");
       expect(url).toBe("/static/hydrate_counter.js");
 
-      const state = await counter.getAttribute("ln:state");
+      const state = await counter.getAttribute("luna:state");
       expect(state).toContain("count");
     });
 
@@ -42,10 +42,10 @@ test.describe("Sol App E2E", () => {
 
       // Manually hydrate if loader didn't run
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("ln:state") || "{}");
+          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
           const fn = mod.hydrate_counter || mod.hydrate || mod.default;
           if (fn) fn(counterEl, state, "counter");
         }
@@ -72,10 +72,10 @@ test.describe("Sol App E2E", () => {
 
       // Manually hydrate
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("ln:state") || "{}");
+          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
           const fn = mod.hydrate_counter || mod.hydrate || mod.default;
           if (fn) fn(counterEl, state, "counter");
         }
@@ -98,10 +98,10 @@ test.describe("Sol App E2E", () => {
 
       // Manually hydrate
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("ln:state") || "{}");
+          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
           const fn = mod.hydrate_counter || mod.hydrate || mod.default;
           if (fn) fn(counterEl, state, "counter");
         }

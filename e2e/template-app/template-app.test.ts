@@ -22,19 +22,19 @@ test.describe("Template App E2E Tests", () => {
       await expect(page.locator(".count-display")).toBeVisible();
     });
 
-    test("counter has correct ln:* attributes for hydration", async ({
+    test("counter has correct luna:* attributes for hydration", async ({
       page,
     }) => {
       await page.goto(BASE_URL);
 
-      const counter = page.locator('[ln\\:id="counter"]');
+      const counter = page.locator('[luna\\:id="counter"]');
       await expect(counter).toBeVisible();
 
       // Verify hydration attributes
-      const url = await counter.getAttribute("ln:url");
+      const url = await counter.getAttribute("luna:url");
       expect(url).toBe("/static/counter.js");
 
-      const state = await counter.getAttribute("ln:state");
+      const state = await counter.getAttribute("luna:state");
       expect(state).toContain('"count"');
     });
 
@@ -66,12 +66,12 @@ test.describe("Template App E2E Tests", () => {
 
       // Check hydration status and directly invoke hydrate from module
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (!counterEl) return;
         try {
           const mod = await import('/static/counter.js');
           if (mod.hydrate) {
-            const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
+            const state = JSON.parse(counterEl.getAttribute('luna:state') || '{}');
             mod.hydrate(counterEl, state, 'counter');
           }
         } catch (e) {
@@ -105,10 +105,10 @@ test.describe("Template App E2E Tests", () => {
 
       // Manually trigger hydration (since ln-loader may not be present)
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
-          const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
+          const state = JSON.parse(counterEl.getAttribute('luna:state') || '{}');
           mod.hydrate(counterEl, state, 'counter');
         }
       });
@@ -131,10 +131,10 @@ test.describe("Template App E2E Tests", () => {
 
       // Manually trigger hydration (since ln-loader may not be present)
       await page.evaluate(async () => {
-        const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
+        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
         if (counterEl) {
           const mod = await import('/static/counter.js');
-          const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
+          const state = JSON.parse(counterEl.getAttribute('luna:state') || '{}');
           mod.hydrate(counterEl, state, 'counter');
         }
       });

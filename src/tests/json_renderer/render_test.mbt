@@ -328,20 +328,20 @@ test "render island node" {
   match json {
     Element(elem) => {
       assert_eq(elem.tag, "div")
-      // Check ln:* attributes
-      match elem.attrs.get("ln:id") {
+      // Check luna:* attributes
+      match elem.attrs.get("luna:id") {
         Some(Static(v)) => assert_eq(v, "island-1")
         _ => assert_true(false)
       }
-      match elem.attrs.get("ln:url") {
+      match elem.attrs.get("luna:url") {
         Some(Static(v)) => assert_eq(v, "/components/counter.js")
         _ => assert_true(false)
       }
-      match elem.attrs.get("ln:state") {
+      match elem.attrs.get("luna:state") {
         Some(Static(v)) => assert_eq(v, "{\"count\":5}")
         _ => assert_true(false)
       }
-      match elem.attrs.get("ln:trigger") {
+      match elem.attrs.get("luna:trigger") {
         Some(Static(v)) => assert_eq(v, "load")
         _ => assert_true(false)
       }
@@ -364,7 +364,7 @@ test "render island with idle trigger" {
   let json = render_to_json(node)
   match json {
     Element(elem) =>
-      match elem.attrs.get("ln:trigger") {
+      match elem.attrs.get("luna:trigger") {
         Some(Static(v)) => assert_eq(v, "idle")
         _ => assert_true(false)
       }

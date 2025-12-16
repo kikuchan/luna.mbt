@@ -114,8 +114,8 @@ test "render island" {
     children=[@element.text("Loading...")],
   )
   let html = render(node)
-  assert_true(html.contains("ln:id=\"counter\""))
-  assert_true(html.contains("ln:url=\"/components/counter.js\""))
+  assert_true(html.contains("luna:id=\"counter\""))
+  assert_true(html.contains("luna:url=\"/components/counter.js\""))
   assert_true(html.contains("Loading..."))
 }
 
@@ -125,7 +125,7 @@ test "render island with visible trigger" {
     @element.text("Lazy content"),
   ])
   let html = render(node)
-  assert_true(html.contains("ln:trigger=\"visible\""))
+  assert_true(html.contains("luna:trigger=\"visible\""))
 }
 
 ///|

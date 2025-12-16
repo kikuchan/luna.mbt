@@ -739,11 +739,11 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       // For client-side rendering, create a wrapper div with island attributes
       // and render children inside
       let wrapper = doc.createElement("div")
-      wrapper.setAttribute("ln:id", island.id)
-      wrapper.setAttribute("ln:url", island.url)
-      wrapper.setAttribute("ln:state", island.state)
+      wrapper.setAttribute("luna:id", island.id)
+      wrapper.setAttribute("luna:url", island.url)
+      wrapper.setAttribute("luna:state", island.state)
       wrapper.setAttribute(
-        "ln:trigger",
+        "luna:trigger",
         @luna.trigger_to_string(island.trigger),
       )
       for child in island.children {

@@ -132,7 +132,7 @@ async fn create_loader_app() -> @sol.App {
       .with_state("{\"message\":\"Manually triggered\"}")
       .with_ssr_html("<div data-content>Should not auto-hydrate</div>")
     let island : String = @sol.render_island(config)
-    let trigger_button = "<button id=\"trigger-btn\" onclick=\"window.__LN_HYDRATE__(document.querySelector('[ln\\\\:id=manual-1]'))\">Trigger Hydration</button>"
+    let trigger_button = "<button id=\"trigger-btn\" onclick=\"window.__LUNA_HYDRATE__(document.querySelector('[luna\\\\:id=manual-1]'))\">Trigger Hydration</button>"
     let html = @sol.render_island_page(
       [island, trigger_button],
       title="Manual Trigger Test",

@@ -23,25 +23,25 @@ pub fn generate_shard(config : ShardConfig) -> ShardOutput {
   // Note: actual script generation is done by generate_shard_with_state_script
 
   // 3. Main container div
-  sb.write_string("<div ln:id=\"")
+  sb.write_string("<div luna:id=\"")
   sb.write_string(config.id)
   sb.write_char('"')
 
-  // ln:url attribute
-  sb.write_string(" ln:url=\"")
+  // luna:url attribute
+  sb.write_string(" luna:url=\"")
   sb.write_string(config.script_url)
   sb.write_char('"')
 
-  // ln:trigger attribute (only if not default)
+  // luna:trigger attribute (only if not default)
   if not(config.trigger is Load) {
-    sb.write_string(" ln:trigger=\"")
+    sb.write_string(" luna:trigger=\"")
     sb.write_string(config.trigger.to_string())
     sb.write_char('"')
   }
 
-  // ln:state attribute
+  // luna:state attribute
   if format_state_attr(config.state) is Some(state_value) {
-    sb.write_string(" ln:state=\"")
+    sb.write_string(" luna:state=\"")
     sb.write_string(state_value)
     sb.write_char('"')
   }
@@ -64,7 +64,7 @@ pub fn generate_shard_with_state_script(
   config : ShardConfig,
   state_json : String,
 ) -> ShardOutput {
-  let state_script_id = "ln-state-" + config.id
+  let state_script_id = "luna-state-" + config.id
   let state_script = generate_state_script(state_script_id, state_json)
 
   // Update config to use script reference
@@ -158,12 +158,12 @@ pub fn auto_select_state_format(
     { ..base_config, state: Inline(json) }
   } else if size < 102400 {
     // Medium: script reference (caller should also call generate_state_script)
-    let script_id = "ln-state-" + base_config.id
+    let script_id = "luna-state-" + base_config.id
     { ..base_config, state: ScriptRef(script_id) }
   } else {
     // Large: would need URL, but we can't generate that here
     // Default to script reference with a warning
-    let script_id = "ln-state-" + base_config.id
+    let script_id = "luna-state-" + base_config.id
     { ..base_config, state: ScriptRef(script_id) }
   }
 }

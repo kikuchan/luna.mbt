@@ -49,10 +49,10 @@ pub(all) enum IslandTrigger {
 ///|
 /// Virtual Island node - serializable hydration unit
 pub struct VIsland[E] {
-  id : String // Unique identifier (ln:id)
-  url : String // Script URL for loading implementation (ln:url)
-  state : String // Serialized state JSON (ln:state)
-  trigger : IslandTrigger // Hydration trigger (ln:trigger)
+  id : String // Unique identifier (luna:id)
+  url : String // Script URL for loading implementation (luna:url)
+  state : String // Serialized state JSON (luna:state)
+  trigger : IslandTrigger // Hydration trigger (luna:trigger)
   children : Array[Node[E]] // SSR-rendered content (can contain nested Islands)
 }
 
@@ -61,7 +61,7 @@ pub struct VIsland[E] {
 /// Uses Declarative Shadow DOM for SSR and DOM Parts for partial updates
 pub struct VWcIsland[E] {
   name : String // Custom element name (e.g., "wc-counter")
-  url : String // Hydration script URL (data-wc-url)
+  url : String // Hydration script URL (luna:wc-url)
   styles : String // CSS for Shadow DOM
   state : String // Serialized state JSON
   trigger : IslandTrigger // Hydration trigger
@@ -78,7 +78,7 @@ pub enum Node[E] {
   Show(condition~ : () -> Bool, child~ : () -> Node[E])
   For(render~ : () -> Array[Node[E]])
   Component(render~ : () -> Node[E])
-  Island(VIsland[E]) // Hydration boundary for partial hydration (ln:* style)
+  Island(VIsland[E]) // Hydration boundary for partial hydration (luna:* style)
   WcIsland(VWcIsland[E]) // Web Components based hydration (Declarative Shadow DOM)
   /// Async node - renders content asynchronously with fallback
   /// - render: async function that may raise errors

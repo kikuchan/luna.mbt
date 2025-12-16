@@ -109,7 +109,7 @@ fn render_island_to_stream(
   let write = writer.0
   // Start comment marker
   write(
-    "<!--ln:island:" +
+    "<!--luna:island:" +
     island.id +
     " url=" +
     island.url +
@@ -117,15 +117,15 @@ fn render_island_to_stream(
     @luna.trigger_to_string(island.trigger) +
     "-->",
   )
-  // Wrapper div with ln:* attributes
+  // Wrapper div with luna:* attributes
   let sb = StringBuilder::new()
-  sb.write_string("<div ln:id=\"")
+  sb.write_string("<div luna:id=\"")
   sb.write_string(island.id)
-  sb.write_string("\" ln:url=\"")
+  sb.write_string("\" luna:url=\"")
   sb.write_string(island.url)
-  sb.write_string("\" ln:state=\"")
+  sb.write_string("\" luna:state=\"")
   @render.escape_attr_to(sb, island.state)
-  sb.write_string("\" ln:trigger=\"")
+  sb.write_string("\" luna:trigger=\"")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
   write(sb.to_string())
@@ -135,7 +135,7 @@ fn render_island_to_stream(
   }
   write("</div>")
   // End comment marker
-  write("<!--/ln:island:" + island.id + "-->")
+  write("<!--/luna:island:" + island.id + "-->")
 }
 
 ///|

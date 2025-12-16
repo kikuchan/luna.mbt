@@ -176,7 +176,7 @@ fn about_component(_router : @router.BrowserRouter) -> @dom.DomNode {
     p([text("This app demonstrates the new routing architecture:")]),
     ul([
       li([text("ServerComponent: async data fetching on server")]),
-      li([text("ClientComponent (Island): Hydration with ln:url")]),
+      li([text("ClientComponent (Island): Hydration with luna:url")]),
       li([text("Layout: shared wrapper for nested routes")]),
     ]),
   ])

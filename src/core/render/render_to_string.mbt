@@ -141,20 +141,20 @@ fn[E] render_island_open_to(
   sb : StringBuilder,
   island : @luna.VIsland[E],
 ) -> Unit {
-  sb.write_string("<!--ln:island:")
+  sb.write_string("<!--luna:island:")
   sb.write_string(island.id)
   sb.write_string(" url=")
   sb.write_string(island.url)
   sb.write_string(" trigger=")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("-->")
-  sb.write_string("<div ln:id=\"")
+  sb.write_string("<div luna:id=\"")
   sb.write_string(island.id)
-  sb.write_string("\" ln:url=\"")
+  sb.write_string("\" luna:url=\"")
   sb.write_string(island.url)
-  sb.write_string("\" ln:state=\"")
+  sb.write_string("\" luna:state=\"")
   escape_attr_to(sb, island.state)
-  sb.write_string("\" ln:trigger=\"")
+  sb.write_string("\" luna:trigger=\"")
   sb.write_string(@luna.trigger_to_string(island.trigger))
   sb.write_string("\">")
 }
@@ -166,7 +166,7 @@ fn[E] render_island_close_to(
   island : @luna.VIsland[E],
 ) -> Unit {
   sb.write_string("</div>")
-  sb.write_string("<!--/ln:island:")
+  sb.write_string("<!--/luna:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
 }
@@ -178,23 +178,23 @@ fn[E] render_island_close_to(
 ///|
 /// Render WcIsland node with Declarative Shadow DOM
 fn[E] render_wc_island_to(sb : StringBuilder, island : @luna.VWcIsland[E]) -> Unit {
-  // <wc-counter data-wc-url="..." data-state="..." data-trigger="load">
+  // <wc-counter luna:wc-url="..." luna:wc-state="..." luna:wc-trigger="load">
   sb.write_char('<')
   sb.write_string(island.name)
 
   // Hydration script URL
-  sb.write_string(" data-wc-url=\"")
+  sb.write_string(" luna:wc-url=\"")
   escape_attr_to(sb, island.url)
   sb.write_char('"')
 
   // State JSON
-  sb.write_string(" data-state=\"")
+  sb.write_string(" luna:wc-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
 
   // Only add trigger attribute if not default (load)
   if not(island.trigger is Load) {
-    sb.write_string(" data-trigger=\"")
+    sb.write_string(" luna:wc-trigger=\"")
     sb.write_string(@luna.trigger_to_string(island.trigger))
     sb.write_char('"')
   }
@@ -233,22 +233,22 @@ fn[E] render_wc_island_and_collect_urls(
     urls.push(island.url)
   }
 
-  // <wc-counter data-wc-url="..." data-state="..." data-trigger="load">
+  // <wc-counter luna:wc-url="..." luna:wc-state="..." luna:wc-trigger="load">
   sb.write_char('<')
   sb.write_string(island.name)
 
   // Hydration script URL
-  sb.write_string(" data-wc-url=\"")
+  sb.write_string(" luna:wc-url=\"")
   escape_attr_to(sb, island.url)
   sb.write_char('"')
 
   // State JSON
-  sb.write_string(" data-state=\"")
+  sb.write_string(" luna:wc-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
 
   if not(island.trigger is Load) {
-    sb.write_string(" data-trigger=\"")
+    sb.write_string(" luna:wc-trigger=\"")
     sb.write_string(@luna.trigger_to_string(island.trigger))
     sb.write_char('"')
   }
@@ -290,17 +290,17 @@ fn[E] render_wc_island_with_id_to(
   sb.write_string(island.name)
 
   // Hydration script URL
-  sb.write_string(" data-wc-url=\"")
+  sb.write_string(" luna:wc-url=\"")
   escape_attr_to(sb, island.url)
   sb.write_char('"')
 
   // State JSON
-  sb.write_string(" data-state=\"")
+  sb.write_string(" luna:wc-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
 
   if not(island.trigger is Load) {
-    sb.write_string(" data-trigger=\"")
+    sb.write_string(" luna:wc-trigger=\"")
     sb.write_string(@luna.trigger_to_string(island.trigger))
     sb.write_char('"')
   }
@@ -448,7 +448,7 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
 }
 
 ///|
-/// Render Island node with ln:* attributes for hydration
+/// Render Island node with luna:* attributes for hydration
 fn[E] render_island_to(sb : StringBuilder, island : @luna.VIsland[E]) -> Unit {
   render_island_open_to(sb, island)
   for child in island.children {
@@ -593,7 +593,7 @@ fn[E] render_with_id_to(
 }
 
 ///|
-/// Render Island node with ln:* attributes and hydration markers
+/// Render Island node with luna:* attributes and hydration markers
 fn[E] render_island_with_id_to(
   sb : StringBuilder,
   island : @luna.VIsland[E],

@@ -93,7 +93,7 @@ pub fn escape_json_for_attr(json : String) -> String {
 }
 
 ///|
-/// Format state for ln:state attribute
+/// Format state for luna:state attribute
 /// Returns the attribute value based on StateConfig
 pub fn format_state_attr(state : StateConfig) -> String? {
   match state {
@@ -105,14 +105,14 @@ pub fn format_state_attr(state : StateConfig) -> String? {
 }
 
 ///|
-/// Generate a <script type="ln/json"> element for state
+/// Generate a <script type="luna/json"> element for state
 /// Used when state is too large for inline attribute
 pub fn generate_state_script(id : String, json : String) -> String {
   let escaped = escape_json_for_html(json)
   let sb = StringBuilder::new(size_hint=escaped.length() + 64)
   sb.write_string("<script id=\"")
   sb.write_string(id)
-  sb.write_string("\" type=\"ln/json\">")
+  sb.write_string("\" type=\"luna/json\">")
   sb.write_string(escaped)
   sb.write_string("</script>")
   sb.to_string()

@@ -288,11 +288,11 @@ const browserTestPage = (
 <body>
   <h1>${title}</h1>
   <div id="app"
-       ln:id="${componentId}"
-       ln:url="/components/browser-components.js"
-       ln:export="${hydrateFn}"
-       ln:trigger="load"
-       ln:state='${JSON.stringify(state).replace(/'/g, "&#39;")}'>${ssrHtml}</div>
+       luna:id="${componentId}"
+       luna:url="/components/browser-components.js"
+       luna:export="${hydrateFn}"
+       luna:trigger="load"
+       luna:state='${JSON.stringify(state).replace(/'/g, "&#39;")}'>${ssrHtml}</div>
 </body>
 </html>`;
 
@@ -652,13 +652,13 @@ const islandTestPage = (title: string, body: string) => `<!DOCTYPE html>
 app.get("/island-node/basic-ssr", (c) => {
   // Simulate what @luna.visland() + @ssr.render_to_string() would produce
   const html = islandTestPage("Island Node Basic SSR", `
-    <!--ln:island:counter-1 url=/components/counter.js trigger=load-->
-    <div ln:id="counter-1" ln:url="/components/counter.js" ln:state="{&quot;count&quot;:5}" ln:trigger="load">
+    <!--luna:island:counter-1 url=/components/counter.js trigger=load-->
+    <div luna:id="counter-1" luna:url="/components/counter.js" luna:state="{&quot;count&quot;:5}" luna:trigger="load">
       <span data-count>5</span>
       <button data-inc>+1</button>
       <button data-dec>-1</button>
     </div>
-    <!--/ln:island:counter-1-->
+    <!--/luna:island:counter-1-->
   `);
   return c.html(html);
 });
@@ -667,28 +667,28 @@ app.get("/island-node/basic-ssr", (c) => {
 app.get("/island-node/triggers", (c) => {
   const html = islandTestPage("Island Node Triggers", `
     <h2>Load Trigger (immediate)</h2>
-    <!--ln:island:load-1 url=/components/lazy.js trigger=load-->
-    <div ln:id="load-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Load trigger&quot;}" ln:trigger="load">
+    <!--luna:island:load-1 url=/components/lazy.js trigger=load-->
+    <div luna:id="load-1" luna:url="/components/lazy.js" luna:state="{&quot;message&quot;:&quot;Load trigger&quot;}" luna:trigger="load">
       <div data-content>Load trigger</div>
     </div>
-    <!--/ln:island:load-1-->
+    <!--/luna:island:load-1-->
 
     <h2>Idle Trigger</h2>
-    <!--ln:island:idle-1 url=/components/lazy.js trigger=idle-->
-    <div ln:id="idle-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Idle trigger&quot;}" ln:trigger="idle">
+    <!--luna:island:idle-1 url=/components/lazy.js trigger=idle-->
+    <div luna:id="idle-1" luna:url="/components/lazy.js" luna:state="{&quot;message&quot;:&quot;Idle trigger&quot;}" luna:trigger="idle">
       <div data-content>Idle trigger</div>
     </div>
-    <!--/ln:island:idle-1-->
+    <!--/luna:island:idle-1-->
 
     <h2>Visible Trigger (scroll down)</h2>
     <div style="height: 150vh; background: linear-gradient(#eee, #ccc); display: flex; align-items: center; justify-content: center;">
       Scroll down to see visible trigger
     </div>
-    <!--ln:island:visible-1 url=/components/lazy.js trigger=visible-->
-    <div ln:id="visible-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Visible trigger&quot;}" ln:trigger="visible">
+    <!--luna:island:visible-1 url=/components/lazy.js trigger=visible-->
+    <div luna:id="visible-1" luna:url="/components/lazy.js" luna:state="{&quot;message&quot;:&quot;Visible trigger&quot;}" luna:trigger="visible">
       <div data-content>Visible trigger</div>
     </div>
-    <!--/ln:island:visible-1-->
+    <!--/luna:island:visible-1-->
   `);
   return c.html(html);
 });
@@ -696,22 +696,22 @@ app.get("/island-node/triggers", (c) => {
 // Test: Nested Islands
 app.get("/island-node/nested", (c) => {
   const html = islandTestPage("Nested Islands", `
-    <!--ln:island:outer-1 url=/components/counter.js trigger=load-->
-    <div ln:id="outer-1" ln:url="/components/counter.js" ln:state="{&quot;count&quot;:10}" ln:trigger="load">
+    <!--luna:island:outer-1 url=/components/counter.js trigger=load-->
+    <div luna:id="outer-1" luna:url="/components/counter.js" luna:state="{&quot;count&quot;:10}" luna:trigger="load">
       <h2>Outer Island</h2>
       <span data-count>10</span>
       <button data-inc>+1</button>
       <button data-dec>-1</button>
       <div style="margin-left: 20px; padding: 10px; border-left: 2px solid #ccc;">
-        <!--ln:island:inner-1 url=/components/lazy.js trigger=load-->
-        <div ln:id="inner-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;Inner island content&quot;}" ln:trigger="load">
+        <!--luna:island:inner-1 url=/components/lazy.js trigger=load-->
+        <div luna:id="inner-1" luna:url="/components/lazy.js" luna:state="{&quot;message&quot;:&quot;Inner island content&quot;}" luna:trigger="load">
           <h3>Inner Island</h3>
           <div data-content>Inner island content</div>
         </div>
-        <!--/ln:island:inner-1-->
+        <!--/luna:island:inner-1-->
       </div>
     </div>
-    <!--/ln:island:outer-1-->
+    <!--/luna:island:outer-1-->
   `);
   return c.html(html);
 });
@@ -721,11 +721,11 @@ app.get("/island-node/xss-safety", (c) => {
   // The state contains potentially dangerous characters, but they should be entity-escaped
   const html = islandTestPage("Island XSS Safety Test", `
     <script>window.xssTriggered = false; window.alert = () => { window.xssTriggered = true; };</script>
-    <!--ln:island:xss-1 url=/components/lazy.js trigger=load-->
-    <div ln:id="xss-1" ln:url="/components/lazy.js" ln:state="{&quot;message&quot;:&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;}" ln:trigger="load">
+    <!--luna:island:xss-1 url=/components/lazy.js trigger=load-->
+    <div luna:id="xss-1" luna:url="/components/lazy.js" luna:state="{&quot;message&quot;:&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;}" luna:trigger="load">
       <div data-content>Safe content</div>
     </div>
-    <!--/ln:island:xss-1-->
+    <!--/luna:island:xss-1-->
   `);
   return c.html(html);
 });
@@ -751,10 +751,10 @@ app.get("/test/idempotent-hydrate", async (c) => {
 
   <!-- SSR content with kg attributes for loader -->
   <div id="counter"
-       ln:id="counter-1"
-       ln:url="/components/counter-mbt.js"
-       ln:trigger="load"
-       ln:state='${stateJson}'>${ssrHtml}</div>
+       luna:id="counter-1"
+       luna:url="/components/counter-mbt.js"
+       luna:trigger="load"
+       luna:state='${stateJson}'>${ssrHtml}</div>
 
   <!-- Debug info -->
   <div id="debug">
@@ -898,10 +898,10 @@ app.get("/sol-components/nested-state.js", (c) => {
 app.get("/sol-test/ssr-basic", (c) => {
   const html = solTestPage("SSR Basic Test", `
     <div id="island-container">
-      <div ln:id="counter"
-           ln:url="/sol-components/counter.js"
-           ln:state='{"count":0}'
-           ln:trigger="load">
+      <div luna:id="counter"
+           luna:url="/sol-components/counter.js"
+           luna:state='{"count":0}'
+           luna:trigger="load">
         <span class="count-display">0</span>
         <button data-action-click="increment">+</button>
         <button data-action-click="decrement">-</button>
@@ -925,10 +925,10 @@ app.get("/sol-test/ssr-state-escape", (c) => {
   const escapedState = state.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const html = solTestPage("SSR State Escape Test", `
-    <div ln:id="json-test"
-         ln:url="/sol-components/counter.js"
-         ln:state="${escapedState}"
-         ln:trigger="load">
+    <div luna:id="json-test"
+         luna:url="/sol-components/counter.js"
+         luna:state="${escapedState}"
+         luna:trigger="load">
       <span>Test</span>
     </div>
   `);
@@ -950,10 +950,10 @@ app.get("/sol-test/ssr-fragment", (c) => {
 app.get("/sol-test/hydration-match", (c) => {
   const html = solTestPage("Hydration Match Test", `
     <div id="island-container">
-      <div ln:id="counter"
-           ln:url="/sol-components/counter.js"
-           ln:state='{"count":0}'
-           ln:trigger="load">
+      <div luna:id="counter"
+           luna:url="/sol-components/counter.js"
+           luna:state='{"count":0}'
+           luna:trigger="load">
         <span class="count-display">0</span>
         <button data-action-click="increment">+</button>
         <button data-action-click="decrement">-</button>
@@ -965,10 +965,10 @@ app.get("/sol-test/hydration-match", (c) => {
 
 app.get("/sol-test/hydration-state", (c) => {
   const html = solTestPage("Hydration State Test", `
-    <div ln:id="counter"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":42}'
-         ln:trigger="load">
+    <div luna:id="counter"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":42}'
+         luna:trigger="load">
       <span class="count-display">42</span>
       <button data-action-click="increment">+</button>
       <button data-action-click="decrement">-</button>
@@ -979,10 +979,10 @@ app.get("/sol-test/hydration-state", (c) => {
 
 app.get("/sol-test/hydration-interactive", (c) => {
   const html = solTestPage("Hydration Interactive Test", `
-    <div ln:id="counter"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":0}'
-         ln:trigger="load">
+    <div luna:id="counter"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":0}'
+         luna:trigger="load">
       <span class="count-display">0</span>
       <button data-action-click="increment">+</button>
       <button data-action-click="decrement">-</button>
@@ -995,10 +995,10 @@ app.get("/sol-test/hydration-interactive", (c) => {
 app.get("/sol-test/multi-island", (c) => {
   const html = solTestPage("Multi Island Test", `
     <div id="counter-a"
-         ln:id="counter-a"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":10}'
-         ln:trigger="load">
+         luna:id="counter-a"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":10}'
+         luna:trigger="load">
       <h2>Counter A</h2>
       <span class="count-display">10</span>
       <button data-action-click="increment">+</button>
@@ -1006,10 +1006,10 @@ app.get("/sol-test/multi-island", (c) => {
     </div>
 
     <div id="counter-b"
-         ln:id="counter-b"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":20}'
-         ln:trigger="load">
+         luna:id="counter-b"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":20}'
+         luna:trigger="load">
       <h2>Counter B</h2>
       <span class="count-display">20</span>
       <button data-action-click="increment">+</button>
@@ -1023,19 +1023,19 @@ app.get("/sol-test/island-failure", (c) => {
   const html = solTestPage("Island Failure Test", `
     <!-- This island will fail to load -->
     <div id="broken"
-         ln:id="broken"
-         ln:url="/sol-components/non-existent.js"
-         ln:state='{"count":0}'
-         ln:trigger="load">
+         luna:id="broken"
+         luna:url="/sol-components/non-existent.js"
+         luna:state='{"count":0}'
+         luna:trigger="load">
       <span>Broken Island</span>
     </div>
 
     <!-- This island should still work -->
     <div id="working"
-         ln:id="working"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":5}'
-         ln:trigger="load">
+         luna:id="working"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":5}'
+         luna:trigger="load">
       <span class="count-display">5</span>
       <button data-action-click="increment">+</button>
       <button data-action-click="decrement">-</button>
@@ -1054,10 +1054,10 @@ app.get("/sol-test/state-types", (c) => {
   });
 
   const html = solTestPage("State Types Test", `
-    <div ln:id="state-test"
-         ln:url="/sol-components/state-display.js"
-         ln:state='${state}'
-         ln:trigger="load">
+    <div luna:id="state-test"
+         luna:url="/sol-components/state-display.js"
+         luna:state='${state}'
+         luna:trigger="load">
       <div><span data-int>42</span></div>
       <div><span data-float>3.14</span></div>
       <div><span data-string>hello</span></div>
@@ -1078,10 +1078,10 @@ app.get("/sol-test/state-special-chars", (c) => {
     .replace(/'/g, '&#39;');
 
   const html = solTestPage("State Special Chars Test", `
-    <div ln:id="special"
-         ln:url="/sol-components/special-chars.js"
-         ln:state='${stateJson}'
-         ln:trigger="load">
+    <div luna:id="special"
+         luna:url="/sol-components/special-chars.js"
+         luna:state='${stateJson}'
+         luna:trigger="load">
       <div><span data-html>${state.html.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span></div>
       <div><span data-unicode>${state.unicode}</span></div>
       <div><span data-quotes>${state.quotes.replace(/"/g, '&quot;')}</span></div>
@@ -1098,10 +1098,10 @@ app.get("/sol-test/state-nested", (c) => {
   const stateJson = JSON.stringify(state).replace(/'/g, '&#39;');
 
   const html = solTestPage("State Nested Test", `
-    <div ln:id="nested"
-         ln:url="/sol-components/nested-state.js"
-         ln:state='${stateJson}'
-         ln:trigger="load">
+    <div luna:id="nested"
+         luna:url="/sol-components/nested-state.js"
+         luna:state='${stateJson}'
+         luna:trigger="load">
       <div><span data-user-name>Alice</span></div>
       <div><span data-user-email>alice@example.com</span></div>
       <div><span data-items-count>3</span></div>
@@ -1117,11 +1117,11 @@ app.get("/sol-test/state-large", (c) => {
   const stateJson = JSON.stringify(state);
 
   const html = solTestPage("State Large Test", `
-    <script type="ln/json" id="large-state-data">${stateJson}</script>
-    <div ln:id="large-state"
-         ln:url="/sol-components/counter.js"
-         ln:state="#large-state-data"
-         ln:trigger="load">
+    <script type="luna/json" id="large-state-data">${stateJson}</script>
+    <div luna:id="large-state"
+         luna:url="/sol-components/counter.js"
+         luna:state="#large-state-data"
+         luna:trigger="load">
       <span>Large state test</span>
     </div>
   `);
@@ -1131,10 +1131,10 @@ app.get("/sol-test/state-large", (c) => {
 // 6. Hydration Trigger Tests
 app.get("/sol-test/trigger-load", (c) => {
   const html = solTestPage("Trigger Load Test", `
-    <div ln:id="load-trigger"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":0}'
-         ln:trigger="load">
+    <div luna:id="load-trigger"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":0}'
+         luna:trigger="load">
       <span class="count-display">0</span>
     </div>
   `);
@@ -1143,10 +1143,10 @@ app.get("/sol-test/trigger-load", (c) => {
 
 app.get("/sol-test/trigger-idle", (c) => {
   const html = solTestPage("Trigger Idle Test", `
-    <div ln:id="idle-trigger"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":0}'
-         ln:trigger="idle">
+    <div luna:id="idle-trigger"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":0}'
+         luna:trigger="idle">
       <span class="count-display">0</span>
     </div>
   `);
@@ -1158,10 +1158,10 @@ app.get("/sol-test/trigger-visible", (c) => {
     <div style="height: 200vh; background: linear-gradient(#eee, #ccc);">
       Scroll down to see the island
     </div>
-    <div ln:id="visible-trigger"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":0}'
-         ln:trigger="visible">
+    <div luna:id="visible-trigger"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":0}'
+         luna:trigger="visible">
       <span class="count-display">0</span>
     </div>
   `);
@@ -1170,10 +1170,10 @@ app.get("/sol-test/trigger-visible", (c) => {
 
 app.get("/sol-test/trigger-media", (c) => {
   const html = solTestPage("Trigger Media Test", `
-    <div ln:id="media-trigger"
-         ln:url="/sol-components/counter.js"
-         ln:state='{"count":0}'
-         ln:trigger="media:(max-width: 600px)">
+    <div luna:id="media-trigger"
+         luna:url="/sol-components/counter.js"
+         luna:state='{"count":0}'
+         luna:trigger="media:(max-width: 600px)">
       <span class="count-display">0</span>
     </div>
   `);
@@ -1232,10 +1232,10 @@ app.get("/sol-test/mismatch-text", (c) => {
   // SSR renders "Server Text", but state expects "Client Text"
   const state = JSON.stringify({ expectedText: "Client Text" });
   const html = solTestPage("Mismatch Text Test", `
-    <div ln:id="mismatch-text"
-         ln:url="/sol-components/mismatch-detect.js"
-         ln:state='${state}'
-         ln:trigger="load">
+    <div luna:id="mismatch-text"
+         luna:url="/sol-components/mismatch-detect.js"
+         luna:state='${state}'
+         luna:trigger="load">
       Server Text
     </div>
   `);
@@ -1246,10 +1246,10 @@ app.get("/sol-test/mismatch-element", (c) => {
   // SSR renders <span>, but state expects <div>
   const state = JSON.stringify({ expectedTag: "div" });
   const html = solTestPage("Mismatch Element Test", `
-    <div ln:id="mismatch-element"
-         ln:url="/sol-components/mismatch-detect.js"
-         ln:state='${state}'
-         ln:trigger="load">
+    <div luna:id="mismatch-element"
+         luna:url="/sol-components/mismatch-detect.js"
+         luna:state='${state}'
+         luna:trigger="load">
       <span>Content</span>
     </div>
   `);
@@ -1260,10 +1260,10 @@ app.get("/sol-test/mismatch-attr", (c) => {
   // SSR renders class="wrong", but state expects class="correct"
   const state = JSON.stringify({ expectedAttr: { name: "data-test", value: "correct" } });
   const html = solTestPage("Mismatch Attr Test", `
-    <div ln:id="mismatch-attr"
-         ln:url="/sol-components/mismatch-detect.js"
-         ln:state='${state}'
-         ln:trigger="load"
+    <div luna:id="mismatch-attr"
+         luna:url="/sol-components/mismatch-detect.js"
+         luna:state='${state}'
+         luna:trigger="load"
          data-test="wrong">
       Content
     </div>
@@ -1275,10 +1275,10 @@ app.get("/sol-test/mismatch-extra-client", (c) => {
   // SSR renders 1 child, but state expects 2
   const state = JSON.stringify({ expectedChildCount: 2 });
   const html = solTestPage("Mismatch Extra Client Test", `
-    <div ln:id="mismatch-extra"
-         ln:url="/sol-components/mismatch-detect.js"
-         ln:state='${state}'
-         ln:trigger="load">
+    <div luna:id="mismatch-extra"
+         luna:url="/sol-components/mismatch-detect.js"
+         luna:state='${state}'
+         luna:trigger="load">
       <span>Only one child</span>
     </div>
   `);
@@ -1289,10 +1289,10 @@ app.get("/sol-test/mismatch-extra-server", (c) => {
   // SSR renders 2 children, but state expects 1
   const state = JSON.stringify({ expectedChildCount: 1 });
   const html = solTestPage("Mismatch Extra Server Test", `
-    <div ln:id="mismatch-extra-server"
-         ln:url="/sol-components/mismatch-detect.js"
-         ln:state='${state}'
-         ln:trigger="load">
+    <div luna:id="mismatch-extra-server"
+         luna:url="/sol-components/mismatch-detect.js"
+         luna:state='${state}'
+         luna:trigger="load">
       <span>Child 1</span>
       <span>Child 2</span>
     </div>
