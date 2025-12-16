@@ -1,0 +1,50 @@
+{
+  "name": "@mizchi/wcssr",
+  "version": "0.0.1",
+  "description": "Web Components SSR runtime with functional API",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server-entry.d.ts",
+      "import": "./dist/server-entry.js"
+    },
+    "./client": {
+      "types": "./dist/client-entry.d.ts",
+      "import": "./dist/client-entry.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test:browser:ui": "vitest --config vitest.browser.config.ts --ui"
+  },
+  "keywords": [
+    "web-components",
+    "ssr",
+    "declarative-shadow-dom",
+    "hydration"
+  ],
+  "author": "mizchi",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitest/browser": "^2.0.0",
+    "playwright": "^1.40.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.0.0"
+  }
+}
