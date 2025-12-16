@@ -32,7 +32,7 @@ pub fn routes() -> Array[@routes.Routes] {
       meta=[],
     ),
     // WC Counter page - Web Components based island (Declarative Shadow DOM)
-    @routes.Page(
+    @routes.WcIsland(
       path="/wc-counter",
       component="wc_counter",
       title="WC Counter",

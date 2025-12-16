@@ -34,6 +34,10 @@
     {
       "path": "example/sol-app/__gen__/types",
       "alias": "types"
+    },
+    {
+      "path": "example/sol-app/client",
+      "alias": "client"
     }
   ],
   "warn-list": "-35"

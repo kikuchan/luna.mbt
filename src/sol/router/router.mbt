@@ -21,6 +21,8 @@ pub struct RouterConfig {
   default_head : String
   /// URL for the island loader script
   loader_url : String
+  /// URL for the Web Components loader script
+  wc_loader_url : String
 }
 
 ///|
@@ -31,6 +33,7 @@ pub fn RouterConfig::default() -> RouterConfig {
     default_title: "App",
     default_head: "",
     loader_url: "/static/loader.js",
+    wc_loader_url: "/static/wc-loader.js",
   }
 }
 
@@ -50,6 +53,15 @@ pub fn RouterConfig::with_loader_url(
   url : String,
 ) -> RouterConfig {
   { ..self, loader_url: url }
+}
+
+///|
+/// Set Web Components loader URL
+pub fn RouterConfig::with_wc_loader_url(
+  self : RouterConfig,
+  url : String,
+) -> RouterConfig {
+  { ..self, wc_loader_url: url }
 }
 
 ///|
@@ -192,11 +204,19 @@ pub fn[E] register_routes(
   default_title? : String = "App",
   default_head? : String = "",
   loader_url? : String = "/static/loader.js",
+  wc_loader_url? : String = "/static/wc-loader.js",
 ) -> App {
   // Use config if provided, otherwise use individual parameters
-  let (tp, dt, dh, lu) = match config {
-    Some(c) => (c.title_prefix, c.default_title, c.default_head, c.loader_url)
-    None => (title_prefix, default_title, default_head, loader_url)
+  let (tp, dt, dh, lu, wlu) = match config {
+    Some(c) =>
+      (
+        c.title_prefix,
+        c.default_title,
+        c.default_head,
+        c.loader_url,
+        c.wc_loader_url,
+      )
+    None => (title_prefix, default_title, default_head, loader_url, wc_loader_url)
   }
   register_routes_inner(
     app,
@@ -208,6 +228,7 @@ pub fn[E] register_routes(
     default_title=dt,
     default_head=dh,
     loader_url=lu,
+    wc_loader_url=wlu,
   )
 }
 
@@ -222,6 +243,7 @@ fn[E] register_routes_inner(
   default_title~ : String,
   default_head~ : String,
   loader_url~ : String,
+  wc_loader_url~ : String,
 ) -> App {
   let mut result = app
   for route in routes {
@@ -286,6 +308,37 @@ fn[E] register_routes_inner(
           }
         })
       }
+      @routes.WcIsland(path~, component~, title~, meta~) => {
+        let _ = meta
+        let full_path = prefix + path
+        result.get(full_path, fn(c) {
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
+          match page_resolver(component, c, params) {
+            Some(node) => {
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(node, page_title, true)
+                send_fragment_response(c, fragment_html)
+              } else {
+                // WcIsland uses wc-loader.js for Web Components hydration
+                let loader_script = "<script type=\"module\" src=\"" +
+                  wc_loader_url +
+                  "\"></script>"
+                let head = default_head + loader_script
+                let html = render_page_html(node, page_title, head, true)
+                c.html(html)
+              }
+            }
+            None => c.text("Page not found: " + component)
+          }
+        })
+      }
       @routes.Param(key~, children~) => {
         let new_prefix = prefix + "/:" + key
         register_routes_inner(
@@ -298,6 +351,7 @@ fn[E] register_routes_inner(
           default_title~,
           default_head~,
           loader_url~,
+          wc_loader_url~,
         )
       }
       @routes.Layout(segment~, children~, layout~) => {
@@ -313,6 +367,7 @@ fn[E] register_routes_inner(
           default_title~,
           default_head~,
           loader_url~,
+          wc_loader_url~,
         )
       }
       @routes.Group(segment~, children~) => {
@@ -327,6 +382,7 @@ fn[E] register_routes_inner(
           default_title~,
           default_head~,
           loader_url~,
+          wc_loader_url~,
         )
       }
       @routes.Get(path~, handler~) => {

@@ -3,22 +3,16 @@
 ///| Uses wc_island() to embed a Web Components based counter.
 ///| Demonstrates Declarative Shadow DOM SSR with unified hydration.
 ///|
-///| The same counter.mbt component is used for both Luna Islands and WC Islands.
-///| The hydration function auto-detects WC mode (shadowRoot) vs Luna mode.
+///| CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration.
 
 ///| WC Counter page - Web Components based island
 pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
-  // Create props using generated types - auto-serializes to JSON
-  let counter_props : @types.CounterProps = { initial_count: 0 }
+  // Create props using WcCounterProps from client module
+  let counter_props : @client.WcCounterProps = { initial_count: 0 }
   let state_json = counter_props.to_json().stringify()
 
-  // CSS for the counter (will be in Shadow DOM)
-  let counter_styles =
-    #|:host { display: block; }
-    #|.counter { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
-    #|.count-display { font-size: 2rem; font-weight: bold; }
-    #|.buttons { margin-top: 1rem; }
-    #|.buttons button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0 0.5rem; cursor: pointer; }
+  // CSS is imported from client module - shared between SSR and hydration
+  let counter_styles = @client.wc_counter_css
 
   let content = [
     h1(children=[text("Web Components Counter")]),
@@ -26,16 +20,16 @@ pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
       text("This counter uses Declarative Shadow DOM for SSR."),
     ]),
     p(children=[
-      text("CSS is encapsulated in Shadow DOM - inspect the element to see <template shadowrootmode=\"open\">."),
+      text("CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration."),
     ]),
     p(children=[
-      text("Uses the same counter.mbt component with unified hydration (hydrate_auto_dom)."),
+      text("Inspect the element to see <template shadowrootmode=\"open\"> with <style>."),
     ]),
     // WcIsland with Declarative Shadow DOM
-    // Uses the same counter.js generated from counter.mbt
+    // Uses wc_counter.js generated from app/client/wc_counter.mbt
     @server_dom.wc_island(
       "wc-counter",
-      "/static/counter.js", // Same component as Luna Island!
+      "/static/wc_counter.js", // WC-specific component
       styles=counter_styles,
       state=state_json,
       trigger=@luna.Load,

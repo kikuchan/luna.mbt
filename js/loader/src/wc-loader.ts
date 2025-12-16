@@ -1,17 +1,17 @@
-/*! wc-loader v1 - Web Components Hydration Loader */
+/*! wc-loader v1 - Web Components Hydration Loader for Luna */
 import { setupTrigger, onReady, observeAdditions, createLoadedTracker } from './lib';
 
-interface WCComponentDef {
-  name: string;
+// Luna hydrate function signature
+type HydrateFn = (el: Element, state: unknown, id: string) => void;
+
+interface WCModule {
+  hydrate?: HydrateFn;
+  default?: HydrateFn;
   [key: string]: unknown;
 }
 
-interface WCSSRGlobal {
-  registerComponent: (def: WCComponentDef) => void;
-}
-
 interface WCWindow extends Window {
-  __WCSSR__?: WCSSRGlobal;
+  __WC_STATE__: Record<string, unknown>;
   __WC_SCAN__: () => void;
   __WC_HYDRATE__: (el: Element) => Promise<void>;
   __WC_UNLOAD__: (name: string) => boolean;
@@ -28,11 +28,20 @@ interface WCElement extends HTMLElement {
 
 const d = document;
 const w = window as unknown as WCWindow;
+const S: Record<string, unknown> = {};
 const { loaded, unload, clear } = createLoadedTracker();
 
-const parseState = (el: WCElement): Record<string, unknown> => {
+const parseState = async (el: WCElement): Promise<unknown> => {
   const s = el.dataset.state;
   if (!s) return {};
+  // Handle script ref (starts with #)
+  if (s.startsWith('#')) {
+    const scriptEl = d.getElementById(s.slice(1));
+    if (scriptEl?.textContent) {
+      try { return JSON.parse(scriptEl.textContent); } catch { return {}; }
+    }
+    return {};
+  }
   try {
     // Unescape JSON
     const unescaped = s
@@ -53,17 +62,19 @@ const hydrate = async (el: WCElement): Promise<void> => {
   if (!url) return;
   loaded.add(name);
 
-  try {
-    const mod = await import(url) as Record<string, WCComponentDef>;
-    const def = mod.default ?? mod[name];
+  // Parse state and store
+  S[name] = await parseState(el);
 
-    if (def && typeof def === 'object') {
-      if (w.__WCSSR__?.registerComponent) {
-        w.__WCSSR__.registerComponent(def);
-      } else {
-        const { registerComponent } = await import('@mizchi/wcssr/client');
-        registerComponent(def);
-      }
+  try {
+    const mod = await import(url) as WCModule;
+    // Get hydrate function (same pattern as Luna loader)
+    const hydrateFn = mod.hydrate ?? mod.default;
+
+    if (typeof hydrateFn === 'function') {
+      // Call Luna-style hydrate: (element, state, id)
+      hydrateFn(el, S[name], name);
+    } else {
+      console.warn(`[wc-loader] No hydrate function found in ${url}`);
     }
   } catch (err) {
     console.error(`[wc-loader] Failed to hydrate ${name}:`, err);
@@ -87,6 +98,7 @@ observeAdditions(
   el => setup(el as WCElement)
 );
 
+w.__WC_STATE__ = S;
 w.__WC_SCAN__ = scan;
 w.__WC_HYDRATE__ = hydrate;
 w.__WC_UNLOAD__ = unload;

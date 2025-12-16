@@ -2,7 +2,7 @@
   "supported-targets": ["js"],
   "link": {
     "js": {
-      "exports": ["CounterProps", "ContactFormProps"],
+      "exports": ["CounterProps", "ContactFormProps", "WcCounterProps"],
       "format": "esm"
     }
   }

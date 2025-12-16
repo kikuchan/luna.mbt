@@ -35,6 +35,19 @@ pub(all) enum Routes {
     title~ : String,
     meta~ : Array[(String, String)]
   )
+  /// Web Components Island ページ (Declarative Shadow DOM)
+  /// - path: パス
+  /// - component: コンポーネントID
+  /// - title: ページタイトル
+  /// - meta: メタ情報
+  /// Note: WcIslandはwc_island()ヘルパーを使ってコンポーネント内で定義する
+  /// routerはwc-loader.jsを自動的に挿入する
+  WcIsland(
+    path~ : String,
+    component~ : String,
+    title~ : String,
+    meta~ : Array[(String, String)]
+  )
   /// 動的パラメータセグメント
   /// - key: パラメータ名 (e.g., "id" for ":id")
   /// - children: 子ルート
@@ -89,6 +102,8 @@ pub enum RoutesKind {
   Page
   /// クライアントコンポーネントページ (Island)
   IslandPage
+  /// Web Components Island ページ
+  WcIslandPage
   /// GET API
   GetApi
   /// POST API

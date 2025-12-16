@@ -1,24 +1,42 @@
 import { createLoadedTracker, observeAdditions, onReady, setupTrigger } from "./lib.js";
 
 //#region js/loader/src/wc-loader.ts
-/*! wc-loader v1 - Web Components Hydration Loader */
+/*! wc-loader v1 - Web Components Hydration Loader for Luna */
 const d = document;
 const w = window;
+const S = {};
 const { loaded, unload, clear } = createLoadedTracker();
+const parseState = async (el) => {
+	const s = el.dataset.state;
+	if (!s) return {};
+	if (s.startsWith("#")) {
+		const scriptEl = d.getElementById(s.slice(1));
+		if (scriptEl?.textContent) try {
+			return JSON.parse(scriptEl.textContent);
+		} catch {
+			return {};
+		}
+		return {};
+	}
+	try {
+		const unescaped = s.replace(/\\u003c/g, "<").replace(/\\u003e/g, ">").replace(/\\u0026/g, "&");
+		return JSON.parse(unescaped);
+	} catch {
+		return {};
+	}
+};
 const hydrate = async (el) => {
 	const name = el.tagName.toLowerCase();
 	if (loaded.has(name)) return;
 	const url = el.dataset.wcUrl;
 	if (!url) return;
 	loaded.add(name);
+	S[name] = await parseState(el);
 	try {
 		const mod = await import(url);
-		const def = mod.default ?? mod[name];
-		if (def && typeof def === "object") if (w.__WCSSR__?.registerComponent) w.__WCSSR__.registerComponent(def);
-		else {
-			const { registerComponent } = await import("@mizchi/wcssr/client");
-			registerComponent(def);
-		}
+		const hydrateFn = mod.hydrate ?? mod.default;
+		if (typeof hydrateFn === "function") hydrateFn(el, S[name], name);
+		else console.warn(`[wc-loader] No hydrate function found in ${url}`);
 	} catch (err) {
 		console.error(`[wc-loader] Failed to hydrate ${name}:`, err);
 	}
@@ -31,6 +49,7 @@ const scan = () => {
 };
 onReady(scan);
 observeAdditions((el) => !!el.dataset?.wcUrl, (el) => setup(el));
+w.__WC_STATE__ = S;
 w.__WC_SCAN__ = scan;
 w.__WC_HYDRATE__ = hydrate;
 w.__WC_UNLOAD__ = unload;

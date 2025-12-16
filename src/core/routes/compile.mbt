@@ -76,6 +76,19 @@ fn compile_inner(
           island: Some({ url, trigger }),
         })
       }
+      WcIsland(path~, component~, title~, meta~) => {
+        let full_path = normalize_path(prefix + path)
+        result.push({
+          pattern: full_path,
+          param_names: inherited_params.copy(),
+          component,
+          layouts: inherited_layouts.copy(),
+          kind: WcIslandPage,
+          title,
+          meta,
+          island: None, // WcIsland doesn't need url/trigger at compile level
+        })
+      }
       Get(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
         result.push({

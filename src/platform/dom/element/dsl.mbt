@@ -289,3 +289,46 @@ fn build_props(
   }
   result
 }
+
+// =============================================================================
+// use_style - CSS injection for Shadow DOM / document.head
+// =============================================================================
+
+///|
+/// Inject CSS into Shadow DOM or document.head
+///
+/// - If root has shadowRoot, injects into shadowRoot
+/// - Otherwise, injects into document.head
+/// - Uses CSS hash as ID to prevent duplicate injection
+///
+/// Usage:
+///   use_style(css, element)  // element is the WC root
+pub fn use_style(css : String, root : @js_dom.Element) -> Unit {
+  let style_id = "style-\{hash_css(css)}"
+  ffi_use_style(css, style_id, root.as_any())
+}
+
+///|
+/// FFI: Inject style into Shadow DOM or document.head
+extern "js" fn ffi_use_style(css : String, style_id : String, root : @js.Any) =
+  #|(css, id, el) => {
+  #|  const shadow = el.shadowRoot;
+  #|  const target = shadow || document.head;
+  #|  if (!target.querySelector('#' + id)) {
+  #|    const style = document.createElement('style');
+  #|    style.id = id;
+  #|    style.textContent = css;
+  #|    if (shadow) shadow.prepend(style);
+  #|    else target.appendChild(style);
+  #|  }
+  #|}
+
+///|
+/// Simple hash function for CSS string (for dedup ID)
+fn hash_css(css : String) -> String {
+  let mut hash : UInt = 5381
+  for c in css {
+    hash = ((hash << 5) + hash) + c.to_uint()
+  }
+  hash.to_string()
+}

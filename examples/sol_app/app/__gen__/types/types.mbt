@@ -13,3 +13,8 @@ pub(all) struct ContactFormProps {
   initial_email : String
 } derive(ToJson, FromJson)
 
+///| Props type from @client
+pub(all) struct WcCounterProps {
+  initial_count : Int
+} derive(ToJson, FromJson)
+
