@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const DEBUG = process.env.DEBUG === "1";
+
 /**
  * E2E tests for CLI-generated template app
  * Tests the separated component architecture:
@@ -49,94 +51,52 @@ test.describe("Template App E2E Tests", () => {
 
   test.describe("Hydration and Interaction", () => {
     test("hydrates counter and handles increment", async ({ page }) => {
-      // Listen to console messages for debugging
-      const consoleLogs: string[] = [];
-      page.on("console", (msg) => {
-        const text = `[BROWSER] ${msg.type()}: ${msg.text()}`;
-        consoleLogs.push(text);
-        console.log(text);
-      });
-      page.on("pageerror", (err) => console.log(`[BROWSER ERROR] ${err.message}`));
+      if (DEBUG) {
+        // Listen to console messages for debugging
+        page.on("console", (msg) => {
+          console.log(`[BROWSER] ${msg.type()}: ${msg.text()}`);
+        });
+        page.on("pageerror", (err) => console.log(`[BROWSER ERROR] ${err.message}`));
+      }
 
       await page.goto(BASE_URL);
 
       // Wait for hydration (longer wait)
       await page.waitForTimeout(1500);
 
-      // Check if ln-loader executed
-      const lnState = await page.evaluate(() => (window as any).__LN_STATE__);
-      console.log(`[TEST] __LN_STATE__:`, lnState);
-
       // Check hydration status and directly invoke hydrate from module
-      const hydrationStatus = await page.evaluate(async () => {
+      await page.evaluate(async () => {
         const counterEl = document.querySelector('[ln\\:id="counter"]') as HTMLElement;
-        const buttons = counterEl?.querySelectorAll('button');
-        const decBtn = counterEl?.querySelector('[data-action-click="decrement"]');
-        const incBtn = counterEl?.querySelector('[data-action-click="increment"]');
-        const hasLnHydrate = typeof (window as any).__LN_HYDRATE__ === 'function';
-
-        // Try to directly import and call hydrate
-        let directHydrateResult = null;
-        let moduleKeys = null;
+        if (!counterEl) return;
         try {
           const mod = await import('/static/counter.js');
-          moduleKeys = Object.keys(mod);
-          console.log('[BROWSER] Module keys:', moduleKeys);
-          console.log('[BROWSER] mod.hydrate type:', typeof mod.hydrate);
-          if (mod.hydrate && counterEl) {
+          if (mod.hydrate) {
             const state = JSON.parse(counterEl.getAttribute('ln:state') || '{}');
-            console.log('[BROWSER] Calling hydrate directly with state:', state);
             mod.hydrate(counterEl, state, 'counter');
-            directHydrateResult = 'success';
-          } else {
-            directHydrateResult = `no hydrate: ${typeof mod.hydrate}, counterEl: ${!!counterEl}`;
           }
-        } catch (e: any) {
-          directHydrateResult = e.message;
-          console.error('[BROWSER] Direct hydrate error:', e);
+        } catch (e) {
+          // Ignore hydration errors in test
         }
-
-        return {
-          counterFound: !!counterEl,
-          buttonCount: buttons?.length,
-          decBtnFound: !!decBtn,
-          incBtnFound: !!incBtn,
-          hasLnHydrate,
-          directHydrateResult,
-          moduleKeys,
-        };
       });
-      console.log("[TEST] Hydration status:", hydrationStatus);
 
       // Give time for hydration to complete
       await page.waitForTimeout(500);
 
-      // Log all console messages we captured
-      console.log("[TEST] Console logs captured:", consoleLogs.length);
-
       const incButton = page.locator('button[data-action-click="increment"]');
       const display = page.locator(".count-display");
 
-      // Check initial state
-      const initialText = await display.textContent();
-      console.log(`[TEST] Initial text: "${initialText}"`);
-
       // Try clicking with evaluate for debugging
-      const clickResult = await page.evaluate(() => {
+      await page.evaluate(() => {
         const btn = document.querySelector('[data-action-click="increment"]') as HTMLElement;
         if (btn) {
           const clickEvent = new MouseEvent('click', {bubbles: true});
           btn.dispatchEvent(clickEvent);
-          return { clicked: true, btnText: btn.textContent };
         }
-        return { clicked: false };
       });
-      console.log("[TEST] Click result:", clickResult);
       await page.waitForTimeout(200);
 
       // Check if count updated
       const text = await display.textContent();
-      console.log(`[TEST] After click text: "${text}"`);
       expect(text).toBe("1");
     });
 

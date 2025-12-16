@@ -511,7 +511,7 @@ pub fn button(
 /// Create a form element
 pub fn form(
   action? : String,
-  method? : String,
+  http_method? : String,
   id? : String,
   class? : String,
   style? : String,
@@ -522,7 +522,7 @@ pub fn form(
   if action is Some(v) {
     props.push(("action", static_attr(v)))
   }
-  if method is Some(v) {
+  if http_method is Some(v) {
     props.push(("method", static_attr(v)))
   }
   create_element("form", props, children)

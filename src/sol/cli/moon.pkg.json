@@ -33,10 +33,6 @@
       "alias": "colorette"
     },
     {
-      "path": "mizchi/luna/sol",
-      "alias": "sol"
-    },
-    {
       "path": "mizchi/luna/sol/mbti_utils",
       "alias": "mbti_utils"
     }

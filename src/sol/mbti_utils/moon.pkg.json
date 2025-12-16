@@ -9,10 +9,6 @@
       "alias": "mbti_parser"
     },
     {
-      "path": "moonbitlang/parser/mbti_ast",
-      "alias": "mbti_ast"
-    },
-    {
       "path": "moonbitlang/parser/basic",
       "alias": "basic"
     }

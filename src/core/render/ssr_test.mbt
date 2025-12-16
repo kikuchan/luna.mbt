@@ -3,12 +3,6 @@
 ///
 /// Type alias for SSR nodes (Event type = Unit)
 
-// Test enum for action
-enum TestAction {
-  Increment
-  DoSomething
-} derive(Show)
-
 ///|
 test "render simple text" {
   let node : @luna.Node[Unit] = @luna.vtext("Hello, World!")

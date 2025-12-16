@@ -29,19 +29,6 @@ pub struct SolConfig {
 }
 
 ///|
-/// Parsed export entry from mbti
-struct ExportEntry {
-  /// Export name (function name)
-  name : String
-  /// Original function name in source module
-  source_name : String
-  /// Package path (e.g., "myproject/components")
-  package_path : String
-  /// Import alias (e.g., "components")
-  import_alias : String
-}
-
-///|
 /// Route information extracted from routes.mbt
 struct RouteInfo {
   /// Page component IDs (from Island and Page routes)
@@ -512,40 +499,6 @@ fn get_dir_name(path : String) -> String {
 }
 
 ///|
-/// Collect Props struct definitions from island directories (from mbti)
-fn collect_island_structs(
-  cwd : String,
-  config : SolConfig,
-) -> Array[StructExport] {
-  let exports : Array[StructExport] = []
-  let island_files = find_mbti_files(cwd, config.islands)
-  for pair in island_files {
-    let (dir_path, content) = pair
-    let _ = dir_path
-    guard extract_package_path(content) is Some(pkg_path) else { continue }
-    // Use last part of package path as alias
-    let parts = pkg_path.split("/").to_array()
-    let import_alias = if parts.length() > 0 {
-      parts[parts.length() - 1].to_string()
-    } else {
-      "unknown"
-    }
-    // Parse struct definitions using mbti_utils (simple string parsing)
-    let structs = @mbti_utils.parse_struct_defs(content, "pkg.generated.mbti")
-    let props_structs = @mbti_utils.get_props_structs(structs)
-    for s in props_structs {
-      exports.push(StructExport::{
-        name: s.name,
-        raw_definition: s.raw_definition,
-        package_path: pkg_path,
-        import_alias,
-      })
-    }
-  }
-  exports
-}
-
-///|
 /// Generate types.mbt content with all Props struct definitions
 fn generate_types_mbt(structs : Array[StructExport]) -> String {
   let buf = StringBuilder::new()
@@ -587,35 +540,6 @@ fn generate_types_pkg_json(
   buf.write_string("  }\n")
   buf.write_string("}\n")
   buf.to_string()
-}
-
-///|
-/// Collect island exports from config (legacy, for hydrate_* pattern)
-fn collect_exports(cwd : String, config : SolConfig) -> Array[ExportEntry] {
-  let entries : Array[ExportEntry] = []
-  // Islands only (new architecture)
-  let island_files = find_mbti_files(cwd, config.islands)
-  for pair in island_files {
-    let (dir_path, content) = pair
-    let _ = dir_path
-    guard extract_package_path(content) is Some(pkg_path) else { continue }
-    let import_alias = generate_import_alias(pkg_path, "island")
-    let funcs = parse_mbti(content)
-    for func in funcs {
-      let (name, _sig) = func
-      // Only include hydrate_* functions
-      if name.has_prefix("hydrate_") {
-        let export_name = name // Keep original name
-        entries.push(ExportEntry::{
-          name: export_name,
-          source_name: name,
-          package_path: pkg_path,
-          import_alias,
-        })
-      }
-    }
-  }
-  entries
 }
 
 ///|
@@ -895,25 +819,6 @@ fn extract_props_type(sig : String, _alias : String) -> String {
 }
 
 ///|
-/// Generate client exports.mbt for islands (legacy)
-fn generate_client_exports_mbt(islands : Array[ExportEntry]) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("///| Auto-generated client exports\n")
-  buf.write_string("///| Re-exports hydration functions from app/client/*\n\n")
-  for entry in islands {
-    buf.write_string("///| Re-export \{entry.name}\n")
-    buf.write_string(
-      "pub fn \{entry.name}(element : @js.Any, state : @js.Any, id : String) -> Unit {\n",
-    )
-    buf.write_string(
-      "  @\{entry.import_alias}.\{entry.source_name}(element, state, id)\n",
-    )
-    buf.write_string("}\n\n")
-  }
-  buf.to_string()
-}
-
-///|
 /// Extract package aliases used in signatures (patterns like @xxx.)
 fn extract_used_packages(funcs : Array[FuncExport]) -> Array[String] {
   let used : Map[String, Bool] = {}
@@ -977,8 +882,8 @@ fn generate_client_pkg_json_v2(funcs : Array[FuncExport]) -> String {
     if not(seen.contains(func.package_path)) {
       seen[func.package_path] = true
       // Add "app_" prefix to avoid collision with __gen__/client's default alias
-      let alias = "app_\{func.import_alias}"
-      imports.push((func.package_path, alias))
+      let pkg_alias = "app_\{func.import_alias}"
+      imports.push((func.package_path, pkg_alias))
     }
   }
   // Also add packages used in signatures
@@ -1040,48 +945,6 @@ fn generate_client_pkg_json_v2(funcs : Array[FuncExport]) -> String {
     if func.signature.contains("Props") && func.signature.contains("DomNode") {
       buf.write_string(", \"hydrate_\{func.name}\"")
     }
-  }
-  buf.write_string("],\n")
-  buf.write_string("      \"format\": \"esm\"\n")
-  buf.write_string("    }\n")
-  buf.write_string("  }\n")
-  buf.write_string("}\n")
-  buf.to_string()
-}
-
-///|
-/// Generate client moon.pkg.json for islands (legacy)
-fn generate_client_pkg_json(islands : Array[ExportEntry]) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("{\n")
-  buf.write_string("  \"supported-targets\": [\"js\"],\n")
-  buf.write_string("  \"import\": [\n")
-  // Collect unique imports
-  let seen : Map[String, Bool] = {}
-  let mut first = true
-  for entry in islands {
-    if not(seen.contains(entry.package_path)) {
-      seen[entry.package_path] = true
-      if not(first) {
-        buf.write_string(",\n")
-      }
-      buf.write_string(
-        "    { \"path\": \"\{entry.package_path}\", \"alias\": \"\{entry.import_alias}\" }",
-      )
-      first = false
-    }
-  }
-  buf.write_string(",\n")
-  buf.write_string("    { \"path\": \"mizchi/js/core\", \"alias\": \"js\" }\n")
-  buf.write_string("  ],\n")
-  buf.write_string("  \"link\": {\n")
-  buf.write_string("    \"js\": {\n")
-  buf.write_string("      \"exports\": [")
-  for i, entry in islands {
-    if i > 0 {
-      buf.write_string(", ")
-    }
-    buf.write_string("\"\{entry.name}\"")
   }
   buf.write_string("],\n")
   buf.write_string("      \"format\": \"esm\"\n")
@@ -1227,45 +1090,6 @@ fn generate_rolldown_config_v2(funcs : Array[FuncExport], mode : String) -> Stri
   buf.write_string("  },\n")
   buf.write_string("  output: {\n")
   buf.write_string("    dir: './.sol/\{mode}/static',\n")
-  buf.write_string("    format: 'esm',\n")
-  buf.write_string("    entryFileNames: '[name].js',\n")
-  buf.write_string("    chunkFileNames: '_shared/[name]-[hash].js',\n")
-  buf.write_string("  },\n")
-  buf.write_string("});\n")
-  buf.to_string()
-}
-
-///|
-/// Generate island entry JS file (legacy)
-fn generate_island_entry_js(entry : ExportEntry) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("// Island entry for: \{entry.name}\n")
-  buf.write_string("// Generated by: sol generate\n\n")
-  buf.write_string(
-    "import { \{entry.name} } from '../../target/js/release/build/__gen__/client/client.js';\n\n",
-  )
-  buf.write_string("export { \{entry.name} };\n")
-  buf.write_string("export default \{entry.name};\n")
-  buf.to_string()
-}
-
-///|
-/// Generate rolldown.config.mjs (legacy)
-fn generate_rolldown_config_new(islands : Array[ExportEntry]) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("import { defineConfig } from 'rolldown';\n\n")
-  buf.write_string("export default defineConfig({\n")
-  buf.write_string("  input: {\n")
-  for i, entry in islands {
-    buf.write_string("    '\{entry.name}': './.sol/islands/\{entry.name}.js'")
-    if i < islands.length() - 1 {
-      buf.write_string(",")
-    }
-    buf.write_string("\n")
-  }
-  buf.write_string("  },\n")
-  buf.write_string("  output: {\n")
-  buf.write_string("    dir: './.sol/static',\n")
   buf.write_string("    format: 'esm',\n")
   buf.write_string("    entryFileNames: '[name].js',\n")
   buf.write_string("    chunkFileNames: '_shared/[name]-[hash].js',\n")

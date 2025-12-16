@@ -1,11 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+const DEBUG = process.env.DEBUG === "1";
+
 test.describe("Web Components Example", () => {
   test.beforeEach(async ({ page }) => {
-    // Collect console messages for debugging
-    page.on("console", (msg) => {
-      console.log(`[Browser ${msg.type()}]`, msg.text());
-    });
+    if (DEBUG) {
+      // Collect console messages for debugging
+      page.on("console", (msg) => {
+        console.log(`[Browser ${msg.type()}]`, msg.text());
+      });
+    }
     await page.goto("/playground/wc");
   });
 

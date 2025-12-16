@@ -4,10 +4,17 @@
 ///| with MoonBit and Luna's reactive system.
 
 ///|
-/// Console logging helper
-fn console_log(msg : String) -> Unit {
-  let global = @global.global_this()
-  global["console"]._call("log", [@js.any(msg)]) |> ignore
+/// Check if debug mode is enabled
+extern "js" fn is_debug() -> Bool =
+  #| () => typeof window !== 'undefined' && window.__DEBUG__ === true
+
+///|
+/// Debug logging helper - only logs when window.__DEBUG__ is true
+fn debug_log(msg : String) -> Unit {
+  if is_debug() {
+    let global = @global.global_this()
+    global["console"]._call("log", [@js.any(msg)]) |> ignore
+  }
 }
 
 // =============================================================================
@@ -113,8 +120,7 @@ fn register_wc_counter() -> Unit {
     let is_even = @signal.memo(fn() { count.get() % 2 == 0 })
 
     // Initial render
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>
       #|  :host { display: block; }
       #|  .buttons button { font-size: 18px; min-width: 40px; padding: 8px 16px; margin: 4px; cursor: pointer; }
@@ -128,8 +134,7 @@ fn register_wc_counter() -> Unit {
       #|  <button class="inc">+</button>
       #|  <button class="reset">Reset</button>
       #|</div>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     // Bind events
     match query_selector(shadow, ".dec") {
@@ -186,15 +191,13 @@ fn register_wc_input() -> Unit {
     let text = @signal.signal("")
     let char_count = @signal.memo(fn() { text.get().length() })
 
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>:host { display: block; } input { padding: 8px; margin: 4px; }</style>
       #|<h2>Input Example</h2>
       #|<input type="text" placeholder="Type something..." class="text-input">
       #|<p class="char-count">Characters: 0</p>
       #|<p class="typed">You typed: </p>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     match query_selector(shadow, ".text-input") {
       Some(input) => add_input_listener(input, fn(value) { text.set(value) })
@@ -230,20 +233,18 @@ fn register_wc_effect() -> Unit {
 
     let _ = @signal.effect(fn() {
       let is_active = active.get()
-      console_log("Active state changed: " + is_active.to_string())
-      @signal.on_cleanup(fn() { console_log("Cleaning up effect") })
+      debug_log("Active state changed: " + is_active.to_string())
+      @signal.on_cleanup(fn() { debug_log("Cleaning up effect") })
     })
 
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>:host { display: block; } button { padding: 8px 16px; margin: 4px; cursor: pointer; }</style>
       #|<h2>Effect Example</h2>
       #|<p class="status">Status: Inactive</p>
       #|<p class="ticks">Ticks: 0</p>
       #|<button class="toggle">Start</button>
       #|<button class="tick">Tick</button>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     match query_selector(shadow, ".toggle") {
       Some(btn) =>
@@ -291,8 +292,7 @@ fn register_wc_conditional() -> Unit {
     let shadow = get_shadow_root_ffi(host)
     let show_message = @signal.signal(true)
 
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>
       #|  :host { display: block; }
       #|  button { padding: 8px 16px; margin: 4px; cursor: pointer; }
@@ -301,8 +301,7 @@ fn register_wc_conditional() -> Unit {
       #|<h2>Conditional Example</h2>
       #|<button class="toggle">Hide Message</button>
       #|<div class="message">Hello! This message is conditionally rendered.</div>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     match query_selector(shadow, ".toggle") {
       Some(btn) =>
@@ -342,8 +341,7 @@ fn register_wc_style() -> Unit {
     let hue = @signal.signal(180)
     let size = @signal.signal(100)
 
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>
       #|  :host { display: block; }
       #|  .box { transition: all 0.3s ease; border-radius: 8px; }
@@ -354,8 +352,7 @@ fn register_wc_style() -> Unit {
       #|<div class="box" style="width: 100px; height: 100px; background-color: hsl(180, 70%, 50%);"></div>
       #|<div><label>Hue:</label><input type="range" class="hue" value="180" min="0" max="360"></div>
       #|<div><label>Size:</label><input type="range" class="size" value="100" min="50" max="200"></div>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     match query_selector(shadow, ".hue") {
       Some(input) =>
@@ -448,8 +445,7 @@ fn register_wc_todo() -> Unit {
       count
     }
 
-    set_inner_html(
-      shadow,
+    let html =
       #|<style>
       #|  :host { display: block; }
       #|  input { padding: 8px; margin: 4px; }
@@ -465,8 +461,7 @@ fn register_wc_todo() -> Unit {
       #|</form>
       #|<p class="stats">0/0 completed</p>
       #|<ul class="todo-list"></ul>
-      ,
-    )
+    set_inner_html(shadow, html)
 
     // Input binding
     match query_selector(shadow, ".todo-input") {
@@ -715,9 +710,6 @@ fn register_wc_nested_parent() -> Unit {
 
 ///|
 fn main {
-  console_log("Luna WC Sample Application")
-  console_log("==============================")
-
   // Register all Web Components
   register_wc_counter()
   register_wc_input()
@@ -729,6 +721,4 @@ fn main {
   // Register nested components (child must be registered before parent uses it)
   register_wc_child_button()
   register_wc_nested_parent()
-
-  console_log("All Web Components registered!")
 }

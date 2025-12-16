@@ -1,6 +1,13 @@
 これは開発者が次にやりたいことをメモとして残していく場所だから、AIは言われるまで修正しない。
 
-- [ ] 再 export するのに、moonbitlang/parser を使用する
+playwright test でデバッグメッセージがが出過ぎなので、これらはアサーショ
+  ンで別の方法でテストするか、環境変数でデバッグ用のフラグを立てた時だけ表
+  示できるようにする。 [Browser log] Luna WC Sample Application
+  [Browser log] ==========================
+
+- [ ] Prototype: src/platform/native/server
+- [ ] Prototype: ViewTransition
+- [x] 再 export するのに、moonbitlang/parser を使用する
 - [ ] BF Cache 最適化
 - [ ] sol/test_utils
   - playwright テストをビルトインできないか
@@ -10,12 +17,11 @@
 - [x] - -prod と --dev でデバッグ用のビルドを注入する
 - [ ] react-hook-form 相当のものを試作する
   - valibot を使うか、自前のバリデータを作るか
-- [ ] sol: chunk hydration
+- [x] sol: chunk hydration
 - [ ] src/platform/dom/portal
 - [ ] src/integrations
-- [ ] src/platform/native/server
-- [ ] src/platform/dom/integrations/react
-- [ ] src/platform/dom/integrations/preact
+  - [ ] src/platform/dom/integrations/react
+  - [ ] src/platform/dom/integrations/preact
 - [ ] sol validate
   - client/*.mbt の link.js.exports で、Generic パラメータを持つものを警告する
 - [ ] webcomponents SSR を試す
@@ -27,6 +33,7 @@
   - https://www.moonbitlang.com/blog/virtual-package
 - [ ] 内部的に cbor encoder を使う
 - [ ] Inline Editor
+- [ ] ドキュメントの英語化
 
 ## Icebox
 

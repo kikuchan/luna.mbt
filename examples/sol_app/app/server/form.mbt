@@ -25,7 +25,7 @@ pub fn form_page(props : @router.PageProps) -> @luna.Node[Unit] {
         form(
           class="contact-form",
           action=form_props.action,
-          method="POST",
+          http_method="POST",
           children=[
             div(class="form-group", children=[
               label(for_="name", children=[text("Name:")]),
