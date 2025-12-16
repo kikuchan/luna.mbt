@@ -254,29 +254,27 @@ pub fn template_server_main_mbt() -> String {
 /// Users explicitly call layout([...inner]) in their pages
 pub fn template_layout_mbt() -> String {
   (
-    #|///| Layout - Basic HTML structure for pages
+    #|///| Server Layout Component
     #|///|
-    #|///| Usage: Wrap your page content with layout([...inner_content])
-    #|///| The layout is explicitly invoked, not implicitly applied.
+    #|///| Provides the basic HTML structure for all pages.
+    #|///| This is a server component - no event handlers.
     #|
     #|///| Default page styles
     #|let default_style : String = "<style>body { font-family: system-ui; max-width: 800px; margin: 0 auto; padding: 2rem; } .counter { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; } .buttons { margin-top: 1rem; } .buttons button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0 0.5rem; cursor: pointer; } nav { margin-bottom: 1rem; } nav a { margin-right: 1rem; }</style>"
     #|
-    #|///|
-    #|/// Get default head HTML (styles)
+    #|///| Get default head HTML (styles)
     #|pub fn head() -> String {
     #|  default_style
     #|}
     #|
-    #|///|
-    #|/// Basic layout wrapper - wraps content in container with navigation
+    #|///| Basic layout wrapper - wraps content in container with navigation
     #|pub fn layout(inner : Array[@luna.Node[Unit]]) -> @luna.Node[Unit] {
-    #|  @luna.h("div", [("class", @luna.attr_static("container"))], [
-    #|    @luna.h("nav", [], [
-    #|      @luna.h("a", [("href", @luna.attr_static("/"))], [@luna.vtext("Home")]),
-    #|      @luna.h("a", [("href", @luna.attr_static("/about"))], [@luna.vtext("About")]),
+    #|  div(class="container", children=[
+    #|    nav(children=[
+    #|      a(href="/", children=[text("Home")]),
+    #|      a(href="/about", children=[text("About")]),
     #|    ]),
-    #|    @luna.vfragment(inner),
+    #|    fragment(inner),
     #|  ])
     #|}
   )
@@ -289,8 +287,29 @@ pub fn template_layout_moon_pkg_json() -> String {
     #|{
     #|  "supported-targets": ["js"],
     #|  "import": [
-    #|    { "path": "mizchi/luna/core", "alias": "luna" }
+    #|    { "path": "mizchi/luna/core", "alias": "luna" },
+    #|    { "path": "mizchi/luna/platform/server_dom/element", "alias": "element" }
     #|  ]
+    #|}
+  )
+}
+
+///|
+/// Server _using.mbt template - DSL imports for server components
+pub fn template_server_using_mbt() -> String {
+  (
+    #|///| Server-side element DSL imports
+    #|using @element {
+    #|  div,
+    #|  span,
+    #|  button,
+    #|  h1,
+    #|  h2,
+    #|  p,
+    #|  a,
+    #|  nav,
+    #|  text,
+    #|  fragment,
     #|}
   )
 }
@@ -355,8 +374,8 @@ pub fn template_routes_mbt(package_name : String) -> String {
     #|  let count_signal = @signal.signal(initial_count)
     #|
     #|  @layout.layout([
-    #|    @luna.h("h1", [], [@luna.vtext("Welcome to Sol")]),
-    #|    @luna.h("p", [], [@luna.vtext("A SSR-first web framework for MoonBit")]),
+    #|    h1(children=[text("Welcome to Sol")]),
+    #|    p(children=[text("A SSR-first web framework for MoonBit")]),
     #|    @sol.island(
     #|      "counter",
     #|      "/static/hydrate_counter.js",
@@ -371,8 +390,8 @@ pub fn template_routes_mbt(package_name : String) -> String {
     #|pub fn page_about(props : @router.PageProps) -> @luna.Node[Unit] {
     #|  let _ = props
     #|  @layout.layout([
-    #|    @luna.h("h1", [], [@luna.vtext("About")]),
-    #|    @luna.h("p", [], [@luna.vtext("Built with MoonBit and Sol framework.")]),
+    #|    h1(children=[text("About")]),
+    #|    p(children=[text("Built with MoonBit and Sol framework.")]),
     #|  ])
     #|}
     #|
@@ -396,12 +415,32 @@ pub fn template_routes_moon_pkg_json(package_name : String) -> String {
     #|    { "path": "mizchi/luna/core/signal", "alias": "signal" },
     #|    { "path": "mizchi/luna/sol", "alias": "sol" },
     #|    { "path": "mizchi/luna/sol/router", "alias": "router" },
+    #|    { "path": "mizchi/luna/platform/server_dom/element", "alias": "element" },
     #|    { "path": "mizchi/js/core", "alias": "core" },
     #|    { "path": "{{PACKAGE_NAME}}/layout", "alias": "layout" },
     #|    { "path": "{{PACKAGE_NAME}}/client/counter", "alias": "counter" }
     #|  ]
     #|}
   tmpl.replace_all(old="{{PACKAGE_NAME}}", new=package_name)
+}
+
+///|
+/// Routes _using.mbt template - DSL imports for routes package
+pub fn template_routes_using_mbt() -> String {
+  (
+    #|///| Server-side element DSL imports
+    #|using @element {
+    #|  div,
+    #|  span,
+    #|  button,
+    #|  h1,
+    #|  h2,
+    #|  p,
+    #|  a,
+    #|  text,
+    #|  fragment,
+    #|}
+  )
 }
 
 ///|
@@ -563,6 +602,10 @@ pub fn generate_templates(
       content: template_layout_moon_pkg_json(),
     },
     { path: "app/layout/layout.mbt", content: template_layout_mbt() },
+    {
+      path: "app/layout/_using.mbt",
+      content: template_server_using_mbt(),
+    },
     // Routes (single source of truth)
     {
       path: "app/routes/moon.pkg.json",
@@ -571,6 +614,10 @@ pub fn generate_templates(
     {
       path: "app/routes/routes.mbt",
       content: template_routes_mbt(package_name),
+    },
+    {
+      path: "app/routes/_using.mbt",
+      content: template_routes_using_mbt(),
     },
     // Client islands (render + hydrate in same file)
     {
