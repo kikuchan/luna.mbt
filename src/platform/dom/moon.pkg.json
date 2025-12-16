@@ -5,8 +5,16 @@
   "import": [
     "mizchi/luna/core/signal",
     {
+      "path": "mizchi/luna/core",
+      "alias": "luna"
+    },
+    {
       "path": "mizchi/luna/platform/dom/client",
       "alias": "client"
+    },
+    {
+      "path": "mizchi/luna/platform/dom/element",
+      "alias": "element"
     },
     { "path": "mizchi/js/core", "alias": "js" },
     {

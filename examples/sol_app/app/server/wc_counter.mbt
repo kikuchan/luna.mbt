@@ -1,7 +1,10 @@
 ///| WC Counter Page Server Component
 ///|
 ///| Uses wc_island() to embed a Web Components based counter.
-///| Demonstrates Declarative Shadow DOM SSR.
+///| Demonstrates Declarative Shadow DOM SSR with unified hydration.
+///|
+///| The same counter.mbt component is used for both Luna Islands and WC Islands.
+///| The hydration function auto-detects WC mode (shadowRoot) vs Luna mode.
 
 ///| WC Counter page - Web Components based island
 pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
@@ -25,10 +28,14 @@ pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
     p(children=[
       text("CSS is encapsulated in Shadow DOM - inspect the element to see <template shadowrootmode=\"open\">."),
     ]),
+    p(children=[
+      text("Uses the same counter.mbt component with unified hydration (hydrate_auto_dom)."),
+    ]),
     // WcIsland with Declarative Shadow DOM
+    // Uses the same counter.js generated from counter.mbt
     @server_dom.wc_island(
       "wc-counter",
-      "/static/wc-counter.js",
+      "/static/counter.js", // Same component as Luna Island!
       styles=counter_styles,
       state=state_json,
       trigger=@luna.Load,

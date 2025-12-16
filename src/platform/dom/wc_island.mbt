@@ -101,6 +101,19 @@ extern "js" fn bind_on_handlers(
 extern "js" fn console_log_wc(msg : String) -> Unit =
   #| (msg) => console.log(msg)
 
+///|
+/// Check if element has a valid shadow root
+extern "js" fn has_shadow_root(element : @js_dom.Element) -> Bool =
+  #| (element) => element.shadowRoot != null
+
+///|
+/// Get shadow root as Element for hydration
+/// Note: ShadowRoot shares many methods with Element (querySelector, childNodes, etc.)
+extern "js" fn get_shadow_root_as_element(
+  element : @js_dom.Element,
+) -> @js_dom.Element =
+  #| (element) => element.shadowRoot
+
 // =============================================================================
 // WcIslandContext Methods
 // =============================================================================
@@ -247,3 +260,112 @@ pub fn hydrate_wc_island(
     None => console_log_wc("[" + name + "] no shadow root found, skipping hydration")
   }
 }
+
+// =============================================================================
+// Unified Hydration API - Auto-detects WC vs Luna mode
+// =============================================================================
+
+///|
+/// Check if an element is a Web Component (has shadow root)
+pub fn is_wc_element(element : @js_dom.Element) -> Bool {
+  has_shadow_root(element)
+}
+
+///|
+/// Get shadow root as Element for use with hydration functions
+/// Returns None if element has no shadow root
+pub fn get_shadow_root_for_hydrate(
+  element : @js_dom.Element,
+) -> @js_dom.Element? {
+  if has_shadow_root(element) {
+    Some(get_shadow_root_as_element(element))
+  } else {
+    None
+  }
+}
+
+///|
+/// Unified hydration function that auto-detects WC vs Luna mode
+///
+/// For Web Components (has shadowRoot):
+///   - Hydrates into existing shadow DOM (attaches handlers to existing elements)
+///
+/// For Luna Islands (no shadowRoot):
+///   - Renders new DOM into element (clears and creates new content)
+///
+/// Usage:
+/// ```moonbit
+/// pub fn hydrate_counter(element : @js.Any, state : @js.Any, _id : String) -> Unit {
+///   let jsdom_el : @js_dom.Element = element.cast()
+///   let props : CounterProps = ... // parse state
+///   let node = counter(props)
+///   @wc.hydrate_auto(jsdom_el, node)
+/// }
+/// ```
+///|
+/// Unified hydration for VNode-based components
+/// Auto-detects WC mode (shadowRoot) vs Luna mode (direct render)
+pub fn hydrate_auto(
+  element : @js_dom.Element,
+  node : @luna.Node[@js.Any],
+) -> Unit {
+  if has_shadow_root(element) {
+    // WC mode - hydrate into shadow root
+    let shadow_root = get_shadow_root_as_element(element)
+    console_log_wc(
+      "[" + element.tagName() + "] WC mode - hydrating shadow DOM",
+    )
+    // Use Luna's hydrate function on shadow root
+    @client.hydrate(shadow_root, node) |> ignore
+  } else {
+    // Luna mode - render new DOM
+    let el = @element.DomElement::from_jsdom(element)
+    let js_node = @client.render_vnode_to_dom(node)
+    let dom_node = @element.dom_node(js_node)
+    @element.render(el, dom_node)
+  }
+}
+
+///|
+/// Unified hydration for DomNode-based components
+/// For WC mode: Renders into shadow root (preserves SSR styles)
+/// For Luna mode: Renders into element (clears and mounts)
+pub fn hydrate_auto_dom(
+  element : @js_dom.Element,
+  node : @element.DomNode,
+) -> Unit {
+  if has_shadow_root(element) {
+    // WC mode - render into shadow root, preserving styles
+    let shadow_root = get_shadow_root_as_element(element)
+    console_log_wc(
+      "[" + element.tagName() + "] WC mode - rendering into shadow DOM",
+    )
+    // Preserve existing <style> elements from SSR
+    let styles = extract_style_elements(shadow_root)
+    // Clear shadow root
+    shadow_root.as_node().setTextContent("")
+    // Re-append styles first
+    for style in styles {
+      shadow_root.as_node().appendChild(style) |> ignore
+    }
+    // Then append new content
+    shadow_root.as_node().appendChild(node.to_jsdom()) |> ignore
+  } else {
+    // Luna mode - render new DOM
+    let el = @element.DomElement::from_jsdom(element)
+    @element.render(el, node)
+  }
+}
+
+///|
+/// Extract all <style> elements from a container
+extern "js" fn extract_style_elements(
+  container : @js_dom.Element,
+) -> Array[@js_dom.Node] =
+  #| (container) => {
+  #|   const styles = [];
+  #|   container.querySelectorAll('style').forEach(s => {
+  #|     styles.push(s.cloneNode(true));
+  #|   });
+  #|   return styles;
+  #| }

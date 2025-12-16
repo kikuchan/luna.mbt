@@ -833,19 +833,23 @@ fn generate_client_exports_mbt_v2(
     buf.write_string("pub fn \{func.name}\{sig_with_names} {\n")
     buf.write_string("  @\{prefixed_alias}.\{func.name}\{call_args}\n")
     buf.write_string("}\n\n")
-    // Generate hydrate wrapper if function takes Props and returns DomNode
+    // Generate hydrate wrapper if function takes Props and returns DomNode or Node
     let props_type = extract_props_type(func.signature, prefixed_alias)
-    if props_type.length() > 0 && func.signature.contains("DomNode") {
+    let returns_dom_node = func.signature.contains("DomNode")
+    let returns_vnode = func.signature.contains("Node[")
+    if props_type.length() > 0 && (returns_dom_node || returns_vnode) {
       // Get the qualified props type name
       let qualified_props = "@\{prefixed_alias}.\{props_type}"
       buf.write_string(
-        "///| Hydrate wrapper for \{func.name} - called by ln-loader\n",
+        "///| Hydrate wrapper for \{func.name} - called by ln-loader and wc-loader\n",
+      )
+      buf.write_string(
+        "///| Auto-detects WC mode (shadowRoot) vs Luna mode (direct render)\n",
       )
       buf.write_string(
         "pub fn hydrate_\{func.name}(element : @js.Any, state : @js.Any, _id : String) -> Unit {\n",
       )
       buf.write_string("  let jsdom_el : @js_dom.Element = element.cast()\n")
-      buf.write_string("  let el = @element.DomElement::from_jsdom(jsdom_el)\n")
       buf.write_string(
         "  // state is already a JS object from JSON.parse in loader\n",
       )
@@ -855,7 +859,14 @@ fn generate_client_exports_mbt_v2(
         "  let props : \{qualified_props} = try { @json.from_json(json) } catch { _ => return }\n",
       )
       buf.write_string("  let node = \{func.name}(props)\n")
-      buf.write_string("  @element.render(el, node)\n")
+      buf.write_string("  // Auto-detect WC (shadowRoot) vs Luna mode\n")
+      if returns_dom_node {
+        // DomNode - use hydrate_auto_dom (renders into element/shadow)
+        buf.write_string("  @wc.hydrate_auto_dom(jsdom_el, node)\n")
+      } else {
+        // VNode - use hydrate_auto (proper hydration)
+        buf.write_string("  @wc.hydrate_auto(jsdom_el, node)\n")
+      }
       buf.write_string("}\n\n")
     }
   }
@@ -999,6 +1010,12 @@ fn generate_client_pkg_json_v2(funcs : Array[FuncExport]) -> String {
   if not(seen.contains(js_dom_path)) {
     seen[js_dom_path] = true
     imports.push((js_dom_path, "js_dom"))
+  }
+  // Always add @wc for unified hydration (hydrate_auto)
+  let wc_path = "mizchi/luna/platform/dom"
+  if not(seen.contains(wc_path)) {
+    seen[wc_path] = true
+    imports.push((wc_path, "wc"))
   }
   for i, imp in imports {
     let (pkg_path, pkg_alias) = imp
