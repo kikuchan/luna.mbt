@@ -4,7 +4,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_DIR="$ROOT_DIR/examples/sol-app"
+APP_DIR="$ROOT_DIR/examples/sol_app"
 CLI_PATH="$ROOT_DIR/target/js/release/build/sol/cli/cli.js"
 PORT="${PORT:-3457}"
 
@@ -43,4 +43,4 @@ npx rolldown -c rolldown.config.mjs
 # Start server
 echo "Starting server on port $PORT..."
 export PORT="$PORT"
-exec node target/js/release/build/_gen/server/server.js
+exec node target/js/release/build/__gen__/server/server.js

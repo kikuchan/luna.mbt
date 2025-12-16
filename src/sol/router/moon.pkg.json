@@ -7,6 +7,7 @@
     { "path": "mizchi/luna/core/routes", "alias": "routes" },
     { "path": "mizchi/luna/core/render", "alias": "render" },
     { "path": "mizchi/npm_typed/hono", "alias": "hono" },
-    { "path": "mizchi/js/core", "alias": "js" }
+    { "path": "mizchi/js/core", "alias": "js" },
+    { "path": "mizchi/js/web/http", "alias": "http" }
   ]
 }

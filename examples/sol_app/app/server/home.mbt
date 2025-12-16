@@ -4,12 +4,11 @@
 
 ///| Home page - with counter island
 pub fn home(props : @router.PageProps) -> @luna.Node[Unit] {
-  let _ = props // Available for dynamic pages
   // Create props using generated types - auto-serializes to JSON
   let counter_props : @types.CounterProps = { initial_count: 0 }
   let state_json = counter_props.to_json().stringify()
 
-  layout([
+  let content = [
     h1(children=[text("Welcome to Sol")]),
     p(children=[text("A SSR-first web framework for MoonBit")]),
     @server_dom.island(
@@ -29,5 +28,13 @@ pub fn home(props : @router.PageProps) -> @luna.Node[Unit] {
         ]),
       ],
     ),
-  ])
+  ]
+
+  // Fragment request: return content only (no layout)
+  // Full page request: wrap with layout
+  if props.params.is_fragment {
+    @luna.vfragment(content)
+  } else {
+    layout(content)
+  }
 }

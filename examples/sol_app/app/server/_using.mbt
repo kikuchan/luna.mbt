@@ -5,8 +5,8 @@ using @element {
   button,
   h1,
   p,
-  a,
   nav,
   text,
-  fragment,
+  sol_link,
+  outlet,
 }

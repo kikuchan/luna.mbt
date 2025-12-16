@@ -103,12 +103,14 @@ pub struct RouteParams {
   query : Array[(String, String)]
   /// Full path
   path : String
+  /// Whether this is a fragment request (CSR navigation)
+  is_fragment : Bool
 }
 
 ///|
 /// Create empty route params
 pub fn RouteParams::empty() -> RouteParams {
-  { params: [], query: [], path: "" }
+  { params: [], query: [], path: "", is_fragment: false }
 }
 
 ///|
@@ -144,13 +146,33 @@ pub struct PageProps {
   ctx : Ctx
   /// Route parameters (path params, query params)
   params : RouteParams
+  /// Whether this is a fragment request (CSR navigation)
+  /// When true, page should return content without layout wrapper
+  is_fragment : Bool
 }
 
 ///|
 /// Create PageProps from context
 pub fn PageProps::from_ctx(ctx : Ctx) -> PageProps {
   let params = extract_route_params(ctx)
-  { ctx, params }
+  { ctx, params, is_fragment: false }
+}
+
+///|
+/// Create PageProps for fragment request
+pub fn PageProps::from_ctx_fragment(ctx : Ctx) -> PageProps {
+  let params = extract_route_params(ctx)
+  { ctx, params, is_fragment: true }
+}
+
+///|
+/// Create PageProps from context and pre-extracted params
+/// Use this when params are already extracted by the router
+pub fn PageProps::from_ctx_with_params(
+  ctx : Ctx,
+  params : RouteParams,
+) -> PageProps {
+  { ctx, params, is_fragment: params.is_fragment }
 }
 
 // ============================================================================
@@ -208,7 +230,8 @@ fn[E] register_routes_inner(
         let _ = meta
         let full_path = prefix + path
         result.get(full_path, fn(c) {
-          let params = extract_route_params(c)
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
           match page_resolver(component, c, params) {
             Some(node) => {
               let page_title = format_title(
@@ -216,8 +239,18 @@ fn[E] register_routes_inner(
                 title_prefix~,
                 default_title~,
               )
-              let html = render_page_html(node, page_title, default_head, false)
-              c.html(html)
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(
+                  node,
+                  page_title,
+                  false,
+                )
+                send_fragment_response(c, fragment_html)
+              } else {
+                let html = render_page_html(node, page_title, default_head, false)
+                c.html(html)
+              }
             }
             None => c.text("Page not found: " + component)
           }
@@ -227,7 +260,8 @@ fn[E] register_routes_inner(
         let _ = (url, trigger, meta)
         let full_path = prefix + path
         result.get(full_path, fn(c) {
-          let params = extract_route_params(c)
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
           match page_resolver(component, c, params) {
             Some(node) => {
               let page_title = format_title(
@@ -235,12 +269,18 @@ fn[E] register_routes_inner(
                 title_prefix~,
                 default_title~,
               )
-              let loader_script = "<script type=\"module\" src=\"" +
-                loader_url +
-                "\"></script>"
-              let head = default_head + loader_script
-              let html = render_page_html(node, page_title, head, true)
-              c.html(html)
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(node, page_title, true)
+                send_fragment_response(c, fragment_html)
+              } else {
+                let loader_script = "<script type=\"module\" src=\"" +
+                  loader_url +
+                  "\"></script>"
+                let head = default_head + loader_script
+                let html = render_page_html(node, page_title, head, true)
+                c.html(html)
+              }
             }
             None => c.text("Page not found: " + component)
           }
@@ -316,11 +356,11 @@ fn[E] register_routes_inner(
 
 ///|
 /// Extract route parameters from Hono context
-fn extract_route_params(c : Ctx) -> RouteParams {
+fn extract_route_params(c : Ctx, is_fragment~ : Bool = false) -> RouteParams {
   let params = ffi_get_all_params(c.as_any())
   let query = ffi_get_query_params(c.as_any())
   let path = ffi_get_path(c.as_any())
-  { params, query, path }
+  { params, query, path, is_fragment }
 }
 
 ///|

@@ -39,7 +39,11 @@
         "button",
         "text",
         "fragment",
-        "attr"
+        "attr",
+        "sol_link",
+        "outlet",
+        "template_outlet",
+        "template_title"
       ],
       "format": "esm"
     }

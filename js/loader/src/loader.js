@@ -39,7 +39,24 @@
   new MutationObserver(m => m.flatMap(x => [...x.addedNodes]).forEach(n => n.nodeType === 1 && n.hasAttribute('ln:id') && setup(n)))
     .observe(d.body ?? d.documentElement, { childList: 1, subtree: 1 });
 
+  // Unload specific island ID (remove from loaded set)
+  const unload = (id) => loaded.delete(id);
+
+  // Unload all islands within an element (for CSR navigation)
+  const unloadAll = (root = d.body) => {
+    root.querySelectorAll('[ln\\:id]').forEach(el => {
+      const id = el.getAttribute('ln:id');
+      if (id) loaded.delete(id);
+    });
+  };
+
+  // Clear all loaded state (for full page refresh)
+  const clearLoaded = () => loaded.clear();
+
   w.__LN_STATE__ = S;
   w.__LN_HYDRATE__ = hydrate;
   w.__LN_SCAN__ = scan;
+  w.__LN_UNLOAD__ = unload;
+  w.__LN_UNLOAD_ALL__ = unloadAll;
+  w.__LN_CLEAR_LOADED__ = clearLoaded;
 })(document, window);
