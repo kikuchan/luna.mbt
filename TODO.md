@@ -24,6 +24,7 @@
 ユーザー視点で優先度が高いもの：
 
 ### 最優先（開発体験に直結）
+
 - [ ] sol: hot reload - 開発効率に直結
 - [ ] v0.1.0 ドキュメントの英語化 - 海外ユーザーの参入障壁
 
@@ -64,6 +65,7 @@
 
 ## Icebox
 
+- [ ] headless ui library
 - [ ] shadcn
 - [ ] Vite Enviroment Apiに対応? -> やらない。やるにしても最後
 - [ ] Inline Editor: dev の時、Monaco を利用して、
