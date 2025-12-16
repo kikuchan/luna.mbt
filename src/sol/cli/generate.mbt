@@ -350,7 +350,7 @@ pub(all) struct StructExport {
 /// Collect all pub functions from island directories
 fn collect_island_functions(
   cwd : String,
-  config : SolConfig
+  config : SolConfig,
 ) -> Array[FuncExport] {
   let exports : Array[FuncExport] = []
   let island_files = find_mbti_files(cwd, config.islands)
@@ -384,7 +384,7 @@ fn collect_island_functions(
 /// This parses source directly, not mbti, to avoid circular dependency
 fn collect_island_structs_from_source(
   cwd : String,
-  config : SolConfig
+  config : SolConfig,
 ) -> Array[StructExport] {
   let exports : Array[StructExport] = []
   for pattern in config.islands {
@@ -412,6 +412,7 @@ fn collect_island_structs_from_source(
               })
             }
             let _ = pkg_json_path
+
           }
         }
       } catch {
@@ -437,7 +438,7 @@ fn get_dir_name(path : String) -> String {
 /// Collect Props struct definitions from island directories (from mbti)
 fn collect_island_structs(
   cwd : String,
-  config : SolConfig
+  config : SolConfig,
 ) -> Array[StructExport] {
   let exports : Array[StructExport] = []
   let island_files = find_mbti_files(cwd, config.islands)
@@ -491,7 +492,7 @@ fn generate_types_mbt(structs : Array[StructExport]) -> String {
 /// Generate types/moon.pkg.json
 fn generate_types_pkg_json(
   structs : Array[StructExport],
-  project_name : String
+  project_name : String,
 ) -> String {
   let _ = project_name
   let buf = StringBuilder::new()
@@ -680,7 +681,7 @@ pub fn uses_hono_types(signature : String) -> Bool {
 fn rewrite_signature_types(
   sig : String,
   import_alias : String,
-  _props_names : Array[String]
+  _props_names : Array[String],
 ) -> String {
   let result = sig
   // Rewrite @xxx.Type patterns - keep them as is (they reference imported packages)
@@ -697,7 +698,10 @@ fn rewrite_signature_types(
       i += 1
       while i < chars.length() {
         let nc = chars[i]
-        if (nc >= 'a' && nc <= 'z') || (nc >= 'A' && nc <= 'Z') || (nc >= '0' && nc <= '9') || nc == '_' {
+        if (nc >= 'a' && nc <= 'z') ||
+          (nc >= 'A' && nc <= 'Z') ||
+          (nc >= '0' && nc <= '9') ||
+          nc == '_' {
           word_buf.write_char(nc)
           i += 1
         } else {
@@ -707,7 +711,10 @@ fn rewrite_signature_types(
       let word = word_buf.to_string()
       word_buf.reset()
       // Check if it's a known primitive type
-      let primitives = ["Int", "String", "Bool", "Unit", "Float", "Double", "Byte", "Char", "Array", "Self"]
+      let primitives = [
+        "Int", "String", "Bool", "Unit", "Float", "Double", "Byte", "Char", "Array",
+        "Self",
+      ]
       let is_primitive = primitives.contains(word)
       // Check if this type is already qualified with @xxx. pattern
       // by checking if previous char is '.' (from @package.Type)
@@ -731,7 +738,7 @@ fn rewrite_signature_types(
 /// Generate client exports.mbt for islands (new architecture - all pub fns)
 fn generate_client_exports_mbt_v2(
   funcs : Array[FuncExport],
-  props_names : Array[String]
+  props_names : Array[String],
 ) -> String {
   let buf = StringBuilder::new()
   buf.write_string("///| Auto-generated client exports\n")
@@ -754,14 +761,22 @@ fn generate_client_exports_mbt_v2(
     if props_type.length() > 0 && func.signature.contains("DomNode") {
       // Get the qualified props type name
       let qualified_props = "@\{prefixed_alias}.\{props_type}"
-      buf.write_string("///| Hydrate wrapper for \{func.name} - called by ln-loader\n")
-      buf.write_string("pub fn hydrate(element : @js.Any, state : @js.Any, _id : String) -> Unit {\n")
+      buf.write_string(
+        "///| Hydrate wrapper for \{func.name} - called by ln-loader\n",
+      )
+      buf.write_string(
+        "pub fn hydrate(element : @js.Any, state : @js.Any, _id : String) -> Unit {\n",
+      )
       buf.write_string("  let jsdom_el : @js_dom.Element = element.cast()\n")
       buf.write_string("  let el = @element.DomElement::from_jsdom(jsdom_el)\n")
-      buf.write_string("  // state is already a JS object from JSON.parse in loader\n")
+      buf.write_string(
+        "  // state is already a JS object from JSON.parse in loader\n",
+      )
       buf.write_string("  // Convert to Json then parse to Props\n")
       buf.write_string("  let json = @mbtconv.to_json(state)\n")
-      buf.write_string("  let props : \{qualified_props} = try { @json.from_json(json) } catch { _ => return }\n")
+      buf.write_string(
+        "  let props : \{qualified_props} = try { @json.from_json(json) } catch { _ => return }\n",
+      )
       buf.write_string("  let node = \{func.name}(props)\n")
       buf.write_string("  @element.render(el, node)\n")
       buf.write_string("}\n\n")
@@ -825,7 +840,10 @@ fn extract_used_packages(funcs : Array[FuncExport]) -> Array[String] {
         let alias_buf = StringBuilder::new()
         while i < chars.length() {
           let c = chars[i]
-          if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
+          if (c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') ||
+            c == '_' {
             alias_buf.write_char(c)
             i += 1
           } else {
@@ -910,16 +928,20 @@ fn generate_client_pkg_json_v2(funcs : Array[FuncExport]) -> String {
     if i > 0 {
       buf.write_string(",\n")
     }
-    buf.write_string("    { \"path\": \"\{pkg_path}\", \"alias\": \"\{pkg_alias}\" }")
+    buf.write_string(
+      "    { \"path\": \"\{pkg_path}\", \"alias\": \"\{pkg_alias}\" }",
+    )
   }
   buf.write_string("\n  ],\n")
   buf.write_string("  \"link\": {\n")
   buf.write_string("    \"js\": {\n")
   buf.write_string("      \"exports\": [")
   // Check if any function has Props -> DomNode signature (needs hydrate)
-  let has_hydrate = funcs.iter().any(fn(f) {
-    f.signature.contains("Props") && f.signature.contains("DomNode")
-  })
+  let has_hydrate = funcs
+    .iter()
+    .any(fn(f) {
+      f.signature.contains("Props") && f.signature.contains("DomNode")
+    })
   for i, func in funcs {
     if i > 0 {
       buf.write_string(", ")
@@ -1068,7 +1090,10 @@ fn generate_server_pkg_json(routes_pkg : String) -> String {
 
 ///|
 /// Generate client entry JS file (new architecture)
-fn generate_island_entry_js_v2(func : FuncExport, include_hydrate : Bool) -> String {
+fn generate_island_entry_js_v2(
+  func : FuncExport,
+  include_hydrate : Bool,
+) -> String {
   let buf = StringBuilder::new()
   buf.write_string("// Client entry for: \{func.name}\n")
   buf.write_string("// Generated by: sol generate\n\n")
@@ -1160,7 +1185,9 @@ fn generate_sol_server_main_js(routes_pkg : String) -> String {
   buf.write_string("// Server entry point\n")
   buf.write_string("// Generated by: sol generate\n\n")
   buf.write_string("// Re-export the server module\n")
-  buf.write_string("export * from '../../target/js/release/build/__gen__/server/server.js';\n")
+  buf.write_string(
+    "export * from '../../target/js/release/build/__gen__/server/server.js';\n",
+  )
   buf.to_string()
 }
 
@@ -1216,9 +1243,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   // Create output directories first (needed for types)
   let output_dir = @path.join2(cwd, config.output) // app/__gen__
   let types_dir = @path.join2(output_dir, "types")
-  try {
-    @fs.mkdirSync(types_dir, recursive=true)
-  } catch {
+  @fs.mkdirSync(types_dir, recursive=true) catch {
     e => {
       console_error(@colorette.red("Error creating types directory: \{e}"))
       @process.exit(1)
@@ -1227,12 +1252,18 @@ fn run_generate_command(args : Array[String]) -> Unit {
   // Step 1: Parse source files to extract Props structs (before moon info)
   println(@colorette.gray("  Parsing source files for Props types..."))
   let source_structs = collect_island_structs_from_source(cwd, config)
-  println(@colorette.gray("  Found \{source_structs.length()} Props types from source"))
+  println(
+    @colorette.gray(
+      "  Found \{source_structs.length()} Props types from source",
+    ),
+  )
   // Step 2: Generate types package from source (so moon info can resolve imports)
   let project_name = get_project_name(cwd)
   if not(source_structs.is_empty()) {
     let types_mbt_content = generate_types_mbt(source_structs)
-    let types_pkg_content = generate_types_pkg_json(source_structs, project_name)
+    let types_pkg_content = generate_types_pkg_json(
+      source_structs, project_name,
+    )
     let types_mbt_path = @path.join2(types_dir, "types.mbt")
     let types_pkg_path = @path.join2(types_dir, "moon.pkg.json")
     try {
@@ -1251,8 +1282,14 @@ fn run_generate_command(args : Array[String]) -> Unit {
     let stub_types_pkg_path = @path.join2(types_dir, "moon.pkg.json")
     if not(@fs.existsSync(stub_types_mbt_path)) {
       try {
-        @fs.writeFileSync(stub_types_mbt_path, @js.any("///| No Props types found\n"))
-        @fs.writeFileSync(stub_types_pkg_path, @js.any("{\n  \"supported-targets\": [\"js\"]\n}\n"))
+        @fs.writeFileSync(
+          stub_types_mbt_path,
+          @js.any("///| No Props types found\n"),
+        )
+        @fs.writeFileSync(
+          stub_types_pkg_path,
+          @js.any("{\n  \"supported-targets\": [\"js\"]\n}\n"),
+        )
       } catch {
         e => {
           console_error(@colorette.red("Error writing stub types: \{e}"))
@@ -1362,7 +1399,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
       // Check if this function has Props -> DomNode signature (needs hydrate)
       let include_hydrate = func.signature.contains("Props") &&
         func.signature.contains("DomNode")
-      let island_entry_content = generate_island_entry_js_v2(func, include_hydrate)
+      let island_entry_content = generate_island_entry_js_v2(
+        func, include_hydrate,
+      )
       let island_entry_path = @path.join2(sol_client_dir, "\{func.name}.js")
       @fs.writeFileSync(island_entry_path, @js.any(island_entry_content)) catch {
         e => {

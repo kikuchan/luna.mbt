@@ -46,7 +46,9 @@ fn run_dev_command(args : Array[String]) -> Unit {
   let sol_dir = @path.join2(cwd, ".sol")
   let gen_dir = @path.join2(cwd, "app/__gen__")
   let target_dir = @path.join2(cwd, "target")
-  if @fs.existsSync(sol_dir) || @fs.existsSync(gen_dir) || @fs.existsSync(target_dir) {
+  if @fs.existsSync(sol_dir) ||
+    @fs.existsSync(gen_dir) ||
+    @fs.existsSync(target_dir) {
     println(@colorette.gray("Cleaning generated files..."))
     if @fs.existsSync(sol_dir) {
       rm_rf_sync(sol_dir)
@@ -116,10 +118,8 @@ fn run_dev_command(args : Array[String]) -> Unit {
 fn run_server(cwd : String, port : String) -> Unit {
   // Step 5: Find and run the server entry point
   let possible_entries = [
-    "target/js/release/build/__gen__/server/server.js",
-    "target/js/release/build/server/run/run.js",
-    "target/js/release/build/examples/example_app/example_app.js",
-    "target/js/release/build/main/main.js",
+    "target/js/release/build/__gen__/server/server.js", "target/js/release/build/server/run/run.js",
+    "target/js/release/build/examples/example_app/example_app.js", "target/js/release/build/main/main.js",
   ]
   let mut entry_point : String? = None
   for entry in possible_entries {
