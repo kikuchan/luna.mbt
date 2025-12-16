@@ -172,7 +172,6 @@ extern "js" fn ffi_serve(app : @js.Any, port : Int) -> Unit =
   #|(app, port) => {
   #|  import('@hono/node-server').then(({ serve }) => {
   #|    serve({ fetch: app.fetch, port });
-  #|    console.log(`Server running at http://localhost:${port}`);
   #|  });
   #|}
 

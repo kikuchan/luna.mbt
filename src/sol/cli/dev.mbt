@@ -149,9 +149,6 @@ fn run_server(cwd : String, port : String, mode : String) -> Unit {
       println(@colorette.cyan("Running \{entry}..."))
       // Set PORT environment variable before starting server
       set_env("PORT", port)
-      println(
-        @colorette.green("✓ Server starting at http://localhost:\{port}"),
-      )
       // Run the server with inherited stdio (blocking)
       try {
         let result = @child_process.spawnSync(
