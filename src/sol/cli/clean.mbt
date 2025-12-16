@@ -32,7 +32,8 @@ fn run_clean_command(args : Array[String]) -> Unit {
     show_clean_help()
     return
   }
-  let clean_all : Bool = result.values.contains("all") && result.values["all"].cast()
+  let clean_all : Bool = result.values.contains("all") &&
+    result.values["all"].cast()
   let cwd = @process.cwd()
   // Directories to clean
   let dirs_to_clean = [".sol", "app/__gen__"]

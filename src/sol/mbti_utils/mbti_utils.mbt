@@ -1,5 +1,7 @@
 ///| MBTI Parser Utilities
+
 ///|
+
 ///| Extracts public function signatures from .mbti files
 
 ///|
@@ -19,18 +21,27 @@ pub(all) struct StructDef {
 
 ///|
 /// Parse mbti content and extract public functions
-pub fn parse_pub_funcs(content : String, filename : String) -> Array[PubFunc] raise {
+pub fn parse_pub_funcs(
+  content : String,
+  filename : String,
+) -> Array[PubFunc] raise {
   // Tokenize
-  let lex_result = @lexer.tokens_from_string(name=filename, content, comment=false)
+  let lex_result = @lexer.tokens_from_string(
+    name=filename,
+    content,
+    comment=false,
+  )
   // Filter out newlines and comments
   let tokens = lex_result.tokens.filter(fn(triple) {
     not(triple.0 is (NEWLINE | COMMENT(_)))
   })
   // Parse
-  let mbti = @mbti_parser.mbti(
-    tokens,
-    initial_pos=@basic.Position::{ fname: filename, lnum: 1, bol: 0, cnum: 0 },
-  )
+  let mbti = @mbti_parser.mbti(tokens, initial_pos=@basic.Position::{
+    fname: filename,
+    lnum: 1,
+    bol: 0,
+    cnum: 0,
+  })
   // Extract function signatures
   let funcs : Array[PubFunc] = []
   for item in mbti.sigs {
@@ -53,16 +64,14 @@ pub fn parse_pub_funcs(content : String, filename : String) -> Array[PubFunc] ra
 ///|
 /// Extract only standalone functions (not methods)
 pub fn get_standalone_funcs(funcs : Array[PubFunc]) -> Array[String] {
-  funcs
-  .filter(fn(f) { f.type_name is None })
-  .map(fn(f) { f.name })
+  funcs.filter(fn(f) { f.type_name is None }).map(fn(f) { f.name })
 }
 
 ///|
 /// Extract methods for a specific type
 pub fn get_methods_for_type(
   funcs : Array[PubFunc],
-  type_name : String
+  type_name : String,
 ) -> Array[String] {
   funcs
   .filter(fn(f) {
@@ -77,7 +86,10 @@ pub fn get_methods_for_type(
 ///|
 /// Parse mbti content and extract struct definitions using simple string parsing
 /// (The full parser doesn't handle `pub fn` format from moon info)
-pub fn parse_struct_defs(content : String, _filename : String) -> Array[StructDef] {
+pub fn parse_struct_defs(
+  content : String,
+  _filename : String,
+) -> Array[StructDef] {
   let structs : Array[StructDef] = []
   let lines = content.split("\n").to_array()
   let mut i = 0
@@ -85,7 +97,11 @@ pub fn parse_struct_defs(content : String, _filename : String) -> Array[StructDe
     let line = lines[i].to_string().trim_space().to_string()
     // Look for struct definitions: pub(all) struct Name { or pub struct Name {
     if line.has_prefix("pub(all) struct ") || line.has_prefix("pub struct ") {
-      let visibility = if line.has_prefix("pub(all)") { "pub(all)" } else { "pub" }
+      let visibility = if line.has_prefix("pub(all)") {
+        "pub(all)"
+      } else {
+        "pub"
+      }
       // Extract struct name
       let after_struct = if visibility == "pub(all)" {
         line.substring(start=16) // after "pub(all) struct "
@@ -118,7 +134,11 @@ fn extract_until(s : String, delimiters : Array[Char]) -> String {
 
 ///|
 /// Extract raw struct definition from content by name
-fn extract_struct_raw(content : String, name : String, visibility : String) -> String {
+fn extract_struct_raw(
+  content : String,
+  name : String,
+  visibility : String,
+) -> String {
   // Look for pattern: visibility struct Name { ... }
   let vis_prefix = if visibility.length() > 0 { "\{visibility} " } else { "" }
   let pattern = "\{vis_prefix}struct \{name}"

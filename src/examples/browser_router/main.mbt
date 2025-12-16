@@ -230,9 +230,7 @@ fn users_layout_component(
 
 ///|
 /// ユーザー一覧
-fn users_list_component(
-  _router : @router.BrowserRouter,
-) -> @dom.DomNode {
+fn users_list_component(_router : @router.BrowserRouter) -> @dom.DomNode {
   div(class="users-list", [
     h3([text("User List")]),
     ul([
@@ -268,9 +266,7 @@ fn user_detail_component(
 
 ///|
 /// 設定インデックス
-fn settings_index_component(
-  router : @router.BrowserRouter,
-) -> @dom.DomNode {
+fn settings_index_component(router : @router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   let profile_path = base + "/settings/profile"
   div(class="settings-index", [
@@ -292,9 +288,7 @@ fn settings_index_component(
 
 ///|
 /// プロファイル設定
-fn settings_profile_component(
-  router : @router.BrowserRouter,
-) -> @dom.DomNode {
+fn settings_profile_component(router : @router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   div(class="settings-profile", [
     h1([text("Profile Settings")]),

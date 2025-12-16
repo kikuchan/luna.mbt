@@ -65,5 +65,8 @@ pub fn document(
     (None, Some(i)) => @element.body(id=i, children=body_children)
     (None, None) => @element.body(children=body_children)
   }
-  @element.html(lang?, children=[@element.head(children=head_children), body_node])
+  @element.html(lang?, children=[
+    @element.head(children=head_children),
+    body_node,
+  ])
 }

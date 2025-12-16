@@ -85,7 +85,9 @@ test "TriggerType::parse - parses from string" {
 
 ///|
 test "format_state_attr - inline JSON" {
-  let result = @mercurius.format_state_attr(@mercurius.StateConfig::Inline("{\"x\":1}"))
+  let result = @mercurius.format_state_attr(
+    @mercurius.StateConfig::Inline("{\"x\":1}"),
+  )
   // " is escaped as &quot; for HTML attribute safety
   assert_eq(result, Some("{&quot;x&quot;:1}"))
 }

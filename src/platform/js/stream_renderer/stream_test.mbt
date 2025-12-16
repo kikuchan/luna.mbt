@@ -1,9 +1,12 @@
 // Test enum for action
+
+///|
 enum TestAction {
   Increment
   DoSomething
 } derive(Show)
 
+///|
 test "render_to_stream_collecting_async collects boundaries" {
   let node : @luna.Node[Unit] = @luna.vfragment([
     @luna.h("div", [], [@luna.vtext("Header")]),

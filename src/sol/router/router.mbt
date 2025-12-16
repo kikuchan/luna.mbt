@@ -38,7 +38,7 @@ pub fn RouterConfig::default() -> RouterConfig {
 /// Set default head HTML
 pub fn RouterConfig::with_default_head(
   self : RouterConfig,
-  head : String
+  head : String,
 ) -> RouterConfig {
   { ..self, default_head: head }
 }
@@ -47,7 +47,7 @@ pub fn RouterConfig::with_default_head(
 /// Set loader URL
 pub fn RouterConfig::with_loader_url(
   self : RouterConfig,
-  url : String
+  url : String,
 ) -> RouterConfig {
   { ..self, loader_url: url }
 }
@@ -56,7 +56,7 @@ pub fn RouterConfig::with_loader_url(
 /// Set title prefix
 pub fn RouterConfig::with_title_prefix(
   self : RouterConfig,
-  prefix : String
+  prefix : String,
 ) -> RouterConfig {
   { ..self, title_prefix: prefix }
 }
@@ -65,7 +65,7 @@ pub fn RouterConfig::with_title_prefix(
 /// Set default title
 pub fn RouterConfig::with_default_title(
   self : RouterConfig,
-  title : String
+  title : String,
 ) -> RouterConfig {
   { ..self, default_title: title }
 }

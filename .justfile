@@ -26,8 +26,12 @@ size-check:
 # === Test Commands ===
 
 # Run all tests
-test: test-moonbit test-xplat test-vitest test-browser test-e2e
+test: test-moonbit test-xplat test-vitest test-browser test-e2e test-examples
     @echo "✓ All tests passed"
+
+test-examples:
+    moon info
+    moon build -C examples/sol_app
 
 # Run MoonBit unit tests
 test-moonbit:

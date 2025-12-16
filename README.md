@@ -1,10 +1,10 @@
 # Luna
 
-> **⚠️ Warning: This is a Proof of Concept (PoC)**
+> **Warning: This is a Proof of Concept (PoC)**
 >
 > This project is experimental and under active development. APIs may change without notice. Not recommended for production use.
 
-A reactive UI library written in [MoonBit](https://www.moonbitlang.com/) with Fine-Grained Reactivity inspired by [Solid.js](https://www.solidjs.com/) and [Qwik](https://qwik.dev/).
+A reactive UI library written in [MoonBit](https://www.moonbitlang.com/) with **Island Architecture** and Fine-Grained Reactivity inspired by [Solid.js](https://www.solidjs.com/) and [Qwik](https://qwik.dev/).
 
 - **Client-side**: Compiles to JavaScript for browser DOM rendering and hydration
 - **Server-side**: Runs on native backend for high-performance SSR
@@ -13,8 +13,9 @@ A reactive UI library written in [MoonBit](https://www.moonbitlang.com/) with Fi
 ## Features
 
 - **Fine-Grained Reactivity** - Signal-based reactive primitives (`Signal`, `effect`, `memo`) with automatic dependency tracking
-- **SSR (Server-Side Rendering)** - Render to HTML string
-- **Hydration** - Restore interactivity on SSR-rendered content
+- **Island Architecture** - Partial hydration with selective component loading
+- **SSR (Server-Side Rendering)** - Render to HTML string with streaming support
+- **Hydration** - Restore interactivity on SSR-rendered content with multiple trigger strategies (load, idle, visible, media)
 - **JSX/TSX Support** - Use familiar JSX syntax via `@mizchi/luna` npm package
 - **Multi-target Support** - Core signals work on js, native, wasm, wasm-gc
 
@@ -42,12 +43,12 @@ npm install @mizchi/luna
 | Package | js | native | wasm | wasm-gc |
 |---------|:--:|:------:|:----:|:-------:|
 | `mizchi/luna` (core) | ✅ | ✅ | ✅ | ✅ |
-| `mizchi/luna/ssr` | ✅ | ✅ | ✅ | ✅ |
-| `mizchi/luna/dom` | ✅ | - | - | - |
+| `mizchi/luna/core/render` | ✅ | ✅ | ✅ | ✅ |
+| `mizchi/luna/platform/dom` | ✅ | - | - | - |
 
 - **Core (`mizchi/luna`)**: Signals, VNode, reactive primitives - works on all targets
-- **SSR (`mizchi/luna/ssr`)**: Server-side rendering - works on all targets
-- **DOM (`mizchi/luna/dom`)**: Browser DOM rendering and hydration - JavaScript only
+- **Render (`mizchi/luna/core/render`)**: HTML string rendering - works on all targets
+- **DOM (`mizchi/luna/platform/dom`)**: Browser DOM rendering and hydration - JavaScript only
 
 ## Usage
 
@@ -144,29 +145,19 @@ fn list_example() -> @dom.DomNode {
 }
 ```
 
-### Dynamic Attributes
-
-```moonbit
-fn style_example() -> @dom.DomNode {
-  let size = @signal.signal(100)
-
-  @dom.create_element(
-    "div",
-    [
-      ("style", @dom.attr_dynamic(fn() {
-        "width: " + size.get().to_string() + "px; height: " + size.get().to_string() + "px;"
-      })),
-    ],
-    [],
-  )
-}
-```
-
 ## Development
+
+Requires [just](https://github.com/casey/just) command runner.
 
 ```bash
 # Install dependencies
 pnpm install
+
+# Run all CI checks (recommended before PR)
+just ci
+
+# Type check
+just check
 
 # Run all tests
 just test
@@ -174,32 +165,72 @@ just test
 # Run MoonBit tests only
 just test-moonbit
 
-# Run Node.js tests only
-just test-node
+# Run browser tests
+just test-browser
+
+# Run E2E tests
+just test-e2e
 
 # Build
 just build
 
 # Format code
 just fmt
+
+# Show bundle sizes
+just size
+
+# Watch mode
+just watch
 ```
 
 ## Project Structure
 
 ```
 src/
-├── core/
-│   └── signal/        # Reactive primitives (all targets)
-├── platform/
-│   └── dom/           # DOM rendering & hydration (js only)
-├── renderer/          # HTML string rendering (SSR)
-├── router/            # Client-side routing
-└── examples/          # Example applications
+├── core/                      # Target-independent
+│   ├── signal/                # Signal primitives
+│   ├── vnode.mbt              # VNode definition
+│   ├── render/                # HTML string rendering
+│   ├── routes/                # Route matching
+│   └── serialize/             # State serialization
+├── platform/                  # Platform-specific
+│   ├── dom/                   # Browser DOM API
+│   │   ├── element/           # Low-level DOM operations (render, diff, reconcile)
+│   │   └── router/            # Client-side router
+│   ├── js/                    # JS-specific
+│   │   └── api/               # Public API for JS (@mizchi/luna)
+│   └── server_dom/            # Server-side SSR helpers
+├── mercurius/                 # Shard/Island embedding
+├── sol/                       # SSR framework (CLI + runtime)
+├── examples/                  # Example applications
+└── tests/                     # Test fixtures
 
 js/
-├── luna/              # npm package (@mizchi/luna)
-├── loader/            # Island hydration loader
-└── cli/               # CLI tools
+├── luna/                      # npm package (@mizchi/luna)
+└── loader/                    # Island hydration loader (@mizchi/luna-loader)
+
+e2e/                           # Playwright E2E tests
+```
+
+## Island Architecture
+
+Luna supports partial hydration through Island Architecture. Components are rendered on the server and selectively hydrated on the client based on triggers:
+
+| Trigger | Description |
+|---------|-------------|
+| `load` | Hydrate immediately on page load |
+| `idle` | Hydrate during browser idle time (requestIdleCallback) |
+| `visible` | Hydrate when element becomes visible (IntersectionObserver) |
+| `media` | Hydrate when media query matches |
+| `none` | Manual hydration via `__LN_HYDRATE__` |
+
+## Sol - SSR Framework
+
+Sol is a built-in SSR framework that integrates with Hono for server-side rendering. Create new projects with:
+
+```bash
+just sol new myapp
 ```
 
 ## License

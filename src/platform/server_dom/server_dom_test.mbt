@@ -8,11 +8,9 @@ test "render simple div" {
 
 ///|
 test "render div with attributes" {
-  let node = @element.div(
-    id="main",
-    class="container",
-    children=[@element.text("Content")],
-  )
+  let node = @element.div(id="main", class="container", children=[
+    @element.text("Content"),
+  ])
   let html = render(node)
   assert_true(html.contains("id=\"main\""))
   assert_true(html.contains("class=\"container\""))
