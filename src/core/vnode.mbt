@@ -61,6 +61,7 @@ pub struct VIsland[E] {
 /// Uses Declarative Shadow DOM for SSR and DOM Parts for partial updates
 pub struct VWcIsland[E] {
   name : String // Custom element name (e.g., "wc-counter")
+  url : String // Hydration script URL (data-wc-url)
   styles : String // CSS for Shadow DOM
   state : String // Serialized state JSON
   trigger : IslandTrigger // Hydration trigger
@@ -209,12 +210,13 @@ pub fn[E] visland(
 /// Uses Declarative Shadow DOM for SSR
 pub fn[E] vwc_island(
   name : String,
+  url : String,
   styles : String,
   state : String,
   children : Array[Node[E]],
   trigger? : IslandTrigger = Load,
 ) -> Node[E] {
-  WcIsland({ name, styles, state, trigger, children })
+  WcIsland({ name, url, styles, state, trigger, children })
 }
 
 ///|

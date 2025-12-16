@@ -839,6 +839,7 @@ test "render async with on_error handler" {
 test "render wc_island basic" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-counter",
+    "/static/wc-counter.js",
     ":host { display: block; }",
     "{\"count\":5}",
     [@luna.vtext("5")],
@@ -846,6 +847,7 @@ test "render wc_island basic" {
   let html = render_to_string(node).html
   // Check custom element with data attributes
   assert_true(html.contains("<wc-counter"))
+  assert_true(html.contains("data-wc-url=\"/static/wc-counter.js\""))
   assert_true(html.contains("data-state=\"{&quot;count&quot;:5}\""))
   // Check Declarative Shadow DOM template
   assert_true(html.contains("<template shadowrootmode=\"open\">"))
@@ -859,6 +861,7 @@ test "render wc_island basic" {
 test "render wc_island without styles" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-simple",
+    "/static/wc-simple.js",
     "", // empty styles
     "{}",
     [@luna.vtext("Content")],
@@ -873,6 +876,7 @@ test "render wc_island without styles" {
 test "render wc_island with idle trigger" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-lazy",
+    "/static/wc-lazy.js",
     "",
     "{}",
     [@luna.vtext("Loading...")],
@@ -886,6 +890,7 @@ test "render wc_island with idle trigger" {
 test "render wc_island with visible trigger" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-visible",
+    "/static/wc-visible.js",
     "",
     "{}",
     [@luna.vtext("Loading...")],
@@ -899,6 +904,7 @@ test "render wc_island with visible trigger" {
 test "render wc_island with media trigger" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-responsive",
+    "/static/wc-responsive.js",
     "",
     "{}",
     [@luna.vtext("Content")],
@@ -913,6 +919,7 @@ test "render wc_island load trigger omits data-trigger" {
   // Load trigger is the default, should not render data-trigger attribute
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-default",
+    "/static/wc-default.js",
     "",
     "{}",
     [@luna.vtext("Default")],
@@ -927,6 +934,7 @@ test "render wc_island load trigger omits data-trigger" {
 test "render wc_island state escaping" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-escape",
+    "/static/wc-escape.js",
     "",
     "{\"text\":\"<script>alert(1)</script>\"}",
     [@luna.vtext("Safe")],
@@ -941,6 +949,7 @@ test "render wc_island with complex children" {
   let items = ["A", "B", "C"]
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-list",
+    "/static/wc-list.js",
     ":host { display: block; } ul { padding: 0; }",
     "{\"items\":[\"A\",\"B\",\"C\"]}",
     [
@@ -968,6 +977,7 @@ test "render wc_island with complex children" {
 test "render wc_island with hydration markers" {
   let node : @luna.Node[Unit] = @luna.vwc_island(
     "wc-hyd",
+    "/static/wc-hyd.js",
     "",
     "{\"count\":10}",
     [@luna.text_dyn(fn() { "10" })],

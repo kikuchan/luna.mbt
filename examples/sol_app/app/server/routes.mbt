@@ -31,6 +31,13 @@ pub fn routes() -> Array[@routes.Routes] {
       title="Contact Form",
       meta=[],
     ),
+    // WC Counter page - Web Components based island (Declarative Shadow DOM)
+    @routes.Page(
+      path="/wc-counter",
+      component="wc_counter",
+      title="WC Counter",
+      meta=[],
+    ),
     // API endpoint
     @routes.Get(path="/api/health", handler="health"),
   ]

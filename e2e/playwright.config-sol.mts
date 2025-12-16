@@ -3,18 +3,18 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const solAppDir = join(__dirname, "../examples/sol_app");
 
 export default defineConfig({
   testDir: __dirname,
-  testMatch: ["**/*.test.ts", "**/*.test.mts"],
-  testIgnore: ["**/template-app/**", "**/sol/cli/**", "**/sol-app/**", "**/wc_counter*.test.ts"], // template-app and sol-app have their own configs, sol/cli uses vitest, wc_counter uses playwright.config-sol.mts
+  testMatch: ["**/wc_counter*.test.ts", "**/sol_*.test.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3456",
+    baseURL: "http://localhost:3000",
     trace: "on-first-retry",
   },
   projects: [
@@ -24,10 +24,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node ${join(__dirname, "server.ts")}`,
-    url: "http://127.0.0.1:3456",
+    command: `cd ${solAppDir} && pnpm build && node .sol/prod/server/main.js`,
+    url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
-    timeout: 30000,
+    timeout: 60000, // Longer timeout for build + server startup
   },
 });

@@ -4,6 +4,7 @@ using @element {
   span,
   button,
   h1,
+  h2,
   p,
   nav,
   text,

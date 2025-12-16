@@ -9,12 +9,15 @@ let default_style : String = "<style>body { font-family: system-ui; max-width: 8
 ///| Luna loader script (for island hydration)
 let loader_script : String = "<script type=\"module\" src=\"/static/loader.min.js\"></script>"
 
+///| WC loader script (for Web Components hydration)
+let wc_loader_script : String = "<script type=\"module\" src=\"/static/wc-loader.js\"></script>"
+
 ///| Sol navigation script
 let sol_nav_script : String = "<script type=\"module\" src=\"/static/sol-nav.min.js\"></script>"
 
-///| Get default head HTML (styles + loader + sol-nav)
+///| Get default head HTML (styles + loader + wc-loader + sol-nav)
 pub fn head() -> String {
-  default_style + loader_script + sol_nav_script
+  default_style + loader_script + wc_loader_script + sol_nav_script
 }
 
 ///| Basic layout wrapper - wraps content in container with navigation
@@ -24,6 +27,7 @@ pub fn layout(inner : Array[@luna.Node[Unit]]) -> @luna.Node[Unit] {
       sol_link(href="/", children=[text("Home")]),
       sol_link(href="/about", children=[text("About")]),
       sol_link(href="/form", children=[text("Form")]),
+      sol_link(href="/wc-counter", children=[text("WC Counter")]),
     ]),
     outlet(name="main", children=inner),
   ])

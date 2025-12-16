@@ -458,6 +458,67 @@ pub fn[E] render_node(
 }
 
 // ============================================================================
+// Web Components Island VNode Support (using @luna.vwc_island)
+// ============================================================================
+
+// Re-export WcIsland types from @luna for convenience
+
+///|
+pub using @luna {type VWcIsland, vwc_island}
+
+///|
+/// Default wc-loader script URL
+pub let default_wc_loader_url : String = "/static/wc-loader.js"
+
+///|
+/// Create a Web Components Island VNode
+/// Uses Declarative Shadow DOM for SSR and wc-loader for hydration
+pub fn[E] wc_island(
+  name : String,
+  url : String,
+  styles : String,
+  state : String,
+  children : Array[@luna.Node[E]],
+  trigger? : @luna.IslandTrigger = @luna.Load,
+) -> @luna.Node[E] {
+  @luna.vwc_island(name, url, styles, state, children, trigger~)
+}
+
+///|
+/// Create a Web Components Island VNode with a render function for children
+pub fn[E] wc_island_with(
+  name : String,
+  url : String,
+  styles : String,
+  state : String,
+  render : () -> @luna.Node[E],
+  trigger? : @luna.IslandTrigger = @luna.Load,
+) -> @luna.Node[E] {
+  @luna.vwc_island(name, url, styles, state, [render()], trigger~)
+}
+
+///|
+/// Register a page route with Web Components islands
+/// Uses wc-loader for hydration
+pub fn[E] wc_page(
+  app : App,
+  path : String,
+  render_fn : (Ctx) -> @luna.Node[E],
+  title? : String,
+  head? : String,
+  wc_loader_url? : String,
+) -> App {
+  app.get(path, fn(c) {
+    let node = render_fn(c)
+    let loader = wc_loader_url.unwrap_or(default_wc_loader_url)
+    let loader_script = "<script type=\"module\" src=\"" + loader + "\"></script>"
+    let full_head = head.unwrap_or("") + loader_script
+    let html = render_page(node, title?, head=full_head, hydration=true)
+    c.html(html)
+  })
+}
+
+// ============================================================================
 // Streaming SSR Support
 // ============================================================================
 

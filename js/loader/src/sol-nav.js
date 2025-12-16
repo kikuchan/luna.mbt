@@ -3,6 +3,17 @@
   let isNavigating = false;
   const cache = new Map();
 
+  // Set HTML with Declarative Shadow DOM support
+  const setHTML = (target, html) => {
+    if (target.setHTMLUnsafe) {
+      // Modern browsers - setHTMLUnsafe processes Declarative Shadow DOM
+      target.setHTMLUnsafe(html);
+    } else {
+      // Fallback for older browsers
+      target.innerHTML = html;
+    }
+  };
+
   // Navigate to URL with CSR
   const navigate = async (url, replace = false) => {
     if (isNavigating) return;
@@ -40,7 +51,7 @@
           if (target) {
             // Unload existing islands before updating DOM
             w.__LN_UNLOAD_ALL__?.(target);
-            target.innerHTML = tpl.innerHTML;
+            setHTML(target, tpl.innerHTML);
           }
         });
 
@@ -56,7 +67,7 @@
         if (app && target) {
           // Unload existing islands before updating DOM
           w.__LN_UNLOAD_ALL__?.(target);
-          target.innerHTML = app.innerHTML;
+          setHTML(target, app.innerHTML);
         }
 
         // Update title from full page
@@ -78,6 +89,8 @@
 
       // Re-scan for islands (if loader is available)
       w.__LN_SCAN__?.();
+      // Re-scan for Web Components (if wc-loader is available)
+      w.__WC_SCAN__?.();
 
     } catch (e) {
       console.error('Sol navigation failed:', e);

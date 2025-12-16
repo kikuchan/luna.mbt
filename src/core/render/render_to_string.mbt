@@ -178,9 +178,16 @@ fn[E] render_island_close_to(
 ///|
 /// Render WcIsland node with Declarative Shadow DOM
 fn[E] render_wc_island_to(sb : StringBuilder, island : @luna.VWcIsland[E]) -> Unit {
-  // <wc-counter data-state="..." data-trigger="load">
+  // <wc-counter data-wc-url="..." data-state="..." data-trigger="load">
   sb.write_char('<')
   sb.write_string(island.name)
+
+  // Hydration script URL
+  sb.write_string(" data-wc-url=\"")
+  escape_attr_to(sb, island.url)
+  sb.write_char('"')
+
+  // State JSON
   sb.write_string(" data-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
@@ -221,9 +228,21 @@ fn[E] render_wc_island_and_collect_urls(
   island : @luna.VWcIsland[E],
   urls : Array[String],
 ) -> Unit {
-  // <wc-counter data-state="..." data-trigger="load">
+  // Collect URL if not already present
+  if island.url.length() > 0 && not(urls.contains(island.url)) {
+    urls.push(island.url)
+  }
+
+  // <wc-counter data-wc-url="..." data-state="..." data-trigger="load">
   sb.write_char('<')
   sb.write_string(island.name)
+
+  // Hydration script URL
+  sb.write_string(" data-wc-url=\"")
+  escape_attr_to(sb, island.url)
+  sb.write_char('"')
+
+  // State JSON
   sb.write_string(" data-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
@@ -269,6 +288,13 @@ fn[E] render_wc_island_with_id_to(
 
   sb.write_char('<')
   sb.write_string(island.name)
+
+  // Hydration script URL
+  sb.write_string(" data-wc-url=\"")
+  escape_attr_to(sb, island.url)
+  sb.write_char('"')
+
+  // State JSON
   sb.write_string(" data-state=\"")
   escape_attr_to(sb, island.state)
   sb.write_char('"')
