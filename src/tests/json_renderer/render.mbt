@@ -67,6 +67,25 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       }
       Element({ tag: wc_island.name, attrs, children })
     }
+    @luna.InternalRef(iref) => {
+      // Render InternalRef as element with luna:* or luna:wc-* attributes
+      let attrs : Map[String, JsonAttrValue] = {}
+      if iref.wc {
+        attrs.set("luna:wc-url", Static(iref.url))
+        attrs.set("luna:wc-state", Static(iref.state))
+        attrs.set("luna:wc-trigger", Static(@luna.trigger_to_string(iref.trigger)))
+      } else {
+        attrs.set("luna:url", Static(iref.url))
+        attrs.set("luna:state", Static(iref.state))
+        attrs.set("luna:trigger", Static(@luna.trigger_to_string(iref.trigger)))
+      }
+      let children : Array[JsonNode] = []
+      for child in iref.children {
+        children.push(render_to_json(child))
+      }
+      let tag = if iref.wc { "wc-internal-ref" } else { "div" }
+      Element({ tag, attrs, children })
+    }
     @luna.Async(async_node) =>
       // Render fallback content for async nodes
       render_to_json((async_node.fallback)())

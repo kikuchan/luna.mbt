@@ -32,9 +32,12 @@ pub fn routes() -> Array[@routes.Routes] {
       meta=[],
     ),
     // WC Counter page - Web Components based island (Declarative Shadow DOM)
-    @routes.WcIsland(
+    // Note: Uses Island route with wc-loader URL; component uses wc_island() for SSR
+    @routes.Island(
       path="/wc-counter",
       component="wc_counter",
+      url="/static/wc_counter.js",
+      trigger=@luna.Load,
       title="WC Counter",
       meta=[],
     ),

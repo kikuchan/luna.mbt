@@ -1,14 +1,14 @@
 これは開発者が次にやりたいことをメモとして残していく場所だから、AIは言われるまで修正しない。
 
-- data 属性を修正する
-  `luna:*` と `sol:*` にする
-- [ ] Sol PageProps
+- [ ] Sol ServerComponent PageProps
   - Server Route から Client を Route に登録するとき、 Props を取らないといけない
   - Server Component 同士は呼び出せる。
   - `__gen__/types` には Client/Server 共に使える Opaque Type を定義して、それを呼び出す
+- [ ] sol 中間生成ファイルを見直す
+- [ ] sol: hot reload
 - [ ] Async Server Function
   - [ ] src/sol/rpc: capnweb
-  - [ ] -prod と --dev に分割して、デバッグ用のビルドを注入する
+  - [ ] --prod と --dev に分割して、デバッグ用のビルドを注入する
 - [ ] Prototype: src/platform/native/server
 - [ ] Prototype: ViewTransition
   - [ ] BF Cache 最適化
@@ -20,7 +20,7 @@
 - [ ] react-hook-form 相当のものを試作する
   - valibot を使うか、自前のバリデータを作るか
 - [ ] src/platform/dom/portal
-- [ ] src/integrations
+- [ ] src/integration
   - [ ] src/platform/dom/integrations/react
   - [ ] src/platform/dom/integrations/preact
 - [ ] sol validate
@@ -32,8 +32,10 @@
   - Native: extern "C" で C 実装を検討
 - [ ] virtual package を導入してクロスプラットフォーム化の基盤を作る
   - https://www.moonbitlang.com/blog/virtual-package
-- [ ] Inline Editor
-- [ ] ドキュメントの英語化
+- [ ] v0.1.0 ドキュメントの英語化
+- marimo notebook
+- client trigger を astro と互換にする
+  - https://r4ai.dev/posts/astro_hydration/
 
 ## Icebox
 
@@ -43,8 +45,11 @@
 - [ ] React Bridge
 - [ ] Fix playwright
 - [ ] Vite Enviroment Apiに対応? -> やらない。やるにしても最後
+- [ ] Inline Editor
 
 ## Done
 
 - [x] 再 export するのに、moonbitlang/parser を使用する
 - [x] js/cli を src/eclipse/cli で、CLIをMoonbitで書き直す
+- [x] data 属性を修正する
+  `luna:*` と `sol:*` にする

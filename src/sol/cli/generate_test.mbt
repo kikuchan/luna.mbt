@@ -258,3 +258,53 @@ test "uses_signal_types: true" {
 test "uses_hono_types: true" {
   assert_true(uses_hono_types("(ctx : @hono.Context) -> Unit"))
 }
+
+// =============================================================================
+// ComponentRef Factory Tests
+// =============================================================================
+
+///|
+test "extract_component_name_from_props: simple" {
+  let name = extract_component_name_from_props("CounterProps")
+  assert_eq(name, "counter")
+}
+
+///|
+test "extract_component_name_from_props: multi word" {
+  let name = extract_component_name_from_props("MyWidgetProps")
+  assert_eq(name, "my_widget")
+}
+
+///|
+test "extract_component_name_from_props: no props suffix" {
+  let name = extract_component_name_from_props("Counter")
+  assert_eq(name, "counter")
+}
+
+///|
+test "extract_component_name_from_props: single letter" {
+  let name = extract_component_name_from_props("AProps")
+  assert_eq(name, "a")
+}
+
+///|
+test "is_web_component: wc_ prefix" {
+  assert_true(is_web_component("wc_counter"))
+}
+
+///|
+test "is_web_component: no prefix" {
+  assert_true(not(is_web_component("counter")))
+}
+
+///|
+test "extract_component_name_from_props: WcCounterProps" {
+  let name = extract_component_name_from_props("WcCounterProps")
+  assert_eq(name, "wc_counter")
+}
+
+///|
+test "is_web_component detects WcCounterProps correctly" {
+  let component_name = extract_component_name_from_props("WcCounterProps")
+  assert_true(is_web_component(component_name))
+}

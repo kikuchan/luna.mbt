@@ -308,37 +308,6 @@ fn[E] register_routes_inner(
           }
         })
       }
-      @routes.WcIsland(path~, component~, title~, meta~) => {
-        let _ = meta
-        let full_path = prefix + path
-        result.get(full_path, fn(c) {
-          let is_fragment = has_fragment_header(c)
-          let params = extract_route_params(c, is_fragment~)
-          match page_resolver(component, c, params) {
-            Some(node) => {
-              let page_title = format_title(
-                title,
-                title_prefix~,
-                default_title~,
-              )
-              // Check for fragment request
-              if is_fragment {
-                let fragment_html = render_fragment_response(node, page_title, true)
-                send_fragment_response(c, fragment_html)
-              } else {
-                // WcIsland uses wc-loader.js for Web Components hydration
-                let loader_script = "<script type=\"module\" src=\"" +
-                  wc_loader_url +
-                  "\"></script>"
-                let head = default_head + loader_script
-                let html = render_page_html(node, page_title, head, true)
-                c.html(html)
-              }
-            }
-            None => c.text("Page not found: " + component)
-          }
-        })
-      }
       @routes.Param(key~, children~) => {
         let new_prefix = prefix + "/:" + key
         register_routes_inner(
@@ -598,39 +567,6 @@ fn register_server_routes_inner(
               } else {
                 let loader_script = "<script type=\"module\" src=\"" +
                   loader_url +
-                  "\"></script>"
-                let head = default_head + loader_script
-                let html = render_page_html(node, page_title, head, true)
-                c.html(html)
-              }
-            }
-            None => c.text("Page not found: " + component)
-          }
-        })
-      }
-      @routes.WcIsland(path~, component~, title~, meta~) => {
-        let _ = meta
-        let full_path = prefix + path
-        result.get(full_path, async fn(c) {
-          let is_fragment = has_fragment_header(c)
-          let params = extract_route_params(c, is_fragment~)
-          match page_resolver(component, c, params) {
-            Some(server_node) => {
-              // Resolve ServerNode (await if async)
-              let node = server_node.resolve()
-              let page_title = format_title(
-                title,
-                title_prefix~,
-                default_title~,
-              )
-              // Check for fragment request
-              if is_fragment {
-                let fragment_html = render_fragment_response(node, page_title, true)
-                send_fragment_response(c, fragment_html)
-              } else {
-                // WcIsland uses wc-loader.js for Web Components hydration
-                let loader_script = "<script type=\"module\" src=\"" +
-                  wc_loader_url +
                   "\"></script>"
                 let head = default_head + loader_script
                 let html = render_page_html(node, page_title, head, true)

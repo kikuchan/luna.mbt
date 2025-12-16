@@ -225,6 +225,12 @@ fn hydrate_node(
       for child in wc_island.children {
         hydrate_node(parent, child, ctx)
       }
+    @luna.InternalRef(iref) =>
+      // InternalRef hydration is handled by the loader (same as Island/WcIsland)
+      // Just hydrate children normally for nested content
+      for child in iref.children {
+        hydrate_node(parent, child, ctx)
+      }
     @luna.Async(async_node) => {
       // Async node hydration: hydrate the fallback content
       // Full async replacement would happen via streaming SSR
@@ -522,6 +528,10 @@ fn hydrate_child_nodes(
       for child in wc_island.children {
         hydrate_child_nodes(nodes, child, ctx)
       }
+    @luna.InternalRef(iref) =>
+      for child in iref.children {
+        hydrate_child_nodes(nodes, child, ctx)
+      }
     @luna.Async(async_node) => {
       ctx.current_id = ctx.current_id + 1
       hydrate_child_nodes(nodes, (async_node.fallback)(), ctx)
@@ -765,6 +775,33 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
       }
       wrapper.as_node()
+    }
+    @luna.InternalRef(iref) => {
+      // For client-side rendering, create appropriate element based on wc flag
+      if iref.wc {
+        // Web Components island - extract name from URL
+        let name = extract_wc_name_from_url(iref.url)
+        let wrapper = doc.createElement(name)
+        wrapper.setAttribute("luna:wc-url", iref.url)
+        wrapper.setAttribute("luna:wc-state", iref.state)
+        wrapper.setAttribute("luna:wc-trigger", @luna.trigger_to_string(iref.trigger))
+        for child in iref.children {
+          wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
+        }
+        wrapper.as_node()
+      } else {
+        // Regular island
+        let wrapper = doc.createElement("div")
+        let id = iref.url.replace(old="/", new="_").replace(old=".", new="_")
+        wrapper.setAttribute("luna:id", id)
+        wrapper.setAttribute("luna:url", iref.url)
+        wrapper.setAttribute("luna:state", iref.state)
+        wrapper.setAttribute("luna:trigger", @luna.trigger_to_string(iref.trigger))
+        for child in iref.children {
+          wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
+        }
+        wrapper.as_node()
+      }
     }
     @luna.Async(async_node) =>
       // For client-side rendering, render fallback initially
@@ -1186,4 +1223,29 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
     current_case_index = new_case
   })
   fragment_node
+}
+
+
+///|
+/// Extract Web Component name from URL (e.g., /static/wc_counter.js -> wc-counter)
+fn extract_wc_name_from_url(url : String) -> String {
+  // Extract filename without extension
+  let parts = url.split("/").collect()
+  let filename_view = if parts.length() > 0 {
+    parts[parts.length() - 1]
+  } else {
+    "".view()
+  }
+  let filename = filename_view.to_string()
+  let name = if filename.has_suffix(".js") && filename.length() > 3 {
+    try {
+      filename[:filename.length() - 3].to_string()
+    } catch {
+      _ => filename
+    }
+  } else {
+    filename
+  }
+  // Convert underscores to hyphens for custom element name
+  name.replace(old="_", new="-")
 }

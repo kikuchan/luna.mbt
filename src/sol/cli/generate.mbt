@@ -499,11 +499,46 @@ fn get_dir_name(path : String) -> String {
 }
 
 ///|
-/// Generate types.mbt content with all Props struct definitions
+/// Extract component name from Props type name
+/// e.g., "CounterProps" -> "counter", "MyWidgetProps" -> "my_widget"
+pub fn extract_component_name_from_props(props_name : String) -> String {
+  // Remove "Props" suffix
+  let name = if props_name.has_suffix("Props") {
+    props_name.substring(end=props_name.length() - 5)
+  } else {
+    props_name
+  }
+  // Convert PascalCase to snake_case
+  let buf = StringBuilder::new()
+  let chars = name.to_array()
+  for i, c in chars {
+    if c >= 'A' && c <= 'Z' {
+      if i > 0 {
+        buf.write_char('_')
+      }
+      // Convert to lowercase
+      buf.write_char(Char::from_int(c.to_int() + 32))
+    } else {
+      buf.write_char(c)
+    }
+  }
+  buf.to_string()
+}
+
+///|
+/// Check if component is a Web Component (Wc prefix in Props name or wc_ prefix in component name)
+pub fn is_web_component(component_name : String) -> Bool {
+  component_name.has_prefix("wc_")
+}
+
+///|
+/// Generate types.mbt content with all Props struct definitions and ComponentRef factory functions
 fn generate_types_mbt(structs : Array[StructExport]) -> String {
   let buf = StringBuilder::new()
   buf.write_string("///| Auto-generated types for island props\n")
   buf.write_string("///| Re-exports Props structs from client packages\n\n")
+
+  // Generate struct definitions
   for s in structs {
     buf.write_string("///| Props type from @\{s.import_alias}\n")
     // Check if raw_definition already has derive
@@ -515,6 +550,29 @@ fn generate_types_mbt(structs : Array[StructExport]) -> String {
       buf.write_string(" derive(ToJson, FromJson)\n\n")
     }
   }
+
+  // Generate ComponentRef factory functions
+  if not(structs.is_empty()) {
+    buf.write_string("// =============================================================================\n")
+    buf.write_string("// ComponentRef Factory Functions\n")
+    buf.write_string("// =============================================================================\n\n")
+  }
+
+  for s in structs {
+    let component_name = extract_component_name_from_props(s.name)
+    let url = "/static/\{component_name}.js"
+    let is_wc = is_web_component(component_name)
+
+    buf.write_string("///|\n")
+    buf.write_string("///| Create ComponentRef for \{component_name} component\n")
+    buf.write_string("pub fn \{component_name}(\n")
+    buf.write_string("  props : \{s.name},\n")
+    buf.write_string("  trigger~ : @luna.Trigger = @luna.Load,\n")
+    buf.write_string(") -> @luna.ComponentRef[\{s.name}] {\n")
+    buf.write_string("  { url: \"\{url}\", props, wc: \{is_wc}, trigger }\n")
+    buf.write_string("}\n\n")
+  }
+
   buf.to_string()
 }
 
@@ -528,12 +586,21 @@ fn generate_types_pkg_json(
   let buf = StringBuilder::new()
   buf.write_string("{\n")
   buf.write_string("  \"supported-targets\": [\"js\"],\n")
-  // No imports needed - @json is part of standard library
+  // Import @luna for ComponentRef type
+  buf.write_string("  \"import\": [\n")
+  buf.write_string("    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" }\n")
+  buf.write_string("  ],\n")
   buf.write_string("  \"link\": {\n")
   buf.write_string("    \"js\": {\n")
-  // Export all struct names
-  let struct_names : Array[String] = structs.map(fn(s) { s.name })
-  let exports_str = struct_names.map(fn(n) { "\"\{n}\"" }).join(", ")
+  // Export all struct names and factory functions
+  let exports : Array[String] = []
+  for s in structs {
+    exports.push(s.name)
+    // Add factory function name (derived from Props name)
+    let fn_name = extract_component_name_from_props(s.name)
+    exports.push(fn_name)
+  }
+  let exports_str = exports.map(fn(n) { "\"\{n}\"" }).join(", ")
   buf.write_string("      \"exports\": [\{exports_str}],\n")
   buf.write_string("      \"format\": \"esm\"\n")
   buf.write_string("    }\n")

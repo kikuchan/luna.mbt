@@ -347,6 +347,13 @@ fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
       }
       count
     }
+    @luna.InternalRef(iref) => {
+      let mut count = 1
+      for child in iref.children {
+        count = count + count_vnode_nodes(child)
+      }
+      count
+    }
     @luna.Async(async_node) => 1 + count_vnode_nodes((async_node.fallback)())
     @luna.ErrorBoundary(boundary) =>
       try 1 + count_vnode_nodes((boundary.children)()) catch {
@@ -729,6 +736,11 @@ fn experimental_hydrate_node(
     @luna.WcIsland(wc_island) =>
       // WcIsland hydration is handled by wcssr client runtime, just hydrate children
       for child in wc_island.children {
+        experimental_hydrate_node(parent, child, ctx)
+      }
+    @luna.InternalRef(iref) =>
+      // InternalRef hydration is handled by the loader, just hydrate children
+      for child in iref.children {
         experimental_hydrate_node(parent, child, ctx)
       }
     @luna.Async(async_node) => {

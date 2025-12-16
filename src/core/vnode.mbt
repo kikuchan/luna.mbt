@@ -92,6 +92,26 @@ pub enum Node[E] {
   /// Switch node - renders first matching case or fallback
   /// Similar to Solid.js <Switch>/<Match>
   Switch(VSwitch[E])
+  /// Internal reference to a client component (for type-safe Island embedding)
+  /// Generated from ComponentRef[T] via server_dom.island()
+  /// - url: Client script path
+  /// - state: JSON serialized props
+  /// - trigger: Hydration trigger
+  /// - wc: Whether Web Components based
+  /// - styles: CSS for Shadow DOM (WC only)
+  /// - children: SSR content
+  InternalRef(VInternalRef[E])
+}
+
+///|
+/// Virtual Internal Reference node for type-safe Island embedding
+pub struct VInternalRef[E] {
+  url : String
+  state : String
+  trigger : IslandTrigger
+  wc : Bool
+  styles : String // CSS for Shadow DOM (empty for non-WC)
+  children : Array[Node[E]]
 }
 
 ///|
@@ -292,6 +312,19 @@ pub fn[E] vswitch(
 }
 
 ///|
+/// Create an internal reference VNode (for server_dom.island())
+pub fn[E] vinternal_ref(
+  url : String,
+  state : String,
+  trigger~ : IslandTrigger = Load,
+  wc~ : Bool = false,
+  styles~ : String = "",
+  children~ : Array[Node[E]] = [],
+) -> Node[E] {
+  InternalRef({ url, state, trigger, wc, styles, children })
+}
+
+///|
 /// Convert IslandTrigger to string for ln:trigger attribute
 pub fn trigger_to_string(trigger : IslandTrigger) -> String {
   match trigger {
@@ -359,6 +392,48 @@ pub fn[E] attr_dynamic_style(getter : () -> String) -> Attr[E] {
 /// ```
 pub fn[E, A : Show] action(a : A) -> Attr[E] {
   VAction(a.to_string())
+}
+
+// =============================================================================
+// ComponentRef - Opaque type for Island component references
+// =============================================================================
+
+///|
+/// Hydration trigger type alias for external use
+pub type Trigger = IslandTrigger
+
+///|
+/// Component reference for type-safe Island embedding
+/// Represents a client-side component that can be embedded in server-rendered HTML
+/// - url: Path to the client JavaScript (e.g., "/static/counter.js")
+/// - props: Component props (must be ToJson serializable)
+/// - wc: Whether this is a Web Components based Island
+/// - trigger: When to hydrate the component
+pub(all) struct ComponentRef[T] {
+  url : String
+  props : T
+  wc : Bool
+  trigger : IslandTrigger
+}
+
+///|
+/// Create a ComponentRef for a regular Island component
+pub fn[T] component_ref(
+  url : String,
+  props : T,
+  trigger~ : IslandTrigger = Load,
+) -> ComponentRef[T] {
+  { url, props, wc: false, trigger }
+}
+
+///|
+/// Create a ComponentRef for a Web Components Island
+pub fn[T] wc_component_ref(
+  url : String,
+  props : T,
+  trigger~ : IslandTrigger = Load,
+) -> ComponentRef[T] {
+  { url, props, wc: true, trigger }
 }
 
 // =============================================================================

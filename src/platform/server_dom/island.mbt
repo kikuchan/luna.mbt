@@ -4,8 +4,50 @@
 
 ///| Provides integration with client-side components through islands.
 
+// =============================================================================
+// New ComponentRef-based island API
+// =============================================================================
+
 ///|
-/// Create an island for client-side hydration
+/// Create an island from ComponentRef (type-safe API)
+///
+/// This is the recommended way to create islands in server components.
+/// The ComponentRef contains all necessary information (url, props, trigger, wc flag).
+///
+/// Example:
+/// ```moonbit
+/// // In app/__gen__/types/types.mbt (generated)
+/// pub fn counter(props: CounterProps) -> @luna.ComponentRef[CounterProps] {
+///   @luna.component_ref("/static/counter.js", props)
+/// }
+///
+/// // In server component
+/// island_from_ref(
+///   @types.counter({ initial_count: 42 }),
+///   children=[text("Loading...")],
+/// )
+/// ```
+pub fn[T : ToJson] island_from_ref(
+  cref : @luna.ComponentRef[T],
+  styles~ : String = "",
+  children~ : Array[@luna.Node[Unit]] = [],
+) -> @luna.Node[Unit] {
+  @luna.vinternal_ref(
+    cref.url,
+    cref.props.to_json().stringify(),
+    trigger=cref.trigger,
+    wc=cref.wc,
+    styles~,
+    children~,
+  )
+}
+
+// =============================================================================
+// Legacy island API (for backward compatibility)
+// =============================================================================
+
+///|
+/// Create an island for client-side hydration (legacy API)
 ///
 /// Example:
 /// ```moonbit

@@ -69,6 +69,7 @@ fn render_node_to_stream(
     Component(render~) => render_node_to_stream(render(), writer)
     Island(island) => render_island_to_stream(island, writer)
     WcIsland(wc_island) => render_wc_island_to_stream(wc_island, writer)
+    InternalRef(iref) => render_internal_ref_to_stream(iref, writer)
     Async(async_node) =>
       // In stream rendering, render fallback immediately
       // Async resolution happens via Suspense/render_with_suspense
@@ -182,6 +183,128 @@ fn render_wc_island_to_stream(
 }
 
 ///|
+/// Render InternalRef node to stream (dispatches based on wc flag)
+fn render_internal_ref_to_stream(
+  iref : @luna.VInternalRef[Unit],
+  writer : StreamWriter,
+) -> Unit {
+  if iref.wc {
+    render_internal_ref_wc_to_stream(iref, writer)
+  } else {
+    render_internal_ref_island_to_stream(iref, writer)
+  }
+}
+
+///|
+/// Render InternalRef as Island to stream
+fn render_internal_ref_island_to_stream(
+  iref : @luna.VInternalRef[Unit],
+  writer : StreamWriter,
+) -> Unit {
+  let write = writer.0
+  let id = iref.url.replace(old="/", new="_").replace(old=".", new="_")
+
+  // Start comment marker
+  write(
+    "<!--luna:island:" +
+    id +
+    " url=" +
+    iref.url +
+    " trigger=" +
+    @luna.trigger_to_string(iref.trigger) +
+    "-->",
+  )
+  // Wrapper div with luna:* attributes
+  let sb = StringBuilder::new()
+  sb.write_string("<div luna:id=\"")
+  sb.write_string(id)
+  sb.write_string("\" luna:url=\"")
+  sb.write_string(iref.url)
+  sb.write_string("\" luna:state=\"")
+  @render.escape_attr_to(sb, iref.state)
+  sb.write_string("\" luna:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("\">")
+  write(sb.to_string())
+  // Render children
+  for child in iref.children {
+    render_node_to_stream(child, writer)
+  }
+  write("</div>")
+  // End comment marker
+  write("<!--/luna:island:" + id + "-->")
+}
+
+///|
+/// Render InternalRef as WcIsland to stream
+fn render_internal_ref_wc_to_stream(
+  iref : @luna.VInternalRef[Unit],
+  writer : StreamWriter,
+) -> Unit {
+  let write = writer.0
+  let name = extract_wc_name(iref.url)
+  let sb = StringBuilder::new()
+
+  // Custom element opening tag with luna:wc-* attributes
+  sb.write_char('<')
+  sb.write_string(name)
+  sb.write_string(" luna:wc-url=\"")
+  @render.escape_attr_to(sb, iref.url)
+  sb.write_char('"')
+  sb.write_string(" luna:wc-state=\"")
+  @render.escape_attr_to(sb, iref.state)
+  sb.write_char('"')
+
+  if not(iref.trigger is @luna.Load) {
+    sb.write_string(" luna:wc-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(iref.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  // Declarative Shadow DOM template
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  // Styles
+  if iref.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(iref.styles)
+    sb.write_string("</style>")
+  }
+  write(sb.to_string())
+
+  // Render children
+  for child in iref.children {
+    render_node_to_stream(child, writer)
+  }
+
+  // Close template and custom element
+  write("</template></" + name + ">")
+}
+
+///|
+/// Extract Web Component name from URL
+fn extract_wc_name(url : String) -> String {
+  let parts = url.split("/").collect()
+  let filename_view = if parts.length() > 0 {
+    parts[parts.length() - 1]
+  } else {
+    "".view()
+  }
+  let filename = filename_view.to_string()
+  let name = if filename.has_suffix(".js") && filename.length() > 3 {
+    try {
+      filename[:filename.length() - 3].to_string()
+    } catch {
+      _ => filename
+    }
+  } else {
+    filename
+  }
+  name.replace(old="_", new="-")
+}
+
+///|
 /// Create a ReadableStream for HTTP response (Web Streams API)
 extern "js" fn js_create_readable_stream(
   start : ((String) -> Unit) -> Unit,
@@ -277,6 +400,7 @@ fn render_node_collecting_async(
       render_node_collecting_async(render(), writer, boundaries, id_counter)
     Island(island) => render_island_to_stream(island, writer)
     WcIsland(wc_island) => render_wc_island_to_stream(wc_island, writer)
+    InternalRef(iref) => render_internal_ref_to_stream(iref, writer)
     Async(async_node) => {
       let id = id_counter.val
       id_counter.val = id + 1

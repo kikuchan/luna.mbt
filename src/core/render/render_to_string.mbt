@@ -86,6 +86,7 @@ fn[E] render_and_collect_urls(
     Component(render~) => render_and_collect_urls(sb, render(), urls)
     Island(island) => render_island_and_collect_urls(sb, island, urls)
     WcIsland(wc_island) => render_wc_island_and_collect_urls(sb, wc_island, urls)
+    InternalRef(iref) => render_internal_ref_and_collect_urls(sb, iref, urls)
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_and_collect_urls(sb, (async_node.fallback)(), urls)
@@ -325,6 +326,330 @@ fn[E] render_wc_island_with_id_to(
   sb.write_string("<!--/wc-->")
 }
 
+// ============================================================
+// InternalRef Rendering (ComponentRef[T] based)
+// ============================================================
+
+///|
+/// Render InternalRef node (dispatches to Island or WcIsland based on wc flag)
+fn[E] render_internal_ref_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+) -> Unit {
+  if iref.wc {
+    render_internal_ref_wc_to(sb, iref)
+  } else {
+    render_internal_ref_island_to(sb, iref)
+  }
+}
+
+///|
+/// Render InternalRef as regular Island
+fn[E] render_internal_ref_island_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+) -> Unit {
+  // Generate a unique ID from URL (simplified - in real usage, generate proper ID)
+  let id = iref.url.replace(old="/", new="_").replace(old=".", new="_")
+
+  sb.write_string("<!--luna:island:")
+  sb.write_string(id)
+  sb.write_string(" url=")
+  sb.write_string(iref.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("-->")
+  sb.write_string("<div luna:id=\"")
+  sb.write_string(id)
+  sb.write_string("\" luna:url=\"")
+  sb.write_string(iref.url)
+  sb.write_string("\" luna:state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_string("\" luna:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("\">")
+
+  for child in iref.children {
+    render_to_sb(sb, child)
+  }
+
+  sb.write_string("</div>")
+  sb.write_string("<!--/luna:island:")
+  sb.write_string(id)
+  sb.write_string("-->")
+}
+
+///|
+/// Render InternalRef as WcIsland (Web Components)
+fn[E] render_internal_ref_wc_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+) -> Unit {
+  // Extract custom element name from URL (e.g., /static/wc_counter.js -> wc-counter)
+  let name = extract_wc_name_from_url(iref.url)
+
+  sb.write_char('<')
+  sb.write_string(name)
+  sb.write_string(" luna:wc-url=\"")
+  escape_attr_to(sb, iref.url)
+  sb.write_char('"')
+  sb.write_string(" luna:wc-state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_char('"')
+
+  if not(iref.trigger is @luna.Load) {
+    sb.write_string(" luna:wc-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(iref.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  if iref.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(iref.styles)
+    sb.write_string("</style>")
+  }
+
+  for child in iref.children {
+    render_to_sb(sb, child)
+  }
+
+  sb.write_string("</template></")
+  sb.write_string(name)
+  sb.write_char('>')
+}
+
+///|
+/// Extract Web Component name from URL (e.g., /static/wc_counter.js -> wc-counter)
+fn extract_wc_name_from_url(url : String) -> String {
+  // Extract filename without extension
+  let parts = url.split("/").collect()
+  let filename_view = if parts.length() > 0 {
+    parts[parts.length() - 1]
+  } else {
+    "".view()
+  }
+  let filename = filename_view.to_string()
+  let name = if filename.has_suffix(".js") && filename.length() > 3 {
+    try {
+      filename[:filename.length() - 3].to_string()
+    } catch {
+      _ => filename
+    }
+  } else {
+    filename
+  }
+  // Convert underscores to hyphens for custom element name
+  name.replace(old="_", new="-")
+}
+
+///|
+/// Render InternalRef and collect URLs
+fn[E] render_internal_ref_and_collect_urls(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  urls : Array[String],
+) -> Unit {
+  // Collect URL if not already present
+  if iref.url.length() > 0 && not(urls.contains(iref.url)) {
+    urls.push(iref.url)
+  }
+
+  if iref.wc {
+    render_internal_ref_wc_and_collect_urls(sb, iref, urls)
+  } else {
+    render_internal_ref_island_and_collect_urls(sb, iref, urls)
+  }
+}
+
+///|
+/// Render InternalRef as Island and collect URLs
+fn[E] render_internal_ref_island_and_collect_urls(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  urls : Array[String],
+) -> Unit {
+  let id = iref.url.replace(old="/", new="_").replace(old=".", new="_")
+
+  sb.write_string("<!--luna:island:")
+  sb.write_string(id)
+  sb.write_string(" url=")
+  sb.write_string(iref.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("-->")
+  sb.write_string("<div luna:id=\"")
+  sb.write_string(id)
+  sb.write_string("\" luna:url=\"")
+  sb.write_string(iref.url)
+  sb.write_string("\" luna:state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_string("\" luna:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("\">")
+
+  for child in iref.children {
+    render_and_collect_urls(sb, child, urls)
+  }
+
+  sb.write_string("</div>")
+  sb.write_string("<!--/luna:island:")
+  sb.write_string(id)
+  sb.write_string("-->")
+}
+
+///|
+/// Render InternalRef as WcIsland and collect URLs
+fn[E] render_internal_ref_wc_and_collect_urls(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  urls : Array[String],
+) -> Unit {
+  let name = extract_wc_name_from_url(iref.url)
+
+  sb.write_char('<')
+  sb.write_string(name)
+  sb.write_string(" luna:wc-url=\"")
+  escape_attr_to(sb, iref.url)
+  sb.write_char('"')
+  sb.write_string(" luna:wc-state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_char('"')
+
+  if not(iref.trigger is @luna.Load) {
+    sb.write_string(" luna:wc-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(iref.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  if iref.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(iref.styles)
+    sb.write_string("</style>")
+  }
+
+  for child in iref.children {
+    render_and_collect_urls(sb, child, urls)
+  }
+
+  sb.write_string("</template></")
+  sb.write_string(name)
+  sb.write_char('>')
+}
+
+///|
+/// Render InternalRef with hydration markers
+fn[E] render_internal_ref_with_id_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  id_counter : Ref[Int],
+) -> Unit {
+  if iref.wc {
+    render_internal_ref_wc_with_id_to(sb, iref, id_counter)
+  } else {
+    render_internal_ref_island_with_id_to(sb, iref, id_counter)
+  }
+}
+
+///|
+/// Render InternalRef as Island with hydration markers
+fn[E] render_internal_ref_island_with_id_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  id_counter : Ref[Int],
+) -> Unit {
+  let id = id_counter.val
+  id_counter.val = id + 1
+  let island_id = iref.url.replace(old="/", new="_").replace(old=".", new="_")
+
+  sb.write_string("<!--i:")
+  sb.write_object(id)
+  sb.write_string("-->")
+
+  sb.write_string("<!--luna:island:")
+  sb.write_string(island_id)
+  sb.write_string(" url=")
+  sb.write_string(iref.url)
+  sb.write_string(" trigger=")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("-->")
+  sb.write_string("<div luna:id=\"")
+  sb.write_string(island_id)
+  sb.write_string("\" luna:url=\"")
+  sb.write_string(iref.url)
+  sb.write_string("\" luna:state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_string("\" luna:trigger=\"")
+  sb.write_string(@luna.trigger_to_string(iref.trigger))
+  sb.write_string("\">")
+
+  for child in iref.children {
+    render_with_id_to(sb, child, id_counter)
+  }
+
+  sb.write_string("</div>")
+  sb.write_string("<!--/luna:island:")
+  sb.write_string(island_id)
+  sb.write_string("-->")
+
+  sb.write_string("<!--/i-->")
+}
+
+///|
+/// Render InternalRef as WcIsland with hydration markers
+fn[E] render_internal_ref_wc_with_id_to(
+  sb : StringBuilder,
+  iref : @luna.VInternalRef[E],
+  id_counter : Ref[Int],
+) -> Unit {
+  let id = id_counter.val
+  id_counter.val = id + 1
+  let name = extract_wc_name_from_url(iref.url)
+
+  sb.write_string("<!--wc:")
+  sb.write_object(id)
+  sb.write_string("-->")
+
+  sb.write_char('<')
+  sb.write_string(name)
+  sb.write_string(" luna:wc-url=\"")
+  escape_attr_to(sb, iref.url)
+  sb.write_char('"')
+  sb.write_string(" luna:wc-state=\"")
+  escape_attr_to(sb, iref.state)
+  sb.write_char('"')
+
+  if not(iref.trigger is @luna.Load) {
+    sb.write_string(" luna:wc-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(iref.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  if iref.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(iref.styles)
+    sb.write_string("</style>")
+  }
+
+  for child in iref.children {
+    render_with_id_to(sb, child, id_counter)
+  }
+
+  sb.write_string("</template></")
+  sb.write_string(name)
+  sb.write_char('>')
+
+  sb.write_string("<!--/wc-->")
+}
+
 ///|
 /// Render attributes to StringBuilder
 pub fn[E] render_attrs_to(
@@ -417,6 +742,7 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
     Component(render~) => render_to_sb(sb, render())
     Island(island) => render_island_to(sb, island)
     WcIsland(wc_island) => render_wc_island_to(sb, wc_island)
+    InternalRef(iref) => render_internal_ref_to(sb, iref)
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_to_sb(sb, (async_node.fallback)())
@@ -540,6 +866,7 @@ fn[E] render_with_id_to(
     Component(render~) => render_with_id_to(sb, render(), id_counter)
     Island(island) => render_island_with_id_to(sb, island, id_counter)
     WcIsland(wc_island) => render_wc_island_with_id_to(sb, wc_island, id_counter)
+    InternalRef(iref) => render_internal_ref_with_id_to(sb, iref, id_counter)
     Async(async_node) => {
       // Render with async marker for potential hydration
       let id = id_counter.val
