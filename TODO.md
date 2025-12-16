@@ -3,6 +3,7 @@
 - [ ] sol 中間生成ファイルを見直す
 - [ ] sol: hot reload
 - [ ] sol generate で `.sol/client/exports.mbt` を削除して直接 moon.pkg.json の link を更新する
+- [ ] Critical CSS の抽出
 - [ ] Prototype: src/platform/native/server
 - [ ] Prototype: ViewTransition
   - [ ] BF Cache 最適化
@@ -33,6 +34,33 @@
 
 ### 中優先（機能拡充）
 - [ ] src/platform/dom/portal - モーダル等の実装に必須
+
+## ImplementerReview
+
+内部実装者視点での優先度：
+
+### アーキテクチャ決定（早期に確定すべき）
+- [ ] ViewTransition - MPA vs CSR の設計判断に直結
+  - MPA優先なら: SSR Stream、BF Cache最適化が重要
+  - CSR優先なら: クライアントルーター強化、プリフェッチ
+  - **先にプロトタイプして、どこまでMPAでカバーできるか確認すべき**
+- [ ] virtual package - クロスプラットフォーム対応の基盤。後から入れると既存コードに影響大
+- [ ] sol 中間生成ファイルを見直す - `.sol/` の構造が固まらないとhot reload実装にも影響
+
+### 技術的な依存関係
+- [ ] sol generate で moon.pkg.json の link を直接更新 → 中間ファイル見直しの一部
+- [ ] hot reload → 上記が決まってから実装
+
+### 後回しでよい
+- SSG - MPAモードが動けば、静的出力はビルド時オプションで対応可
+- portal - DOM操作の話。アーキテクチャには影響しない
+- Astro互換trigger - 属性名の話。後から互換レイヤーで対応可
+
+### 推奨順序
+1. ViewTransition プロトタイプ → MPA/CSR比重を決定
+2. virtual package 導入 → プラットフォーム抽象化
+3. sol 中間ファイル見直し → 生成構造の確定
+4. hot reload → 上記が安定してから
 
 ## Icebox
 
