@@ -1,0 +1,9 @@
+{
+  "supported-targets": ["js"],
+  "link": {
+    "js": {
+      "exports": ["CounterProps", "ContactFormProps"],
+      "format": "esm"
+    }
+  }
+}
