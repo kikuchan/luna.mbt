@@ -1,6 +1,14 @@
 ///| sol build command - Build for production
 
 ///|
+/// Generate inline JS script for rolldown build (avoids config file)
+fn generate_rolldown_build_script(manifest_path : String, skip_minify : Bool) -> String {
+  let minify_line = if skip_minify { "" } else { "minify: true," }
+  // Inline node script that reads manifest and runs rolldown programmatically
+  "import { readFileSync } from 'node:fs';\nimport { build } from 'rolldown';\nconst manifest = JSON.parse(readFileSync('\{manifest_path}', 'utf-8'));\nconst input = {};\nfor (const island of manifest.islands) { input[island.name] = island.entry_path; }\nawait build({ input, output: { dir: manifest.output_dir, format: 'esm', entryFileNames: '[name].js', chunkFileNames: '_shared/[name]-[hash].js', \{minify_line} } });"
+}
+
+///|
 fn show_build_help() -> Unit {
   let help =
     #|Usage: sol build [options]
@@ -111,24 +119,21 @@ fn run_build_command(args : Array[String]) -> Unit {
     }
   }
   println(@colorette.green("✓ Moon build complete"))
-  // Bundle client code with rolldown if config exists
-  let rolldown_config = @path.join2(cwd, "rolldown.config.mjs")
-  if not(skip_bundle) && @fs.existsSync(rolldown_config) {
+  // Bundle client code with rolldown if manifest exists
+  let manifest_path = @path.join2(cwd, ".sol/prod/manifest.json")
+  if not(skip_bundle) && @fs.existsSync(manifest_path) {
     let minify_msg = if skip_minify { "" } else { " (minified)" }
     println(
       @colorette.cyan("Bundling client code with rolldown -> .sol/prod/static/\{minify_msg}"),
     )
+    // Use node to run programmatic rolldown build
+    let build_script = generate_rolldown_build_script(manifest_path, skip_minify)
     try {
-      // Use -m flag for minification in production builds
-      let rolldown_args : Array[String] = if skip_minify {
-        ["rolldown", "-c", "rolldown.config.mjs"]
-      } else {
-        ["rolldown", "-c", "rolldown.config.mjs", "-m"]
-      }
       let bundle_result = @child_process.spawnSync(
-        "npx",
-        args=rolldown_args,
+        "node",
+        args=["--input-type=module", "-e", build_script],
         stdio="inherit",
+        cwd~,
       )
       if bundle_result.status() != Some(0) {
         console_error(@colorette.red("Rolldown bundle failed"))

@@ -28,19 +28,26 @@ npm install --silent
 echo "Installing moon dependencies..."
 moon install
 
-# Run sol generate
-echo "Running sol generate..."
-node "$CLI_PATH" generate
+# Run sol generate with dev mode
+echo "Running sol generate --mode dev..."
+node "$CLI_PATH" generate --mode dev
 
 # Build MoonBit
 echo "Building MoonBit..."
 moon build --target js
 
-# Bundle with rolldown
+# Bundle with rolldown using manifest.json
 echo "Bundling with rolldown..."
-npx rolldown -c rolldown.config.mjs
+node --input-type=module -e "
+import { readFileSync } from 'node:fs';
+import { build } from 'rolldown';
+const manifest = JSON.parse(readFileSync('.sol/dev/manifest.json', 'utf-8'));
+const input = {};
+for (const island of manifest.islands) { input[island.name] = island.entry_path; }
+await build({ input, output: { dir: manifest.output_dir, format: 'esm', entryFileNames: '[name].js', chunkFileNames: '_shared/[name]-[hash].js' } });
+"
 
 # Start server
 echo "Starting server on port $PORT..."
 export PORT="$PORT"
-exec node target/js/release/build/__gen__/server/server.js
+exec node .sol/dev/server/main.js

@@ -248,12 +248,9 @@ async function testSolDev() {
 
     // Verify generated files
     const generatedFiles = [
-      ".sol/entry.client.js",
-      ".sol/entry.server.js",
-      ".sol/luna-client-entry.js",
-      ".sol/islands/island_client_hydrate_counter.js",
-      "rolldown.config.mjs",
-      ".sol/static/hydrate_counter.js",
+      ".sol/dev/manifest.json",
+      ".sol/dev/server/main.js",
+      ".sol/dev/static/counter.js",
     ];
 
     for (const file of generatedFiles) {
@@ -274,10 +271,10 @@ async function testSolDev() {
     if (!homeHtml.includes("Welcome to Sol")) {
       throw new Error("Home page missing expected content");
     }
-    if (!homeHtml.includes('ln:id="counter"')) {
+    if (!homeHtml.includes('luna:id="counter"')) {
       throw new Error("Home page missing counter island");
     }
-    if (!homeHtml.includes('ln:url="/static/hydrate_counter.js"')) {
+    if (!homeHtml.includes('luna:url="/static/counter.js"')) {
       throw new Error("Home page missing island URL for individual hydration");
     }
     logSuccess("Home page renders correctly with island");

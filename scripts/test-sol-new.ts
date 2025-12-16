@@ -83,7 +83,6 @@ async function createProject() {
     "moon.mod.json",
     "package.json",
     ".gitignore",
-    "rolldown.config.mjs",
     "src/client/hydrate.mbt",
     "src/client/moon.pkg.json",
     "src/client/components/counter.mbt",
@@ -179,7 +178,7 @@ async function testServer() {
     if (!homeHtml.includes("Welcome to Sol")) {
       throw new Error("Home page missing expected content");
     }
-    if (!homeHtml.includes('ln:id="counter"')) {
+    if (!homeHtml.includes('luna:id="counter"')) {
       throw new Error("Home page missing counter island");
     }
     logSuccess("Home page renders correctly");

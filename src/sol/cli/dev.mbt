@@ -1,6 +1,12 @@
 ///| sol dev command - Start development server
 
 ///|
+/// Generate inline JS script for rolldown build (dev mode, no minify)
+fn generate_rolldown_build_script_dev(manifest_path : String) -> String {
+  "import { readFileSync } from 'node:fs';\nimport { build } from 'rolldown';\nconst manifest = JSON.parse(readFileSync('\{manifest_path}', 'utf-8'));\nconst input = {};\nfor (const island of manifest.islands) { input[island.name] = island.entry_path; }\nawait build({ input, output: { dir: manifest.output_dir, format: 'esm', entryFileNames: '[name].js', chunkFileNames: '_shared/[name]-[hash].js' } });"
+}
+
+///|
 fn show_dev_help() -> Unit {
   let help =
     #|Usage: sol dev [options]
@@ -92,14 +98,16 @@ fn run_dev_command(args : Array[String]) -> Unit {
     }
   }
   println(@colorette.green("✓ Build complete"))
-  // Step 4: Bundle client code with rolldown if config exists
-  let rolldown_config = @path.join2(cwd, "rolldown.config.mjs")
-  if @fs.existsSync(rolldown_config) {
+  // Step 4: Bundle client code with rolldown if manifest exists
+  let manifest_path = @path.join2(cwd, ".sol/dev/manifest.json")
+  if @fs.existsSync(manifest_path) {
     println(@colorette.gray("Bundling client code with rolldown -> .sol/dev/static/"))
+    // Use node to run programmatic rolldown build (no minify for dev)
+    let build_script = generate_rolldown_build_script_dev(manifest_path)
     try {
       let bundle_result = @child_process.spawnSync(
-        "npx",
-        args=["rolldown", "-c", "rolldown.config.mjs"],
+        "node",
+        args=["--input-type=module", "-e", build_script],
         stdio="inherit",
         cwd~,
       )

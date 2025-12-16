@@ -5,5 +5,4 @@ node_modules
 app/__gen__/client
 app/__gen__/server
 .sol
-rolldown.config.mjs
 package-lock.json

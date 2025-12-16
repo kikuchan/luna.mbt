@@ -1074,27 +1074,21 @@ fn generate_island_entry_js_v2(
 }
 
 ///|
-/// Generate rolldown.config.mjs (new architecture)
-fn generate_rolldown_config_v2(funcs : Array[FuncExport], mode : String) -> String {
+/// Generate island manifest JSON (for programmatic rolldown build)
+fn generate_island_manifest_json(funcs : Array[FuncExport], mode : String) -> String {
   let buf = StringBuilder::new()
-  buf.write_string("import { defineConfig } from 'rolldown';\n\n")
-  buf.write_string("export default defineConfig({\n")
-  buf.write_string("  input: {\n")
+  buf.write_string("{\n")
+  buf.write_string("  \"output_dir\": \"./.sol/\{mode}/static\",\n")
+  buf.write_string("  \"islands\": [\n")
   for i, func in funcs {
-    buf.write_string("    '\{func.name}': './.sol/\{mode}/client/\{func.name}.js'")
+    buf.write_string("    { \"name\": \"\{func.name}\", \"entry_path\": \"./.sol/\{mode}/client/\{func.name}.js\" }")
     if i < funcs.length() - 1 {
       buf.write_string(",")
     }
     buf.write_string("\n")
   }
-  buf.write_string("  },\n")
-  buf.write_string("  output: {\n")
-  buf.write_string("    dir: './.sol/\{mode}/static',\n")
-  buf.write_string("    format: 'esm',\n")
-  buf.write_string("    entryFileNames: '[name].js',\n")
-  buf.write_string("    chunkFileNames: '_shared/[name]-[hash].js',\n")
-  buf.write_string("  },\n")
-  buf.write_string("});\n")
+  buf.write_string("  ]\n")
+  buf.write_string("}\n")
   buf.to_string()
 }
 
@@ -1354,15 +1348,15 @@ fn run_generate_command(args : Array[String]) -> Unit {
         "  Generated \{funcs.length()} client entries in .sol/\{mode}/client/",
       ),
     )
-    // Generate rolldown.config.mjs
-    let rolldown_config = generate_rolldown_config_v2(funcs, mode)
-    let rolldown_path = @path.join2(cwd, "rolldown.config.mjs")
+    // Generate island manifest JSON for programmatic rolldown build
+    let manifest_content = generate_island_manifest_json(funcs, mode)
+    let manifest_path = @path.join2(sol_dir, "manifest.json")
     try {
-      @fs.writeFileSync(rolldown_path, @js.any(rolldown_config))
-      println(@colorette.gray("  Generated rolldown.config.mjs"))
+      @fs.writeFileSync(manifest_path, @js.any(manifest_content))
+      println(@colorette.gray("  Generated .sol/\{mode}/manifest.json"))
     } catch {
       e => {
-        console_error(@colorette.red("Error writing rolldown.config.mjs: \{e}"))
+        console_error(@colorette.red("Error writing manifest.json: \{e}"))
         @process.exit(1)
       }
     }

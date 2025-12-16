@@ -10,7 +10,6 @@ fn template_gitignore() -> String {
     #|app/__gen__/client
     #|app/__gen__/server
     #|.sol
-    #|rolldown.config.mjs
   )
 }
 

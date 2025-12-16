@@ -129,8 +129,8 @@ sol generate --config my.json   # カスタム設定
 - `app/__gen__/server/main.mbt` - サーバーエントリポイント (routes.mbt から動的生成)
 - `.sol/{mode}/client/*.js` - rolldown 用 Island エントリ
 - `.sol/{mode}/server/main.js` - サーバーエントリポイント (re-export)
+- `.sol/{mode}/manifest.json` - rolldown programmatic API 用マニフェスト
 - `.sol/{mode}/static/` - バンドル出力先
-- `rolldown.config.mjs` - バンドラー設定
 
 ### `sol clean`
 
