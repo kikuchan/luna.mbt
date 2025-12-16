@@ -327,29 +327,42 @@ pub fn hydrate_auto(
 }
 
 ///|
-/// Unified hydration for DomNode-based components
-/// For WC mode: Renders into shadow root (preserves SSR styles)
+/// Unified rendering for DomNode-based components
+/// Note: This performs client-side rendering, not true hydration.
+/// DomNode already contains Signal-bound DOM nodes, so we cannot reuse SSR HTML.
+///
+/// For WC mode: Replaces shadow root content (preserves SSR styles, smooth transition)
 /// For Luna mode: Renders into element (clears and mounts)
 pub fn hydrate_auto_dom(
   element : @js_dom.Element,
   node : @element.DomNode,
 ) -> Unit {
   if has_shadow_root(element) {
-    // WC mode - render into shadow root, preserving styles
+    // WC mode - replace shadow root content while preserving styles
     let shadow_root = get_shadow_root_as_element(element)
     console_log_wc(
-      "[" + element.tagName() + "] WC mode - rendering into shadow DOM",
+      "[" + element.tagName() + "] WC mode - replacing shadow DOM content",
     )
+
+    // Prepare new content first (before clearing)
+    let new_content = node.to_jsdom()
+
+    // Create a document fragment for atomic replacement
+    let doc = @js_dom.document()
+    let fragment = doc.createDocumentFragment()
+
     // Preserve existing <style> elements from SSR
     let styles = extract_style_elements(shadow_root)
-    // Clear shadow root
-    shadow_root.as_node().setTextContent("")
-    // Re-append styles first
     for style in styles {
-      shadow_root.as_node().appendChild(style) |> ignore
+      fragment.as_node().appendChild(style) |> ignore
     }
-    // Then append new content
-    shadow_root.as_node().appendChild(node.to_jsdom()) |> ignore
+
+    // Add new content to fragment
+    fragment.as_node().appendChild(new_content) |> ignore
+
+    // Clear and replace in one operation (minimizes flash)
+    shadow_root.as_node().setTextContent("")
+    shadow_root.as_node().appendChild(fragment.as_node()) |> ignore
   } else {
     // Luna mode - render new DOM
     let el = @element.DomElement::from_jsdom(element)
