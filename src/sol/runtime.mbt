@@ -745,12 +745,17 @@ pub fn serve_static(app : App, config? : StaticFileConfig) -> App {
       }
     }
 
-    // Fallback: try to read from local_dir/filename, then .sol/static/filename
+    // Fallback: try to read from local_dir/filename, then .sol/{prod,dev}/static/filename
     let local_path = cfg.local_dir + "/" + filename
-    let sol_static_path = ".sol/static/" + filename
+    let sol_prod_path = ".sol/prod/static/" + filename
+    let sol_dev_path = ".sol/dev/static/" + filename
     let content = match read_file_sync(local_path) {
       Some(c) => Some(c)
-      None => read_file_sync(sol_static_path)
+      None =>
+        match read_file_sync(sol_prod_path) {
+          Some(c) => Some(c)
+          None => read_file_sync(sol_dev_path)
+        }
     }
     match content {
       Some(c) => {
