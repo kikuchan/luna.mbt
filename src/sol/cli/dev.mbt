@@ -7,6 +7,7 @@ fn show_dev_help() -> Unit {
     #|
     #|Options:
     #|  -p, --port <port>   Port to listen on (default: 3000)
+    #|  --clean             Clean target and .sol directories before build
     #|  -h, --help          Show help
   println(help)
 }
@@ -18,6 +19,7 @@ fn run_dev_command(args : Array[String]) -> Unit {
     args~,
     options=[
       @util.String(key="port", short="p", multiple=false, default=Some("3000")),
+      @util.Boolean(key="clean", short="c"),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
@@ -32,6 +34,11 @@ fn run_dev_command(args : Array[String]) -> Unit {
   } else {
     "3000"
   }
+  let clean : Bool = if result.values.contains("clean") {
+    result.values["clean"].cast()
+  } else {
+    false
+  }
   let cwd = @process.cwd()
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
@@ -42,13 +49,11 @@ fn run_dev_command(args : Array[String]) -> Unit {
     @process.exit(1)
   }
   println(@colorette.cyan("Starting Sol development server..."))
-  // Step 1: Clean generated files and target to avoid stale cache issues
-  let sol_dir = @path.join2(cwd, ".sol")
-  let gen_dir = @path.join2(cwd, "app/__gen__")
-  let target_dir = @path.join2(cwd, "target")
-  if @fs.existsSync(sol_dir) ||
-    @fs.existsSync(gen_dir) ||
-    @fs.existsSync(target_dir) {
+  // Step 1: Clean generated files if requested
+  if clean {
+    let sol_dir = @path.join2(cwd, ".sol")
+    let gen_dir = @path.join2(cwd, "app/__gen__")
+    let target_dir = @path.join2(cwd, "target")
     println(@colorette.gray("Cleaning generated files..."))
     if @fs.existsSync(sol_dir) {
       rm_rf_sync(sol_dir)
@@ -65,7 +70,7 @@ fn run_dev_command(args : Array[String]) -> Unit {
   let sol_config_path = @path.join2(cwd, "sol.config.json")
   if @fs.existsSync(sol_config_path) {
     println(@colorette.gray("Generating .sol directory..."))
-    run_generate_command([])
+    run_generate_command(["--mode", "dev"])
     println(@colorette.green("✓ Generate complete"))
   }
   // Step 3: Build MoonBit project
@@ -111,15 +116,17 @@ fn run_dev_command(args : Array[String]) -> Unit {
     }
   }
   // Run server
-  run_server(cwd, port)
+  run_server(cwd, port, "dev")
 }
 
 ///|
-fn run_server(cwd : String, port : String) -> Unit {
+fn run_server(cwd : String, port : String, mode : String) -> Unit {
   // Step 5: Find and run the server entry point
+  // For dev mode, prefer .sol/dev/server/main.js; for prod, .sol/prod/server/main.js
   let possible_entries = [
-    "target/js/release/build/__gen__/server/server.js", "target/js/release/build/server/run/run.js",
-    "target/js/release/build/examples/example_app/example_app.js", "target/js/release/build/main/main.js",
+    ".sol/\{mode}/server/main.js", "target/js/release/build/__gen__/server/server.js",
+    "target/js/release/build/server/run/run.js", "target/js/release/build/examples/example_app/example_app.js",
+    "target/js/release/build/main/main.js",
   ]
   let mut entry_point : String? = None
   for entry in possible_entries {

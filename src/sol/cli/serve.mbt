@@ -53,6 +53,6 @@ fn run_serve_command(args : Array[String]) -> Unit {
     @process.exit(1)
   }
   println(@colorette.cyan("Starting Sol production server..."))
-  // Run server (reuse from dev.mbt)
-  run_server(cwd, port)
+  // Run server (reuse from dev.mbt) - use prod mode
+  run_server(cwd, port, "prod")
 }

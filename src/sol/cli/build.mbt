@@ -10,6 +10,7 @@ fn show_build_help() -> Unit {
     #|  --skip-bundle       Skip rolldown bundling
     #|  --skip-generate     Skip _sol directory generation
     #|  --skip-minify       Skip minification
+    #|  --clean             Clean target and .sol directories before build
     #|  -h, --help          Show help
   println(help)
 }
@@ -24,6 +25,7 @@ fn run_build_command(args : Array[String]) -> Unit {
       @util.Boolean(key="skip-bundle", short="s"),
       @util.Boolean(key="skip-generate", short="g"),
       @util.Boolean(key="skip-minify", short="m"),
+      @util.Boolean(key="clean", short="c"),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
@@ -53,6 +55,11 @@ fn run_build_command(args : Array[String]) -> Unit {
   } else {
     false
   }
+  let clean : Bool = if result.values.contains("clean") {
+    result.values["clean"].cast()
+  } else {
+    false
+  }
   let cwd = @process.cwd()
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
@@ -62,11 +69,28 @@ fn run_build_command(args : Array[String]) -> Unit {
     )
     @process.exit(1)
   }
+  // Clean if requested
+  if clean {
+    println(@colorette.cyan("Cleaning generated files..."))
+    let sol_dir = @path.join2(cwd, ".sol")
+    let gen_dir = @path.join2(cwd, "app/__gen__")
+    let target_dir = @path.join2(cwd, "target")
+    if @fs.existsSync(sol_dir) {
+      rm_rf_sync(sol_dir)
+    }
+    if @fs.existsSync(gen_dir) {
+      rm_rf_sync(gen_dir)
+    }
+    if @fs.existsSync(target_dir) {
+      rm_rf_sync(target_dir)
+    }
+    println(@colorette.green("✓ Clean complete"))
+  }
   // Run generate if sol.config.json exists
   let sol_config_path = @path.join2(cwd, "sol.config.json")
   if not(skip_generate) && @fs.existsSync(sol_config_path) {
     println(@colorette.cyan("Generating _sol directory..."))
-    run_generate_command([])
+    run_generate_command(["--mode", "prod"])
   }
   println(@colorette.cyan("Building for production (target: \{target})..."))
   // Run moon build
