@@ -1,6 +1,7 @@
 これは開発者が次にやりたいことをメモとして残していく場所だから、AIは言われるまで修正しない。
 
 - [ ] 再 export するのに、moonbitlang/parser を使用する
+- [ ] BF Cache 最適化
 - [ ] sol/test_utils
 - [ ] src/sol/ssg で、静的サイト生成に対応
 - [ ] src/sol/rpc: capnweb
