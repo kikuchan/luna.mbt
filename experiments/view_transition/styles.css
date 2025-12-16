@@ -3,6 +3,56 @@
   navigation: auto;
 }
 
+/* Direction-based animations using view-transition-types */
+
+/* Forward navigation: slide left */
+html:active-view-transition-type(forwards) {
+  &::view-transition-old(root) {
+    animation: slide-out-to-left 0.3s ease-out;
+  }
+  &::view-transition-new(root) {
+    animation: slide-in-from-right 0.3s ease-out;
+  }
+}
+
+/* Backward navigation: slide right */
+html:active-view-transition-type(backwards) {
+  &::view-transition-old(root) {
+    animation: slide-out-to-right 0.3s ease-out;
+  }
+  &::view-transition-new(root) {
+    animation: slide-in-from-left 0.3s ease-out;
+  }
+}
+
+@keyframes slide-out-to-left {
+  to {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+}
+
+@keyframes slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+@keyframes slide-out-to-right {
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+}
+
 /* Basic reset and styles */
 * {
   margin: 0;
