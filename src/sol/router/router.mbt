@@ -478,3 +478,236 @@ fn[E] render_page_html(
   body_html +
   "</div></body></html>"
 }
+
+// ============================================================================
+// Async Server Routes Registration (ServerNode support)
+// ============================================================================
+
+///|
+/// Async page resolver type - returns ServerNode for async server components
+pub type AsyncPageResolver = (String, Ctx, RouteParams) -> @server_dom.ServerNode?
+
+///|
+/// Register routes with async server component support
+/// Uses ServerNode which supports both sync and async server components
+pub fn register_server_routes(
+  app : App,
+  routes : Array[@routes.Routes],
+  page_resolver : AsyncPageResolver,
+  api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
+  config? : RouterConfig,
+  title_prefix? : String = "",
+  default_title? : String = "App",
+  default_head? : String = "",
+  loader_url? : String = "/static/loader.js",
+  wc_loader_url? : String = "/static/wc-loader.js",
+) -> App {
+  // Use config if provided, otherwise use individual parameters
+  let (tp, dt, dh, lu, wlu) = match config {
+    Some(c) =>
+      (
+        c.title_prefix,
+        c.default_title,
+        c.default_head,
+        c.loader_url,
+        c.wc_loader_url,
+      )
+    None => (title_prefix, default_title, default_head, loader_url, wc_loader_url)
+  }
+  register_server_routes_inner(
+    app,
+    routes,
+    "",
+    page_resolver,
+    api_resolver,
+    title_prefix=tp,
+    default_title=dt,
+    default_head=dh,
+    loader_url=lu,
+    wc_loader_url=wlu,
+  )
+}
+
+///|
+fn register_server_routes_inner(
+  app : App,
+  routes : Array[@routes.Routes],
+  prefix : String,
+  page_resolver : AsyncPageResolver,
+  api_resolver : (String, Ctx, RouteParams) -> @js.Any?,
+  title_prefix~ : String,
+  default_title~ : String,
+  default_head~ : String,
+  loader_url~ : String,
+  wc_loader_url~ : String,
+) -> App {
+  let mut result = app
+  for route in routes {
+    result = match route {
+      @routes.Page(path~, component~, title~, meta~) => {
+        let _ = meta
+        let full_path = prefix + path
+        result.get(full_path, async fn(c) {
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
+          match page_resolver(component, c, params) {
+            Some(server_node) => {
+              // Resolve ServerNode (await if async)
+              let node = server_node.resolve()
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(
+                  node,
+                  page_title,
+                  false,
+                )
+                send_fragment_response(c, fragment_html)
+              } else {
+                let html = render_page_html(node, page_title, default_head, false)
+                c.html(html)
+              }
+            }
+            None => c.text("Page not found: " + component)
+          }
+        })
+      }
+      @routes.Island(path~, component~, url~, trigger~, title~, meta~) => {
+        let _ = (url, trigger, meta)
+        let full_path = prefix + path
+        result.get(full_path, async fn(c) {
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
+          match page_resolver(component, c, params) {
+            Some(server_node) => {
+              // Resolve ServerNode (await if async)
+              let node = server_node.resolve()
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(node, page_title, true)
+                send_fragment_response(c, fragment_html)
+              } else {
+                let loader_script = "<script type=\"module\" src=\"" +
+                  loader_url +
+                  "\"></script>"
+                let head = default_head + loader_script
+                let html = render_page_html(node, page_title, head, true)
+                c.html(html)
+              }
+            }
+            None => c.text("Page not found: " + component)
+          }
+        })
+      }
+      @routes.WcIsland(path~, component~, title~, meta~) => {
+        let _ = meta
+        let full_path = prefix + path
+        result.get(full_path, async fn(c) {
+          let is_fragment = has_fragment_header(c)
+          let params = extract_route_params(c, is_fragment~)
+          match page_resolver(component, c, params) {
+            Some(server_node) => {
+              // Resolve ServerNode (await if async)
+              let node = server_node.resolve()
+              let page_title = format_title(
+                title,
+                title_prefix~,
+                default_title~,
+              )
+              // Check for fragment request
+              if is_fragment {
+                let fragment_html = render_fragment_response(node, page_title, true)
+                send_fragment_response(c, fragment_html)
+              } else {
+                // WcIsland uses wc-loader.js for Web Components hydration
+                let loader_script = "<script type=\"module\" src=\"" +
+                  wc_loader_url +
+                  "\"></script>"
+                let head = default_head + loader_script
+                let html = render_page_html(node, page_title, head, true)
+                c.html(html)
+              }
+            }
+            None => c.text("Page not found: " + component)
+          }
+        })
+      }
+      @routes.Param(key~, children~) => {
+        let new_prefix = prefix + "/:" + key
+        register_server_routes_inner(
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
+          wc_loader_url~,
+        )
+      }
+      @routes.Layout(segment~, children~, layout~) => {
+        let _ = layout // TODO: Layout support
+        let new_prefix = prefix + segment
+        register_server_routes_inner(
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
+          wc_loader_url~,
+        )
+      }
+      @routes.Group(segment~, children~) => {
+        let new_prefix = prefix + segment
+        register_server_routes_inner(
+          result,
+          children,
+          new_prefix,
+          page_resolver,
+          api_resolver,
+          title_prefix~,
+          default_title~,
+          default_head~,
+          loader_url~,
+          wc_loader_url~,
+        )
+      }
+      @routes.Get(path~, handler~) => {
+        let full_path = prefix + path
+        result.get(full_path, async fn(c) {
+          let params = extract_route_params(c)
+          match api_resolver(handler, c, params) {
+            Some(json) => c.json(json)
+            None => c.json(@js.any({ "error": "Handler not found" }))
+          }
+        })
+      }
+      @routes.Post(path~, handler~) => {
+        let full_path = prefix + path
+        result.post(full_path, async fn(c) {
+          let params = extract_route_params(c)
+          match api_resolver(handler, c, params) {
+            Some(json) => c.json(json)
+            None => c.json(@js.any({ "error": "Handler not found" }))
+          }
+        })
+      }
+    }
+  }
+  result
+}

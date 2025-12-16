@@ -969,8 +969,8 @@ fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> Stri
   buf.write_string("  // Get routes and config from server/routes.mbt\n")
   buf.write_string("  let routes = @app_server.routes()\n")
   buf.write_string("  let config = @app_server.config()\n\n")
-  buf.write_string("  // Register routes with resolvers\n")
-  buf.write_string("  let app = @router.register_routes(\n")
+  buf.write_string("  // Register routes with resolvers (supports async server components)\n")
+  buf.write_string("  let app = @router.register_server_routes(\n")
   buf.write_string("    app,\n")
   buf.write_string("    routes,\n")
   buf.write_string("    resolve_page,\n")
@@ -980,12 +980,12 @@ fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> Stri
   buf.write_string("  // Serve static files\n")
   buf.write_string("  @sol.serve_static(app)\n")
   buf.write_string("}\n\n")
-  buf.write_string("///| Resolve page component by ID\n")
+  buf.write_string("///| Resolve page component by ID (returns ServerNode for async support)\n")
   buf.write_string("fn resolve_page(\n")
   buf.write_string("  id : String,\n")
   buf.write_string("  ctx : @router.Ctx,\n")
   buf.write_string("  params : @router.RouteParams,\n")
-  buf.write_string(") -> @luna.Node[Unit]? {\n")
+  buf.write_string(") -> @server_dom.ServerNode? {\n")
   buf.write_string("  let props = @router.PageProps::from_ctx_with_params(ctx, params)\n")
   buf.write_string("  match id {\n")
   // Generate match cases for each page component
@@ -1034,6 +1034,9 @@ fn generate_server_pkg_json(routes_pkg : String) -> String {
   )
   buf.write_string(
     "    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" },\n",
+  )
+  buf.write_string(
+    "    { \"path\": \"mizchi/luna/platform/server_dom\", \"alias\": \"server_dom\" },\n",
   )
   buf.write_string(
     "    { \"path\": \"mizchi/js/core\", \"alias\": \"core\" },\n",

@@ -2,8 +2,8 @@
 ///|
 ///| Uses island() to embed the contact_form client component.
 
-///| Contact form page - with contact_form island
-pub fn form_page(props : @router.PageProps) -> @luna.Node[Unit] {
+///| Contact form page - with contact_form island (sync server component)
+pub fn form_page(props : @router.PageProps) -> @server_dom.ServerNode {
   // Create props using generated types - auto-serializes to JSON
   let form_props : @types.ContactFormProps = {
     action: "/api/contact",
@@ -69,9 +69,10 @@ pub fn form_page(props : @router.PageProps) -> @luna.Node[Unit] {
 
   // Fragment request: return content only (no layout)
   // Full page request: wrap with layout
-  if props.params.is_fragment {
+  let node = if props.params.is_fragment {
     @luna.vfragment(content)
   } else {
     layout(content)
   }
+  @server_dom.ServerNode::sync(node)
 }

@@ -5,8 +5,8 @@
 ///|
 ///| CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration.
 
-///| WC Counter page - Web Components based island
-pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
+///| WC Counter page - Web Components based island (sync server component)
+pub fn wc_counter(props : @router.PageProps) -> @server_dom.ServerNode {
   // Create props using WcCounterProps from client module
   let counter_props : @client.WcCounterProps = { initial_count: 0 }
   let state_json = counter_props.to_json().stringify()
@@ -69,9 +69,10 @@ pub fn wc_counter(props : @router.PageProps) -> @luna.Node[Unit] {
 
   // Fragment request: return content only (no layout)
   // Full page request: wrap with layout
-  if props.params.is_fragment {
+  let node = if props.params.is_fragment {
     @luna.vfragment(content)
   } else {
     layout(content)
   }
+  @server_dom.ServerNode::sync(node)
 }
