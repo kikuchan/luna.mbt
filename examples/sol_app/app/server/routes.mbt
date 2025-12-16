@@ -22,6 +22,15 @@ pub fn routes() -> Array[@routes.Routes] {
     ),
     // About page (static, no hydration)
     @routes.Page(path="/about", component="about", title="About", meta=[]),
+    // Contact form page with contact_form island
+    @routes.Island(
+      path="/form",
+      component="form_page",
+      url="/static/contact_form.js",
+      trigger=@luna.Load,
+      title="Contact Form",
+      meta=[],
+    ),
     // API endpoint
     @routes.Get(path="/api/health", handler="health"),
   ]

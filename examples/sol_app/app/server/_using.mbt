@@ -9,4 +9,7 @@ using @element {
   text,
   sol_link,
   outlet,
+  form,
+  input,
+  label,
 }

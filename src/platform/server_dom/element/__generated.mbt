@@ -508,6 +508,84 @@ pub fn button(
 }
 
 ///|
+/// Create a form element
+pub fn form(
+  action? : String,
+  method? : String,
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children~ : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  if action is Some(v) {
+    props.push(("action", static_attr(v)))
+  }
+  if method is Some(v) {
+    props.push(("method", static_attr(v)))
+  }
+  create_element("form", props, children)
+}
+
+///|
+/// Create an input element
+pub fn input(
+  type_? : String,
+  name? : String,
+  value? : String,
+  placeholder? : String,
+  id? : String,
+  class? : String,
+  style? : String,
+  disabled? : Bool,
+  readonly_? : Bool,
+  required? : Bool,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  if type_ is Some(v) {
+    props.push(("type", static_attr(v)))
+  }
+  if name is Some(v) {
+    props.push(("name", static_attr(v)))
+  }
+  if value is Some(v) {
+    props.push(("value", static_attr(v)))
+  }
+  if placeholder is Some(v) {
+    props.push(("placeholder", static_attr(v)))
+  }
+  if disabled is Some(true) {
+    props.push(("disabled", static_attr("")))
+  }
+  if readonly_ is Some(true) {
+    props.push(("readonly", static_attr("")))
+  }
+  if required is Some(true) {
+    props.push(("required", static_attr("")))
+  }
+  create_element("input", props, [])
+}
+
+///|
+/// Create a label element
+pub fn label(
+  for_? : String,
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children~ : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  if for_ is Some(v) {
+    props.push(("for", static_attr(v)))
+  }
+  create_element("label", props, children)
+}
+
+///|
 /// Create img element
 pub fn img(
   src? : String,
