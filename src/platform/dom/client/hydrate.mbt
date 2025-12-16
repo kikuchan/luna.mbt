@@ -219,6 +219,12 @@ fn hydrate_node(
       for child in island.children {
         hydrate_node(parent, child, ctx)
       }
+    @luna.WcIsland(wc_island) =>
+      // WcIsland hydration is handled by wcssr client runtime
+      // Just hydrate children normally for nested content
+      for child in wc_island.children {
+        hydrate_node(parent, child, ctx)
+      }
     @luna.Async(async_node) => {
       // Async node hydration: hydrate the fallback content
       // Full async replacement would happen via streaming SSR
@@ -512,6 +518,10 @@ fn hydrate_child_nodes(
       for child in island.children {
         hydrate_child_nodes(nodes, child, ctx)
       }
+    @luna.WcIsland(wc_island) =>
+      for child in wc_island.children {
+        hydrate_child_nodes(nodes, child, ctx)
+      }
     @luna.Async(async_node) => {
       ctx.current_id = ctx.current_id + 1
       hydrate_child_nodes(nodes, (async_node.fallback)(), ctx)
@@ -737,6 +747,21 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         @luna.trigger_to_string(island.trigger),
       )
       for child in island.children {
+        wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
+      }
+      wrapper.as_node()
+    }
+    @luna.WcIsland(wc_island) => {
+      // For client-side rendering, create the custom element with shadow DOM
+      let wrapper = doc.createElement(wc_island.name)
+      wrapper.setAttribute("data-state", wc_island.state)
+      wrapper.setAttribute(
+        "data-trigger",
+        @luna.trigger_to_string(wc_island.trigger),
+      )
+      // Note: Shadow DOM would be created by the custom element itself
+      // For CSR, we just create the host element with data attributes
+      for child in wc_island.children {
         wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
       }
       wrapper.as_node()

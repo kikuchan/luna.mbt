@@ -56,6 +56,17 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       }
       Element({ tag: "div", attrs, children })
     }
+    @luna.WcIsland(wc_island) => {
+      // Render WcIsland as a custom element with data-* attributes
+      let attrs : Map[String, JsonAttrValue] = {}
+      attrs.set("data-state", Static(wc_island.state))
+      attrs.set("data-trigger", Static(@luna.trigger_to_string(wc_island.trigger)))
+      let children : Array[JsonNode] = []
+      for child in wc_island.children {
+        children.push(render_to_json(child))
+      }
+      Element({ tag: wc_island.name, attrs, children })
+    }
     @luna.Async(async_node) =>
       // Render fallback content for async nodes
       render_to_json((async_node.fallback)())

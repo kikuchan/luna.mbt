@@ -68,6 +68,7 @@ fn render_node_to_stream(
       }
     Component(render~) => render_node_to_stream(render(), writer)
     Island(island) => render_island_to_stream(island, writer)
+    WcIsland(wc_island) => render_wc_island_to_stream(wc_island, writer)
     Async(async_node) =>
       // In stream rendering, render fallback immediately
       // Async resolution happens via Suspense/render_with_suspense
@@ -135,6 +136,49 @@ fn render_island_to_stream(
   write("</div>")
   // End comment marker
   write("<!--/ln:island:" + island.id + "-->")
+}
+
+///|
+/// Render WcIsland node to stream (Declarative Shadow DOM)
+fn render_wc_island_to_stream(
+  wc_island : @luna.VWcIsland[Unit],
+  writer : StreamWriter,
+) -> Unit {
+  let write = writer.0
+  let sb = StringBuilder::new()
+
+  // Custom element opening tag with data attributes
+  sb.write_char('<')
+  sb.write_string(wc_island.name)
+  sb.write_string(" data-state=\"")
+  @render.escape_attr_to(sb, wc_island.state)
+  sb.write_char('"')
+
+  if not(wc_island.trigger is Load) {
+    sb.write_string(" data-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(wc_island.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  // Declarative Shadow DOM template
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  // Styles
+  if wc_island.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(wc_island.styles)
+    sb.write_string("</style>")
+  }
+  write(sb.to_string())
+
+  // Render children
+  for child in wc_island.children {
+    render_node_to_stream(child, writer)
+  }
+
+  // Close template and custom element
+  write("</template></" + wc_island.name + ">")
 }
 
 ///|
@@ -232,6 +276,7 @@ fn render_node_collecting_async(
     Component(render~) =>
       render_node_collecting_async(render(), writer, boundaries, id_counter)
     Island(island) => render_island_to_stream(island, writer)
+    WcIsland(wc_island) => render_wc_island_to_stream(wc_island, writer)
     Async(async_node) => {
       let id = id_counter.val
       id_counter.val = id + 1

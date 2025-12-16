@@ -57,6 +57,17 @@ pub struct VIsland[E] {
 }
 
 ///|
+/// Virtual Web Components Island node - Web Components based hydration unit
+/// Uses Declarative Shadow DOM for SSR and DOM Parts for partial updates
+pub struct VWcIsland[E] {
+  name : String // Custom element name (e.g., "wc-counter")
+  styles : String // CSS for Shadow DOM
+  state : String // Serialized state JSON
+  trigger : IslandTrigger // Hydration trigger
+  children : Array[Node[E]] // SSR content inside Shadow DOM
+}
+
+///|
 /// Virtual DOM node types
 pub enum Node[E] {
   Element(VElement[E])
@@ -66,7 +77,8 @@ pub enum Node[E] {
   Show(condition~ : () -> Bool, child~ : () -> Node[E])
   For(render~ : () -> Array[Node[E]])
   Component(render~ : () -> Node[E])
-  Island(VIsland[E]) // Hydration boundary for partial hydration
+  Island(VIsland[E]) // Hydration boundary for partial hydration (ln:* style)
+  WcIsland(VWcIsland[E]) // Web Components based hydration (Declarative Shadow DOM)
   /// Async node - renders content asynchronously with fallback
   /// - render: async function that may raise errors
   /// - fallback: shown while loading or on error
@@ -190,6 +202,19 @@ pub fn[E] visland(
   trigger? : IslandTrigger = Load,
 ) -> Node[E] {
   Island({ id, url, state, trigger, children })
+}
+
+///|
+/// Create a Web Components island VNode for partial hydration
+/// Uses Declarative Shadow DOM for SSR
+pub fn[E] vwc_island(
+  name : String,
+  styles : String,
+  state : String,
+  children : Array[Node[E]],
+  trigger? : IslandTrigger = Load,
+) -> Node[E] {
+  WcIsland({ name, styles, state, trigger, children })
 }
 
 ///|

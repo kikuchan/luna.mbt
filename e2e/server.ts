@@ -124,6 +124,18 @@ const browserAppModulePath = join(
   "browser_router.js"
 );
 
+// Import MoonBit WC example module path
+const wcModulePath = join(
+  rootDir,
+  "target",
+  "js",
+  "release",
+  "build",
+  "examples",
+  "wc",
+  "wc.js"
+);
+
 // Promisify MoonBit async callback
 function promisifyMoonBit<T>(fn: (cont: (v: T) => void, err: (e: Error) => void) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -538,6 +550,60 @@ app.get("/playground/browser_router/main.js", (c) => {
 });
 app.get("/playground/browser_router", (c) => c.html(browserAppHtml));
 app.get("/playground/browser_router/*", (c) => c.html(browserAppHtml));
+
+// WC Example routes
+const wcHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luna WC Examples (Web Components)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0; padding: 0; background: #fafafa;
+    }
+    h1 { color: #333; }
+    h2 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+    button { padding: 8px 16px; margin: 4px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+    button:hover { background: #f0f0f0; }
+    input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin: 4px; }
+    hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 8px; margin: 4px 0; background: #fff; border: 1px solid #eee; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; }
+    .app { padding: 20px; max-width: 800px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Luna WC Examples</h1>
+    <p>A collection of examples demonstrating Web Components with MoonBit.</p>
+    <hr>
+    <wc-counter></wc-counter>
+    <hr>
+    <wc-input></wc-input>
+    <hr>
+    <wc-effect></wc-effect>
+    <hr>
+    <wc-conditional></wc-conditional>
+    <hr>
+    <wc-style></wc-style>
+    <hr>
+    <wc-todo></wc-todo>
+    <hr>
+    <!-- Nested Components Example -->
+    <wc-nested-parent></wc-nested-parent>
+  </div>
+  <script type="module" src="/playground/wc/main.js"></script>
+</body>
+</html>`;
+
+app.get("/playground/wc", (c) => c.html(wcHtml));
+app.get("/playground/wc/main.js", (c) => {
+  const code = readFileSync(wcModulePath, "utf-8");
+  return c.body(code, 200, { "Content-Type": "application/javascript" });
+});
 
 // Chunked Counter routes (for ESM import architecture tests)
 // Serve static files from chunked counter static directory

@@ -832,6 +832,156 @@ test "render async with on_error handler" {
 }
 
 // =============================================================================
+// Web Components Island Tests
+// =============================================================================
+
+///|
+test "render wc_island basic" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-counter",
+    ":host { display: block; }",
+    "{\"count\":5}",
+    [@luna.vtext("5")],
+  )
+  let html = render_to_string(node).html
+  // Check custom element with data attributes
+  assert_true(html.contains("<wc-counter"))
+  assert_true(html.contains("data-state=\"{&quot;count&quot;:5}\""))
+  // Check Declarative Shadow DOM template
+  assert_true(html.contains("<template shadowrootmode=\"open\">"))
+  assert_true(html.contains("<style>:host { display: block; }</style>"))
+  // Check children are rendered
+  assert_true(html.contains("5"))
+  assert_true(html.contains("</template></wc-counter>"))
+}
+
+///|
+test "render wc_island without styles" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-simple",
+    "", // empty styles
+    "{}",
+    [@luna.vtext("Content")],
+  )
+  let html = render_to_string(node).html
+  // Should not have style tag when styles is empty
+  assert_true(not(html.contains("<style>")))
+  assert_true(html.contains("<template shadowrootmode=\"open\">Content</template>"))
+}
+
+///|
+test "render wc_island with idle trigger" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-lazy",
+    "",
+    "{}",
+    [@luna.vtext("Loading...")],
+    trigger=@luna.Idle,
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("data-trigger=\"idle\""))
+}
+
+///|
+test "render wc_island with visible trigger" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-visible",
+    "",
+    "{}",
+    [@luna.vtext("Loading...")],
+    trigger=@luna.Visible,
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("data-trigger=\"visible\""))
+}
+
+///|
+test "render wc_island with media trigger" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-responsive",
+    "",
+    "{}",
+    [@luna.vtext("Content")],
+    trigger=@luna.Media("(min-width: 768px)"),
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("data-trigger=\"media:(min-width: 768px)\""))
+}
+
+///|
+test "render wc_island load trigger omits data-trigger" {
+  // Load trigger is the default, should not render data-trigger attribute
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-default",
+    "",
+    "{}",
+    [@luna.vtext("Default")],
+    trigger=@luna.Load,
+  )
+  let html = render_to_string(node).html
+  // Should NOT have data-trigger for load (it's the default)
+  assert_true(not(html.contains("data-trigger=")))
+}
+
+///|
+test "render wc_island state escaping" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-escape",
+    "",
+    "{\"text\":\"<script>alert(1)</script>\"}",
+    [@luna.vtext("Safe")],
+  )
+  let html = render_to_string(node).html
+  // Ensure < and > are escaped in attribute value
+  assert_true(not(html.contains("data-state=\"{\"text\":\"<script>")))
+}
+
+///|
+test "render wc_island with complex children" {
+  let items = ["A", "B", "C"]
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-list",
+    ":host { display: block; } ul { padding: 0; }",
+    "{\"items\":[\"A\",\"B\",\"C\"]}",
+    [
+      @luna.h("h2", [], [@luna.vtext("Items")]),
+      @luna.h("ul", [], [
+        @luna.vfor(fn() {
+          let result : Array[@luna.Node[Unit]] = []
+          for i = 0; i < items.length(); i = i + 1 {
+            result.push(@luna.h("li", [], [@luna.vtext(items[i])]))
+          }
+          result
+        }),
+      ]),
+    ],
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("<h2>Items</h2>"))
+  assert_true(html.contains("<li>A</li>"))
+  assert_true(html.contains("<li>B</li>"))
+  assert_true(html.contains("<li>C</li>"))
+  assert_true(html.contains(":host { display: block; }"))
+}
+
+///|
+test "render wc_island with hydration markers" {
+  let node : @luna.Node[Unit] = @luna.vwc_island(
+    "wc-hyd",
+    "",
+    "{\"count\":10}",
+    [@luna.text_dyn(fn() { "10" })],
+  )
+  let html = render_to_string_with_hydration(node)
+  // Should have wc marker
+  assert_true(html.contains("<!--wc:"))
+  assert_true(html.contains("<!--/wc-->"))
+  // Should have hydration markers for dynamic text inside
+  assert_true(html.contains("<!--t:"))
+  assert_true(html.contains("<!--/t-->"))
+}
+
+// =============================================================================
 // Streaming Async Tests
 // =============================================================================
 

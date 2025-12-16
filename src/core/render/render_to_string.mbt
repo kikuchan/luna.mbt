@@ -85,6 +85,7 @@ fn[E] render_and_collect_urls(
       }
     Component(render~) => render_and_collect_urls(sb, render(), urls)
     Island(island) => render_island_and_collect_urls(sb, island, urls)
+    WcIsland(wc_island) => render_wc_island_and_collect_urls(sb, wc_island, urls)
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_and_collect_urls(sb, (async_node.fallback)(), urls)
@@ -168,6 +169,134 @@ fn[E] render_island_close_to(
   sb.write_string("<!--/ln:island:")
   sb.write_string(island.id)
   sb.write_string("-->")
+}
+
+// ============================================================
+// Web Components Island Rendering (Declarative Shadow DOM)
+// ============================================================
+
+///|
+/// Render WcIsland node with Declarative Shadow DOM
+fn[E] render_wc_island_to(sb : StringBuilder, island : @luna.VWcIsland[E]) -> Unit {
+  // <wc-counter data-state="..." data-trigger="load">
+  sb.write_char('<')
+  sb.write_string(island.name)
+  sb.write_string(" data-state=\"")
+  escape_attr_to(sb, island.state)
+  sb.write_char('"')
+
+  // Only add trigger attribute if not default (load)
+  if not(island.trigger is Load) {
+    sb.write_string(" data-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(island.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  // <template shadowrootmode="open">
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  // <style>...</style>
+  if island.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(island.styles) // CSS doesn't need HTML escaping
+    sb.write_string("</style>")
+  }
+
+  // Render children
+  for child in island.children {
+    render_to_sb(sb, child)
+  }
+
+  // Close template and custom element
+  sb.write_string("</template></")
+  sb.write_string(island.name)
+  sb.write_char('>')
+}
+
+///|
+/// Render WcIsland node and collect URLs (if any)
+fn[E] render_wc_island_and_collect_urls(
+  sb : StringBuilder,
+  island : @luna.VWcIsland[E],
+  urls : Array[String],
+) -> Unit {
+  // <wc-counter data-state="..." data-trigger="load">
+  sb.write_char('<')
+  sb.write_string(island.name)
+  sb.write_string(" data-state=\"")
+  escape_attr_to(sb, island.state)
+  sb.write_char('"')
+
+  if not(island.trigger is Load) {
+    sb.write_string(" data-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(island.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  if island.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(island.styles)
+    sb.write_string("</style>")
+  }
+
+  for child in island.children {
+    render_and_collect_urls(sb, child, urls)
+  }
+
+  sb.write_string("</template></")
+  sb.write_string(island.name)
+  sb.write_char('>')
+}
+
+///|
+/// Render WcIsland node with hydration markers
+fn[E] render_wc_island_with_id_to(
+  sb : StringBuilder,
+  island : @luna.VWcIsland[E],
+  id_counter : Ref[Int],
+) -> Unit {
+  let id = id_counter.val
+  id_counter.val = id + 1
+
+  // WcIsland comment marker for hydration
+  sb.write_string("<!--wc:")
+  sb.write_object(id)
+  sb.write_string("-->")
+
+  sb.write_char('<')
+  sb.write_string(island.name)
+  sb.write_string(" data-state=\"")
+  escape_attr_to(sb, island.state)
+  sb.write_char('"')
+
+  if not(island.trigger is Load) {
+    sb.write_string(" data-trigger=\"")
+    sb.write_string(@luna.trigger_to_string(island.trigger))
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+
+  sb.write_string("<template shadowrootmode=\"open\">")
+
+  if island.styles.length() > 0 {
+    sb.write_string("<style>")
+    sb.write_string(island.styles)
+    sb.write_string("</style>")
+  }
+
+  for child in island.children {
+    render_with_id_to(sb, child, id_counter)
+  }
+
+  sb.write_string("</template></")
+  sb.write_string(island.name)
+  sb.write_char('>')
+
+  sb.write_string("<!--/wc-->")
 }
 
 ///|
@@ -261,6 +390,7 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
       }
     Component(render~) => render_to_sb(sb, render())
     Island(island) => render_island_to(sb, island)
+    WcIsland(wc_island) => render_wc_island_to(sb, wc_island)
     Async(async_node) =>
       // In sync rendering, render fallback (async content handled by stream renderer)
       render_to_sb(sb, (async_node.fallback)())
@@ -383,6 +513,7 @@ fn[E] render_with_id_to(
     }
     Component(render~) => render_with_id_to(sb, render(), id_counter)
     Island(island) => render_island_with_id_to(sb, island, id_counter)
+    WcIsland(wc_island) => render_wc_island_with_id_to(sb, wc_island, id_counter)
     Async(async_node) => {
       // Render with async marker for potential hydration
       let id = id_counter.val

@@ -21,7 +21,12 @@
         "island_load",
         "island_idle",
         "island_visible",
-        "island_media"
+        "island_media",
+        "wc_island",
+        "wc_island_load",
+        "wc_island_idle",
+        "wc_island_visible",
+        "wc_island_media"
       ],
       "format": "esm"
     }
