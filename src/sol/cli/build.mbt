@@ -9,6 +9,7 @@ fn show_build_help() -> Unit {
     #|  --target <target>   Build target (js, wasm) (default: js)
     #|  --skip-bundle       Skip rolldown bundling
     #|  --skip-generate     Skip _sol directory generation
+    #|  --skip-minify       Skip minification
     #|  -h, --help          Show help
   println(help)
 }
@@ -22,6 +23,7 @@ fn run_build_command(args : Array[String]) -> Unit {
       @util.String(key="target", short="t", multiple=false, default=Some("js")),
       @util.Boolean(key="skip-bundle", short="s"),
       @util.Boolean(key="skip-generate", short="g"),
+      @util.Boolean(key="skip-minify", short="m"),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
@@ -43,6 +45,11 @@ fn run_build_command(args : Array[String]) -> Unit {
   }
   let skip_generate : Bool = if result.values.contains("skip-generate") {
     result.values["skip-generate"].cast()
+  } else {
+    false
+  }
+  let skip_minify : Bool = if result.values.contains("skip-minify") {
+    result.values["skip-minify"].cast()
   } else {
     false
   }
@@ -83,11 +90,20 @@ fn run_build_command(args : Array[String]) -> Unit {
   // Bundle client code with rolldown if config exists
   let rolldown_config = @path.join2(cwd, "rolldown.config.mjs")
   if not(skip_bundle) && @fs.existsSync(rolldown_config) {
-    println(@colorette.cyan("Bundling client code with rolldown..."))
+    let minify_msg = if skip_minify { "" } else { " (minified)" }
+    println(
+      @colorette.cyan("Bundling client code with rolldown\{minify_msg}..."),
+    )
     try {
+      // Use -m flag for minification in production builds
+      let rolldown_args : Array[String] = if skip_minify {
+        ["rolldown", "-c", "rolldown.config.mjs"]
+      } else {
+        ["rolldown", "-c", "rolldown.config.mjs", "-m"]
+      }
       let bundle_result = @child_process.spawnSync(
         "npx",
-        args=["rolldown", "-c", "rolldown.config.mjs"],
+        args=rolldown_args,
         stdio="inherit",
       )
       if bundle_result.status() != Some(0) {

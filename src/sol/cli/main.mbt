@@ -13,8 +13,9 @@ fn show_help() -> Unit {
     #|
     #|Commands:
     #|  new <name>     Create a new Sol project
-    #|  dev            Start development server
-    #|  build          Build for production
+    #|  dev            Start development server (no minify)
+    #|  build          Build for production (with minify)
+    #|  serve          Serve production build
     #|  generate       Generate _sol directory from config
     #|  clean          Remove generated files and caches
     #|
@@ -61,6 +62,7 @@ fn main {
     "new" => run_new_command(command_args)
     "dev" => run_dev_command(command_args)
     "build" => run_build_command(command_args)
+    "serve" => run_serve_command(command_args)
     "generate" => run_generate_command(command_args)
     "clean" => run_clean_command(command_args)
     _ => {
