@@ -1,6 +1,9 @@
 ///| Portal - Render content outside the component tree
+
 ///|
+
 ///| Similar to SolidJS <Portal>
+
 ///| https://docs.solidjs.com/reference/components/portal
 
 ///|
@@ -54,7 +57,6 @@ pub fn PortalOptions::with_shadow() -> PortalOptions {
   { mount: None, use_shadow: true, is_svg: false }
 }
 
-
 ///|
 /// Create a portal that renders children into a different DOM location
 ///
@@ -82,10 +84,9 @@ pub fn portal(options : PortalOptions, children : Array[DomNode]) -> DomNode {
     None =>
       match doc.body() {
         Some(body) => body.as_element()
-        None => {
+        None =>
           // Fallback: create a div and append to document
           doc.createElement("div")
-        }
       }
   }
 
@@ -145,7 +146,10 @@ pub fn portal_to_body(children : Array[DomNode]) -> DomNode {
 
 ///|
 /// Convenience function: portal to a specific selector
-pub fn portal_to_selector(selector : String, children : Array[DomNode]) -> DomNode {
+pub fn portal_to_selector(
+  selector : String,
+  children : Array[DomNode],
+) -> DomNode {
   let doc = @js_dom.document()
   let options = match doc.querySelector(selector) {
     Some(el) => PortalOptions::with_mount(el)
@@ -164,7 +168,7 @@ pub fn portal_with_shadow(children : Array[DomNode]) -> DomNode {
 /// Portal to a specific element with shadow DOM
 pub fn portal_to_with_shadow(
   mount : @js_dom.Element,
-  children : Array[DomNode]
+  children : Array[DomNode],
 ) -> DomNode {
   let options : PortalOptions = {
     mount: Some(mount),

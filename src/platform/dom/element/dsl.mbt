@@ -328,7 +328,7 @@ extern "js" fn ffi_use_style(css : String, style_id : String, root : @js.Any) =
 fn hash_css(css : String) -> String {
   let mut hash : UInt = 5381
   for c in css {
-    hash = ((hash << 5) + hash) + c.to_uint()
+    hash = (hash << 5) + hash + c.to_uint()
   }
   hash.to_string()
 }

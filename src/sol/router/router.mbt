@@ -89,11 +89,7 @@ pub fn ChunkManifest::get_chunks(
 fn extract_entry_name(url : String, base_url : String) -> String {
   if url.has_prefix(base_url) {
     // Remove base_url prefix
-    let result = try {
-      url[base_url.length():].to_string()
-    } catch {
-      _ => url
-    }
+    let result = url[base_url.length():].to_string() catch { _ => url }
     result
   } else {
     // Find last slash and get filename
@@ -105,11 +101,7 @@ fn extract_entry_name(url : String, base_url : String) -> String {
       }
     }
     if last_slash >= 0 && last_slash < url.length() - 1 {
-      let result = try {
-        url[last_slash + 1:].to_string()
-      } catch {
-        _ => url
-      }
+      let result = url[last_slash + 1:].to_string() catch { _ => url }
       result
     } else {
       url
@@ -123,11 +115,7 @@ pub fn ChunkManifest::parse(
   json_str : String,
   base_url : String,
 ) -> ChunkManifest? {
-  let json : Json = try {
-    @json.parse(json_str)
-  } catch {
-    _ => return None
-  }
+  let json : Json = @json.parse(json_str) catch { _ => return None }
   let obj = match json {
     Object(o) => o
     _ => return None
@@ -494,13 +482,20 @@ fn[E] register_routes_inner(
               // Check for fragment request
               if is_fragment {
                 let fragment_html = render_fragment_response(
-                  node,
-                  page_title,
-                  false,
+                  node, page_title, false,
                 )
                 send_fragment_response(c, fragment_html)
               } else {
-                let html = render_page_html(node, page_title, default_head, false, root_template, enable_preload~, preload_libs~, chunk_manifest~)
+                let html = render_page_html(
+                  node,
+                  page_title,
+                  default_head,
+                  false,
+                  root_template,
+                  enable_preload~,
+                  preload_libs~,
+                  chunk_manifest~,
+                )
                 c.html(html)
               }
             }
@@ -593,7 +588,7 @@ fn[E] register_routes_inner(
 
 ///|
 /// Extract route parameters from Hono context
-fn extract_route_params(c : Ctx, is_fragment~ : Bool = false) -> RouteParams {
+fn extract_route_params(c : Ctx, is_fragment? : Bool = false) -> RouteParams {
   let params = ffi_get_all_params(c.as_any())
   let query = ffi_get_query_params(c.as_any())
   let path = ffi_get_path(c.as_any())
@@ -716,10 +711,10 @@ fn[E] render_page_html(
   }
   // Replace placeholders in template
   template
-    .replace(old="__LUNA_TITLE__", new=title)
-    .replace(old="__LUNA_PRELOAD__", new=preload_tags)
-    .replace(old="__LUNA_HEAD__", new=head)
-    .replace(old="__LUNA_MAIN__", new=body_html)
+  .replace(old="__LUNA_TITLE__", new=title)
+  .replace(old="__LUNA_PRELOAD__", new=preload_tags)
+  .replace(old="__LUNA_HEAD__", new=head)
+  .replace(old="__LUNA_MAIN__", new=body_html)
 }
 
 // ============================================================================
@@ -816,13 +811,13 @@ fn register_server_routes_inner(
               // Check for fragment request
               if is_fragment {
                 let fragment_html = render_fragment_response(
-                  node,
-                  page_title,
-                  false,
+                  node, page_title, false,
                 )
                 send_fragment_response(c, fragment_html)
               } else {
-                let html = render_page_html(node, page_title, default_head, false, root_template)
+                let html = render_page_html(
+                  node, page_title, default_head, false, root_template,
+                )
                 c.html(html)
               }
             }

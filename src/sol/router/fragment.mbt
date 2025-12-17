@@ -1,14 +1,19 @@
 ///| Sol Fragment Response
+
 ///|
+
 ///| Handles X-Sol-Fragment requests for CSR navigation.
+
 ///| Returns HTML with <template data-sol-outlet="..."> elements
+
 ///| that can be swapped by sol-nav.js on the client.
 
 // ============================================================================
 // Fragment Header Detection
 // ============================================================================
 
-///| Check if request has X-Sol-Fragment header
+///|
+/// Check if request has X-Sol-Fragment header
 pub fn has_fragment_header(c : Ctx) -> Bool {
   ffi_has_fragment_header(c.as_any())
 }
@@ -22,9 +27,13 @@ extern "js" fn ffi_has_fragment_header(c : @js.Any) -> Bool =
 // ============================================================================
 
 ///| Extract outlets from rendered HTML and wrap in templates
+
 ///|
+
 ///| This function takes the full page HTML and extracts elements
-///| with data-sol-outlet attributes, wrapping each in a template.
+
+///|
+/// with data-sol-outlet attributes, wrapping each in a template.
 pub fn[E] render_fragment_response(
   node : @luna.Node[E],
   title : String,
@@ -50,11 +59,11 @@ pub fn[E] render_fragment_response(
   buf.write_string("<template data-sol-title>")
   buf.write_string(escape_html(title))
   buf.write_string("</template>")
-
   buf.to_string()
 }
 
-///| Send fragment response with appropriate headers
+///|
+/// Send fragment response with appropriate headers
 pub fn send_fragment_response(c : Ctx, html : String) -> @http.Response {
   ffi_send_fragment_response(c.as_any(), html)
 }
@@ -72,7 +81,8 @@ extern "js" fn ffi_send_fragment_response(
 // Helpers
 // ============================================================================
 
-///| Escape HTML entities in title
+///|
+/// Escape HTML entities in title
 fn escape_html(s : String) -> String {
   let buf = StringBuilder::new()
   for ch in s {

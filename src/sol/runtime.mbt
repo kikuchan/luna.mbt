@@ -399,14 +399,18 @@ pub fn generate_state_script(id : String, json : String) -> String {
 
 ///|
 /// Escape JSON for safe embedding in HTML attributes
+/// @deprecated Use `@render.escape_json_for_attr` instead
+#deprecated("Use @render.escape_json_for_attr instead")
 pub fn escape_json_for_attr(json : String) -> String {
-  @mercurius.escape_json_for_attr(json)
+  @render.escape_json_for_attr(json)
 }
 
 ///|
 /// Escape JSON for safe embedding in script tags
+/// @deprecated Use `@render.escape_json_for_script` instead
+#deprecated("Use @render.escape_json_for_script instead")
 pub fn escape_json_for_html(json : String) -> String {
-  @mercurius.escape_json_for_html(json)
+  @render.escape_json_for_script(json)
 }
 
 // ============================================================================
@@ -511,7 +515,9 @@ pub fn[E] wc_page(
   app.get(path, fn(c) {
     let node = render_fn(c)
     let loader = wc_loader_url.unwrap_or(default_wc_loader_url)
-    let loader_script = "<script type=\"module\" src=\"" + loader + "\"></script>"
+    let loader_script = "<script type=\"module\" src=\"" +
+      loader +
+      "\"></script>"
     let full_head = head.unwrap_or("") + loader_script
     let html = render_page(node, title?, head=full_head, hydration=true)
     c.html(html)

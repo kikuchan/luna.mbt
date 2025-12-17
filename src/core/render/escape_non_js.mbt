@@ -1,5 +1,7 @@
 ///| Non-JS Target Implementation - Pure MoonBit for WASM and Native
+
 ///|
+
 ///| Optimized single-pass implementation: checks and escapes in one iteration
 
 // =============================================================================

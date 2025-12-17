@@ -60,7 +60,10 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       // Render WcIsland as a custom element with data-* attributes
       let attrs : Map[String, JsonAttrValue] = {}
       attrs.set("data-state", Static(wc_island.state))
-      attrs.set("data-trigger", Static(@luna.trigger_to_string(wc_island.trigger)))
+      attrs.set(
+        "data-trigger",
+        Static(@luna.trigger_to_string(wc_island.trigger)),
+      )
       let children : Array[JsonNode] = []
       for child in wc_island.children {
         children.push(render_to_json(child))
@@ -73,7 +76,10 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       if iref.wc {
         attrs.set("luna:wc-url", Static(iref.url))
         attrs.set("luna:wc-state", Static(iref.state))
-        attrs.set("luna:wc-trigger", Static(@luna.trigger_to_string(iref.trigger)))
+        attrs.set(
+          "luna:wc-trigger",
+          Static(@luna.trigger_to_string(iref.trigger)),
+        )
       } else {
         attrs.set("luna:url", Static(iref.url))
         attrs.set("luna:state", Static(iref.state))

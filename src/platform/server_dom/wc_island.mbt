@@ -1,6 +1,9 @@
 ///| Web Components Island helpers for server_dom
+
 ///|
+
 ///| Provides integration with Web Components based client-side components.
+
 ///| Uses Declarative Shadow DOM for SSR.
 
 ///|
@@ -37,12 +40,19 @@ pub fn wc_island(
     None => @luna.Load
   }
   @luna.vwc_island(
-    name, url, styles_value, state_value, children, trigger=trigger_value,
+    name,
+    url,
+    styles_value,
+    state_value,
+    children,
+    trigger=trigger_value,
   )
 }
 
 ///|
 /// Create a Web Components island with load trigger (hydrates immediately)
+/// @deprecated Use `wc_island(name, url, styles~, state~, trigger=@luna.Load, children~)` instead
+#deprecated("Use wc_island() with trigger parameter instead")
 pub fn wc_island_load(
   name : String,
   url : String,
@@ -55,6 +65,8 @@ pub fn wc_island_load(
 
 ///|
 /// Create a Web Components island with idle trigger (hydrates when browser is idle)
+/// @deprecated Use `wc_island(name, url, styles~, state~, trigger=@luna.Idle, children~)` instead
+#deprecated("Use wc_island() with trigger parameter instead")
 pub fn wc_island_idle(
   name : String,
   url : String,
@@ -67,6 +79,8 @@ pub fn wc_island_idle(
 
 ///|
 /// Create a Web Components island with visible trigger (hydrates when visible)
+/// @deprecated Use `wc_island(name, url, styles~, state~, trigger=@luna.Visible, children~)` instead
+#deprecated("Use wc_island() with trigger parameter instead")
 pub fn wc_island_visible(
   name : String,
   url : String,
@@ -79,6 +93,8 @@ pub fn wc_island_visible(
 
 ///|
 /// Create a Web Components island with media trigger
+/// @deprecated Use `wc_island(name, url, styles~, state~, trigger=@luna.Media(query), children~)` instead
+#deprecated("Use wc_island() with trigger parameter instead")
 pub fn wc_island_media(
   name : String,
   url : String,
@@ -88,6 +104,11 @@ pub fn wc_island_media(
   children~ : Array[@luna.Node[Unit]],
 ) -> @luna.Node[Unit] {
   wc_island(
-    name, url, styles~, state~, trigger=@luna.Media(media_query), children~,
+    name,
+    url,
+    styles~,
+    state~,
+    trigger=@luna.Media(media_query),
+    children~,
   )
 }

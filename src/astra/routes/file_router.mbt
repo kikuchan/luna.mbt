@@ -1,57 +1,54 @@
 ///| File-based Router for SSG
+
 ///| Scans docs/ directory and generates routes
 
 // =============================================================================
 // String Slice Helpers (safe wrappers)
 // =============================================================================
 
-///| Safely slice string from start index
+///|
+/// Safely slice string from start index
 fn slice_from(s : String, start : Int) -> String {
   if start >= s.length() || start < 0 {
     ""
   } else {
-    try {
-      s[start:].to_string()
-    } catch {
+    s[start:].to_string() catch {
       _ => ""
     }
   }
 }
 
-///| Safely slice string to end index
+///|
+/// Safely slice string to end index
 fn slice_to(s : String, end : Int) -> String {
   if end <= 0 || end > s.length() {
     s
   } else {
-    try {
-      s[:end].to_string()
-    } catch {
+    s[:end].to_string() catch {
       _ => s
     }
   }
 }
 
-///| Safely slice StringView from start index
+///|
+/// Safely slice StringView from start index
 fn slice_view_from(s : StringView, start : Int) -> String {
   if start >= s.length() || start < 0 {
     ""
   } else {
-    try {
-      s[start:].to_string()
-    } catch {
+    s[start:].to_string() catch {
       _ => ""
     }
   }
 }
 
-///| Safely slice StringView to end index
+///|
+/// Safely slice StringView to end index
 fn slice_view_to(s : StringView, end : Int) -> String {
   if end <= 0 || end > s.length() {
     s.to_string()
   } else {
-    try {
-      s[:end].to_string()
-    } catch {
+    s[:end].to_string() catch {
       _ => s.to_string()
     }
   }
@@ -61,38 +58,33 @@ fn slice_view_to(s : StringView, end : Int) -> String {
 // Directory Scanning
 // =============================================================================
 
-///| Scan docs directory and generate page metadata with i18n support
+///|
+/// Scan docs directory and generate page metadata with i18n support
 pub fn scan_docs_dir(
   docs_dir : String,
   cwd : String,
-  i18n~ : @astra.I18nConfig = @astra.I18nConfig::default()
+  i18n? : @astra.I18nConfig = @astra.I18nConfig::default(),
 ) -> Array[@astra.PageMeta] {
   let pages : Array[@astra.PageMeta] = []
   let full_path = @path.join2(cwd, docs_dir)
-
   if not(@fs.existsSync(full_path)) {
     return pages
   }
-
   scan_recursive(full_path, "", docs_dir, cwd, i18n, pages)
   pages
 }
 
-///| Recursively scan directory
+///|
+/// Recursively scan directory
 fn scan_recursive(
   dir_path : String,
   relative_path : String,
   docs_dir : String,
   cwd : String,
   i18n : @astra.I18nConfig,
-  pages : Array[@astra.PageMeta]
+  pages : Array[@astra.PageMeta],
 ) -> Unit {
-  let entries : Array[String] = try {
-    @fs.readdirSync(dir_path)
-  } catch {
-    _ => return
-  }
-
+  let entries : Array[String] = @fs.readdirSync(dir_path) catch { _ => return }
   for entry in entries {
     let entry_path = @path.join2(dir_path, entry)
     let entry_relative = if relative_path.is_empty() {
@@ -100,7 +92,6 @@ fn scan_recursive(
     } else {
       relative_path + "/" + entry
     }
-
     if is_directory(entry_path) {
       // Recurse into subdirectory
       scan_recursive(entry_path, entry_relative, docs_dir, cwd, i18n, pages)
@@ -113,14 +104,10 @@ fn scan_recursive(
       let url_path = build_localized_url(canonical_path, locale, i18n)
 
       // Parse frontmatter to get title
-      let content : String = try {
-        @fs.readFileSync(entry_path).to_string()
-      } catch {
+      let content : String = @fs.readFileSync(entry_path).to_string() catch {
         _ => continue
       }
-
       let (frontmatter, _) = @markdown.parse_markdown(content)
-
       let page = @astra.PageMeta::{
         source_path,
         url_path,
@@ -134,12 +121,13 @@ fn scan_recursive(
   }
 }
 
-///| Detect locale from file path
+///|
+/// Detect locale from file path
 /// e.g., "ja/guide/intro.md" -> ("ja", "guide/intro.md")
 ///       "guide/intro.md" -> ("en", "guide/intro.md")
 fn detect_locale_from_path(
   path : String,
-  i18n : @astra.I18nConfig
+  i18n : @astra.I18nConfig,
 ) -> (String, String) {
   // Check if path starts with a locale directory
   for locale in i18n.locales {
@@ -156,25 +144,24 @@ fn detect_locale_from_path(
   (i18n.default_locale, file_to_url_path(path))
 }
 
-///| Build localized URL path
+///|
+/// Build localized URL path
 /// e.g., ("/guide/intro", "ja", config) -> "/ja/guide/intro"
 ///       ("/guide/intro", "en", config) -> "/guide/intro"
 fn build_localized_url(
   canonical_path : String,
   locale : String,
-  i18n : @astra.I18nConfig
+  i18n : @astra.I18nConfig,
 ) -> String {
   // Find locale config
   for loc in i18n.locales {
     if loc.code == locale {
       if loc.path.is_empty() {
         return canonical_path
+      } else if canonical_path == "/" {
+        return "/" + loc.path + "/"
       } else {
-        if canonical_path == "/" {
-          return "/" + loc.path + "/"
-        } else {
-          return "/" + loc.path + canonical_path
-        }
+        return "/" + loc.path + canonical_path
       }
     }
   }
@@ -182,20 +169,21 @@ fn build_localized_url(
   canonical_path
 }
 
-///| Check if path is a directory
+///|
+/// Check if path is a directory
 fn is_directory(path : String) -> Bool {
-  try {
-    @fs.statSync(path).isDirectory()
-  } catch {
+  @fs.statSync(path).isDirectory() catch {
     _ => false
   }
 }
 
-///| Convert timestamp to ISO string
+///|
+/// Convert timestamp to ISO string
 extern "js" fn ffi_ms_to_iso(ms : Float) -> String =
   #| (ms) => new Date(ms).toISOString()
 
-///| Get file modification time as ISO string
+///|
+/// Get file modification time as ISO string
 fn get_file_mtime(path : String) -> String? {
   try {
     let stats = @fs.statSync(path)
@@ -210,14 +198,12 @@ fn get_file_mtime(path : String) -> String? {
 // Path Conversion
 // =============================================================================
 
-///| Convert file path to URL path
+///|
+/// Convert file path to URL path
 /// docs/guide/getting-started.md -> /guide/getting-started
 /// docs/index.md -> /
 pub fn file_to_url_path(file_path : String) -> String {
-  let path = file_path
-    .replace(old=".md", new="")
-    .replace(old="\\", new="/") // Windows compatibility
-
+  let path = file_path.replace(old=".md", new="").replace(old="\\", new="/") // Windows compatibility
   if path.has_suffix("/index") {
     let trimmed = slice_to(path, path.length() - 6)
     if trimmed.is_empty() {
@@ -232,7 +218,8 @@ pub fn file_to_url_path(file_path : String) -> String {
   }
 }
 
-///| Convert URL path to output file path
+///|
+/// Convert URL path to output file path
 /// / -> index.html
 /// /guide/intro -> guide/intro/index.html
 pub fn url_to_output_path(url_path : String) -> String {
@@ -256,12 +243,12 @@ pub fn url_to_output_path(url_path : String) -> String {
 // Page Sorting and Organization
 // =============================================================================
 
-///| Sort pages by URL path for consistent ordering
+///|
+/// Sort pages by URL path for consistent ordering
 pub fn sort_pages(pages : Array[@astra.PageMeta]) -> Array[@astra.PageMeta] {
   // Simple bubble sort for now (pages array is usually small)
   let result = pages.copy()
   let n = result.length()
-
   for i = 0; i < n - 1; i = i + 1 {
     for j = 0; j < n - i - 1; j = j + 1 {
       if result[j].url_path > result[j + 1].url_path {
@@ -271,16 +258,15 @@ pub fn sort_pages(pages : Array[@astra.PageMeta]) -> Array[@astra.PageMeta] {
       }
     }
   }
-
   result
 }
 
-///| Group pages by directory
+///|
+/// Group pages by directory
 pub fn group_pages_by_dir(
-  pages : Array[@astra.PageMeta]
+  pages : Array[@astra.PageMeta],
 ) -> Map[String, Array[@astra.PageMeta]] {
   let groups : Map[String, Array[@astra.PageMeta]] = {}
-
   for page in pages {
     let dir = get_url_dir(page.url_path)
     match groups.get(dir) {
@@ -288,18 +274,17 @@ pub fn group_pages_by_dir(
       None => groups[dir] = [page]
     }
   }
-
   groups
 }
 
-///| Get directory part of URL path (local helper)
+///|
+/// Get directory part of URL path (local helper)
 fn get_url_dir(url_path : String) -> String {
   let trimmed = if url_path.has_prefix("/") {
     slice_from(url_path, 1)
   } else {
     url_path
   }
-
   match trimmed.rev_find("/") {
     Some(idx) => "/" + slice_to(trimmed, idx)
     None => "/"
@@ -310,10 +295,11 @@ fn get_url_dir(url_path : String) -> String {
 // Navigation Generation
 // =============================================================================
 
-///| Find previous page in sorted pages
+///|
+/// Find previous page in sorted pages
 pub fn find_prev_page(
   pages : Array[@astra.PageMeta],
-  current_url : String
+  current_url : String,
 ) -> @astra.NavLink? {
   let sorted = sort_pages(pages)
   for i, page in sorted {
@@ -326,10 +312,11 @@ pub fn find_prev_page(
   None
 }
 
-///| Find next page in sorted pages
+///|
+/// Find next page in sorted pages
 pub fn find_next_page(
   pages : Array[@astra.PageMeta],
-  current_url : String
+  current_url : String,
 ) -> @astra.NavLink? {
   let sorted = sort_pages(pages)
   for i, page in sorted {
@@ -342,7 +329,8 @@ pub fn find_next_page(
   None
 }
 
-///| Get page name from URL path (local helper for navigation)
+///|
+/// Get page name from URL path (local helper for navigation)
 fn url_to_name(url_path : String) -> String {
   let trimmed = url_path.trim_end(chars="/")
   match trimmed.rev_find("/") {
@@ -363,7 +351,8 @@ fn url_to_name(url_path : String) -> String {
   }
 }
 
-///| Capitalize first letter (local helper)
+///|
+/// Capitalize first letter (local helper)
 fn capitalize_first(s : String) -> String {
   if s.is_empty() {
     return s
@@ -380,20 +369,22 @@ fn capitalize_first(s : String) -> String {
 // I18n Helpers
 // =============================================================================
 
-///| Get all pages for a specific locale
+///|
+/// Get all pages for a specific locale
 pub fn get_pages_for_locale(
   pages : Array[@astra.PageMeta],
-  locale : String
+  locale : String,
 ) -> Array[@astra.PageMeta] {
   pages.filter(fn(p) { p.locale == locale })
 }
 
-///| Find translation of a page in another locale
+///|
+/// Find translation of a page in another locale
 /// Returns the translated page or None if not found
 pub fn find_translation(
   pages : Array[@astra.PageMeta],
   canonical_path : String,
-  target_locale : String
+  target_locale : String,
 ) -> @astra.PageMeta? {
   for page in pages {
     if page.locale == target_locale && page.canonical_path == canonical_path {
@@ -403,11 +394,12 @@ pub fn find_translation(
   None
 }
 
-///| Get available translations for a page
+///|
+/// Get available translations for a page
 pub fn get_available_translations(
   pages : Array[@astra.PageMeta],
   canonical_path : String,
-  i18n : @astra.I18nConfig
+  i18n : @astra.I18nConfig,
 ) -> Array[(@astra.LocaleConfig, @astra.PageMeta?)] {
   let result : Array[(@astra.LocaleConfig, @astra.PageMeta?)] = []
   for locale in i18n.locales {
@@ -417,11 +409,12 @@ pub fn get_available_translations(
   result
 }
 
-///| Find fallback page in default locale
+///|
+/// Find fallback page in default locale
 pub fn find_fallback_page(
   pages : Array[@astra.PageMeta],
   canonical_path : String,
-  i18n : @astra.I18nConfig
+  i18n : @astra.I18nConfig,
 ) -> @astra.PageMeta? {
   find_translation(pages, canonical_path, i18n.default_locale)
 }

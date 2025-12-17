@@ -4,16 +4,18 @@
 // Helper Functions
 // =============================================================================
 
-///| Create a server-side element
+///|
+/// Create a server-side element
 fn h(
   tag : String,
   attrs : Array[(String, @luna.Attr[Unit])],
-  children : Array[@luna.Node[Unit]]
+  children : Array[@luna.Node[Unit]],
 ) -> @luna.Node[Unit] {
   @luna.h(tag, attrs, children)
 }
 
-///| Create a static attribute
+///|
+/// Create a static attribute
 fn attr(key : String, value : String) -> (String, @luna.Attr[Unit]) {
   (key, @luna.attr_static(value))
 }
@@ -22,21 +24,20 @@ fn attr(key : String, value : String) -> (String, @luna.Attr[Unit]) {
 // Main Transformer
 // =============================================================================
 
-///| Convert MdNode array to VNode
+///|
+/// Convert MdNode array to VNode
 pub fn md_nodes_to_vnode(nodes : Array[@astra.MdNode]) -> @luna.Node[Unit] {
   let children = nodes.map(fn(n) { md_node_to_vnode(n) })
   @luna.vfragment(children)
 }
 
-///| Convert single MdNode to VNode
+///|
+/// Convert single MdNode to VNode
 pub fn md_node_to_vnode(node : @astra.MdNode) -> @luna.Node[Unit] {
   match node {
     @astra.MdNode::Heading(level~, children~, id~) => {
       let child_vnodes = children.map(fn(n) { md_node_to_vnode(n) })
-      let attrs = [
-        attr("id", id),
-        attr("class", "heading heading-\{level}"),
-      ]
+      let attrs = [attr("id", id), attr("class", "heading heading-\{level}")]
       let tag = "h\{level}"
       h(tag, attrs, child_vnodes)
     }
@@ -63,7 +64,6 @@ pub fn md_node_to_vnode(node : @astra.MdNode) -> @luna.Node[Unit] {
       if not(info.lang.is_empty()) {
         code_attrs.push(attr("class", "language-\{info.lang}"))
       }
-
       let code_el = h("code", code_attrs, [@luna.vtext(code)])
 
       // Build pre element attributes with data for shiki processing
@@ -79,7 +79,6 @@ pub fn md_node_to_vnode(node : @astra.MdNode) -> @luna.Node[Unit] {
       if not(info.meta.is_empty()) {
         pre_attrs.push(attr("data-meta", info.meta))
       }
-
       h("pre", pre_attrs, [code_el])
     }
     @astra.MdNode::Link(href~, title~, children~) => {
@@ -130,13 +129,10 @@ pub fn md_node_to_vnode(node : @astra.MdNode) -> @luna.Node[Unit] {
 
       // Build body rows
       let body_rows = rows.map(fn(row) {
-        let cells = row.map(fn(cell) {
-          h("td", [], [md_node_to_vnode(cell)])
-        })
+        let cells = row.map(fn(cell) { h("td", [], [md_node_to_vnode(cell)]) })
         h("tr", [], cells)
       })
       let tbody = h("tbody", [], body_rows)
-
       h("table", [attr("class", "md-table")], [thead, tbody])
     }
     @astra.MdNode::Html(_html) =>
@@ -151,7 +147,8 @@ pub fn md_node_to_vnode(node : @astra.MdNode) -> @luna.Node[Unit] {
   }
 }
 
-///| Create island VNode from IslandEmbed
+///|
+/// Create island VNode from IslandEmbed
 fn create_island_vnode(embed : @astra.IslandEmbed) -> @luna.Node[Unit] {
   let url = "/static/\{embed.name}.js"
   @luna.visland(embed.name, url, embed.props, [], trigger=embed.trigger)
@@ -161,32 +158,38 @@ fn create_island_vnode(embed : @astra.IslandEmbed) -> @luna.Node[Unit] {
 // Table of Contents Extraction
 // =============================================================================
 
-///| Table of contents item
+///|
+/// Table of contents item
 pub(all) struct TocItem {
   level : Int
   text : String
   id : String
 }
 
-///| Extract table of contents from MdNode array
+///|
+/// Extract table of contents from MdNode array
 pub fn extract_toc(nodes : Array[@astra.MdNode]) -> Array[TocItem] {
   let toc : Array[TocItem] = []
   extract_toc_recursive(nodes, toc)
   toc
 }
 
-///| Extract headings recursively
-fn extract_toc_recursive(nodes : Array[@astra.MdNode], toc : Array[TocItem]) -> Unit {
+///|
+/// Extract headings recursively
+fn extract_toc_recursive(
+  nodes : Array[@astra.MdNode],
+  toc : Array[TocItem],
+) -> Unit {
   for node in nodes {
     match node {
-      @astra.MdNode::Heading(level~, children~, id~) => {
+      @astra.MdNode::Heading(level~, children~, id~) =>
         // Only include h2-h4 in TOC
         if level >= 2 && level <= 4 {
           let text = extract_text_from_nodes(children)
           toc.push(TocItem::{ level, text, id })
         }
-      }
-      @astra.MdNode::Blockquote(children~) => extract_toc_recursive(children, toc)
+      @astra.MdNode::Blockquote(children~) =>
+        extract_toc_recursive(children, toc)
       @astra.MdNode::List(items~, ..) =>
         for item in items {
           extract_toc_recursive(item, toc)
@@ -196,7 +199,8 @@ fn extract_toc_recursive(nodes : Array[@astra.MdNode], toc : Array[TocItem]) -> 
   }
 }
 
-///| Extract plain text from MdNode array
+///|
+/// Extract plain text from MdNode array
 fn extract_text_from_nodes(nodes : Array[@astra.MdNode]) -> String {
   let buf = StringBuilder::new()
   for node in nodes {
@@ -205,7 +209,8 @@ fn extract_text_from_nodes(nodes : Array[@astra.MdNode]) -> String {
   buf.to_string()
 }
 
-///| Extract text recursively
+///|
+/// Extract text recursively
 fn extract_text_recursive(node : @astra.MdNode, buf : StringBuilder) -> Unit {
   match node {
     @astra.MdNode::Text(text) => buf.write_string(text)

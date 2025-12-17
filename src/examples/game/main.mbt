@@ -1,39 +1,62 @@
-///| Benchmark Game - Heavy DOM rendering stress test for Luna framework
+///|
+/// Benchmark Game - Heavy DOM rendering stress test for Luna framework
 
 // =============================================================================
 // Configuration
 // =============================================================================
 
 const GRID_SIZE : Int = 100
+
+///|
 const TARGET_FPS : Int = 60
+
+///|
 const ENEMY_SPAWN_INTERVAL : Int = 2000
+
+///|
 const PLAYER_BULLET_INTERVAL : Int = 100
+
+///|
 const ENEMY_BULLET_INTERVAL : Int = 1000
+
+///|
 const BULLET_SPEED : Double = 0.5
+
+///|
 const ENEMY_SPEED : Double = 0.05
+
+///|
 const MAX_ENEMIES : Int = 50
+
+///|
 const PLAYER_SPEED : Double = 1.0
+
+///|
 const PI : Double = 3.14159265358979323846
 
 // =============================================================================
 // Types
 // =============================================================================
 
+///|
 priv struct Vec2 {
   x : Double
   y : Double
 }
 
+///|
 fn Vec2::new(x : Double, y : Double) -> Vec2 {
   { x, y }
 }
 
+///|
 fn Vec2::distance(self : Vec2, other : Vec2) -> Double {
   let dx = self.x - other.x
   let dy = self.y - other.y
   (dx * dx + dy * dy).sqrt()
 }
 
+///|
 fn Vec2::normalize(self : Vec2) -> Vec2 {
   let len = (self.x * self.x + self.y * self.y).sqrt()
   if len > 0.0 {
@@ -43,6 +66,7 @@ fn Vec2::normalize(self : Vec2) -> Vec2 {
   }
 }
 
+///|
 priv struct Bullet {
   pos : Vec2
   vel : Vec2
@@ -50,12 +74,14 @@ priv struct Bullet {
   id : Int
 }
 
+///|
 priv struct Enemy {
   pos : Vec2
   id : Int
   last_shot : Int
 }
 
+///|
 priv struct GameState {
   player_pos : Vec2
   player_angle : Double
@@ -75,28 +101,35 @@ priv struct GameState {
 // JS Helpers
 // =============================================================================
 
+///|
 fn console_log(msg : String) -> Unit {
   @global.global_this()["console"]._call("log", [@js.any(msg)]) |> ignore
 }
 
+///|
 fn performance_now() -> Int {
   let perf : @js.Any = @global.global_this()["performance"]
   let now : Double = perf._call("now", []).cast()
   now.to_int()
 }
 
+///|
 extern "js" fn math_sin(x : Double) -> Double =
   #| (x) => Math.sin(x)
 
+///|
 extern "js" fn math_cos(x : Double) -> Double =
   #| (x) => Math.cos(x)
 
+///|
 extern "js" fn math_random() -> Double =
   #| () => Math.random()
 
+///|
 extern "js" fn math_floor(x : Double) -> Int =
   #| (x) => Math.floor(x)
 
+///|
 extern "js" fn to_int_fast(x : Double) -> Int =
   #| (x) => x | 0
 
@@ -104,6 +137,7 @@ extern "js" fn to_int_fast(x : Double) -> Int =
 // Game Logic
 // =============================================================================
 
+///|
 fn create_initial_state() -> GameState {
   let now = performance_now()
   {
@@ -122,6 +156,7 @@ fn create_initial_state() -> GameState {
   }
 }
 
+///|
 fn spawn_enemy(state : GameState, now : Int) -> GameState {
   if state.enemies.length() >= MAX_ENEMIES {
     return state
@@ -129,8 +164,16 @@ fn spawn_enemy(state : GameState, now : Int) -> GameState {
   let edge = (math_random() * 4.0).to_int()
   let pos = match edge {
     0 => Vec2::new(math_random() * GRID_SIZE.to_double(), 0.0)
-    1 => Vec2::new(GRID_SIZE.to_double() - 1.0, math_random() * GRID_SIZE.to_double())
-    2 => Vec2::new(math_random() * GRID_SIZE.to_double(), GRID_SIZE.to_double() - 1.0)
+    1 =>
+      Vec2::new(
+        GRID_SIZE.to_double() - 1.0,
+        math_random() * GRID_SIZE.to_double(),
+      )
+    2 =>
+      Vec2::new(
+        math_random() * GRID_SIZE.to_double(),
+        GRID_SIZE.to_double() - 1.0,
+      )
     _ => Vec2::new(0.0, math_random() * GRID_SIZE.to_double())
   }
   let new_enemies = state.enemies.copy()
@@ -138,8 +181,12 @@ fn spawn_enemy(state : GameState, now : Int) -> GameState {
   { ..state, enemies: new_enemies, next_enemy_id: state.next_enemy_id + 1 }
 }
 
+///|
 fn spawn_player_bullet(state : GameState, now : Int) -> GameState {
-  let dir = Vec2::new(math_cos(state.player_angle), math_sin(state.player_angle))
+  let dir = Vec2::new(
+    math_cos(state.player_angle),
+    math_sin(state.player_angle),
+  )
   let bullet : Bullet = {
     pos: Vec2::new(state.player_pos.x, state.player_pos.y),
     vel: Vec2::new(dir.x * BULLET_SPEED, dir.y * BULLET_SPEED),
@@ -157,7 +204,12 @@ fn spawn_player_bullet(state : GameState, now : Int) -> GameState {
   }
 }
 
-fn spawn_enemy_bullet(state : GameState, enemy : Enemy, now : Int) -> (GameState, Enemy) {
+///|
+fn spawn_enemy_bullet(
+  state : GameState,
+  enemy : Enemy,
+  now : Int,
+) -> (GameState, Enemy) {
   let dir = Vec2::new(
     state.player_pos.x - enemy.pos.x,
     state.player_pos.y - enemy.pos.y,
@@ -170,23 +222,31 @@ fn spawn_enemy_bullet(state : GameState, enemy : Enemy, now : Int) -> (GameState
   }
   let new_bullets = state.bullets.copy()
   new_bullets.push(bullet)
-  let new_state = { ..state, bullets: new_bullets, next_bullet_id: state.next_bullet_id + 1 }
+  let new_state = {
+    ..state,
+    bullets: new_bullets,
+    next_bullet_id: state.next_bullet_id + 1,
+  }
   let new_enemy = { ..enemy, last_shot: now }
   (new_state, new_enemy)
 }
 
+///|
 fn update_bullets(state : GameState) -> GameState {
   let new_bullets : Array[Bullet] = []
   for b in state.bullets {
     let new_pos = Vec2::new(b.pos.x + b.vel.x, b.pos.y + b.vel.y)
-    if new_pos.x >= 0.0 && new_pos.x < GRID_SIZE.to_double() &&
-       new_pos.y >= 0.0 && new_pos.y < GRID_SIZE.to_double() {
+    if new_pos.x >= 0.0 &&
+      new_pos.x < GRID_SIZE.to_double() &&
+      new_pos.y >= 0.0 &&
+      new_pos.y < GRID_SIZE.to_double() {
       new_bullets.push({ ..b, pos: new_pos })
     }
   }
   { ..state, bullets: new_bullets }
 }
 
+///|
 fn update_enemies(state : GameState) -> GameState {
   let new_enemies : Array[Enemy] = []
   for e in state.enemies {
@@ -194,29 +254,40 @@ fn update_enemies(state : GameState) -> GameState {
       state.player_pos.x - e.pos.x,
       state.player_pos.y - e.pos.y,
     ).normalize()
-    let new_pos = Vec2::new(e.pos.x + dir.x * ENEMY_SPEED, e.pos.y + dir.y * ENEMY_SPEED)
+    let new_pos = Vec2::new(
+      e.pos.x + dir.x * ENEMY_SPEED,
+      e.pos.y + dir.y * ENEMY_SPEED,
+    )
     new_enemies.push({ ..e, pos: new_pos })
   }
   { ..state, enemies: new_enemies }
 }
 
+///|
 fn clamp(v : Double, min : Double, max : Double) -> Double {
-  if v < min { min } else if v > max { max } else { v }
+  if v < min {
+    min
+  } else if v > max {
+    max
+  } else {
+    v
+  }
 }
 
+///|
 fn move_player(state : GameState, dx : Double, dy : Double) -> GameState {
   let new_x = clamp(state.player_pos.x + dx, 0.0, GRID_SIZE.to_double() - 1.0)
   let new_y = clamp(state.player_pos.y + dy, 0.0, GRID_SIZE.to_double() - 1.0)
   { ..state, player_pos: Vec2::new(new_x, new_y) }
 }
 
+///|
 fn check_collisions(state : GameState) -> GameState {
   let new_bullets : Array[Bullet] = state.bullets.copy()
   let new_enemies : Array[Enemy] = state.enemies.copy()
   let mut score = state.score
   let bullets_to_remove : Array[Int] = []
   let enemies_to_remove : Array[Int] = []
-
   for b in new_bullets {
     if b.is_player_bullet {
       for e in new_enemies {
@@ -228,50 +299,60 @@ fn check_collisions(state : GameState) -> GameState {
       }
     }
   }
-
   let filtered_bullets : Array[Bullet] = []
   for b in new_bullets {
     let mut remove = false
     for id in bullets_to_remove {
-      if b.id == id { remove = true; break }
+      if b.id == id {
+        remove = true
+        break
+      }
     }
-    if not(remove) { filtered_bullets.push(b) }
+    if not(remove) {
+      filtered_bullets.push(b)
+    }
   }
-
   let filtered_enemies : Array[Enemy] = []
   for e in new_enemies {
     let mut remove = false
     for id in enemies_to_remove {
-      if e.id == id { remove = true; break }
+      if e.id == id {
+        remove = true
+        break
+      }
     }
-    if not(remove) { filtered_enemies.push(e) }
+    if not(remove) {
+      filtered_enemies.push(e)
+    }
   }
-
   { ..state, bullets: filtered_bullets, enemies: filtered_enemies, score }
 }
 
+///|
 fn game_tick(state : GameState) -> GameState {
   let now = performance_now()
-  let (new_frame_count, new_fps, new_fps_time) = if now - state.last_fps_time >= 1000 {
+  let (new_frame_count, new_fps, new_fps_time) = if now - state.last_fps_time >=
+    1000 {
     (0, state.frame_count, now)
   } else {
     (state.frame_count + 1, state.fps, state.last_fps_time)
   }
-
-  let mut s = { ..state, frame_count: new_frame_count, fps: new_fps, last_fps_time: new_fps_time }
+  let mut s = {
+    ..state,
+    frame_count: new_frame_count,
+    fps: new_fps,
+    last_fps_time: new_fps_time,
+  }
 
   // Apply keyboard input
   s = apply_input(s)
-
   if now - s.last_enemy_spawn >= ENEMY_SPAWN_INTERVAL {
     s = spawn_enemy(s, now)
     s = { ..s, last_enemy_spawn: now }
   }
-
   if now - s.last_player_shot >= PLAYER_BULLET_INTERVAL {
     s = spawn_player_bullet(s, now)
   }
-
   let updated_enemies : Array[Enemy] = []
   for e in s.enemies {
     if now - e.last_shot >= ENEMY_BULLET_INTERVAL {
@@ -283,7 +364,6 @@ fn game_tick(state : GameState) -> GameState {
     }
   }
   s = { ..s, enemies: updated_enemies }
-
   s = update_bullets(s)
   s = update_enemies(s)
   s = check_collisions(s)
@@ -295,28 +375,33 @@ fn game_tick(state : GameState) -> GameState {
 // =============================================================================
 
 // Cell types: 0=empty, 1=player, 2=player_bullet, 3=enemy_bullet, 4=enemy
+
+///|
 fn get_cell_type(x : Int, y : Int, state : GameState) -> Int {
   let px = to_int_fast(state.player_pos.x)
   let py = to_int_fast(state.player_pos.y)
-  if x == px && y == py { return 1 }
-
+  if x == px && y == py {
+    return 1
+  }
   for b in state.bullets {
     if to_int_fast(b.pos.x) == x && to_int_fast(b.pos.y) == y {
       return if b.is_player_bullet { 2 } else { 3 }
     }
   }
-
   for e in state.enemies {
-    if to_int_fast(e.pos.x) == x && to_int_fast(e.pos.y) == y { return 4 }
+    if to_int_fast(e.pos.x) == x && to_int_fast(e.pos.y) == y {
+      return 4
+    }
   }
-
   0
 }
 
+///|
 fn cell_class(cell_type : Int) -> String {
   "cell c" + cell_type.to_string()
 }
 
+///|
 fn make_indices() -> Array[Int] {
   let arr : Array[Int] = []
   for i = 0; i < GRID_SIZE * GRID_SIZE; i = i + 1 {
@@ -326,15 +411,21 @@ fn make_indices() -> Array[Int] {
 }
 
 // Store cell elements and previous state for dirty tracking
+
+///|
 let cell_elements : Array[@js_dom.Element] = []
+
+///|
 let prev_cell_types : Array[Int] = []
 
+///|
 fn init_prev_cell_types() -> Unit {
   for i = 0; i < GRID_SIZE * GRID_SIZE; i = i + 1 {
     prev_cell_types.push(0)
   }
 }
 
+///|
 fn render_grid(state_sig : @signal.Signal[GameState]) -> @dom.DomNode {
   let indices = make_indices()
   init_prev_cell_types()
@@ -352,55 +443,56 @@ fn render_grid(state_sig : @signal.Signal[GameState]) -> @dom.DomNode {
       }
     }
   })
-  @dom.div(
-    class="grid",
-    [
-      @dom.for_each(
-        fn() { indices },
-        fn(_, _) {
-          @dom.div(
-            class="cell c0",
-            ref_=fn(el) { cell_elements.push(el) },
-            [],
-          )
-        },
-      ),
-    ],
-  )
+  @dom.div(class="grid", [
+    @dom.for_each(fn() { indices }, fn(_, _) {
+      @dom.div(class="cell c0", ref_=fn(el) { cell_elements.push(el) }, [])
+    }),
+  ])
 }
 
+///|
 fn render_stats(state_sig : @signal.Signal[GameState]) -> @dom.DomNode {
-  @dom.div(
-    class="stats",
-    [
-      @dom.span([@dom.text_dyn(fn() { "FPS: " + state_sig.get().fps.to_string() })]),
-      @dom.span([@dom.text_dyn(fn() { "Score: " + state_sig.get().score.to_string() })]),
-      @dom.span([@dom.text_dyn(fn() { "Enemies: " + state_sig.get().enemies.length().to_string() })]),
-      @dom.span([@dom.text_dyn(fn() { "Bullets: " + state_sig.get().bullets.length().to_string() })]),
-    ],
-  )
+  @dom.div(class="stats", [
+    @dom.span([
+      @dom.text_dyn(fn() { "FPS: " + state_sig.get().fps.to_string() }),
+    ]),
+    @dom.span([
+      @dom.text_dyn(fn() { "Score: " + state_sig.get().score.to_string() }),
+    ]),
+    @dom.span([
+      @dom.text_dyn(fn() {
+        "Enemies: " + state_sig.get().enemies.length().to_string()
+      }),
+    ]),
+    @dom.span([
+      @dom.text_dyn(fn() {
+        "Bullets: " + state_sig.get().bullets.length().to_string()
+      }),
+    ]),
+  ])
 }
 
-fn render_controls(running_sig : @signal.Signal[Bool], on_reset : () -> Unit) -> @dom.DomNode {
-  @dom.div(
-    class="controls",
-    [
-      @dom.button(
-        on=@dom.events().click(fn(_) { running_sig.update(fn(r) { not(r) }) }),
-        [@dom.text_dyn(fn() { if running_sig.get() { "Pause" } else { "Run" } })],
-      ),
-      @dom.button(
-        on=@dom.events().click(fn(_) { on_reset() }),
-        [@dom.text("Reset")],
-      ),
-    ],
-  )
+///|
+fn render_controls(
+  running_sig : @signal.Signal[Bool],
+  on_reset : () -> Unit,
+) -> @dom.DomNode {
+  @dom.div(class="controls", [
+    @dom.button(
+      on=@dom.events().click(fn(_) { running_sig.update(fn(r) { not(r) }) }),
+      [@dom.text_dyn(fn() { if running_sig.get() { "Pause" } else { "Run" } })],
+    ),
+    @dom.button(on=@dom.events().click(fn(_) { on_reset() }), [
+      @dom.text("Reset"),
+    ]),
+  ])
 }
 
 // =============================================================================
 // Input State
 // =============================================================================
 
+///|
 priv struct KeyState {
   mut up : Bool
   mut down : Bool
@@ -408,17 +500,33 @@ priv struct KeyState {
   mut right : Bool
 }
 
+///|
 let key_state : KeyState = { up: false, down: false, left: false, right: false }
 
+///|
 fn setup_keyboard(state_sig : @signal.Signal[GameState]) -> Unit {
   let win = @js_dom.window()
-  win.as_event_target().addEventListener("keydown", fn(e : @js.Any) {
+  win
+  .as_event_target()
+  .addEventListener("keydown", fn(e : @js.Any) {
     let key : String = e._get("key").cast()
     let is_arrow = match key {
-      "ArrowUp" => { key_state.up = true; true }
-      "ArrowDown" => { key_state.down = true; true }
-      "ArrowLeft" => { key_state.left = true; true }
-      "ArrowRight" => { key_state.right = true; true }
+      "ArrowUp" => {
+        key_state.up = true
+        true
+      }
+      "ArrowDown" => {
+        key_state.down = true
+        true
+      }
+      "ArrowLeft" => {
+        key_state.left = true
+        true
+      }
+      "ArrowRight" => {
+        key_state.right = true
+        true
+      }
       _ => false
     }
     // Apply on every keydown (including repeat)
@@ -427,7 +535,9 @@ fn setup_keyboard(state_sig : @signal.Signal[GameState]) -> Unit {
       e._call("preventDefault", []) |> ignore
     }
   })
-  win.as_event_target().addEventListener("keyup", fn(e : @js.Any) {
+  win
+  .as_event_target()
+  .addEventListener("keyup", fn(e : @js.Any) {
     let key : String = e._get("key").cast()
     match key {
       "ArrowUp" => key_state.up = false
@@ -439,13 +549,22 @@ fn setup_keyboard(state_sig : @signal.Signal[GameState]) -> Unit {
   })
 }
 
+///|
 fn apply_input(state : GameState) -> GameState {
   let mut dx = 0.0
   let mut dy = 0.0
-  if key_state.up { dy = dy - PLAYER_SPEED }
-  if key_state.down { dy = dy + PLAYER_SPEED }
-  if key_state.left { dx = dx - PLAYER_SPEED }
-  if key_state.right { dx = dx + PLAYER_SPEED }
+  if key_state.up {
+    dy = dy - PLAYER_SPEED
+  }
+  if key_state.down {
+    dy = dy + PLAYER_SPEED
+  }
+  if key_state.left {
+    dx = dx - PLAYER_SPEED
+  }
+  if key_state.right {
+    dx = dx + PLAYER_SPEED
+  }
   if dx != 0.0 || dy != 0.0 {
     move_player(state, dx, dy)
   } else {
@@ -453,6 +572,7 @@ fn apply_input(state : GameState) -> GameState {
   }
 }
 
+///|
 fn main {
   console_log("Luna Benchmark Game Starting...")
   let doc = @js_dom.document()
@@ -460,25 +580,24 @@ fn main {
     Some(el) => {
       let state_sig = @signal.signal(create_initial_state())
       let running_sig = @signal.signal(true)
-
       setup_keyboard(state_sig)
-
-      let _ = @global.setInterval(fn() {
-        if running_sig.get() { state_sig.update(game_tick) }
-      }, 1000 / TARGET_FPS)
-
-      let app = @dom.div(
-        class="container",
-        [
-          @dom.h1([@dom.text("Luna Benchmark Game")]),
-          render_stats(state_sig),
-          render_controls(running_sig, fn() { state_sig.set(create_initial_state()) }),
-          @dom.div(class="grid-wrapper", [render_grid(state_sig)]),
-          @dom.div(class="legend", [
-            @dom.text("Arrow keys to move | White=Player | Green=Player Bullets | Yellow=Enemy Bullets | Red=Enemies"),
-          ]),
-        ],
+      let _ = @global.setInterval(
+        fn() { if running_sig.get() { state_sig.update(game_tick) } },
+        1000 / TARGET_FPS,
       )
+      let app = @dom.div(class="container", [
+        @dom.h1([@dom.text("Luna Benchmark Game")]),
+        render_stats(state_sig),
+        render_controls(running_sig, fn() {
+          state_sig.set(create_initial_state())
+        }),
+        @dom.div(class="grid-wrapper", [render_grid(state_sig)]),
+        @dom.div(class="legend", [
+          @dom.text(
+            "Arrow keys to move | White=Player | Green=Player Bullets | Yellow=Enemy Bullets | Red=Enemies",
+          ),
+        ]),
+      ])
       @dom.render(el |> @dom.DomElement::from_jsdom, app)
       console_log("Game initialized!")
     }

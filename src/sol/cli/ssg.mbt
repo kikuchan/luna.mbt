@@ -30,26 +30,20 @@ fn show_ssg_help() -> Unit {
 // Command Dispatcher
 // =============================================================================
 
-///| Main entry point for ssg subcommand
+///|
+/// Main entry point for ssg subcommand
 pub fn run_ssg_command(args : Array[String]) -> Unit {
   if args.is_empty() {
     show_ssg_help()
     return
   }
-
   let first_arg = args[0]
   if first_arg == "--help" || first_arg == "-h" {
     show_ssg_help()
     return
   }
-
   let command = first_arg
-  let command_args = if args.length() > 1 {
-    args[1:].to_array()
-  } else {
-    []
-  }
-
+  let command_args = if args.length() > 1 { args[1:].to_array() } else { [] }
   match command {
     "build" => run_ssg_build(command_args)
     _ => {
@@ -65,7 +59,8 @@ pub fn run_ssg_command(args : Array[String]) -> Unit {
 // Build Command
 // =============================================================================
 
-///| Run ssg build command
+///|
+/// Run ssg build command
 fn run_ssg_build(args : Array[String]) -> Unit {
   let result = @util.parseArgs(
     args~,
@@ -76,43 +71,35 @@ fn run_ssg_build(args : Array[String]) -> Unit {
         multiple=false,
         default=Some("sol.config.json"),
       ),
-      @util.String(
-        key="output",
-        short="o",
-        multiple=false,
-        default=None,
-      ),
+      @util.String(key="output", short="o", multiple=false, default=None),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
   )
-
   if result.values.contains("help") && result.values["help"].cast() {
     show_ssg_build_help()
     return
   }
-
   let config_path : String = if result.values.contains("config") {
     result.values["config"].cast()
   } else {
     "sol.config.json"
   }
-
   let output_override : String? = if result.values.contains("output") {
     Some(result.values["output"].cast())
   } else {
     None
   }
-
   let cwd = @process.cwd()
 
   // Read config file
   let full_config_path = @path.join2(cwd, config_path)
   if not(@fs.existsSync(full_config_path)) {
-    console_error(@colorette.red("Error: Config file not found: \{config_path}"))
+    console_error(
+      @colorette.red("Error: Config file not found: \{config_path}"),
+    )
     @process.exit(1)
   }
-
   let config_content : String = @fs.readFileSync(full_config_path).to_string() catch {
     e => {
       console_error(@colorette.red("Error reading config: \{e}"))
@@ -120,9 +107,10 @@ fn run_ssg_build(args : Array[String]) -> Unit {
       "" // unreachable
     }
   }
-
   guard @astra.parse_ssg_from_sol_config(config_content) is Some(ssg_config) else {
-    console_error(@colorette.red("Error: Invalid config file format or missing ssg section"))
+    console_error(
+      @colorette.red("Error: Invalid config file format or missing ssg section"),
+    )
     @process.exit(1)
   }
 
@@ -131,13 +119,14 @@ fn run_ssg_build(args : Array[String]) -> Unit {
     Some(output) => @astra.SsgConfig::{ ..ssg_config, output_dir: output }
     None => ssg_config
   }
-
   println(@colorette.cyan("Building static site..."))
   println(@colorette.gray("  Docs: \{final_config.docs_dir}"))
   println(@colorette.gray("  Output: \{final_config.output_dir}"))
-
   match @astra_gen.generate_site(final_config, cwd) {
-    Ok(_) => println(@colorette.green("✓ Build complete: \{final_config.output_dir}"))
+    Ok(_) =>
+      println(
+        @colorette.green("✓ Build complete: \{final_config.output_dir}"),
+      )
     Err(e) => {
       console_error(@colorette.red("Build failed: \{e}"))
       @process.exit(1)

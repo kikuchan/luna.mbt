@@ -527,7 +527,9 @@ pub fn portal_to_selector(
 
 ///|
 /// Create a portal with Shadow DOM encapsulation
-pub fn portal_with_shadow(children : Array[@element.DomNode]) -> @element.DomNode {
+pub fn portal_with_shadow(
+  children : Array[@element.DomNode],
+) -> @element.DomNode {
   let portal_children = children.map(to_portal_node)
   from_portal_node(@portal.portal_with_shadow(portal_children))
 }

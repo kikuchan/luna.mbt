@@ -48,21 +48,27 @@ struct RouteInfo {
 fn parse_routes_file(routes_path : String) -> RouteInfo {
   let page_components : Array[String] = []
   let api_handlers : Array[String] = []
-
   if not(@fs.existsSync(routes_path)) {
     return RouteInfo::{ page_components, api_handlers }
   }
-
-  let content = try { @fs.readFileSync(routes_path).to_string() } catch { _ => return RouteInfo::{ page_components, api_handlers } }
+  let content = @fs.readFileSync(routes_path).to_string() catch {
+    _ => return RouteInfo::{ page_components, api_handlers }
+  }
 
   // Find all component="..." values (for Page and Island routes)
   // These appear on their own lines in multi-line route definitions
   let mut search_pos = 0
   while search_pos < content.length() {
-    let remaining = content.unsafe_substring(start=search_pos, end=content.length())
+    let remaining = content.unsafe_substring(
+      start=search_pos,
+      end=content.length(),
+    )
     match remaining.find("component=\"") {
       Some(start) => {
-        let after_key = remaining.unsafe_substring(start=start + 11, end=remaining.length())
+        let after_key = remaining.unsafe_substring(
+          start=start + 11,
+          end=remaining.length(),
+        )
         match after_key.find("\"") {
           Some(end_idx) => {
             let component = after_key.unsafe_substring(start=0, end=end_idx)
@@ -71,9 +77,7 @@ fn parse_routes_file(routes_path : String) -> RouteInfo {
             }
             search_pos = search_pos + start + 11 + end_idx + 1
           }
-          None => {
-            search_pos = search_pos + start + 11
-          }
+          None => search_pos = search_pos + start + 11
         }
       }
       None => break
@@ -83,10 +87,16 @@ fn parse_routes_file(routes_path : String) -> RouteInfo {
   // Find all handler="..." values (for API routes)
   search_pos = 0
   while search_pos < content.length() {
-    let remaining = content.unsafe_substring(start=search_pos, end=content.length())
+    let remaining = content.unsafe_substring(
+      start=search_pos,
+      end=content.length(),
+    )
     match remaining.find("handler=\"") {
       Some(start) => {
-        let after_key = remaining.unsafe_substring(start=start + 9, end=remaining.length())
+        let after_key = remaining.unsafe_substring(
+          start=start + 9,
+          end=remaining.length(),
+        )
         match after_key.find("\"") {
           Some(end_idx) => {
             let handler = after_key.unsafe_substring(start=0, end=end_idx)
@@ -95,15 +105,12 @@ fn parse_routes_file(routes_path : String) -> RouteInfo {
             }
             search_pos = search_pos + start + 9 + end_idx + 1
           }
-          None => {
-            search_pos = search_pos + start + 9
-          }
+          None => search_pos = search_pos + start + 9
         }
       }
       None => break
     }
   }
-
   RouteInfo::{ page_components, api_handlers }
 }
 
@@ -292,7 +299,9 @@ fn find_mbti_files(
             if @fs.existsSync(mbti_path) {
               let content = @fs.readFileSync(mbti_path).to_string()
               // For glob patterns, use the actual subdirectory as the pattern
-              let sub_pattern = pattern.substring(end=pattern.length() - 2) + "/" + entry.to_string()
+              let sub_pattern = pattern.substring(end=pattern.length() - 2) +
+                "/" +
+                entry.to_string()
               result.push((sub_pattern, entry_path, content))
             }
           }
@@ -563,18 +572,22 @@ fn generate_types_mbt(structs : Array[StructExport]) -> String {
 
   // Generate ComponentRef factory functions
   if not(structs.is_empty()) {
-    buf.write_string("// =============================================================================\n")
+    buf.write_string(
+      "// =============================================================================\n",
+    )
     buf.write_string("// ComponentRef Factory Functions\n")
-    buf.write_string("// =============================================================================\n\n")
+    buf.write_string(
+      "// =============================================================================\n\n",
+    )
   }
-
   for s in structs {
     let component_name = extract_component_name_from_props(s.name)
     let url = "/static/\{component_name}.js"
     let is_wc = is_web_component(component_name)
-
     buf.write_string("///|\n")
-    buf.write_string("///| Create ComponentRef for \{component_name} component\n")
+    buf.write_string(
+      "///| Create ComponentRef for \{component_name} component\n",
+    )
     buf.write_string("pub fn \{component_name}(\n")
     buf.write_string("  props : \{s.name},\n")
     buf.write_string("  trigger~ : @luna.Trigger = @luna.Load,\n")
@@ -582,7 +595,6 @@ fn generate_types_mbt(structs : Array[StructExport]) -> String {
     buf.write_string("  { url: \"\{url}\", props, wc: \{is_wc}, trigger }\n")
     buf.write_string("}\n\n")
   }
-
   buf.to_string()
 }
 
@@ -598,7 +610,9 @@ fn generate_types_pkg_json(
   buf.write_string("  \"supported-targets\": [\"js\"],\n")
   // Import @luna for ComponentRef type
   buf.write_string("  \"import\": [\n")
-  buf.write_string("    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" }\n")
+  buf.write_string(
+    "    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" }\n",
+  )
   buf.write_string("  ],\n")
   buf.write_string("  \"link\": {\n")
   buf.write_string("    \"js\": {\n")
@@ -837,13 +851,11 @@ fn update_island_pkg_json(
   exports : Array[String],
 ) -> Unit {
   // Read existing moon.pkg.json
-  let content : String = try {
-    @fs.readFileSync(pkg_json_path).to_string()
-  } catch {
+  let content : String = @fs.readFileSync(pkg_json_path).to_string() catch {
     _ => return // File doesn't exist, skip
   }
   // Parse JSON
-  let json = try { @json.parse(content.view()) } catch { _ => return }
+  let json = @json.parse(content.view()) catch { _ => return }
   guard json is Object(obj) else { return }
   // Get existing imports
   let existing_imports : Array[Json] = match obj.get("import") {
@@ -889,9 +901,7 @@ fn update_island_pkg_json(
   new_obj["link"] = Json::object(link)
   // Write back
   let output = format_pkg_json(new_obj)
-  try {
-    @fs.writeFileSync(pkg_json_path, @js.any(output))
-  } catch {
+  @fs.writeFileSync(pkg_json_path, @js.any(output)) catch {
     _ => ()
   }
 }
@@ -975,7 +985,8 @@ fn format_pkg_json(obj : Map[String, Json]) -> String {
             _ => ()
           }
           match js_obj.get("format") {
-            Some(String(fmt)) => buf.write_string("      \"format\": \"\{fmt}\"\n")
+            Some(String(fmt)) =>
+              buf.write_string("      \"format\": \"\{fmt}\"\n")
             _ => buf.write_string("      \"format\": \"esm\"\n")
           }
         }
@@ -992,7 +1003,10 @@ fn format_pkg_json(obj : Map[String, Json]) -> String {
 
 ///|
 /// Generate server main.mbt
-fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> String {
+fn generate_server_main_mbt(
+  routes_pkg : String,
+  route_info : RouteInfo,
+) -> String {
   let buf = StringBuilder::new()
   buf.write_string("///| Auto-generated server entry point\n")
   buf.write_string("///| Generated by: sol generate\n")
@@ -1005,7 +1019,9 @@ fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> Stri
   buf.write_string("  // Get routes and config from server/routes.mbt\n")
   buf.write_string("  let routes = @app_server.routes()\n")
   buf.write_string("  let config = @app_server.config()\n\n")
-  buf.write_string("  // Register routes with resolvers (supports async server components)\n")
+  buf.write_string(
+    "  // Register routes with resolvers (supports async server components)\n",
+  )
   buf.write_string("  let app = @router.register_server_routes(\n")
   buf.write_string("    app,\n")
   buf.write_string("    routes,\n")
@@ -1016,17 +1032,23 @@ fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> Stri
   buf.write_string("  // Serve static files\n")
   buf.write_string("  @sol.serve_static(app)\n")
   buf.write_string("}\n\n")
-  buf.write_string("///| Resolve page component by ID (returns ServerNode for async support)\n")
+  buf.write_string(
+    "///| Resolve page component by ID (returns ServerNode for async support)\n",
+  )
   buf.write_string("fn resolve_page(\n")
   buf.write_string("  id : String,\n")
   buf.write_string("  ctx : @router.Ctx,\n")
   buf.write_string("  params : @router.RouteParams,\n")
   buf.write_string(") -> @server_dom.ServerNode? {\n")
-  buf.write_string("  let props = @router.PageProps::from_ctx_with_params(ctx, params)\n")
+  buf.write_string(
+    "  let props = @router.PageProps::from_ctx_with_params(ctx, params)\n",
+  )
   buf.write_string("  match id {\n")
   // Generate match cases for each page component
   for component in route_info.page_components {
-    buf.write_string("    \"\{component}\" => Some(@app_server.\{component}(props))\n")
+    buf.write_string(
+      "    \"\{component}\" => Some(@app_server.\{component}(props))\n",
+    )
   }
   buf.write_string("    _ => None\n")
   buf.write_string("  }\n")
@@ -1037,11 +1059,15 @@ fn generate_server_main_mbt(routes_pkg : String, route_info : RouteInfo) -> Stri
   buf.write_string("  ctx : @router.Ctx,\n")
   buf.write_string("  params : @router.RouteParams,\n")
   buf.write_string(") -> @core.Any? {\n")
-  buf.write_string("  let props = @router.PageProps::from_ctx_with_params(ctx, params)\n")
+  buf.write_string(
+    "  let props = @router.PageProps::from_ctx_with_params(ctx, params)\n",
+  )
   buf.write_string("  match id {\n")
   // Generate match cases for each API handler
   for handler in route_info.api_handlers {
-    buf.write_string("    \"\{handler}\" => Some(@app_server.api_\{handler}(props))\n")
+    buf.write_string(
+      "    \"\{handler}\" => Some(@app_server.api_\{handler}(props))\n",
+    )
   }
   buf.write_string("    _ => None\n")
   buf.write_string("  }\n")
@@ -1115,13 +1141,18 @@ fn generate_island_entry_js_v2(
 
 ///|
 /// Generate island manifest JSON (for programmatic rolldown build)
-fn generate_island_manifest_json(funcs : Array[FuncExport], mode : String) -> String {
+fn generate_island_manifest_json(
+  funcs : Array[FuncExport],
+  mode : String,
+) -> String {
   let buf = StringBuilder::new()
   buf.write_string("{\n")
   buf.write_string("  \"output_dir\": \"./.sol/\{mode}/static\",\n")
   buf.write_string("  \"islands\": [\n")
   for i, func in funcs {
-    buf.write_string("    { \"name\": \"\{func.name}\", \"entry_path\": \"./.sol/\{mode}/client/\{func.name}.js\" }")
+    buf.write_string(
+      "    { \"name\": \"\{func.name}\", \"entry_path\": \"./.sol/\{mode}/client/\{func.name}.js\" }",
+    )
     if i < funcs.length() - 1 {
       buf.write_string(",")
     }
@@ -1162,12 +1193,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
         multiple=false,
         default=Some("sol.config.json"),
       ),
-      @util.String(
-        key="mode",
-        short="m",
-        multiple=false,
-        default=Some("prod"),
-      ),
+      @util.String(key="mode", short="m", multiple=false, default=Some("prod")),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
@@ -1255,7 +1281,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
         )
         @fs.writeFileSync(
           stub_types_pkg_path,
-          @js.any("{\n  \"supported-targets\": [\"js\"],\n  \"warn-list\": \"-29\"\n}\n"),
+          @js.any(
+            "{\n  \"supported-targets\": [\"js\"],\n  \"warn-list\": \"-29\"\n}\n",
+          ),
         )
       } catch {
         e => {
@@ -1285,7 +1313,10 @@ fn run_generate_command(args : Array[String]) -> Unit {
   }
   // Create stub main.mbt so is-main: true doesn't fail
   let stub_main_path = @path.join2(server_dir, "main.mbt")
-  @fs.writeFileSync(stub_main_path, @js.any("///| Stub - will be replaced\nfn main { () }\n")) catch {
+  @fs.writeFileSync(
+    stub_main_path,
+    @js.any("///| Stub - will be replaced\nfn main { () }\n"),
+  ) catch {
     e => {
       console_error(@colorette.red("Error writing stub main.mbt: \{e}"))
       @process.exit(1)
@@ -1336,7 +1367,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     for island_pattern in patterns_seen.keys() {
       let island_dir = @path.join2(cwd, island_pattern)
       // Filter functions for this island
-      let island_funcs = funcs.filter(fn(f) { f.source_pattern == island_pattern })
+      let island_funcs = funcs.filter(fn(f) {
+        f.source_pattern == island_pattern
+      })
       if island_funcs.is_empty() {
         continue
       }
@@ -1371,7 +1404,10 @@ fn run_generate_command(args : Array[String]) -> Unit {
     }
   }
   // Parse routes.mbt to extract component/handler info
-  let routes_file_path = @path.join2(@path.join2(cwd, config.routes), "routes.mbt")
+  let routes_file_path = @path.join2(
+    @path.join2(cwd, config.routes),
+    "routes.mbt",
+  )
   let route_info = parse_routes_file(routes_file_path)
   // Generate server main.mbt
   let server_main = generate_server_main_mbt(routes_pkg, route_info)
@@ -1431,7 +1467,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     println(@colorette.gray("  Generated .sol/\{mode}/server/main.js"))
   } catch {
     e => {
-      console_error(@colorette.red("Error writing .sol/\{mode}/server/main.js: \{e}"))
+      console_error(
+        @colorette.red("Error writing .sol/\{mode}/server/main.js: \{e}"),
+      )
       @process.exit(1)
     }
   }

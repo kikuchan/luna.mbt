@@ -1,6 +1,9 @@
 ///| Context Provider - Component-level value sharing (Solid.js style)
+
 ///|
+
 ///| Context values are associated with Owners (component tree nodes).
+
 ///| When useContext is called, it walks up the Owner chain to find the value.
 
 ///|
@@ -33,19 +36,21 @@ pub fn[T] create_context(default_value : T) -> Context[T] {
 fn is_owner_valid(owner_id : Int, current : Owner?) -> Bool {
   match current {
     None => false
-    Some(o) => {
+    Some(o) =>
       if o.id == owner_id {
         not(o.disposed)
       } else {
         is_owner_valid(owner_id, o.parent)
       }
-    }
   }
 }
 
 ///|
 /// Find the most recent valid provider for this context
-fn[T] find_valid_provider(ctx : Context[T], current_owner : Owner?) -> (() -> T)? {
+fn[T] find_valid_provider(
+  ctx : Context[T],
+  current_owner : Owner?,
+) -> (() -> T)? {
   // Walk through providers from most recent to oldest
   for i = ctx.providers.length() - 1; i >= 0; i = i - 1 {
     let (owner_id, getter) = ctx.providers[i]
@@ -72,12 +77,9 @@ fn[T] find_valid_provider(ctx : Context[T], current_owner : Owner?) -> (() -> T)
 /// ```
 pub fn[T, R] provide(ctx : Context[T], value : T, f : () -> R) -> R {
   match get_owner() {
-    None => {
+    None =>
       // No owner, create a temporary root
-      create_root(fn(_dispose) {
-        provide_inner(ctx, value, f)
-      })
-    }
+      create_root(fn(_dispose) { provide_inner(ctx, value, f) })
     Some(_) => provide_inner(ctx, value, f)
   }
 }

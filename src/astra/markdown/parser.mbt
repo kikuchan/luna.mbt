@@ -1,4 +1,5 @@
 ///| Markdown Parser - Pure MoonBit Implementation
+
 ///| Uses the CST-based parser from @md_parser for parsing
 
 // =============================================================================
@@ -6,8 +7,12 @@
 // =============================================================================
 
 ///| Parse markdown content and return frontmatter + AST
-///| This uses the native MoonBit parser (no external dependencies)
-pub fn parse_markdown(content : String) -> (@astra.Frontmatter, Array[@astra.MdNode]) {
+
+///|
+/// This uses the native MoonBit parser (no external dependencies)
+pub fn parse_markdown(
+  content : String,
+) -> (@astra.Frontmatter, Array[@astra.MdNode]) {
   parse_markdown_native(content)
 }
 
@@ -15,7 +20,8 @@ pub fn parse_markdown(content : String) -> (@astra.Frontmatter, Array[@astra.MdN
 // Island Directive Parsing
 // =============================================================================
 
-///| Parse Island directive from HTML string
+///|
+/// Parse Island directive from HTML string
 /// Format: <Island name="counter" :props='{"initial": 0}' trigger="visible" />
 fn parse_island_directive(html : String) -> @astra.IslandEmbed? {
   let trimmed = html.trim_space().to_string()
@@ -46,20 +52,22 @@ fn parse_island_directive(html : String) -> @astra.IslandEmbed? {
     Some("media") => @luna.Media("")
     _ => @luna.Load
   }
-
   Some(@astra.IslandEmbed::{ name, props, trigger })
 }
 
-///| Extract attribute value from HTML tag
+///|
+/// Extract attribute value from HTML tag
 fn extract_attribute(html : String, attr_name : String) -> String? {
   // Look for attr_name="..." or attr_name='...'
   let pattern1 = attr_name + "=\""
   let pattern2 = attr_name + "='"
-
   match html.find(pattern1) {
     Some(start) => {
       let value_start = start + pattern1.length()
-      let remaining = html.unsafe_substring(start=value_start, end=html.length())
+      let remaining = html.unsafe_substring(
+        start=value_start,
+        end=html.length(),
+      )
       match remaining.find("\"") {
         Some(end_pos) => Some(remaining.unsafe_substring(start=0, end=end_pos))
         None => None
@@ -69,9 +77,13 @@ fn extract_attribute(html : String, attr_name : String) -> String? {
       match html.find(pattern2) {
         Some(start) => {
           let value_start = start + pattern2.length()
-          let remaining = html.unsafe_substring(start=value_start, end=html.length())
+          let remaining = html.unsafe_substring(
+            start=value_start,
+            end=html.length(),
+          )
           match remaining.find("'") {
-            Some(end_pos) => Some(remaining.unsafe_substring(start=0, end=end_pos))
+            Some(end_pos) =>
+              Some(remaining.unsafe_substring(start=0, end=end_pos))
             None => None
           }
         }
@@ -84,12 +96,12 @@ fn extract_attribute(html : String, attr_name : String) -> String? {
 // Utility Functions
 // =============================================================================
 
-///| Generate heading ID from text (for anchor links)
+///|
+/// Generate heading ID from text (for anchor links)
 fn generate_heading_id(text : String) -> String {
   let buf = StringBuilder::new()
   let lower = text.to_lower()
   let mut prev_was_separator = false
-
   for c in lower {
     if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
       buf.write_char(c)

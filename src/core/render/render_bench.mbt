@@ -1,7 +1,11 @@
 ///| Benchmarks for render_to_string
+
 ///| Run with: moon bench --target js -p mizchi/luna/core/render
+
 ///|           moon bench --target wasm-gc -p mizchi/luna/core/render
+
 ///|
+
 ///| Compare JS FFI escape vs pure MoonBit escape impact on full rendering
 
 // =============================================================================
@@ -95,9 +99,7 @@ fn vnode_page() -> @luna.Node[Unit] {
     @luna.h("body", [], [
       @luna.h("header", [], [
         @luna.h("nav", [("class", @luna.attr_static("navbar"))], [
-          @luna.h("a", [("href", @luna.attr_static("/"))], [
-            @luna.vtext("Home"),
-          ]),
+          @luna.h("a", [("href", @luna.attr_static("/"))], [@luna.vtext("Home")]),
           @luna.h("a", [("href", @luna.attr_static("/about"))], [
             @luna.vtext("About"),
           ]),
@@ -118,41 +120,49 @@ fn vnode_page() -> @luna.Node[Unit] {
 // Render Benchmarks
 // =============================================================================
 
+///|
 test "render: text" (b : @bench.T) {
   let node = vnode_text()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: text_escape" (b : @bench.T) {
   let node = vnode_text_escape()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: simple_element" (b : @bench.T) {
   let node = vnode_simple_element()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: with_attrs" (b : @bench.T) {
   let node = vnode_with_attrs()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: nested" (b : @bench.T) {
   let node = vnode_nested()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: list (10 items)" (b : @bench.T) {
   let node = vnode_list()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: large_list (100 items with escape)" (b : @bench.T) {
   let node = vnode_large_list()
   b.bench(fn() { b.keep(render_to_string(node).html) })
 }
 
+///|
 test "render: page" (b : @bench.T) {
   let node = vnode_page()
   b.bench(fn() { b.keep(render_to_string(node).html) })
@@ -262,24 +272,28 @@ fn render_with_visitor(node : @luna.Node[Unit]) -> String {
 // Visitor vs Direct Comparison Benchmarks
 // =============================================================================
 
+///|
 test "compare: nested - direct vs visitor" (b : @bench.T) {
   let node = vnode_nested()
   b.bench(name="direct", fn() { b.keep(render_to_string(node).html) })
   b.bench(name="visitor", fn() { b.keep(render_with_visitor(node)) })
 }
 
+///|
 test "compare: list - direct vs visitor" (b : @bench.T) {
   let node = vnode_list()
   b.bench(name="direct", fn() { b.keep(render_to_string(node).html) })
   b.bench(name="visitor", fn() { b.keep(render_with_visitor(node)) })
 }
 
+///|
 test "compare: large_list - direct vs visitor" (b : @bench.T) {
   let node = vnode_large_list()
   b.bench(name="direct", fn() { b.keep(render_to_string(node).html) })
   b.bench(name="visitor", fn() { b.keep(render_with_visitor(node)) })
 }
 
+///|
 test "compare: page - direct vs visitor" (b : @bench.T) {
   let node = vnode_page()
   b.bench(name="direct", fn() { b.keep(render_to_string(node).html) })

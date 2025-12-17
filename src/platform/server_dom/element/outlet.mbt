@@ -1,12 +1,19 @@
 ///| Sol Outlet - Partial update region marker
+
 ///|
+
 ///| Creates a div element with data-sol-outlet attribute
+
 ///| to mark regions for partial DOM updates during CSR navigation.
 
 ///| Mark a region for partial updates during CSR navigation
+
 ///|
+
 ///| Renders as `<div data-sol-outlet="name">` which is used by
-///| sol-nav.js to replace content during navigation.
+
+///|
+/// sol-nav.js to replace content during navigation.
 pub fn outlet(
   name~ : String,
   id? : String,
@@ -21,8 +28,11 @@ pub fn outlet(
 }
 
 ///| Create a template element for fragment response
+
 ///|
-///| Used internally to wrap outlet content in fragment responses.
+
+///|
+/// Used internally to wrap outlet content in fragment responses.
 pub fn template_outlet(
   name~ : String,
   children~ : Array[@luna.Node[Unit]],
@@ -32,7 +42,8 @@ pub fn template_outlet(
   create_element("template", props, children)
 }
 
-///| Create a template element for page title in fragment response
+///|
+/// Create a template element for page title in fragment response
 pub fn template_title(title : String) -> @luna.Node[Unit] {
   let props : Array[(String, @luna.Attr[Unit])] = []
   props.push(("data-sol-title", static_attr("")))

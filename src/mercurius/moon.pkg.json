@@ -1,5 +1,7 @@
 {
-  "import": [],
+  "import": [
+    { "path": "mizchi/luna/core/render", "alias": "render" }
+  ],
   "link": {
     "js": {
       "exports": [

@@ -75,10 +75,9 @@ test "ChunkManifest::get_chunks: handles multiple imports" {
   let manifest = @router.ChunkManifest::new("/static/")
   manifest.add(
     "counter.js",
-    @router.ChunkManifestEntry::new(
-      "counter.js",
-      ["_shared/client-abc.js", "_shared/utils-xyz.js"],
-    ),
+    @router.ChunkManifestEntry::new("counter.js", [
+      "_shared/client-abc.js", "_shared/utils-xyz.js",
+    ]),
   )
   let chunks = manifest.get_chunks("/static/counter.js")
   assert_eq(chunks.length(), 2)
@@ -187,10 +186,7 @@ test "RouterConfig::with_preload_libs: sets preload libs" {
 ///|
 test "RouterConfig::with_chunk_manifest: sets manifest" {
   let manifest = @router.ChunkManifest::new("/static/")
-  manifest.add(
-    "counter.js",
-    @router.ChunkManifestEntry::new("counter.js", []),
-  )
+  manifest.add("counter.js", @router.ChunkManifestEntry::new("counter.js", []))
   let config = @router.RouterConfig::default().with_chunk_manifest(manifest)
   assert_true(config.chunk_manifest is Some(_))
 }

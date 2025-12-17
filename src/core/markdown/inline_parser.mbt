@@ -1,26 +1,30 @@
 ///| Inline-level markdown parser
+
 ///| Parses emphasis, strong, code, links, images, etc.
 
-///| Parse inline content from text
+///|
+/// Parse inline content from text
 pub fn parse_inlines(text : String) -> Array[Inline] {
   let scanner = Scanner::new(text)
   let parser = InlineParser::new(scanner)
   parser.parse()
 }
 
-///| Inline parser state
+///|
+/// Inline parser state
 priv struct InlineParser {
   scanner : Scanner
 }
 
+///|
 fn InlineParser::new(scanner : Scanner) -> InlineParser {
   { scanner, }
 }
 
-///| Parse all inline content
+///|
+/// Parse all inline content
 fn InlineParser::parse(self : InlineParser) -> Array[Inline] {
   let inlines : Array[Inline] = []
-
   while not(self.scanner.is_eof()) {
     match self.parse_inline() {
       Some(inline) => inlines.push(inline)
@@ -35,17 +39,20 @@ fn InlineParser::parse(self : InlineParser) -> Array[Inline] {
               Some(Inline::Text(content~, span~)) => {
                 // Merge with previous text
                 let _ = inlines.pop()
-                inlines.push(Inline::Text(
-                  content=content + text,
-                  span=Span::new(span.from, self.scanner.pos),
-                ))
+                inlines.push(
+                  Inline::Text(
+                    content=content + text,
+                    span=Span::new(span.from, self.scanner.pos),
+                  ),
+                )
               }
-              _ => {
-                inlines.push(Inline::Text(
-                  content=text,
-                  span=Span::new(start, self.scanner.pos),
-                ))
-              }
+              _ =>
+                inlines.push(
+                  Inline::Text(
+                    content=text,
+                    span=Span::new(start, self.scanner.pos),
+                  ),
+                )
             }
           }
           None => break
@@ -53,14 +60,13 @@ fn InlineParser::parse(self : InlineParser) -> Array[Inline] {
       }
     }
   }
-
   inlines
 }
 
-///| Parse a single inline element
+///|
+/// Parse a single inline element
 fn InlineParser::parse_inline(self : InlineParser) -> Inline? {
   let start = self.scanner.pos
-
   match self.scanner.peek() {
     // Backslash escape
     Some('\\') => self.try_parse_escape(start)
@@ -92,44 +98,47 @@ fn InlineParser::parse_inline(self : InlineParser) -> Inline? {
       self.scanner.advance(1)
       Some(Inline::SoftBreak(span=Span::new(start, self.scanner.pos)))
     }
-
     _ => None
   }
 }
 
-///| Try to parse backslash escape
+///|
+/// Try to parse backslash escape
 fn InlineParser::try_parse_escape(self : InlineParser, start : Int) -> Inline? {
-  self.scanner.advance(1)  // Skip backslash
-
+  self.scanner.advance(1) // Skip backslash
   match self.scanner.peek() {
     Some('\n') => {
       // Backslash + newline = hard break
       self.scanner.advance(1)
-      Some(Inline::HardBreak(
-        style=HardBreakStyle::Backslash,
-        span=Span::new(start, self.scanner.pos),
-      ))
+      Some(
+        Inline::HardBreak(
+          style=HardBreakStyle::Backslash,
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     }
     Some(c) if is_punctuation(c) => {
       // Escaped punctuation becomes literal text
       self.scanner.advance(1)
-      Some(Inline::Text(
-        content=String::make(1, c),
-        span=Span::new(start, self.scanner.pos),
-      ))
+      Some(
+        Inline::Text(
+          content=String::make(1, c),
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     }
-    _ => {
+    _ =>
       // Not a valid escape, return backslash as text
-      Some(Inline::Text(
-        content="\\",
-        span=Span::new(start, self.scanner.pos),
-      ))
-    }
+      Some(Inline::Text(content="\\", span=Span::new(start, self.scanner.pos)))
   }
 }
 
-///| Try to parse code span
-fn InlineParser::try_parse_code_span(self : InlineParser, start : Int) -> Inline? {
+///|
+/// Try to parse code span
+fn InlineParser::try_parse_code_span(
+  self : InlineParser,
+  start : Int,
+) -> Inline? {
   // Count opening backticks
   let backtick_count = self.scanner.count_char('`')
   if backtick_count == 0 {
@@ -139,7 +148,6 @@ fn InlineParser::try_parse_code_span(self : InlineParser, start : Int) -> Inline
 
   // Find closing backticks
   let content_buf = StringBuilder::new()
-
   while not(self.scanner.is_eof()) {
     let closing_count = self.scanner.count_char('`')
     if closing_count == backtick_count {
@@ -159,12 +167,13 @@ fn InlineParser::try_parse_code_span(self : InlineParser, start : Int) -> Inline
       } else {
         content
       }
-
-      return Some(Inline::Code(
-        content=trimmed,
-        backtick_count~,
-        span=Span::new(start, self.scanner.pos),
-      ))
+      return Some(
+        Inline::Code(
+          content=trimmed,
+          backtick_count~,
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     } else if closing_count > 0 {
       // Wrong number of backticks, include them in content
       for i = 0; i < closing_count; i = i + 1 {
@@ -185,8 +194,13 @@ fn InlineParser::try_parse_code_span(self : InlineParser, start : Int) -> Inline
   None
 }
 
-///| Try to parse emphasis or strong
-fn InlineParser::try_parse_emphasis(self : InlineParser, start : Int, marker_char : Char) -> Inline? {
+///|
+/// Try to parse emphasis or strong
+fn InlineParser::try_parse_emphasis(
+  self : InlineParser,
+  start : Int,
+  marker_char : Char,
+) -> Inline? {
   // Count opening markers
   let marker_count = self.scanner.count_char(marker_char)
   if marker_count == 0 {
@@ -209,43 +223,44 @@ fn InlineParser::try_parse_emphasis(self : InlineParser, start : Int, marker_cha
 
   // Parse content until closing marker
   let children = self.parse_until_closing_marker(marker_char, consume_count)
-
   if children.is_empty() {
     self.scanner.restore(start)
     return None
   }
-
   let marker = if marker_char == '*' {
     EmphasisMarker::Asterisk
   } else {
     EmphasisMarker::Underscore
   }
-
   if is_strong {
-    Some(Inline::Strong(
-      marker~,
-      children~,
-      span=Span::new(start, self.scanner.pos),
-    ))
+    Some(
+      Inline::Strong(
+        marker~,
+        children~,
+        span=Span::new(start, self.scanner.pos),
+      ),
+    )
   } else {
-    Some(Inline::Emphasis(
-      marker~,
-      children~,
-      span=Span::new(start, self.scanner.pos),
-    ))
+    Some(
+      Inline::Emphasis(
+        marker~,
+        children~,
+        span=Span::new(start, self.scanner.pos),
+      ),
+    )
   }
 }
 
-///| Parse content until closing marker
+///|
+/// Parse content until closing marker
 fn InlineParser::parse_until_closing_marker(
   self : InlineParser,
   marker_char : Char,
-  marker_count : Int
+  marker_count : Int,
 ) -> Array[Inline] {
   let children : Array[Inline] = []
   let text_buf = StringBuilder::new()
   let text_start = self.scanner.pos
-
   while not(self.scanner.is_eof()) {
     // Check for closing marker
     let closing_count = self.scanner.count_char(marker_char)
@@ -253,14 +268,16 @@ fn InlineParser::parse_until_closing_marker(
       // Check if preceded by non-whitespace
       let prev_char = self.scanner.peek_at(-1)
       match prev_char {
-        Some(' ') | Some('\t') | Some('\n') => ()  // Not valid closer
+        Some(' ') | Some('\t') | Some('\n') => () // Not valid closer
         _ => {
           // Valid closer - flush text and consume markers
           if not(text_buf.is_empty()) {
-            children.push(Inline::Text(
-              content=text_buf.to_string(),
-              span=Span::new(text_start, self.scanner.pos),
-            ))
+            children.push(
+              Inline::Text(
+                content=text_buf.to_string(),
+                span=Span::new(text_start, self.scanner.pos),
+              ),
+            )
           }
           self.scanner.advance(marker_count)
           return children
@@ -273,10 +290,12 @@ fn InlineParser::parse_until_closing_marker(
       Some('`') => {
         // Flush text before inline
         if not(text_buf.is_empty()) {
-          children.push(Inline::Text(
-            content=text_buf.to_string(),
-            span=Span::new(text_start, self.scanner.pos),
-          ))
+          children.push(
+            Inline::Text(
+              content=text_buf.to_string(),
+              span=Span::new(text_start, self.scanner.pos),
+            ),
+          )
         }
         let nested_start = self.scanner.pos
         match self.try_parse_code_span(nested_start) {
@@ -289,10 +308,12 @@ fn InlineParser::parse_until_closing_marker(
       }
       Some('[') => {
         if not(text_buf.is_empty()) {
-          children.push(Inline::Text(
-            content=text_buf.to_string(),
-            span=Span::new(text_start, self.scanner.pos),
-          ))
+          children.push(
+            Inline::Text(
+              content=text_buf.to_string(),
+              span=Span::new(text_start, self.scanner.pos),
+            ),
+          )
         }
         let nested_start = self.scanner.pos
         match self.try_parse_link(nested_start) {
@@ -303,10 +324,9 @@ fn InlineParser::parse_until_closing_marker(
           None => ()
         }
       }
-      Some('\n') => {
+      Some('\n') =>
         // Newline ends emphasis in most cases
         break
-      }
       _ => ()
     }
 
@@ -321,8 +341,12 @@ fn InlineParser::parse_until_closing_marker(
   []
 }
 
-///| Try to parse strikethrough
-fn InlineParser::try_parse_strikethrough(self : InlineParser, start : Int) -> Inline? {
+///|
+/// Try to parse strikethrough
+fn InlineParser::try_parse_strikethrough(
+  self : InlineParser,
+  start : Int,
+) -> Inline? {
   // Need exactly two tildes
   if self.scanner.count_char('~') < 2 {
     return None
@@ -332,7 +356,6 @@ fn InlineParser::try_parse_strikethrough(self : InlineParser, start : Int) -> In
   // Parse content until closing ~~
   let content_buf = StringBuilder::new()
   let content_start = self.scanner.pos
-
   while not(self.scanner.is_eof()) {
     if self.scanner.count_char('~') >= 2 {
       // Found closing
@@ -342,37 +365,37 @@ fn InlineParser::try_parse_strikethrough(self : InlineParser, start : Int) -> In
         return None
       }
       self.scanner.advance(2)
-
-      let children = [Inline::Text(
-        content~,
-        span=Span::new(content_start, self.scanner.pos - 2),
-      )]
-
-      return Some(Inline::Strikethrough(
-        children~,
-        span=Span::new(start, self.scanner.pos),
-      ))
+      let children = [
+        Inline::Text(
+          content~,
+          span=Span::new(content_start, self.scanner.pos - 2),
+        ),
+      ]
+      return Some(
+        Inline::Strikethrough(
+          children~,
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     }
-
     match self.scanner.consume() {
-      Some('\n') => break  // Newline ends strikethrough
+      Some('\n') => break // Newline ends strikethrough
       Some(c) => content_buf.write_char(c)
       None => break
     }
   }
-
   self.scanner.restore(start)
   None
 }
 
-///| Try to parse link
+///|
+/// Try to parse link
 fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
-  self.scanner.advance(1)  // Skip [
+  self.scanner.advance(1) // Skip [
 
   // Parse link text
   let text_buf = StringBuilder::new()
   let mut bracket_depth = 1
-
   while not(self.scanner.is_eof()) && bracket_depth > 0 {
     match self.scanner.peek() {
       Some('[') => {
@@ -401,7 +424,6 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
       None => break
     }
   }
-
   let link_text = text_buf.to_string()
 
   // Check for inline link (url)
@@ -447,7 +469,7 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
             url_buf.write_char(')')
             self.scanner.advance(1)
           }
-          Some(' ') | Some('\t') => break  // End of URL
+          Some(' ') | Some('\t') => break // End of URL
           Some(c) => {
             url_buf.write_char(c)
             self.scanner.advance(1)
@@ -456,7 +478,6 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
         }
       }
     }
-
     let url = url_buf.to_string()
 
     // Skip whitespace
@@ -502,13 +523,14 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
 
       // Parse link text as inlines
       let children = parse_inlines(link_text)
-
-      return Some(Inline::Link(
-        children~,
-        url~,
-        title~,
-        span=Span::new(start, self.scanner.pos),
-      ))
+      return Some(
+        Inline::Link(
+          children~,
+          url~,
+          title~,
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     }
   }
 
@@ -529,15 +551,15 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
         None => break
       }
     }
-
     let label = label_buf.to_string()
     let children = parse_inlines(link_text)
-
-    return Some(Inline::RefLink(
-      children~,
-      label~,
-      span=Span::new(start, self.scanner.pos),
-    ))
+    return Some(
+      Inline::RefLink(
+        children~,
+        label~,
+        span=Span::new(start, self.scanner.pos),
+      ),
+    )
   }
 
   // Not a valid link
@@ -545,15 +567,15 @@ fn InlineParser::try_parse_link(self : InlineParser, start : Int) -> Inline? {
   None
 }
 
-///| Try to parse image
+///|
+/// Try to parse image
 fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
-  self.scanner.advance(1)  // Skip !
-
+  self.scanner.advance(1) // Skip !
   if not(char_is(self.scanner.peek(), '[')) {
     self.scanner.restore(start)
     return None
   }
-  self.scanner.advance(1)  // Skip [
+  self.scanner.advance(1) // Skip [
 
   // Parse alt text
   let alt_buf = StringBuilder::new()
@@ -577,7 +599,6 @@ fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
       None => break
     }
   }
-
   let alt = alt_buf.to_string()
 
   // Check for inline image (url)
@@ -587,7 +608,6 @@ fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
     // Parse URL (same as link)
     let url_buf = StringBuilder::new()
     let _ = self.scanner.skip_spaces()
-
     if char_is(self.scanner.peek(), '<') {
       self.scanner.advance(1)
       while not(self.scanner.is_eof()) {
@@ -615,7 +635,6 @@ fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
         }
       }
     }
-
     let url = url_buf.to_string()
     let _ = self.scanner.skip_spaces()
 
@@ -644,17 +663,17 @@ fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
       }
       _ => ""
     }
-
     let _ = self.scanner.skip_spaces()
     if char_is(self.scanner.peek(), ')') {
       self.scanner.advance(1)
-
-      return Some(Inline::Image(
-        alt~,
-        url~,
-        title~,
-        span=Span::new(start, self.scanner.pos),
-      ))
+      return Some(
+        Inline::Image(
+          alt~,
+          url~,
+          title~,
+          span=Span::new(start, self.scanner.pos),
+        ),
+      )
     }
   }
 
@@ -675,25 +694,27 @@ fn InlineParser::try_parse_image(self : InlineParser, start : Int) -> Inline? {
         None => break
       }
     }
-
-    return Some(Inline::RefImage(
-      alt~,
-      label=label_buf.to_string(),
-      span=Span::new(start, self.scanner.pos),
-    ))
+    return Some(
+      Inline::RefImage(
+        alt~,
+        label=label_buf.to_string(),
+        span=Span::new(start, self.scanner.pos),
+      ),
+    )
   }
-
   self.scanner.restore(start)
   None
 }
 
-///| Try to parse autolink
-fn InlineParser::try_parse_autolink(self : InlineParser, start : Int) -> Inline? {
-  self.scanner.advance(1)  // Skip <
-
+///|
+/// Try to parse autolink
+fn InlineParser::try_parse_autolink(
+  self : InlineParser,
+  start : Int,
+) -> Inline? {
+  self.scanner.advance(1) // Skip <
   let url_buf = StringBuilder::new()
   let mut is_email = false
-
   while not(self.scanner.is_eof()) {
     match self.scanner.peek() {
       Some('>') => {
@@ -704,12 +725,13 @@ fn InlineParser::try_parse_autolink(self : InlineParser, start : Int) -> Inline?
         if url.contains("@") && not(url.has_prefix("http")) {
           is_email = true
         }
-
-        return Some(Inline::Autolink(
-          url~,
-          is_email~,
-          span=Span::new(start, self.scanner.pos),
-        ))
+        return Some(
+          Inline::Autolink(
+            url~,
+            is_email~,
+            span=Span::new(start, self.scanner.pos),
+          ),
+        )
       }
       Some(' ') | Some('\t') | Some('\n') => {
         // Not a valid autolink
@@ -723,26 +745,29 @@ fn InlineParser::try_parse_autolink(self : InlineParser, start : Int) -> Inline?
       None => break
     }
   }
-
   self.scanner.restore(start)
   None
 }
 
-///| Try to parse hard break (two or more spaces followed by newline)
-fn InlineParser::try_parse_hard_break(self : InlineParser, start : Int) -> Inline? {
+///|
+/// Try to parse hard break (two or more spaces followed by newline)
+fn InlineParser::try_parse_hard_break(
+  self : InlineParser,
+  start : Int,
+) -> Inline? {
   let space_count = self.scanner.count_char(' ')
   if space_count < 2 {
     return None
   }
-
   self.scanner.advance(space_count)
-
   if char_is(self.scanner.peek(), '\n') {
     self.scanner.advance(1)
-    return Some(Inline::HardBreak(
-      style=HardBreakStyle::TwoSpaces,
-      span=Span::new(start, self.scanner.pos),
-    ))
+    return Some(
+      Inline::HardBreak(
+        style=HardBreakStyle::TwoSpaces,
+        span=Span::new(start, self.scanner.pos),
+      ),
+    )
   }
 
   // Not followed by newline, restore and return None

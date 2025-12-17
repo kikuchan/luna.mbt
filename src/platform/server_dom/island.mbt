@@ -29,8 +29,8 @@
 /// ```
 pub fn[T : ToJson] island_from_ref(
   cref : @luna.ComponentRef[T],
-  styles~ : String = "",
-  children~ : Array[@luna.Node[Unit]] = [],
+  styles? : String = "",
+  children? : Array[@luna.Node[Unit]] = [],
 ) -> @luna.Node[Unit] {
   @luna.vinternal_ref(
     cref.url,
@@ -78,6 +78,8 @@ pub fn island(
 
 ///|
 /// Create an island with load trigger (hydrates immediately)
+/// @deprecated Use `island(id, url, state~, trigger=@luna.Load, children~)` instead
+#deprecated("Use island() with trigger parameter instead")
 pub fn island_load(
   id : String,
   url : String,
@@ -89,6 +91,8 @@ pub fn island_load(
 
 ///|
 /// Create an island with idle trigger (hydrates when browser is idle)
+/// @deprecated Use `island(id, url, state~, trigger=@luna.Idle, children~)` instead
+#deprecated("Use island() with trigger parameter instead")
 pub fn island_idle(
   id : String,
   url : String,
@@ -100,6 +104,8 @@ pub fn island_idle(
 
 ///|
 /// Create an island with visible trigger (hydrates when visible)
+/// @deprecated Use `island(id, url, state~, trigger=@luna.Visible, children~)` instead
+#deprecated("Use island() with trigger parameter instead")
 pub fn island_visible(
   id : String,
   url : String,
@@ -111,6 +117,8 @@ pub fn island_visible(
 
 ///|
 /// Create an island with media trigger
+/// @deprecated Use `island(id, url, state~, trigger=@luna.Media(query), children~)` instead
+#deprecated("Use island() with trigger parameter instead")
 pub fn island_media(
   id : String,
   url : String,

@@ -773,24 +773,13 @@ test "preload with nested islands in div hierarchy" {
     "div",
     [("class", @luna.attr_static("outer"))],
     [
-      @luna.h(
-        "div",
-        [("class", @luna.attr_static("middle"))],
-        [
-          @luna.h(
-            "div",
-            [("class", @luna.attr_static("inner"))],
-            [
-              @luna.visland(
-                "nested-island",
-                "/components/nested.js",
-                "{}",
-                [@luna.vtext("Nested")],
-              ),
-            ],
-          ),
-        ],
-      ),
+      @luna.h("div", [("class", @luna.attr_static("middle"))], [
+        @luna.h("div", [("class", @luna.attr_static("inner"))], [
+          @luna.visland("nested-island", "/components/nested.js", "{}", [
+            @luna.vtext("Nested"),
+          ]),
+        ]),
+      ]),
     ],
   )
   let result = render_to_string(node, preload=true)
@@ -805,39 +794,23 @@ test "preload with multiple islands at different nesting levels" {
   // Islands at root, first level, and deeply nested
   let node : @luna.Node[Unit] = @luna.vfragment([
     // Root level island
-    @luna.visland("root-island", "/components/root.js", "{}", [@luna.vtext("Root")]),
+    @luna.visland("root-island", "/components/root.js", "{}", [
+      @luna.vtext("Root"),
+    ]),
     // First level nesting
-    @luna.h(
-      "section",
-      [],
-      [
-        @luna.visland(
-          "section-island",
-          "/components/section.js",
-          "{}",
-          [@luna.vtext("Section")],
-        ),
-        // Deeply nested island
-        @luna.h(
-          "article",
-          [],
-          [
-            @luna.h(
-              "div",
-              [],
-              [
-                @luna.visland(
-                  "deep-island",
-                  "/components/deep.js",
-                  "{}",
-                  [@luna.vtext("Deep")],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    ),
+    @luna.h("section", [], [
+      @luna.visland("section-island", "/components/section.js", "{}", [
+        @luna.vtext("Section"),
+      ]),
+      // Deeply nested island
+      @luna.h("article", [], [
+        @luna.h("div", [], [
+          @luna.visland("deep-island", "/components/deep.js", "{}", [
+            @luna.vtext("Deep"),
+          ]),
+        ]),
+      ]),
+    ]),
   ])
   let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 3)
@@ -849,17 +822,11 @@ test "preload with multiple islands at different nesting levels" {
 ///|
 test "preload with conditional show - visible branch" {
   let visible = true
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { visible },
-    fn() {
-      @luna.visland(
-        "conditional-island",
-        "/components/conditional.js",
-        "{}",
-        [@luna.vtext("Shown")],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { visible }, fn() {
+    @luna.visland("conditional-island", "/components/conditional.js", "{}", [
+      @luna.vtext("Shown"),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   // When visible, island URL should be collected
   assert_eq(result.preload_urls.length(), 1)
@@ -869,17 +836,11 @@ test "preload with conditional show - visible branch" {
 ///|
 test "preload with conditional show - hidden branch" {
   let visible = false
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { visible },
-    fn() {
-      @luna.visland(
-        "conditional-island",
-        "/components/conditional.js",
-        "{}",
-        [@luna.vtext("Hidden")],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { visible }, fn() {
+    @luna.visland("conditional-island", "/components/conditional.js", "{}", [
+      @luna.vtext("Hidden"),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   // When hidden, island is not rendered so URL is not collected
   assert_eq(result.preload_urls.length(), 0)
@@ -891,24 +852,15 @@ test "preload with mixed visible and hidden islands" {
   let show_b = false
   let show_c = true
   let node : @luna.Node[Unit] = @luna.vfragment([
-    @luna.vshow(
-      fn() { show_a },
-      fn() {
-        @luna.visland("island-a", "/components/a.js", "{}", [@luna.vtext("A")])
-      },
-    ),
-    @luna.vshow(
-      fn() { show_b },
-      fn() {
-        @luna.visland("island-b", "/components/b.js", "{}", [@luna.vtext("B")])
-      },
-    ),
-    @luna.vshow(
-      fn() { show_c },
-      fn() {
-        @luna.visland("island-c", "/components/c.js", "{}", [@luna.vtext("C")])
-      },
-    ),
+    @luna.vshow(fn() { show_a }, fn() {
+      @luna.visland("island-a", "/components/a.js", "{}", [@luna.vtext("A")])
+    }),
+    @luna.vshow(fn() { show_b }, fn() {
+      @luna.visland("island-b", "/components/b.js", "{}", [@luna.vtext("B")])
+    }),
+    @luna.vshow(fn() { show_c }, fn() {
+      @luna.visland("island-c", "/components/c.js", "{}", [@luna.vtext("C")])
+    }),
   ])
   let result = render_to_string(node, preload=true)
   // Only visible islands (a and c) should be collected
@@ -922,34 +874,18 @@ test "preload with mixed visible and hidden islands" {
 test "preload with nested conditionals" {
   let outer_visible = true
   let inner_visible = true
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { outer_visible },
-    fn() {
-      @luna.h(
-        "div",
-        [],
-        [
-          @luna.visland(
-            "outer-island",
-            "/components/outer.js",
-            "{}",
-            [@luna.vtext("Outer")],
-          ),
-          @luna.vshow(
-            fn() { inner_visible },
-            fn() {
-              @luna.visland(
-                "inner-island",
-                "/components/inner.js",
-                "{}",
-                [@luna.vtext("Inner")],
-              )
-            },
-          ),
-        ],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { outer_visible }, fn() {
+    @luna.h("div", [], [
+      @luna.visland("outer-island", "/components/outer.js", "{}", [
+        @luna.vtext("Outer"),
+      ]),
+      @luna.vshow(fn() { inner_visible }, fn() {
+        @luna.visland("inner-island", "/components/inner.js", "{}", [
+          @luna.vtext("Inner"),
+        ])
+      }),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 2)
   assert_true(result.preload_urls.contains("/components/outer.js"))
@@ -960,34 +896,18 @@ test "preload with nested conditionals" {
 test "preload with nested conditionals - inner hidden" {
   let outer_visible = true
   let inner_visible = false
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { outer_visible },
-    fn() {
-      @luna.h(
-        "div",
-        [],
-        [
-          @luna.visland(
-            "outer-island",
-            "/components/outer.js",
-            "{}",
-            [@luna.vtext("Outer")],
-          ),
-          @luna.vshow(
-            fn() { inner_visible },
-            fn() {
-              @luna.visland(
-                "inner-island",
-                "/components/inner.js",
-                "{}",
-                [@luna.vtext("Inner")],
-              )
-            },
-          ),
-        ],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { outer_visible }, fn() {
+    @luna.h("div", [], [
+      @luna.visland("outer-island", "/components/outer.js", "{}", [
+        @luna.vtext("Outer"),
+      ]),
+      @luna.vshow(fn() { inner_visible }, fn() {
+        @luna.visland("inner-island", "/components/inner.js", "{}", [
+          @luna.vtext("Inner"),
+        ])
+      }),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   // Only outer island is collected (inner is hidden)
   assert_eq(result.preload_urls.length(), 1)
@@ -999,34 +919,18 @@ test "preload with nested conditionals - inner hidden" {
 test "preload with nested conditionals - outer hidden" {
   let outer_visible = false
   let inner_visible = true
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { outer_visible },
-    fn() {
-      @luna.h(
-        "div",
-        [],
-        [
-          @luna.visland(
-            "outer-island",
-            "/components/outer.js",
-            "{}",
-            [@luna.vtext("Outer")],
-          ),
-          @luna.vshow(
-            fn() { inner_visible },
-            fn() {
-              @luna.visland(
-                "inner-island",
-                "/components/inner.js",
-                "{}",
-                [@luna.vtext("Inner")],
-              )
-            },
-          ),
-        ],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { outer_visible }, fn() {
+    @luna.h("div", [], [
+      @luna.visland("outer-island", "/components/outer.js", "{}", [
+        @luna.vtext("Outer"),
+      ]),
+      @luna.vshow(fn() { inner_visible }, fn() {
+        @luna.visland("inner-island", "/components/inner.js", "{}", [
+          @luna.vtext("Inner"),
+        ])
+      }),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   // When outer is hidden, nothing is rendered so no URLs collected
   assert_eq(result.preload_urls.length(), 0)
@@ -1037,31 +941,17 @@ test "preload with fragment containing islands and elements" {
   let node : @luna.Node[Unit] = @luna.vfragment([
     @luna.h("header", [], [@luna.vtext("Header")]),
     @luna.visland("nav-island", "/components/nav.js", "{}", [@luna.vtext("Nav")]),
-    @luna.h(
-      "main",
-      [],
-      [
-        @luna.h("h1", [], [@luna.vtext("Title")]),
-        @luna.visland(
-          "content-island",
-          "/components/content.js",
-          "{}",
-          [@luna.vtext("Content")],
-        ),
-        @luna.h(
-          "aside",
-          [],
-          [
-            @luna.visland(
-              "sidebar-island",
-              "/components/sidebar.js",
-              "{}",
-              [@luna.vtext("Sidebar")],
-            ),
-          ],
-        ),
-      ],
-    ),
+    @luna.h("main", [], [
+      @luna.h("h1", [], [@luna.vtext("Title")]),
+      @luna.visland("content-island", "/components/content.js", "{}", [
+        @luna.vtext("Content"),
+      ]),
+      @luna.h("aside", [], [
+        @luna.visland("sidebar-island", "/components/sidebar.js", "{}", [
+          @luna.vtext("Sidebar"),
+        ]),
+      ]),
+    ]),
     @luna.h("footer", [], [@luna.vtext("Footer")]),
   ])
   let result = render_to_string(node, preload=true)
@@ -1077,42 +967,21 @@ test "preload with fragment containing islands and elements" {
 ///|
 test "preload with duplicate urls in nested structure" {
   // Same component used multiple times at different nesting levels
-  let node : @luna.Node[Unit] = @luna.h(
-    "div",
-    [],
-    [
-      @luna.visland(
-        "counter-1",
-        "/components/counter.js",
-        "{\"count\":1}",
-        [@luna.vtext("1")],
-      ),
-      @luna.h(
-        "section",
-        [],
-        [
-          @luna.visland(
-            "counter-2",
-            "/components/counter.js",
-            "{\"count\":2}",
-            [@luna.vtext("2")],
-          ),
-          @luna.h(
-            "div",
-            [],
-            [
-              @luna.visland(
-                "counter-3",
-                "/components/counter.js",
-                "{\"count\":3}",
-                [@luna.vtext("3")],
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
-  )
+  let node : @luna.Node[Unit] = @luna.h("div", [], [
+    @luna.visland("counter-1", "/components/counter.js", "{\"count\":1}", [
+      @luna.vtext("1"),
+    ]),
+    @luna.h("section", [], [
+      @luna.visland("counter-2", "/components/counter.js", "{\"count\":2}", [
+        @luna.vtext("2"),
+      ]),
+      @luna.h("div", [], [
+        @luna.visland("counter-3", "/components/counter.js", "{\"count\":3}", [
+          @luna.vtext("3"),
+        ]),
+      ]),
+    ]),
+  ])
   let result = render_to_string(node, preload=true)
   // Should deduplicate - only one URL even though component is used 3 times
   assert_eq(result.preload_urls.length(), 1)
@@ -1152,13 +1021,9 @@ test "preload with wc_island collects luna:wc-url" {
 test "preload with mixed island and wc_island" {
   let node : @luna.Node[Unit] = @luna.vfragment([
     @luna.visland("counter", "/static/counter.js", "{}", [@luna.vtext("Count")]),
-    @luna.vwc_island(
-      "wc-timer",
-      "/static/wc_timer.js",
-      "",
-      "{}",
-      [@luna.vtext("Timer")],
-    ),
+    @luna.vwc_island("wc-timer", "/static/wc_timer.js", "", "{}", [
+      @luna.vtext("Timer"),
+    ]),
   ])
   let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 2)
@@ -1168,25 +1033,13 @@ test "preload with mixed island and wc_island" {
 
 ///|
 test "preload with nested wc_island in div" {
-  let node : @luna.Node[Unit] = @luna.h(
-    "main",
-    [],
-    [
-      @luna.h(
-        "section",
-        [],
-        [
-          @luna.vwc_island(
-            "wc-nested",
-            "/static/wc_nested.js",
-            "",
-            "{}",
-            [@luna.vtext("Nested")],
-          ),
-        ],
-      ),
-    ],
-  )
+  let node : @luna.Node[Unit] = @luna.h("main", [], [
+    @luna.h("section", [], [
+      @luna.vwc_island("wc-nested", "/static/wc_nested.js", "", "{}", [
+        @luna.vtext("Nested"),
+      ]),
+    ]),
+  ])
   let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 1)
   assert_true(result.preload_urls.contains("/static/wc_nested.js"))
@@ -1195,18 +1048,11 @@ test "preload with nested wc_island in div" {
 ///|
 test "preload with wc_island in conditional show" {
   let visible = true
-  let node : @luna.Node[Unit] = @luna.vshow(
-    fn() { visible },
-    fn() {
-      @luna.vwc_island(
-        "wc-conditional",
-        "/static/wc_conditional.js",
-        "",
-        "{}",
-        [@luna.vtext("Conditional")],
-      )
-    },
-  )
+  let node : @luna.Node[Unit] = @luna.vshow(fn() { visible }, fn() {
+    @luna.vwc_island("wc-conditional", "/static/wc_conditional.js", "", "{}", [
+      @luna.vtext("Conditional"),
+    ])
+  })
   let result = render_to_string(node, preload=true)
   assert_eq(result.preload_urls.length(), 1)
   assert_true(result.preload_urls.contains("/static/wc_conditional.js"))
@@ -1340,7 +1186,9 @@ test "render wc_island without styles" {
   let html = render_to_string(node).html
   // Should not have style tag when styles is empty
   assert_true(not(html.contains("<style>")))
-  assert_true(html.contains("<template shadowrootmode=\"open\">Content</template>"))
+  assert_true(
+    html.contains("<template shadowrootmode=\"open\">Content</template>"),
+  )
 }
 
 ///|

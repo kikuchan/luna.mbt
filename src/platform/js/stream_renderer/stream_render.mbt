@@ -154,7 +154,6 @@ fn render_wc_island_to_stream(
   sb.write_string(" data-state=\"")
   @render.escape_attr_to(sb, wc_island.state)
   sb.write_char('"')
-
   if not(wc_island.trigger is Load) {
     sb.write_string(" data-trigger=\"")
     sb.write_string(@luna.trigger_to_string(wc_island.trigger))
@@ -254,7 +253,6 @@ fn render_internal_ref_wc_to_stream(
   sb.write_string(" luna:wc-state=\"")
   @render.escape_attr_to(sb, iref.state)
   sb.write_char('"')
-
   if not(iref.trigger is @luna.Load) {
     sb.write_string(" luna:wc-trigger=\"")
     sb.write_string(@luna.trigger_to_string(iref.trigger))
@@ -281,7 +279,6 @@ fn render_internal_ref_wc_to_stream(
   // Close template and custom element
   write("</template></" + name + ">")
 }
-
 
 ///|
 /// Create a ReadableStream for HTTP response (Web Streams API)

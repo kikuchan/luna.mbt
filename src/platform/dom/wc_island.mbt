@@ -1,6 +1,9 @@
 ///| Web Components Island Hydration API
+
 ///|
+
 ///| Provides integration with Web Components based islands.
+
 ///| Uses DOM Parts for efficient partial updates.
 
 // =============================================================================
@@ -40,7 +43,11 @@ extern "js" fn hydrate_parts_ffi(shadow_root : @js.Any) -> @js.Any =
   #| }
 
 ///|
-extern "js" fn set_part_value(parts : @js.Any, name : String, value : String) -> Unit =
+extern "js" fn set_part_value(
+  parts : @js.Any,
+  name : String,
+  value : String,
+) -> Unit =
   #| (parts, name, value) => {
   #|   const part = parts.get(name);
   #|   if (part) part.value = value;
@@ -133,7 +140,6 @@ pub fn WcIslandContext::new(element : @js_dom.Element) -> WcIslandContext? {
 
   // Parse state from data-state attribute
   let state_json = parse_data_state(element)
-
   Some({ element, shadow_root, parts, state_json })
 }
 
@@ -188,6 +194,7 @@ pub fn[T : Show] WcIslandContext::bind_signal(
     set_part_value(parts, part_name, value)
     commit_part(parts, part_name)
   })
+
 }
 
 ///|
@@ -247,7 +254,6 @@ pub fn hydrate_wc_island(
   // Cast element to DOM Element
   let elem : @js_dom.Element = element.cast()
   let name = elem.tagName()
-
   console_log_wc("[" + name + "] hydrating...")
 
   // Create context
@@ -257,7 +263,8 @@ pub fn hydrate_wc_island(
       setup(ctx)
       console_log_wc("[" + name + "] hydration complete")
     }
-    None => console_log_wc("[" + name + "] no shadow root found, skipping hydration")
+    None =>
+      console_log_wc("[" + name + "] no shadow root found, skipping hydration")
   }
 }
 
@@ -302,6 +309,7 @@ pub fn get_shadow_root_for_hydrate(
 ///   @wc.hydrate_auto(jsdom_el, node)
 /// }
 /// ```
+
 ///|
 /// Unified hydration for VNode-based components
 /// Auto-detects WC mode (shadowRoot) vs Luna mode (direct render)
@@ -312,9 +320,7 @@ pub fn hydrate_auto(
   if has_shadow_root(element) {
     // WC mode - hydrate into shadow root
     let shadow_root = get_shadow_root_as_element(element)
-    console_log_wc(
-      "[" + element.tagName() + "] WC mode - hydrating shadow DOM",
-    )
+    console_log_wc("[" + element.tagName() + "] WC mode - hydrating shadow DOM")
     // Use Luna's hydrate function on shadow root
     @client.hydrate(shadow_root, node) |> ignore
   } else {

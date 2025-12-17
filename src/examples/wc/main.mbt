@@ -1,6 +1,9 @@
 ///| WC Sample Application demonstrating Luna Web Components features
+
 ///|
+
 ///| This file serves as a comprehensive example showing Web Components
+
 ///| with MoonBit and Luna's reactive system.
 
 ///|
@@ -41,7 +44,9 @@ extern "js" fn define_custom_element(
   #| }
 
 ///|
-extern "js" fn get_shadow_root_ffi(element : @js_dom.Element) -> @js_dom.Element =
+extern "js" fn get_shadow_root_ffi(
+  element : @js_dom.Element,
+) -> @js_dom.Element =
   #| (el) => el.shadowRoot
 
 ///|
@@ -60,7 +65,10 @@ extern "js" fn is_element_null(el : @js_dom.Element) -> Bool =
   #| (el) => el === null || el === undefined
 
 ///|
-fn query_selector(element : @js_dom.Element, selector : String) -> @js_dom.Element? {
+fn query_selector(
+  element : @js_dom.Element,
+  selector : String,
+) -> @js_dom.Element? {
   let result = query_selector_raw(element, selector)
   if is_element_null(result) {
     None
@@ -85,7 +93,10 @@ extern "js" fn add_input_listener(
   #| (el, handler) => el.addEventListener('input', (e) => { handler(e.target.value); })
 
 ///|
-extern "js" fn set_text_content(element : @js_dom.Element, text : String) -> Unit =
+extern "js" fn set_text_content(
+  element : @js_dom.Element,
+  text : String,
+) -> Unit =
   #| (el, text) => { el.textContent = text; }
 
 ///|
@@ -152,8 +163,7 @@ fn register_wc_counter() -> Unit {
       None => ()
     }
     match query_selector(shadow, ".reset") {
-      Some(btn) =>
-        add_event_listener_ffi(btn, "click", fn() { count.set(0) })
+      Some(btn) => add_event_listener_ffi(btn, "click", fn() { count.set(0) })
       None => ()
     }
 
@@ -172,11 +182,11 @@ fn register_wc_counter() -> Unit {
     })
     let _ = @signal.effect(fn() {
       match query_selector(shadow, ".parity") {
-        Some(el) =>
-          set_text_content(el, if is_even() { "Even" } else { "Odd" })
+        Some(el) => set_text_content(el, if is_even() { "Even" } else { "Odd" })
         None => ()
       }
     })
+
   })
 }
 
@@ -190,7 +200,6 @@ fn register_wc_input() -> Unit {
     let shadow = get_shadow_root_ffi(host)
     let text = @signal.signal("")
     let char_count = @signal.memo(fn() { text.get().length() })
-
     let html =
       #|<style>:host { display: block; } input { padding: 8px; margin: 4px; }</style>
       #|<h2>Input Example</h2>
@@ -198,12 +207,10 @@ fn register_wc_input() -> Unit {
       #|<p class="char-count">Characters: 0</p>
       #|<p class="typed">You typed: </p>
     set_inner_html(shadow, html)
-
     match query_selector(shadow, ".text-input") {
       Some(input) => add_input_listener(input, fn(value) { text.set(value) })
       None => ()
     }
-
     let _ = @signal.effect(fn() {
       match query_selector(shadow, ".char-count") {
         Some(el) =>
@@ -217,6 +224,7 @@ fn register_wc_input() -> Unit {
         None => ()
       }
     })
+
   })
 }
 
@@ -230,13 +238,11 @@ fn register_wc_effect() -> Unit {
     let shadow = get_shadow_root_ffi(host)
     let active = @signal.signal(false)
     let ticks = @signal.signal(0)
-
     let _ = @signal.effect(fn() {
       let is_active = active.get()
       debug_log("Active state changed: " + is_active.to_string())
       @signal.on_cleanup(fn() { debug_log("Cleaning up effect") })
     })
-
     let html =
       #|<style>:host { display: block; } button { padding: 8px 16px; margin: 4px; cursor: pointer; }</style>
       #|<h2>Effect Example</h2>
@@ -245,7 +251,6 @@ fn register_wc_effect() -> Unit {
       #|<button class="toggle">Start</button>
       #|<button class="tick">Tick</button>
     set_inner_html(shadow, html)
-
     match query_selector(shadow, ".toggle") {
       Some(btn) =>
         add_event_listener_ffi(btn, "click", fn() {
@@ -260,7 +265,6 @@ fn register_wc_effect() -> Unit {
         })
       None => ()
     }
-
     let _ = @signal.effect(fn() {
       let status = if active.get() { "Active" } else { "Inactive" }
       match query_selector(shadow, ".status") {
@@ -279,6 +283,7 @@ fn register_wc_effect() -> Unit {
         None => ()
       }
     })
+
   })
 }
 
@@ -291,7 +296,6 @@ fn register_wc_conditional() -> Unit {
   define_custom_element("wc-conditional", fn(host) {
     let shadow = get_shadow_root_ffi(host)
     let show_message = @signal.signal(true)
-
     let html =
       #|<style>
       #|  :host { display: block; }
@@ -302,7 +306,6 @@ fn register_wc_conditional() -> Unit {
       #|<button class="toggle">Hide Message</button>
       #|<div class="message">Hello! This message is conditionally rendered.</div>
     set_inner_html(shadow, html)
-
     match query_selector(shadow, ".toggle") {
       Some(btn) =>
         add_event_listener_ffi(btn, "click", fn() {
@@ -310,14 +313,17 @@ fn register_wc_conditional() -> Unit {
         })
       None => ()
     }
-
     let _ = @signal.effect(fn() {
       let visible = show_message.get()
       match query_selector(shadow, ".toggle") {
         Some(el) =>
           set_text_content(
             el,
-            if visible { "Hide Message" } else { "Show Message" },
+            if visible {
+              "Hide Message"
+            } else {
+              "Show Message"
+            },
           )
         None => ()
       }
@@ -327,6 +333,7 @@ fn register_wc_conditional() -> Unit {
         None => ()
       }
     })
+
   })
 }
 
@@ -340,7 +347,6 @@ fn register_wc_style() -> Unit {
     let shadow = get_shadow_root_ffi(host)
     let hue = @signal.signal(180)
     let size = @signal.signal(100)
-
     let html =
       #|<style>
       #|  :host { display: block; }
@@ -353,7 +359,6 @@ fn register_wc_style() -> Unit {
       #|<div><label>Hue:</label><input type="range" class="hue" value="180" min="0" max="360"></div>
       #|<div><label>Size:</label><input type="range" class="size" value="100" min="50" max="200"></div>
     set_inner_html(shadow, html)
-
     match query_selector(shadow, ".hue") {
       Some(input) =>
         add_input_listener(input, fn(value) {
@@ -374,7 +379,6 @@ fn register_wc_style() -> Unit {
         })
       None => ()
     }
-
     let _ = @signal.effect(fn() {
       match query_selector(shadow, ".box") {
         Some(el) => {
@@ -391,6 +395,7 @@ fn register_wc_style() -> Unit {
         None => ()
       }
     })
+
   })
 }
 
@@ -412,7 +417,6 @@ fn register_wc_todo() -> Unit {
     let todos : @signal.Signal[Array[TodoItem]] = @signal.signal([])
     let input_text = @signal.signal("")
     let next_id = @signal.signal(1)
-
     fn render_todos() -> String {
       let items = todos.get()
       let sb = StringBuilder::new()
@@ -494,7 +498,6 @@ fn register_wc_todo() -> Unit {
         })
       None => ()
     }
-
     fn toggle_todo(id : Int) -> Unit {
       todos.update(fn(items) {
         let new_items : Array[TodoItem] = []
@@ -563,11 +566,15 @@ fn register_wc_todo() -> Unit {
         None => ()
       }
     })
+
   })
 }
 
 ///|
-extern "js" fn set_input_value(element : @js_dom.Element, value : String) -> Unit =
+extern "js" fn set_input_value(
+  element : @js_dom.Element,
+  value : String,
+) -> Unit =
   #| (el, val) => { el.value = val; }
 
 ///|
@@ -624,7 +631,6 @@ fn register_wc_child_button() -> Unit {
   define_custom_element("wc-child-button", fn(host) {
     let shadow = get_shadow_root_ffi(host)
     let click_count = @signal.signal(0)
-
     set_inner_html(
       shadow,
       (
@@ -638,23 +644,26 @@ fn register_wc_child_button() -> Unit {
         #|<div class="count">Local clicks: <span class="local-count">0</span></div>
       ),
     )
-
     match query_selector(shadow, ".child-btn") {
       Some(btn) =>
         add_event_listener_ffi(btn, "click", fn() {
           click_count.update(fn(n) { n + 1 })
           // Dispatch custom event to parent (bubbles through shadow DOM)
-          dispatch_custom_event(host, "child-clicked", int_to_any(click_count.get()))
+          dispatch_custom_event(
+            host,
+            "child-clicked",
+            int_to_any(click_count.get()),
+          )
         })
       None => ()
     }
-
     let _ = @signal.effect(fn() {
       match query_selector(shadow, ".local-count") {
         Some(el) => set_text_content(el, click_count.get().to_string())
         None => ()
       }
     })
+
   })
 }
 
@@ -667,7 +676,6 @@ fn register_wc_nested_parent() -> Unit {
   define_custom_element("wc-nested-parent", fn(host) {
     let shadow = get_shadow_root_ffi(host)
     let total_child_clicks = @signal.signal(0)
-
     set_inner_html(
       shadow,
       (
@@ -694,13 +702,13 @@ fn register_wc_nested_parent() -> Unit {
     add_custom_event_listener(host, "child-clicked", fn(_detail) {
       total_child_clicks.update(fn(n) { n + 1 })
     })
-
     let _ = @signal.effect(fn() {
       match query_selector(shadow, ".total-clicks") {
         Some(el) => set_text_content(el, total_child_clicks.get().to_string())
         None => ()
       }
     })
+
   })
 }
 

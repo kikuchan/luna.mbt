@@ -1,6 +1,7 @@
 ///| CST Serializer - Convert CST back to markdown text (lossless roundtrip)
 
-///| Serialize document to markdown string
+///|
+/// Serialize document to markdown string
 pub fn serialize(doc : Document) -> String {
   let buf = StringBuilder::new()
 
@@ -14,11 +15,11 @@ pub fn serialize(doc : Document) -> String {
   for block in doc.children {
     serialize_block(block, buf)
   }
-
   buf.to_string()
 }
 
-///| Serialize frontmatter
+///|
+/// Serialize frontmatter
 fn serialize_frontmatter(fm : Frontmatter, buf : StringBuilder) -> Unit {
   buf.write_string("---\n")
   buf.write_string(fm.raw)
@@ -28,14 +29,16 @@ fn serialize_frontmatter(fm : Frontmatter, buf : StringBuilder) -> Unit {
   buf.write_string("---\n")
 }
 
-///| Write n copies of a character
+///|
+/// Write n copies of a character
 fn write_chars(buf : StringBuilder, c : Char, n : Int) -> Unit {
   for i = 0; i < n; i = i + 1 {
     buf.write_char(c)
   }
 }
 
-///| Serialize a block
+///|
+/// Serialize a block
 fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
   match block {
     Block::ThematicBreak(marker~, count~, leading_trivia~, trailing_trivia~, ..) => {
@@ -46,8 +49,15 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
         buf.write_char('\n')
       }
     }
-
-    Block::Heading(level~, style~, children~, closing_hashes~, leading_trivia~, trailing_trivia~, ..) => {
+    Block::Heading(
+      level~,
+      style~,
+      children~,
+      closing_hashes~,
+      leading_trivia~,
+      trailing_trivia~,
+      ..
+    ) => {
       buf.write_string(leading_trivia.content)
       match style {
         HeadingStyle::Atx => {
@@ -73,7 +83,6 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
         }
       }
     }
-
     Block::Paragraph(children~, leading_trivia~, trailing_trivia~, ..) => {
       buf.write_string(leading_trivia.content)
       serialize_inlines(children, buf)
@@ -82,8 +91,16 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
         buf.write_char('\n')
       }
     }
-
-    Block::FencedCode(fence_marker~, fence_length~, info~, code~, indent~, leading_trivia~, trailing_trivia~, ..) => {
+    Block::FencedCode(
+      fence_marker~,
+      fence_length~,
+      info~,
+      code~,
+      indent~,
+      leading_trivia~,
+      trailing_trivia~,
+      ..
+    ) => {
       buf.write_string(leading_trivia.content)
       // Leading indent
       write_chars(buf, ' ', indent)
@@ -110,7 +127,6 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
         buf.write_char('\n')
       }
     }
-
     Block::IndentedCode(code~, leading_trivia~, trailing_trivia~, ..) => {
       buf.write_string(leading_trivia.content)
       for line in code.split("\n") {
@@ -120,7 +136,6 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
       }
       buf.write_string(trailing_trivia.content)
     }
-
     Block::Blockquote(children~, leading_trivia~, trailing_trivia~, ..) => {
       buf.write_string(leading_trivia.content)
       for child in children {
@@ -139,7 +154,6 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
       }
       buf.write_string(trailing_trivia.content)
     }
-
     Block::BulletList(marker~, items~, leading_trivia~, trailing_trivia~, ..) => {
       buf.write_string(leading_trivia.content)
       let marker_char = match marker {
@@ -172,8 +186,14 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
       }
       buf.write_string(trailing_trivia.content)
     }
-
-    Block::OrderedList(start~, delimiter~, items~, leading_trivia~, trailing_trivia~, ..) => {
+    Block::OrderedList(
+      start~,
+      delimiter~,
+      items~,
+      leading_trivia~,
+      trailing_trivia~,
+      ..
+    ) => {
       buf.write_string(leading_trivia.content)
       let delim_char = match delimiter {
         OrderedDelimiter::Dot => '.'
@@ -199,7 +219,6 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
       }
       buf.write_string(trailing_trivia.content)
     }
-
     Block::HtmlBlock(html~, leading_trivia~, trailing_trivia~, ..) => {
       buf.write_string(leading_trivia.content)
       buf.write_string(html)
@@ -208,8 +227,14 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
         buf.write_char('\n')
       }
     }
-
-    Block::Table(header~, alignments~, rows~, leading_trivia~, trailing_trivia~, ..) => {
+    Block::Table(
+      header~,
+      alignments~,
+      rows~,
+      leading_trivia~,
+      trailing_trivia~,
+      ..
+    ) => {
       buf.write_string(leading_trivia.content)
       // Header row
       buf.write_char('|')
@@ -242,36 +267,32 @@ fn serialize_block(block : Block, buf : StringBuilder) -> Unit {
       }
       buf.write_string(trailing_trivia.content)
     }
-
-    Block::BlankLines(count~, ..) => {
+    Block::BlankLines(count~, ..) =>
       for i = 0; i < count; i = i + 1 {
         buf.write_char('\n')
       }
-    }
   }
 }
 
-///| Serialize inline content
+///|
+/// Serialize inline content
 fn serialize_inlines(inlines : Array[Inline], buf : StringBuilder) -> Unit {
   for inline in inlines {
     serialize_inline(inline, buf)
   }
 }
 
-///| Serialize a single inline element
+///|
+/// Serialize a single inline element
 fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
   match inline {
     Inline::Text(content~, ..) => buf.write_string(content)
-
     Inline::SoftBreak(..) => buf.write_char('\n')
-
-    Inline::HardBreak(style~, ..) => {
+    Inline::HardBreak(style~, ..) =>
       match style {
         HardBreakStyle::TwoSpaces => buf.write_string("  \n")
         HardBreakStyle::Backslash => buf.write_string("\\\n")
       }
-    }
-
     Inline::Emphasis(marker~, children~, ..) => {
       let marker_char = match marker {
         EmphasisMarker::Asterisk => '*'
@@ -281,7 +302,6 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       serialize_inlines(children, buf)
       buf.write_char(marker_char)
     }
-
     Inline::Strong(marker~, children~, ..) => {
       let marker_char = match marker {
         EmphasisMarker::Asterisk => '*'
@@ -293,19 +313,16 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       buf.write_char(marker_char)
       buf.write_char(marker_char)
     }
-
     Inline::Strikethrough(children~, ..) => {
       buf.write_string("~~")
       serialize_inlines(children, buf)
       buf.write_string("~~")
     }
-
     Inline::Code(content~, backtick_count~, ..) => {
       write_chars(buf, '`', backtick_count)
       buf.write_string(content)
       write_chars(buf, '`', backtick_count)
     }
-
     Inline::Link(children~, url~, title~, ..) => {
       buf.write_char('[')
       serialize_inlines(children, buf)
@@ -318,7 +335,6 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       }
       buf.write_char(')')
     }
-
     Inline::RefLink(children~, label~, ..) => {
       buf.write_char('[')
       serialize_inlines(children, buf)
@@ -326,7 +342,6 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       buf.write_string(label)
       buf.write_char(']')
     }
-
     Inline::Autolink(url~, is_email~, ..) => {
       buf.write_char('<')
       if is_email {
@@ -335,7 +350,6 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       buf.write_string(url)
       buf.write_char('>')
     }
-
     Inline::Image(alt~, url~, title~, ..) => {
       buf.write_string("![")
       buf.write_string(alt)
@@ -348,7 +362,6 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       }
       buf.write_char(')')
     }
-
     Inline::RefImage(alt~, label~, ..) => {
       buf.write_string("![")
       buf.write_string(alt)
@@ -356,12 +369,12 @@ fn serialize_inline(inline : Inline, buf : StringBuilder) -> Unit {
       buf.write_string(label)
       buf.write_char(']')
     }
-
     Inline::HtmlInline(html~, ..) => buf.write_string(html)
   }
 }
 
-///| Serialize link definitions
+///|
+/// Serialize link definitions
 pub fn serialize_definitions(defs : Array[LinkDefinition]) -> String {
   let buf = StringBuilder::new()
   for def in defs {

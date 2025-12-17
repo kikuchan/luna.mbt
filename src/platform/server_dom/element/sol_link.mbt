@@ -1,12 +1,19 @@
 ///| Sol Link - CSR navigation link component
+
 ///|
+
 ///| Creates an anchor element with data-sol-link attribute
+
 ///| for client-side navigation without full page reload.
 
 ///| Create a Sol Link for CSR navigation
+
 ///|
+
 ///| Renders as `<a href="..." data-sol-link>` which is intercepted
-///| by sol-nav.js for client-side navigation.
+
+///|
+/// by sol-nav.js for client-side navigation.
 pub fn sol_link(
   href~ : String,
   id? : String,

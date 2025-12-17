@@ -1,15 +1,18 @@
 ///| MoonBit FFI bindings for Shiki syntax highlighter
+
 ///| https://shiki.style
 
 // =============================================================================
 // Types
 // =============================================================================
 
-///| Highlighter instance
+///|
+/// Highlighter instance
 #external
 pub type Highlighter
 
-///| Convert Highlighter to Any for property access
+///|
+/// Convert Highlighter to Any for property access
 pub extern "js" fn Highlighter::as_any(self : Highlighter) -> @core.Any =
   #| (x) => x
 
@@ -17,11 +20,12 @@ pub extern "js" fn Highlighter::as_any(self : Highlighter) -> @core.Any =
 // Language Aliases
 // =============================================================================
 
-///| Language aliases for common shorthand names
+///|
+/// Language aliases for common shorthand names
 let lang_aliases : Map[String, String] = {
   "js": "javascript",
   "ts": "typescript",
-  "mbt": "rust",       // MoonBit syntax is similar to Rust
+  "mbt": "rust", // MoonBit syntax is similar to Rust
   "moonbit": "rust",
   "sh": "bash",
   "shell": "bash",
@@ -30,7 +34,8 @@ let lang_aliases : Map[String, String] = {
   "dockerfile": "docker",
 }
 
-///| Resolve language alias to actual language name
+///|
+/// Resolve language alias to actual language name
 pub fn resolve_language(lang : String) -> String {
   lang_aliases.get(lang).unwrap_or(lang)
 }
@@ -40,17 +45,17 @@ pub fn resolve_language(lang : String) -> String {
 // =============================================================================
 
 ///| Check if a language is likely supported
-///| Note: This is a best-effort check. Shiki will gracefully handle unknown languages.
+
+///|
+/// Note: This is a best-effort check. Shiki will gracefully handle unknown languages.
 pub fn is_language_supported(lang : String) -> Bool {
   let resolved = resolve_language(lang)
   // Common languages that Shiki supports
   let supported = [
-    "javascript", "typescript", "json", "html", "css", "markdown",
-    "rust", "python", "go", "java", "c", "cpp", "csharp",
-    "ruby", "php", "swift", "kotlin", "scala", "lua",
-    "bash", "shell", "powershell", "sql", "yaml", "toml",
-    "xml", "graphql", "dockerfile", "makefile",
-    "vue", "svelte", "jsx", "tsx", "astro",
+    "javascript", "typescript", "json", "html", "css", "markdown", "rust", "python",
+    "go", "java", "c", "cpp", "csharp", "ruby", "php", "swift", "kotlin", "scala",
+    "lua", "bash", "shell", "powershell", "sql", "yaml", "toml", "xml", "graphql",
+    "dockerfile", "makefile", "vue", "svelte", "jsx", "tsx", "astro",
   ]
   supported.contains(resolved)
 }
@@ -60,17 +65,20 @@ pub fn is_language_supported(lang : String) -> Bool {
 // =============================================================================
 
 ///| Create a new Shiki highlighter with specified themes and languages
-///| Languages are loaded on-demand, so you can leave the array empty initially
+
+///|
+/// Languages are loaded on-demand, so you can leave the array empty initially
 pub extern "js" fn create_highlighter_async(
   themes : Array[String],
-  langs : Array[String]
+  langs : Array[String],
 ) -> @core.Promise[Highlighter] =
   #| async (themes, langs) => {
   #|   const { createHighlighter } = await import("shiki");
   #|   return await createHighlighter({ themes, langs: [] });
   #| }
 
-///| Create a highlighter with default GitHub themes (light/dark)
+///|
+/// Create a highlighter with default GitHub themes (light/dark)
 pub fn create_default_highlighter() -> @core.Promise[Highlighter] {
   create_highlighter_async(["github-light", "github-dark"], [])
 }
@@ -79,33 +87,41 @@ pub fn create_default_highlighter() -> @core.Promise[Highlighter] {
 // Highlighter Methods
 // =============================================================================
 
-///| Get list of loaded languages
+///|
+/// Get list of loaded languages
 pub fn Highlighter::get_loaded_languages(self : Highlighter) -> Array[String] {
   self.as_any()._call("getLoadedLanguages", []).cast()
 }
 
-///| Get list of loaded themes
+///|
+/// Get list of loaded themes
 pub fn Highlighter::get_loaded_themes(self : Highlighter) -> Array[String] {
   self.as_any()._call("getLoadedThemes", []).cast()
 }
 
-///| Load a language dynamically
+///|
+/// Load a language dynamically
 pub extern "js" fn Highlighter::load_language_async(
   self : Highlighter,
-  lang : String
+  lang : String,
 ) -> @core.Promise[Unit] =
   #| async (h, lang) => { await h.loadLanguage(lang); }
 
-///| Check if a language is loaded
-pub fn Highlighter::is_language_loaded(self : Highlighter, lang : String) -> Bool {
+///|
+/// Check if a language is loaded
+pub fn Highlighter::is_language_loaded(
+  self : Highlighter,
+  lang : String,
+) -> Bool {
   let loaded = self.get_loaded_languages()
   loaded.contains(lang)
 }
 
-///| Ensure a language is loaded (load if not already loaded)
+///|
+/// Ensure a language is loaded (load if not already loaded)
 pub extern "js" fn Highlighter::ensure_language_async(
   self : Highlighter,
-  lang : String
+  lang : String,
 ) -> @core.Promise[Unit] =
   #| async (h, lang) => {
   #|   const loaded = h.getLoadedLanguages();
@@ -122,12 +138,13 @@ pub extern "js" fn Highlighter::ensure_language_async(
 // Code to HTML
 // =============================================================================
 
-///| Highlight code to HTML with a single theme
+///|
+/// Highlight code to HTML with a single theme
 pub fn Highlighter::code_to_html(
   self : Highlighter,
   code : String,
   lang~ : String,
-  theme~ : String
+  theme~ : String,
 ) -> String {
   let options = @core.from_entries([
     ("lang", @core.any(lang)),
@@ -136,13 +153,14 @@ pub fn Highlighter::code_to_html(
   self.as_any()._call("codeToHtml", [@core.any(code), options]).cast()
 }
 
-///| Highlight code to HTML with dual themes (light/dark with CSS variables)
+///|
+/// Highlight code to HTML with dual themes (light/dark with CSS variables)
 pub fn Highlighter::code_to_html_dual(
   self : Highlighter,
   code : String,
   lang~ : String,
-  light_theme~ : String = "github-light",
-  dark_theme~ : String = "github-dark"
+  light_theme? : String = "github-light",
+  dark_theme? : String = "github-dark",
 ) -> String {
   let themes = @core.from_entries([
     ("light", @core.any(light_theme)),
@@ -156,11 +174,12 @@ pub fn Highlighter::code_to_html_dual(
   self.as_any()._call("codeToHtml", [@core.any(code), options]).cast()
 }
 
-///| Highlight code with language auto-resolution and fallback
+///|
+/// Highlight code with language auto-resolution and fallback
 pub extern "js" fn Highlighter::highlight_async(
   self : Highlighter,
   code : String,
-  lang : String
+  lang : String,
 ) -> @core.Promise[String] =
   #| async (h, code, lang) => {
   #|   // Resolve language alias
@@ -191,19 +210,22 @@ pub extern "js" fn Highlighter::highlight_async(
 // =============================================================================
 
 ///| Decode HTML entities in code content
-///| Note: &amp; must be decoded last to avoid double-decoding
+
+///|
+/// Note: &amp; must be decoded last to avoid double-decoding
 pub fn decode_html_entities(html : String) -> String {
   html
-    .replace_all(old="&lt;", new="<")
-    .replace_all(old="&gt;", new=">")
-    .replace_all(old="&quot;", new="\"")
-    .replace_all(old="&#39;", new="'")
-    .replace_all(old="&#x27;", new="'")
-    .replace_all(old="&#x2F;", new="/")
-    .replace_all(old="&amp;", new="&")  // Must be last
+  .replace_all(old="&lt;", new="<")
+  .replace_all(old="&gt;", new=">")
+  .replace_all(old="&quot;", new="\"")
+  .replace_all(old="&#39;", new="'")
+  .replace_all(old="&#x27;", new="'")
+  .replace_all(old="&#x2F;", new="/")
+  .replace_all(old="&amp;", new="&") // Must be last
 }
 
-///| Generate CSS for Shiki dual theme support
+///|
+/// Generate CSS for Shiki dual theme support
 pub fn generate_shiki_css() -> String {
   let css =
     #|/* Shiki syntax highlighting - dual theme support */

@@ -84,6 +84,7 @@ describe("Sol CLI", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Usage: sol dev");
     expect(result.stdout).toContain("--port");
+    expect(result.stdout).toContain("--no-watch");
   });
 
   test("build --help shows build command help", () => {

@@ -316,10 +316,10 @@ pub fn[E] vswitch(
 pub fn[E] vinternal_ref(
   url : String,
   state : String,
-  trigger~ : IslandTrigger = Load,
-  wc~ : Bool = false,
-  styles~ : String = "",
-  children~ : Array[Node[E]] = [],
+  trigger? : IslandTrigger = Load,
+  wc? : Bool = false,
+  styles? : String = "",
+  children? : Array[Node[E]] = [],
 ) -> Node[E] {
   InternalRef({ url, state, trigger, wc, styles, children })
 }
@@ -421,7 +421,7 @@ pub(all) struct ComponentRef[T] {
 pub fn[T] component_ref(
   url : String,
   props : T,
-  trigger~ : IslandTrigger = Load,
+  trigger? : IslandTrigger = Load,
 ) -> ComponentRef[T] {
   { url, props, wc: false, trigger }
 }
@@ -431,7 +431,7 @@ pub fn[T] component_ref(
 pub fn[T] wc_component_ref(
   url : String,
   props : T,
-  trigger~ : IslandTrigger = Load,
+  trigger? : IslandTrigger = Load,
 ) -> ComponentRef[T] {
   { url, props, wc: true, trigger }
 }

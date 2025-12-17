@@ -2,7 +2,10 @@
 
 ///|
 /// Generate inline JS script for rolldown build (avoids config file)
-fn generate_rolldown_build_script(manifest_path : String, skip_minify : Bool) -> String {
+fn generate_rolldown_build_script(
+  manifest_path : String,
+  skip_minify : Bool,
+) -> String {
   let minify_line = if skip_minify { "" } else { "minify: true," }
   // Inline node script that reads manifest and runs rolldown programmatically
   // manifest: true generates .vite/manifest.json with chunk dependencies
@@ -125,10 +128,14 @@ fn run_build_command(args : Array[String]) -> Unit {
   if not(skip_bundle) && @fs.existsSync(manifest_path) {
     let minify_msg = if skip_minify { "" } else { " (minified)" }
     println(
-      @colorette.cyan("Bundling client code with rolldown -> .sol/prod/static/\{minify_msg}"),
+      @colorette.cyan(
+        "Bundling client code with rolldown -> .sol/prod/static/\{minify_msg}",
+      ),
     )
     // Use node to run programmatic rolldown build
-    let build_script = generate_rolldown_build_script(manifest_path, skip_minify)
+    let build_script = generate_rolldown_build_script(
+      manifest_path, skip_minify,
+    )
     try {
       let bundle_result = @child_process.spawnSync(
         "node",

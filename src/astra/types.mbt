@@ -4,7 +4,8 @@
 // Configuration Types
 // =============================================================================
 
-///| SSG Configuration from sol.config.json
+///|
+/// SSG Configuration from sol.config.json
 pub(all) struct SsgConfig {
   /// Input directory containing markdown files (default: "docs")
   docs_dir : String
@@ -26,7 +27,8 @@ pub(all) struct SsgConfig {
   i18n : I18nConfig
 }
 
-///| Internationalization configuration
+///|
+/// Internationalization configuration
 pub(all) struct I18nConfig {
   /// Default locale code (e.g., "en")
   default_locale : String
@@ -34,7 +36,8 @@ pub(all) struct I18nConfig {
   locales : Array[LocaleConfig]
 }
 
-///| Default i18n configuration (English only)
+///|
+/// Default i18n configuration (English only)
 pub fn I18nConfig::default() -> I18nConfig {
   {
     default_locale: "en",
@@ -42,7 +45,8 @@ pub fn I18nConfig::default() -> I18nConfig {
   }
 }
 
-///| Locale configuration
+///|
+/// Locale configuration
 pub(all) struct LocaleConfig {
   /// Locale code (e.g., "en", "ja", "fr")
   code : String
@@ -52,7 +56,8 @@ pub(all) struct LocaleConfig {
   path : String
 } derive(ToJson, FromJson)
 
-///| Default SSG configuration
+///|
+/// Default SSG configuration
 pub fn SsgConfig::default() -> SsgConfig {
   {
     docs_dir: "docs",
@@ -67,7 +72,8 @@ pub fn SsgConfig::default() -> SsgConfig {
   }
 }
 
-///| Navigation item for top navbar
+///|
+/// Navigation item for top navbar
 pub(all) struct NavItem {
   /// Display text
   text : String
@@ -77,12 +83,14 @@ pub(all) struct NavItem {
   items : Array[NavItem]
 } derive(ToJson, FromJson)
 
-///| Default empty NavItem
+///|
+/// Default empty NavItem
 pub fn NavItem::new(text : String, link : String) -> NavItem {
   { text, link, items: [] }
 }
 
-///| Sidebar configuration
+///|
+/// Sidebar configuration
 pub(all) enum SidebarConfig {
   /// Auto-generate from directory structure
   Auto
@@ -90,7 +98,8 @@ pub(all) enum SidebarConfig {
   Manual(Array[SidebarGroup])
 }
 
-///| Sidebar group
+///|
+/// Sidebar group
 pub(all) struct SidebarGroup {
   /// Group title
   text : String
@@ -100,7 +109,8 @@ pub(all) struct SidebarGroup {
   items : Array[SidebarItem]
 } derive(ToJson, FromJson)
 
-///| Sidebar item
+///|
+/// Sidebar item
 pub(all) enum SidebarItem {
   /// Link to a page
   Link(text~ : String, link~ : String)
@@ -108,7 +118,8 @@ pub(all) enum SidebarItem {
   Group(SidebarGroup)
 } derive(ToJson, FromJson)
 
-///| Theme configuration
+///|
+/// Theme configuration
 pub(all) struct ThemeConfig {
   /// Primary color (hex)
   primary_color : String?
@@ -118,12 +129,14 @@ pub(all) struct ThemeConfig {
   footer : FooterConfig?
 }
 
-///| Default theme configuration
+///|
+/// Default theme configuration
 pub fn ThemeConfig::default() -> ThemeConfig {
   { primary_color: Some("#3451b2"), logo: None, footer: None }
 }
 
-///| Footer configuration
+///|
+/// Footer configuration
 pub(all) struct FooterConfig {
   /// Footer message
   message : String?
@@ -135,7 +148,8 @@ pub(all) struct FooterConfig {
 // Frontmatter Types
 // =============================================================================
 
-///| Frontmatter parsed from markdown file
+///|
+/// Frontmatter parsed from markdown file
 pub(all) struct Frontmatter {
   /// Page title
   title : String?
@@ -155,7 +169,8 @@ pub(all) struct Frontmatter {
   next : NavLink?
 }
 
-///| Default frontmatter
+///|
+/// Default frontmatter
 pub fn Frontmatter::default() -> Frontmatter {
   {
     title: None,
@@ -169,7 +184,8 @@ pub fn Frontmatter::default() -> Frontmatter {
   }
 }
 
-///| Outline (table of contents) configuration
+///|
+/// Outline (table of contents) configuration
 pub(all) struct OutlineConfig {
   /// Minimum heading level (default: 2)
   level_min : Int
@@ -177,7 +193,8 @@ pub(all) struct OutlineConfig {
   level_max : Int
 } derive(ToJson, FromJson)
 
-///| Navigation link for prev/next
+///|
+/// Navigation link for prev/next
 pub(all) struct NavLink {
   /// Display text
   text : String
@@ -189,7 +206,8 @@ pub(all) struct NavLink {
 // Page Metadata Types
 // =============================================================================
 
-///| Page metadata for routing and generation
+///|
+/// Page metadata for routing and generation
 pub(all) struct PageMeta {
   /// Source file path (relative to docs_dir)
   source_path : String
@@ -205,14 +223,19 @@ pub(all) struct PageMeta {
   canonical_path : String
 }
 
-///| Create PageMeta from source path
+///|
+/// Create PageMeta from source path
 pub fn PageMeta::new(
   source_path : String,
   url_path : String,
-  locale~ : String = "en",
-  canonical_path~ : String = ""
+  locale? : String = "en",
+  canonical_path? : String = "",
 ) -> PageMeta {
-  let canonical = if canonical_path.is_empty() { url_path } else { canonical_path }
+  let canonical = if canonical_path.is_empty() {
+    url_path
+  } else {
+    canonical_path
+  }
   {
     source_path,
     url_path,
@@ -223,8 +246,12 @@ pub fn PageMeta::new(
   }
 }
 
-///| Set frontmatter
-pub fn PageMeta::with_frontmatter(self : PageMeta, fm : Frontmatter) -> PageMeta {
+///|
+/// Set frontmatter
+pub fn PageMeta::with_frontmatter(
+  self : PageMeta,
+  fm : Frontmatter,
+) -> PageMeta {
   { ..self, frontmatter: fm }
 }
 
@@ -232,7 +259,8 @@ pub fn PageMeta::with_frontmatter(self : PageMeta, fm : Frontmatter) -> PageMeta
 // Markdown AST Types
 // =============================================================================
 
-///| Markdown node types
+///|
+/// Markdown node types
 pub(all) enum MdNode {
   /// Heading with level (1-6)
   Heading(level~ : Int, children~ : Array[MdNode], id~ : String)
@@ -268,7 +296,8 @@ pub(all) enum MdNode {
   LineBreak
 }
 
-///| Island embedding in markdown
+///|
+/// Island embedding in markdown
 pub(all) struct IslandEmbed {
   /// Island component name
   name : String
@@ -278,7 +307,8 @@ pub(all) struct IslandEmbed {
   trigger : @luna.Trigger
 }
 
-///| Default Island embed
+///|
+/// Default Island embed
 pub fn IslandEmbed::new(name : String) -> IslandEmbed {
   { name, props: "{}", trigger: @luna.Load }
 }
@@ -287,7 +317,8 @@ pub fn IslandEmbed::new(name : String) -> IslandEmbed {
 // Build Context
 // =============================================================================
 
-///| Build context for site generation
+///|
+/// Build context for site generation
 pub(all) struct BuildContext {
   /// SSG configuration
   config : SsgConfig
@@ -299,7 +330,8 @@ pub(all) struct BuildContext {
   cwd : String
 }
 
-///| Create new build context
+///|
+/// Create new build context
 pub fn BuildContext::new(config : SsgConfig, cwd : String) -> BuildContext {
   { config, pages: [], sidebar: [], cwd }
 }

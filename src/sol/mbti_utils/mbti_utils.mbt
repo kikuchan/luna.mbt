@@ -104,9 +104,13 @@ pub fn parse_struct_defs(
       }
       // Extract struct name (safe: has_prefix check guarantees length)
       let after_struct = if visibility == "pub(all)" {
-        try { line[16:].to_string() } catch { _ => "" } // after "pub(all) struct "
+        line[16:].to_string() catch {
+          _ => ""
+        } // after "pub(all) struct "
       } else {
-        try { line[11:].to_string() } catch { _ => "" } // after "pub struct "
+        line[11:].to_string() catch {
+          _ => ""
+        } // after "pub struct "
       }
       // Find name (up to space or {)
       let name = extract_until(after_struct, [' ', '{'])

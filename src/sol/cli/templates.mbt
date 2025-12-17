@@ -633,10 +633,7 @@ pub fn generate_templates(
       content: template_layout_moon_pkg_json(),
     },
     { path: "app/layout/layout.mbt", content: template_layout_mbt() },
-    {
-      path: "app/layout/_using.mbt",
-      content: template_server_using_mbt(),
-    },
+    { path: "app/layout/_using.mbt", content: template_server_using_mbt() },
     // Routes (single source of truth)
     {
       path: "app/routes/moon.pkg.json",
@@ -646,10 +643,7 @@ pub fn generate_templates(
       path: "app/routes/routes.mbt",
       content: template_routes_mbt(package_name),
     },
-    {
-      path: "app/routes/_using.mbt",
-      content: template_routes_using_mbt(),
-    },
+    { path: "app/routes/_using.mbt", content: template_routes_using_mbt() },
     // Client islands (render + hydrate in same file)
     {
       path: "app/client/counter/moon.pkg.json",
@@ -664,10 +658,7 @@ pub fn generate_templates(
       path: "app/__gen__/types/moon.pkg.json",
       content: template_gen_types_moon_pkg_json(),
     },
-    {
-      path: "app/__gen__/types/types.mbt",
-      content: template_gen_types_mbt(),
-    },
+    { path: "app/__gen__/types/types.mbt", content: template_gen_types_mbt() },
     // Static assets
     { path: "static/loader.js", content: template_ln_loader_js() },
   ]

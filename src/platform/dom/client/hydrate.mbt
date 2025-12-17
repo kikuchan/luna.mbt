@@ -776,7 +776,7 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       }
       wrapper.as_node()
     }
-    @luna.InternalRef(iref) => {
+    @luna.InternalRef(iref) =>
       // For client-side rendering, create appropriate element based on wc flag
       if iref.wc {
         // Web Components island - extract name from URL
@@ -784,7 +784,10 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         let wrapper = doc.createElement(name)
         wrapper.setAttribute("luna:wc-url", iref.url)
         wrapper.setAttribute("luna:wc-state", iref.state)
-        wrapper.setAttribute("luna:wc-trigger", @luna.trigger_to_string(iref.trigger))
+        wrapper.setAttribute(
+          "luna:wc-trigger",
+          @luna.trigger_to_string(iref.trigger),
+        )
         for child in iref.children {
           wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
         }
@@ -796,13 +799,15 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         wrapper.setAttribute("luna:id", id)
         wrapper.setAttribute("luna:url", iref.url)
         wrapper.setAttribute("luna:state", iref.state)
-        wrapper.setAttribute("luna:trigger", @luna.trigger_to_string(iref.trigger))
+        wrapper.setAttribute(
+          "luna:trigger",
+          @luna.trigger_to_string(iref.trigger),
+        )
         for child in iref.children {
           wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
         }
         wrapper.as_node()
       }
-    }
     @luna.Async(async_node) =>
       // For client-side rendering, render fallback initially
       // Async replacement would be handled separately
@@ -1224,5 +1229,3 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
   })
   fragment_node
 }
-
-

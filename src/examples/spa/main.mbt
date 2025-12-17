@@ -396,7 +396,11 @@ fn modal_example() -> @dom.DomNode {
             id="modal-content",
             [
               @dom.h3([@dom.text("Modal Title")]),
-              @dom.p([@dom.text("This modal is rendered using Portal, which teleports the content to document.body. This helps avoid z-index and overflow issues.")]),
+              @dom.p([
+                @dom.text(
+                  "This modal is rendered using Portal, which teleports the content to document.body. This helps avoid z-index and overflow issues.",
+                ),
+              ]),
               @dom.button(
                 on=@dom.events().click(fn(_) { is_open.set(false) }),
                 id="close-modal-btn",

@@ -1,6 +1,7 @@
 ///| SSG Configuration Parser
 
-///| Parse SSG config from sol.config.json content
+///|
+/// Parse SSG config from sol.config.json content
 pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
   try {
     let json = @json.parse(json_str.view())
@@ -47,26 +48,24 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
 
     // Parse i18n config
     let i18n = parse_i18n_config(ssg_obj)
-
-    Some(
-      SsgConfig::{
-        docs_dir,
-        output_dir,
-        title,
-        base_url,
-        nav,
-        sidebar,
-        islands,
-        theme,
-        i18n,
-      },
-    )
+    Some(SsgConfig::{
+      docs_dir,
+      output_dir,
+      title,
+      base_url,
+      nav,
+      sidebar,
+      islands,
+      theme,
+      i18n,
+    })
   } catch {
     _ => None
   }
 }
 
-///| Parse navigation items from config
+///|
+/// Parse navigation items from config
 fn parse_nav_items(obj : Map[String, Json]) -> Array[NavItem] {
   match obj.get("nav") {
     Some(Array(arr)) => {
@@ -83,7 +82,8 @@ fn parse_nav_items(obj : Map[String, Json]) -> Array[NavItem] {
   }
 }
 
-///| Parse single nav item
+///|
+/// Parse single nav item
 fn parse_nav_item(json : Json) -> NavItem? {
   guard json is Object(obj) else { return None }
   let text = match obj.get("text") {
@@ -110,7 +110,8 @@ fn parse_nav_item(json : Json) -> NavItem? {
   Some(NavItem::{ text, link, items })
 }
 
-///| Parse sidebar configuration
+///|
+/// Parse sidebar configuration
 fn parse_sidebar_config(obj : Map[String, Json]) -> SidebarConfig {
   match obj.get("sidebar") {
     Some(String(s)) =>
@@ -149,10 +150,11 @@ fn parse_sidebar_config(obj : Map[String, Json]) -> SidebarConfig {
   }
 }
 
-///| Parse sidebar group from path-keyed array
+///|
+/// Parse sidebar group from path-keyed array
 fn parse_sidebar_group_from_array(
   path : String,
-  arr : Array[Json]
+  arr : Array[Json],
 ) -> SidebarGroup? {
   let items : Array[SidebarItem] = []
   for item in arr {
@@ -164,7 +166,8 @@ fn parse_sidebar_group_from_array(
   Some(SidebarGroup::{ text: path, collapsed: false, items })
 }
 
-///| Parse sidebar group
+///|
+/// Parse sidebar group
 fn parse_sidebar_group(json : Json) -> SidebarGroup? {
   guard json is Object(obj) else { return None }
   let text = match obj.get("text") {
@@ -191,7 +194,8 @@ fn parse_sidebar_group(json : Json) -> SidebarGroup? {
   Some(SidebarGroup::{ text, collapsed, items })
 }
 
-///| Parse sidebar item
+///|
+/// Parse sidebar item
 fn parse_sidebar_item(json : Json) -> SidebarItem? {
   guard json is Object(obj) else { return None }
   // Check if it's a group (has items) or a link
@@ -217,7 +221,8 @@ fn parse_sidebar_item(json : Json) -> SidebarItem? {
   }
 }
 
-///| Parse theme configuration
+///|
+/// Parse theme configuration
 fn parse_theme_config(obj : Map[String, Json]) -> ThemeConfig {
   match obj.get("theme") {
     Some(Object(theme_obj)) => {
@@ -249,7 +254,8 @@ fn parse_theme_config(obj : Map[String, Json]) -> ThemeConfig {
   }
 }
 
-///| Parse string array from JSON array
+///|
+/// Parse string array from JSON array
 fn parse_string_array_json(arr : Array[Json]) -> Array[String] {
   let result : Array[String] = []
   for item in arr {
@@ -259,7 +265,8 @@ fn parse_string_array_json(arr : Array[Json]) -> Array[String] {
   result
 }
 
-///| Parse i18n configuration
+///|
+/// Parse i18n configuration
 fn parse_i18n_config(obj : Map[String, Json]) -> I18nConfig {
   match obj.get("i18n") {
     Some(Object(i18n_obj)) => {
@@ -277,7 +284,8 @@ fn parse_i18n_config(obj : Map[String, Json]) -> I18nConfig {
   }
 }
 
-///| Parse locale configurations
+///|
+/// Parse locale configurations
 fn parse_locale_configs(arr : Array[Json]) -> Array[LocaleConfig] {
   let result : Array[LocaleConfig] = []
   for item in arr {
@@ -289,7 +297,8 @@ fn parse_locale_configs(arr : Array[Json]) -> Array[LocaleConfig] {
   result
 }
 
-///| Parse single locale configuration
+///|
+/// Parse single locale configuration
 fn parse_locale_config(json : Json) -> LocaleConfig? {
   guard json is Object(obj) else { return None }
   let code = match obj.get("code") {
