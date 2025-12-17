@@ -5,10 +5,10 @@ test "parse_markdown_native: basic paragraph" {
   inspect!(fm.title, content="None")
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::Paragraph(children~) => {
+    @astra.MdNode::Paragraph(children~) => {
       inspect!(children.length(), content="1")
       match children[0] {
-        @ssg.MdNode::Text(text) => inspect!(text, content="Hello World")
+        @astra.MdNode::Text(text) => inspect!(text, content="Hello World")
         _ => fail!("Expected Text node")
       }
     }
@@ -20,7 +20,7 @@ test "parse_markdown_native: heading" {
   let (_, nodes) = parse_markdown_native("# Hello")
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::Heading(level~, children~, id~) => {
+    @astra.MdNode::Heading(level~, children~, id~) => {
       inspect!(level, content="1")
       inspect!(id, content="hello")
       inspect!(children.length(), content="1")
@@ -42,7 +42,7 @@ test "parse_markdown_native: code block" {
   let (_, nodes) = parse_markdown_native(content)
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::CodeBlock(lang~, code~) => {
+    @astra.MdNode::CodeBlock(lang~, code~) => {
       inspect!(lang, content="javascript")
       inspect!(code.trim_space().to_string(), content="const x = 1;")
     }
@@ -55,7 +55,7 @@ test "parse_markdown_native: list" {
   let (_, nodes) = parse_markdown_native(content)
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::List(ordered~, items~) => {
+    @astra.MdNode::List(ordered~, items~) => {
       inspect!(ordered, content="false")
       inspect!(items.length(), content="3")
     }
@@ -68,7 +68,7 @@ test "parse_markdown_native: ordered list" {
   let (_, nodes) = parse_markdown_native(content)
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::List(ordered~, items~) => {
+    @astra.MdNode::List(ordered~, items~) => {
       inspect!(ordered, content="true")
       inspect!(items.length(), content="2")
     }
@@ -81,7 +81,7 @@ test "parse_markdown_native: emphasis and strong" {
   let (_, nodes) = parse_markdown_native(content)
   inspect!(nodes.length(), content="1")
   match nodes[0] {
-    @ssg.MdNode::Paragraph(children~) => {
+    @astra.MdNode::Paragraph(children~) => {
       // Should have: italic text, " and ", bold text
       inspect!(children.length() >= 3, content="true")
     }
@@ -93,9 +93,9 @@ test "parse_markdown_native: link" {
   let content = "[Link text](https://example.com)"
   let (_, nodes) = parse_markdown_native(content)
   match nodes[0] {
-    @ssg.MdNode::Paragraph(children~) =>
+    @astra.MdNode::Paragraph(children~) =>
       match children[0] {
-        @ssg.MdNode::Link(href~, children=link_children, ..) => {
+        @astra.MdNode::Link(href~, children=link_children, ..) => {
           inspect!(href, content="https://example.com")
           inspect!(link_children.length(), content="1")
         }
@@ -109,9 +109,9 @@ test "parse_markdown_native: image" {
   let content = "![Alt text](image.png \"Title\")"
   let (_, nodes) = parse_markdown_native(content)
   match nodes[0] {
-    @ssg.MdNode::Paragraph(children~) =>
+    @astra.MdNode::Paragraph(children~) =>
       match children[0] {
-        @ssg.MdNode::Image(src~, alt~, title~) => {
+        @astra.MdNode::Image(src~, alt~, title~) => {
           inspect!(src, content="image.png")
           inspect!(alt, content="Alt text")
           inspect!(title, content="Title")
@@ -126,7 +126,7 @@ test "parse_markdown_native: blockquote" {
   let content = "> Quote text"
   let (_, nodes) = parse_markdown_native(content)
   match nodes[0] {
-    @ssg.MdNode::Blockquote(children~) => inspect!(children.length(), content="1")
+    @astra.MdNode::Blockquote(children~) => inspect!(children.length(), content="1")
     _ => fail!("Expected Blockquote node")
   }
 }
@@ -138,7 +138,7 @@ test "parse_markdown_native: thematic break" {
   let mut found_hr = false
   for node in nodes {
     match node {
-      @ssg.MdNode::ThematicBreak => found_hr = true
+      @astra.MdNode::ThematicBreak => found_hr = true
       _ => ()
     }
   }
@@ -149,7 +149,7 @@ test "parse_markdown_native: table" {
   let content = "| A | B |\n|---|---|\n| 1 | 2 |"
   let (_, nodes) = parse_markdown_native(content)
   match nodes[0] {
-    @ssg.MdNode::Table(headers~, rows~) => {
+    @astra.MdNode::Table(headers~, rows~) => {
       inspect!(headers.length(), content="2")
       inspect!(rows.length(), content="1")
     }
@@ -161,11 +161,11 @@ test "parse_markdown_native: inline code" {
   let content = "Use `code` here"
   let (_, nodes) = parse_markdown_native(content)
   match nodes[0] {
-    @ssg.MdNode::Paragraph(children~) => {
+    @astra.MdNode::Paragraph(children~) => {
       let mut found_code = false
       for child in children {
         match child {
-          @ssg.MdNode::Code(code) => {
+          @astra.MdNode::Code(code) => {
             inspect!(code, content="code")
             found_code = true
           }

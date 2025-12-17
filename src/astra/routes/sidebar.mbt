@@ -28,10 +28,10 @@ fn attr(key : String, value : String) -> (String, @luna.Attr[Unit]) {
 
 ///| Generate sidebar from pages automatically (filtered by locale)
 pub fn generate_auto_sidebar(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   locale~ : String = "en"
-) -> Array[@ssg.SidebarGroup] {
-  let groups : Array[@ssg.SidebarGroup] = []
+) -> Array[@astra.SidebarGroup] {
+  let groups : Array[@astra.SidebarGroup] = []
 
   // Filter pages by locale first
   let locale_pages = pages.filter(fn(p) { p.locale == locale })
@@ -58,9 +58,9 @@ pub fn generate_auto_sidebar(
 
 ///| Group pages by canonical directory (locale-independent path)
 fn group_pages_by_canonical_dir(
-  pages : Array[@ssg.PageMeta]
-) -> Map[String, Array[@ssg.PageMeta]] {
-  let groups : Map[String, Array[@ssg.PageMeta]] = {}
+  pages : Array[@astra.PageMeta]
+) -> Map[String, Array[@astra.PageMeta]] {
+  let groups : Map[String, Array[@astra.PageMeta]] = {}
 
   for page in pages {
     let dir = get_canonical_dir(page.canonical_path)
@@ -90,16 +90,16 @@ fn get_canonical_dir(canonical_path : String) -> String {
 ///| Create sidebar group from pages
 fn create_sidebar_group(
   dir : String,
-  pages : Array[@ssg.PageMeta]
-) -> @ssg.SidebarGroup {
+  pages : Array[@astra.PageMeta]
+) -> @astra.SidebarGroup {
   // Sort pages within group
   let sorted = sort_pages(pages)
 
   // Create items
-  let items : Array[@ssg.SidebarItem] = []
+  let items : Array[@astra.SidebarItem] = []
   for page in sorted {
     let text = page.frontmatter.title.unwrap_or(get_page_name(page.url_path))
-    items.push(@ssg.SidebarItem::Link(text~, link=page.url_path))
+    items.push(@astra.SidebarItem::Link(text~, link=page.url_path))
   }
 
   // Get group title from directory name
@@ -110,19 +110,19 @@ fn create_sidebar_group(
     capitalize(name.replace(old="-", new=" "))
   }
 
-  @ssg.SidebarGroup::{ text, collapsed: false, items }
+  @astra.SidebarGroup::{ text, collapsed: false, items }
 }
 
 ///| Get sidebar for specific URL path (filtered by locale)
 pub fn get_sidebar_for_path(
-  config : @ssg.SsgConfig,
-  pages : Array[@ssg.PageMeta],
+  config : @astra.SsgConfig,
+  pages : Array[@astra.PageMeta],
   url_path : String,
   locale~ : String = "en"
-) -> Array[@ssg.SidebarGroup] {
+) -> Array[@astra.SidebarGroup] {
   match config.sidebar {
-    @ssg.SidebarConfig::Auto => generate_auto_sidebar(pages, locale~)
-    @ssg.SidebarConfig::Manual(groups) =>
+    @astra.SidebarConfig::Auto => generate_auto_sidebar(pages, locale~)
+    @astra.SidebarConfig::Manual(groups) =>
       // For manual sidebar, find matching path group
       find_sidebar_for_path(groups, url_path)
   }
@@ -130,9 +130,9 @@ pub fn get_sidebar_for_path(
 
 ///| Find sidebar groups that match the current path
 fn find_sidebar_for_path(
-  groups : Array[@ssg.SidebarGroup],
+  groups : Array[@astra.SidebarGroup],
   url_path : String
-) -> Array[@ssg.SidebarGroup] {
+) -> Array[@astra.SidebarGroup] {
   // For path /guide/intro, look for /guide sidebar
   let dir = get_url_directory(url_path)
 
@@ -201,18 +201,18 @@ fn capitalize(s : String) -> String {
 
 ///| Get flat list of page URLs in sidebar order
 pub fn get_sidebar_page_order(
-  groups : Array[@ssg.SidebarGroup]
+  groups : Array[@astra.SidebarGroup]
 ) -> Array[String] {
   let urls : Array[String] = []
   for group in groups {
     for item in group.items {
       match item {
-        @ssg.SidebarItem::Link(link~, ..) => urls.push(link)
-        @ssg.SidebarItem::Group(nested) => {
+        @astra.SidebarItem::Link(link~, ..) => urls.push(link)
+        @astra.SidebarItem::Group(nested) => {
           // Recursively get URLs from nested groups
           for nested_item in nested.items {
             match nested_item {
-              @ssg.SidebarItem::Link(link~, ..) => urls.push(link)
+              @astra.SidebarItem::Link(link~, ..) => urls.push(link)
               _ => ()
             }
           }
@@ -229,7 +229,7 @@ pub fn get_sidebar_page_order(
 
 ///| Render sidebar to VNode (desktop version with collapse button)
 pub fn render_sidebar(
-  groups : Array[@ssg.SidebarGroup],
+  groups : Array[@astra.SidebarGroup],
   current_path : String
 ) -> @luna.Node[Unit] {
   let group_vnodes = groups.map(fn(group) { render_sidebar_group(group, current_path) })
@@ -253,7 +253,7 @@ pub fn render_sidebar(
 
 ///| Render mobile sidebar dropdown (Docusaurus-style)
 pub fn render_mobile_sidebar(
-  groups : Array[@ssg.SidebarGroup],
+  groups : Array[@astra.SidebarGroup],
   current_path : String
 ) -> @luna.Node[Unit] {
   // Find current page title for the dropdown summary
@@ -275,11 +275,11 @@ pub fn render_mobile_sidebar(
 }
 
 ///| Find current page title from sidebar groups
-fn find_current_page_title(groups : Array[@ssg.SidebarGroup], current_path : String) -> String {
+fn find_current_page_title(groups : Array[@astra.SidebarGroup], current_path : String) -> String {
   for group in groups {
     for item in group.items {
       match item {
-        @ssg.SidebarItem::Link(text~, link~) => {
+        @astra.SidebarItem::Link(text~, link~) => {
           if link == current_path || (link.has_suffix("/") && current_path.has_prefix(link)) {
             return text
           }
@@ -293,16 +293,16 @@ fn find_current_page_title(groups : Array[@ssg.SidebarGroup], current_path : Str
 
 ///| Render sidebar group (collapsible with details/summary)
 fn render_sidebar_group(
-  group : @ssg.SidebarGroup,
+  group : @astra.SidebarGroup,
   current_path : String
 ) -> @luna.Node[Unit] {
   // Check if any item in this group is active
   let has_active = group.items.iter().any(fn(item) {
     match item {
-      @ssg.SidebarItem::Link(link~, ..) =>
+      @astra.SidebarItem::Link(link~, ..) =>
         link == current_path ||
           (link.has_suffix("/") && current_path.has_prefix(link))
-      @ssg.SidebarItem::Group(_) => false
+      @astra.SidebarItem::Group(_) => false
     }
   })
 
@@ -337,11 +337,11 @@ fn render_sidebar_group(
 
 ///| Render sidebar item
 fn render_sidebar_item(
-  item : @ssg.SidebarItem,
+  item : @astra.SidebarItem,
   current_path : String
 ) -> @luna.Node[Unit] {
   match item {
-    @ssg.SidebarItem::Link(text~, link~) => {
+    @astra.SidebarItem::Link(text~, link~) => {
       let is_active = link == current_path ||
         (link.has_suffix("/") && current_path.has_prefix(link))
       let class_name = if is_active {
@@ -356,6 +356,6 @@ fn render_sidebar_item(
       )
       h("li", [], [link_el])
     }
-    @ssg.SidebarItem::Group(nested) => render_sidebar_group(nested, current_path)
+    @astra.SidebarItem::Group(nested) => render_sidebar_group(nested, current_path)
   }
 }

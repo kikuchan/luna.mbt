@@ -7,7 +7,7 @@
 
 ///| Parse markdown content and return frontmatter + AST
 ///| This uses the native MoonBit parser (no external dependencies)
-pub fn parse_markdown(content : String) -> (@ssg.Frontmatter, Array[@ssg.MdNode]) {
+pub fn parse_markdown(content : String) -> (@astra.Frontmatter, Array[@astra.MdNode]) {
   parse_markdown_native(content)
 }
 
@@ -17,7 +17,7 @@ pub fn parse_markdown(content : String) -> (@ssg.Frontmatter, Array[@ssg.MdNode]
 
 ///| Parse Island directive from HTML string
 /// Format: <Island name="counter" :props='{"initial": 0}' trigger="visible" />
-fn parse_island_directive(html : String) -> @ssg.IslandEmbed? {
+fn parse_island_directive(html : String) -> @astra.IslandEmbed? {
   let trimmed = html.trim_space().to_string()
   if not(trimmed.has_prefix("<Island")) && not(trimmed.has_prefix("<island")) {
     return None
@@ -47,7 +47,7 @@ fn parse_island_directive(html : String) -> @ssg.IslandEmbed? {
     _ => @luna.Load
   }
 
-  Some(@ssg.IslandEmbed::{ name, props, trigger })
+  Some(@astra.IslandEmbed::{ name, props, trigger })
 }
 
 ///| Extract attribute value from HTML tag

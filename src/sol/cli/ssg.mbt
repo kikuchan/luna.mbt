@@ -121,14 +121,14 @@ fn run_ssg_build(args : Array[String]) -> Unit {
     }
   }
 
-  guard @ssg.parse_ssg_from_sol_config(config_content) is Some(ssg_config) else {
+  guard @astra.parse_ssg_from_sol_config(config_content) is Some(ssg_config) else {
     console_error(@colorette.red("Error: Invalid config file format or missing ssg section"))
     @process.exit(1)
   }
 
   // Apply output override if provided
   let final_config = match output_override {
-    Some(output) => @ssg.SsgConfig::{ ..ssg_config, output_dir: output }
+    Some(output) => @astra.SsgConfig::{ ..ssg_config, output_dir: output }
     None => ssg_config
   }
 
@@ -136,7 +136,7 @@ fn run_ssg_build(args : Array[String]) -> Unit {
   println(@colorette.gray("  Docs: \{final_config.docs_dir}"))
   println(@colorette.gray("  Output: \{final_config.output_dir}"))
 
-  match @ssg_gen.generate_site(final_config, cwd) {
+  match @astra_gen.generate_site(final_config, cwd) {
     Ok(_) => println(@colorette.green("✓ Build complete: \{final_config.output_dir}"))
     Err(e) => {
       console_error(@colorette.red("Build failed: \{e}"))

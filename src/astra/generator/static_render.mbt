@@ -23,7 +23,7 @@ fn attr(key : String, value : String) -> (String, @luna.Attr[Unit]) {
 // =============================================================================
 
 ///| Generate entire static site
-pub fn generate_site(config : @ssg.SsgConfig, cwd : String) -> Result[Unit, String] {
+pub fn generate_site(config : @astra.SsgConfig, cwd : String) -> Result[Unit, String] {
   println("Scanning docs directory: \{config.docs_dir}")
 
   // Step 1: Scan docs directory with i18n support
@@ -35,12 +35,12 @@ pub fn generate_site(config : @ssg.SsgConfig, cwd : String) -> Result[Unit, Stri
 
   // Step 2: Generate sidebar
   let sidebar = match config.sidebar {
-    @ssg.SidebarConfig::Auto => @routes.generate_auto_sidebar(pages)
-    @ssg.SidebarConfig::Manual(groups) => groups
+    @astra.SidebarConfig::Auto => @routes.generate_auto_sidebar(pages)
+    @astra.SidebarConfig::Manual(groups) => groups
   }
 
   // Step 3: Create build context
-  let ctx = @ssg.BuildContext::{
+  let ctx = @astra.BuildContext::{
     config,
     pages,
     sidebar,
@@ -70,8 +70,8 @@ pub fn generate_site(config : @ssg.SsgConfig, cwd : String) -> Result[Unit, Stri
 
 ///| Generate single page
 fn generate_page(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta
 ) -> Result[Unit, String] {
   // Read markdown file
   let source_path = @path.join2(@path.join2(ctx.cwd, ctx.config.docs_dir), page.source_path)
@@ -117,9 +117,9 @@ fn generate_page(
 
 ///| Build complete HTML page
 fn build_page_html(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta,
-  frontmatter : @ssg.Frontmatter,
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+  frontmatter : @astra.Frontmatter,
   content : @luna.Node[Unit],
   toc : Array[@markdown.TocItem]
 ) -> String {
@@ -142,9 +142,9 @@ fn build_page_html(
 
 ///| Build home layout (landing page)
 fn build_home_layout(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta,
-  _frontmatter : @ssg.Frontmatter,
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+  _frontmatter : @astra.Frontmatter,
   content : @luna.Node[Unit]
 ) -> @luna.Node[Unit] {
   let nav = build_nav(ctx, page)
@@ -155,9 +155,9 @@ fn build_home_layout(
 
 ///| Build default layout (nav + content)
 fn build_default_layout(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta,
-  _frontmatter : @ssg.Frontmatter,
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+  _frontmatter : @astra.Frontmatter,
   content : @luna.Node[Unit]
 ) -> @luna.Node[Unit] {
   let nav = build_nav(ctx, page)
@@ -168,9 +168,9 @@ fn build_default_layout(
 
 ///| Build doc layout (nav + sidebar + content + toc)
 fn build_doc_layout(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta,
-  frontmatter : @ssg.Frontmatter,
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+  frontmatter : @astra.Frontmatter,
   content : @luna.Node[Unit],
   toc : Array[@markdown.TocItem]
 ) -> @luna.Node[Unit] {
@@ -227,7 +227,7 @@ fn build_doc_layout(
 // =============================================================================
 
 ///| Build navigation bar with language switcher
-fn build_nav(ctx : @ssg.BuildContext, page : @ssg.PageMeta) -> @luna.Node[Unit] {
+fn build_nav(ctx : @astra.BuildContext, page : @astra.PageMeta) -> @luna.Node[Unit] {
   // Logo/Title
   let logo = match ctx.config.theme.logo {
     Some(src) =>
@@ -266,8 +266,8 @@ fn build_nav(ctx : @ssg.BuildContext, page : @ssg.PageMeta) -> @luna.Node[Unit] 
 
 ///| Build language switcher dropdown
 fn build_language_switcher(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta
 ) -> @luna.Node[Unit] {
   let i18n = ctx.config.i18n
 
@@ -331,7 +331,7 @@ fn build_language_switcher(
 }
 
 ///| Build single nav item
-fn build_nav_item(item : @ssg.NavItem) -> @luna.Node[Unit] {
+fn build_nav_item(item : @astra.NavItem) -> @luna.Node[Unit] {
   if item.items.is_empty() {
     // Simple link
     h(
@@ -394,8 +394,8 @@ fn build_toc(toc : Array[@markdown.TocItem]) -> @luna.Node[Unit] {
 
 ///| Build prev/next navigation
 fn build_prev_next(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta
 ) -> @luna.Node[Unit] {
   let prev = @routes.find_prev_page(ctx.pages, page.url_path)
   let next = @routes.find_next_page(ctx.pages, page.url_path)
@@ -436,7 +436,7 @@ fn build_prev_next(
 }
 
 ///| Build footer
-fn build_footer(ctx : @ssg.BuildContext) -> @luna.Node[Unit] {
+fn build_footer(ctx : @astra.BuildContext) -> @luna.Node[Unit] {
   match ctx.config.theme.footer {
     Some(footer_config) => {
       let children : Array[@luna.Node[Unit]] = []
@@ -466,9 +466,9 @@ fn build_footer(ctx : @ssg.BuildContext) -> @luna.Node[Unit] {
 
 ///| Build complete HTML document
 fn build_html_document(
-  ctx : @ssg.BuildContext,
-  page : @ssg.PageMeta,
-  frontmatter : @ssg.Frontmatter,
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+  frontmatter : @astra.Frontmatter,
   render_result : @render.SSRResult
 ) -> String {
   let page_title = frontmatter.title.unwrap_or(ctx.config.title)
@@ -499,7 +499,7 @@ fn build_html_document(
 // =============================================================================
 
 ///| Get page order (URL list) for a locale based on sidebar order
-fn get_page_order(pages : Array[@ssg.PageMeta], locale : String) -> Array[String] {
+fn get_page_order(pages : Array[@astra.PageMeta], locale : String) -> Array[String] {
   // Generate sidebar groups for this locale to get the correct order
   let sidebar_groups = @routes.generate_auto_sidebar(pages, locale~)
   @routes.get_sidebar_page_order(sidebar_groups)
@@ -527,7 +527,7 @@ fn ensure_dir(path : String) -> Unit {
 }
 
 ///| Copy static assets
-fn copy_static_assets(ctx : @ssg.BuildContext) -> Unit {
+fn copy_static_assets(ctx : @astra.BuildContext) -> Unit {
   let output_assets = @path.join2(
     @path.join2(ctx.cwd, ctx.config.output_dir),
     "assets",
@@ -545,7 +545,7 @@ fn copy_static_assets(ctx : @ssg.BuildContext) -> Unit {
 }
 
 ///| Generate sitemap.xml
-fn generate_sitemap(ctx : @ssg.BuildContext) -> Unit {
+fn generate_sitemap(ctx : @astra.BuildContext) -> Unit {
   let buf = StringBuilder::new()
   buf.write_string("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
   buf.write_string("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
@@ -575,7 +575,7 @@ fn generate_sitemap(ctx : @ssg.BuildContext) -> Unit {
 }
 
 ///| Get default CSS styles
-fn get_default_css(config : @ssg.SsgConfig) -> String {
+fn get_default_css(config : @astra.SsgConfig) -> String {
   let primary_color = config.theme.primary_color.unwrap_or("#3451b2")
   let css_rest =
     #|  --text-color: #213547;

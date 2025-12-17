@@ -65,9 +65,9 @@ fn slice_view_to(s : StringView, end : Int) -> String {
 pub fn scan_docs_dir(
   docs_dir : String,
   cwd : String,
-  i18n~ : @ssg.I18nConfig = @ssg.I18nConfig::default()
-) -> Array[@ssg.PageMeta] {
-  let pages : Array[@ssg.PageMeta] = []
+  i18n~ : @astra.I18nConfig = @astra.I18nConfig::default()
+) -> Array[@astra.PageMeta] {
+  let pages : Array[@astra.PageMeta] = []
   let full_path = @path.join2(cwd, docs_dir)
 
   if not(@fs.existsSync(full_path)) {
@@ -84,8 +84,8 @@ fn scan_recursive(
   relative_path : String,
   docs_dir : String,
   cwd : String,
-  i18n : @ssg.I18nConfig,
-  pages : Array[@ssg.PageMeta]
+  i18n : @astra.I18nConfig,
+  pages : Array[@astra.PageMeta]
 ) -> Unit {
   let entries : Array[String] = try {
     @fs.readdirSync(dir_path)
@@ -121,7 +121,7 @@ fn scan_recursive(
 
       let (frontmatter, _) = @markdown.parse_markdown(content)
 
-      let page = @ssg.PageMeta::{
+      let page = @astra.PageMeta::{
         source_path,
         url_path,
         frontmatter,
@@ -139,7 +139,7 @@ fn scan_recursive(
 ///       "guide/intro.md" -> ("en", "guide/intro.md")
 fn detect_locale_from_path(
   path : String,
-  i18n : @ssg.I18nConfig
+  i18n : @astra.I18nConfig
 ) -> (String, String) {
   // Check if path starts with a locale directory
   for locale in i18n.locales {
@@ -162,7 +162,7 @@ fn detect_locale_from_path(
 fn build_localized_url(
   canonical_path : String,
   locale : String,
-  i18n : @ssg.I18nConfig
+  i18n : @astra.I18nConfig
 ) -> String {
   // Find locale config
   for loc in i18n.locales {
@@ -257,7 +257,7 @@ pub fn url_to_output_path(url_path : String) -> String {
 // =============================================================================
 
 ///| Sort pages by URL path for consistent ordering
-pub fn sort_pages(pages : Array[@ssg.PageMeta]) -> Array[@ssg.PageMeta] {
+pub fn sort_pages(pages : Array[@astra.PageMeta]) -> Array[@astra.PageMeta] {
   // Simple bubble sort for now (pages array is usually small)
   let result = pages.copy()
   let n = result.length()
@@ -277,9 +277,9 @@ pub fn sort_pages(pages : Array[@ssg.PageMeta]) -> Array[@ssg.PageMeta] {
 
 ///| Group pages by directory
 pub fn group_pages_by_dir(
-  pages : Array[@ssg.PageMeta]
-) -> Map[String, Array[@ssg.PageMeta]] {
-  let groups : Map[String, Array[@ssg.PageMeta]] = {}
+  pages : Array[@astra.PageMeta]
+) -> Map[String, Array[@astra.PageMeta]] {
+  let groups : Map[String, Array[@astra.PageMeta]] = {}
 
   for page in pages {
     let dir = get_url_dir(page.url_path)
@@ -312,15 +312,15 @@ fn get_url_dir(url_path : String) -> String {
 
 ///| Find previous page in sorted pages
 pub fn find_prev_page(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   current_url : String
-) -> @ssg.NavLink? {
+) -> @astra.NavLink? {
   let sorted = sort_pages(pages)
   for i, page in sorted {
     if page.url_path == current_url && i > 0 {
       let prev = sorted[i - 1]
       let text = prev.frontmatter.title.unwrap_or(url_to_name(prev.url_path))
-      return Some(@ssg.NavLink::{ text, link: prev.url_path })
+      return Some(@astra.NavLink::{ text, link: prev.url_path })
     }
   }
   None
@@ -328,15 +328,15 @@ pub fn find_prev_page(
 
 ///| Find next page in sorted pages
 pub fn find_next_page(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   current_url : String
-) -> @ssg.NavLink? {
+) -> @astra.NavLink? {
   let sorted = sort_pages(pages)
   for i, page in sorted {
     if page.url_path == current_url && i < sorted.length() - 1 {
       let next = sorted[i + 1]
       let text = next.frontmatter.title.unwrap_or(url_to_name(next.url_path))
-      return Some(@ssg.NavLink::{ text, link: next.url_path })
+      return Some(@astra.NavLink::{ text, link: next.url_path })
     }
   }
   None
@@ -382,19 +382,19 @@ fn capitalize_first(s : String) -> String {
 
 ///| Get all pages for a specific locale
 pub fn get_pages_for_locale(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   locale : String
-) -> Array[@ssg.PageMeta] {
+) -> Array[@astra.PageMeta] {
   pages.filter(fn(p) { p.locale == locale })
 }
 
 ///| Find translation of a page in another locale
 /// Returns the translated page or None if not found
 pub fn find_translation(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   canonical_path : String,
   target_locale : String
-) -> @ssg.PageMeta? {
+) -> @astra.PageMeta? {
   for page in pages {
     if page.locale == target_locale && page.canonical_path == canonical_path {
       return Some(page)
@@ -405,11 +405,11 @@ pub fn find_translation(
 
 ///| Get available translations for a page
 pub fn get_available_translations(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   canonical_path : String,
-  i18n : @ssg.I18nConfig
-) -> Array[(@ssg.LocaleConfig, @ssg.PageMeta?)] {
-  let result : Array[(@ssg.LocaleConfig, @ssg.PageMeta?)] = []
+  i18n : @astra.I18nConfig
+) -> Array[(@astra.LocaleConfig, @astra.PageMeta?)] {
+  let result : Array[(@astra.LocaleConfig, @astra.PageMeta?)] = []
   for locale in i18n.locales {
     let translation = find_translation(pages, canonical_path, locale.code)
     result.push((locale, translation))
@@ -419,9 +419,9 @@ pub fn get_available_translations(
 
 ///| Find fallback page in default locale
 pub fn find_fallback_page(
-  pages : Array[@ssg.PageMeta],
+  pages : Array[@astra.PageMeta],
   canonical_path : String,
-  i18n : @ssg.I18nConfig
-) -> @ssg.PageMeta? {
+  i18n : @astra.I18nConfig
+) -> @astra.PageMeta? {
   find_translation(pages, canonical_path, i18n.default_locale)
 }

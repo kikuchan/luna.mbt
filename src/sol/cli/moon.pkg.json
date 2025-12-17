@@ -37,12 +37,12 @@
       "alias": "mbti_utils"
     },
     {
-      "path": "mizchi/luna/sol/ssg",
-      "alias": "ssg"
+      "path": "mizchi/luna/astra",
+      "alias": "astra"
     },
     {
-      "path": "mizchi/luna/sol/ssg/generator",
-      "alias": "ssg_gen"
+      "path": "mizchi/luna/astra/generator",
+      "alias": "astra_gen"
     }
   ],
   "warn-list": "-27-20",

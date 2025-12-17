@@ -3,7 +3,7 @@
 ## TODO
 
 - [ ] preload 挿入
-- [ ] src/sol/ssg で、静的サイト生成に対応
+- [ ] src/astra: 静的サイト生成 (src/sol/ssg から再設計)
 - DX
   - sol: dev コード監視を最適化を追加
   - sol: hot reload
@@ -12,9 +12,7 @@
     - https://r4ai.dev/posts/astro_hydration/
   - 今の仕様に合わせて sol new を再設計
 - Features
-  - src/platform/dom/portal
   - Critical CSS の抽出
-  - JS API を増やす。Solid風にする
 - Internal
   - sol generate で `.sol/client/exports.mbt` を削除して直接 moon.pkg.json の link を更新する
   - sol 中間生成ファイルを見直す
@@ -30,6 +28,10 @@
 
 ## Icebox
 
+- [ ] shiki設定のカスタマイズ
+  - sol.config.json の ssg セクションで theme と langs を選択可能にする
+  - theme: github-light, github-dark, nord, etc.
+  - langs: json, typescript, rust, mbt, etc.
 - [ ] headless ui library
 - [ ] shadcn
 - [ ] Vite Enviroment Apiに対応? -> やらない。やるにしても最後
@@ -80,12 +82,12 @@
 - [ ] v0.1.0 ドキュメントの英語化 - 海外ユーザーの参入障壁
 
 ### 高優先（実用性向上）
-- [ ] src/sol/ssg で静的サイト生成に対応 - ブログ/静的サイトの需要
+- [ ] src/astra で静的サイト生成に対応 - ブログ/静的サイトの需要
 - [ ] client trigger を astro と互換にする - 学習コスト低減
 - [ ] ViewTransition - モダンなページ遷移UX
 
 ### 中優先（機能拡充）
-- [ ] src/platform/dom/portal - モーダル等の実装に必須
+- [x] src/platform/dom/portal - モーダル等の実装に必須 ✓実装済み
 
 ## ImplementerReview
 
@@ -104,8 +106,8 @@
 - [ ] hot reload → 上記が決まってから実装
 
 ### 後回しでよい
-- SSG - MPAモードが動けば、静的出力はビルド時オプションで対応可
-- portal - DOM操作の話。アーキテクチャには影響しない
+- SSG (src/astra) - MPAモードが動けば、静的出力はビルド時オプションで対応可
+- ~~portal~~ ✓実装済み
 - Astro互換trigger - 属性名の話。後から互換レイヤーで対応可
 
 ### 推奨順序
