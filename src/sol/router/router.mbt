@@ -182,6 +182,18 @@ pub struct RouterConfig {
   preload_libs : Array[String]
   /// Chunk manifest for resolving shared chunk dependencies
   chunk_manifest : ChunkManifest?
+  /// Root HTML template with placeholders:
+  /// - __LUNA_TITLE__ : Page title
+  /// - __LUNA_PRELOAD__ : Modulepreload tags
+  /// - __LUNA_HEAD__ : Custom head HTML
+  /// - __LUNA_MAIN__ : Main content
+  root_template : String
+}
+
+///|
+/// Default root HTML template
+pub fn default_root_template() -> String {
+  "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>__LUNA_TITLE__</title>__LUNA_PRELOAD____LUNA_HEAD__</head><body><div id=\"__sol__\">__LUNA_MAIN__</div></body></html>"
 }
 
 ///|
@@ -196,6 +208,7 @@ pub fn RouterConfig::default() -> RouterConfig {
     enable_preload: true,
     preload_libs: [],
     chunk_manifest: None,
+    root_template: default_root_template(),
   }
 }
 
@@ -260,6 +273,20 @@ pub fn RouterConfig::with_default_title(
   title : String,
 ) -> RouterConfig {
   { ..self, default_title: title }
+}
+
+///|
+/// Set root HTML template
+/// Template placeholders:
+/// - __LUNA_TITLE__ : Page title
+/// - __LUNA_PRELOAD__ : Modulepreload tags
+/// - __LUNA_HEAD__ : Custom head HTML
+/// - __LUNA_MAIN__ : Main content
+pub fn RouterConfig::with_root_template(
+  self : RouterConfig,
+  template : String,
+) -> RouterConfig {
+  { ..self, root_template: template }
 }
 
 // ============================================================================
@@ -387,7 +414,7 @@ pub fn[E] register_routes(
   wc_loader_url? : String = "/static/wc-loader.js",
 ) -> App {
   // Use config if provided, otherwise use individual parameters
-  let (tp, dt, dh, lu, wlu, ep, pl, cm) = match config {
+  let (tp, dt, dh, lu, wlu, ep, pl, cm, rt) = match config {
     Some(c) =>
       (
         c.title_prefix,
@@ -398,6 +425,7 @@ pub fn[E] register_routes(
         c.enable_preload,
         c.preload_libs,
         c.chunk_manifest,
+        c.root_template,
       )
     None =>
       (
@@ -409,6 +437,7 @@ pub fn[E] register_routes(
         true,
         [],
         None,
+        default_root_template(),
       )
   }
   register_routes_inner(
@@ -425,6 +454,7 @@ pub fn[E] register_routes(
     enable_preload=ep,
     preload_libs=pl,
     chunk_manifest=cm,
+    root_template=rt,
   )
 }
 
@@ -443,6 +473,7 @@ fn[E] register_routes_inner(
   enable_preload~ : Bool,
   preload_libs~ : Array[String],
   chunk_manifest~ : ChunkManifest?,
+  root_template~ : String,
 ) -> App {
   let mut result = app
   for route in routes {
@@ -469,7 +500,7 @@ fn[E] register_routes_inner(
                 )
                 send_fragment_response(c, fragment_html)
               } else {
-                let html = render_page_html(node, page_title, default_head, false, enable_preload~, preload_libs~, chunk_manifest~)
+                let html = render_page_html(node, page_title, default_head, false, root_template, enable_preload~, preload_libs~, chunk_manifest~)
                 c.html(html)
               }
             }
@@ -493,6 +524,7 @@ fn[E] register_routes_inner(
           enable_preload~,
           preload_libs~,
           chunk_manifest~,
+          root_template~,
         )
       }
       @routes.Layout(segment~, children~, layout~) => {
@@ -512,6 +544,7 @@ fn[E] register_routes_inner(
           enable_preload~,
           preload_libs~,
           chunk_manifest~,
+          root_template~,
         )
       }
       @routes.Group(segment~, children~) => {
@@ -530,6 +563,7 @@ fn[E] register_routes_inner(
           enable_preload~,
           preload_libs~,
           chunk_manifest~,
+          root_template~,
         )
       }
       @routes.Get(path~, handler~) => {
@@ -605,12 +639,13 @@ fn format_title(
 // ============================================================================
 
 ///|
-/// Render VNode to full HTML page with optional preload support
+/// Render VNode to full HTML page with template-based rendering
 fn[E] render_page_html(
   node : @luna.Node[E],
   title : String,
   head : String,
   hydration : Bool,
+  template : String,
   enable_preload? : Bool = true,
   preload_libs? : Array[String] = [],
   chunk_manifest? : ChunkManifest? = None,
@@ -679,14 +714,12 @@ fn[E] render_page_html(
     }
     (result.html, tags)
   }
-  "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>" +
-  title +
-  "</title>" +
-  preload_tags +
-  head +
-  "</head><body><div id=\"app\">" +
-  body_html +
-  "</div></body></html>"
+  // Replace placeholders in template
+  template
+    .replace(old="__LUNA_TITLE__", new=title)
+    .replace(old="__LUNA_PRELOAD__", new=preload_tags)
+    .replace(old="__LUNA_HEAD__", new=head)
+    .replace(old="__LUNA_MAIN__", new=body_html)
 }
 
 // ============================================================================
@@ -713,7 +746,7 @@ pub fn register_server_routes(
   wc_loader_url? : String = "/static/wc-loader.js",
 ) -> App {
   // Use config if provided, otherwise use individual parameters
-  let (tp, dt, dh, lu, wlu) = match config {
+  let (tp, dt, dh, lu, wlu, rt) = match config {
     Some(c) =>
       (
         c.title_prefix,
@@ -721,8 +754,17 @@ pub fn register_server_routes(
         c.default_head,
         c.loader_url,
         c.wc_loader_url,
+        c.root_template,
       )
-    None => (title_prefix, default_title, default_head, loader_url, wc_loader_url)
+    None =>
+      (
+        title_prefix,
+        default_title,
+        default_head,
+        loader_url,
+        wc_loader_url,
+        default_root_template(),
+      )
   }
   register_server_routes_inner(
     app,
@@ -735,6 +777,7 @@ pub fn register_server_routes(
     default_head=dh,
     loader_url=lu,
     wc_loader_url=wlu,
+    root_template=rt,
   )
 }
 
@@ -750,6 +793,7 @@ fn register_server_routes_inner(
   default_head~ : String,
   loader_url~ : String,
   wc_loader_url~ : String,
+  root_template~ : String,
 ) -> App {
   let mut result = app
   for route in routes {
@@ -778,7 +822,7 @@ fn register_server_routes_inner(
                 )
                 send_fragment_response(c, fragment_html)
               } else {
-                let html = render_page_html(node, page_title, default_head, false)
+                let html = render_page_html(node, page_title, default_head, false, root_template)
                 c.html(html)
               }
             }
@@ -799,6 +843,7 @@ fn register_server_routes_inner(
           default_head~,
           loader_url~,
           wc_loader_url~,
+          root_template~,
         )
       }
       @routes.Layout(segment~, children~, layout~) => {
@@ -815,6 +860,7 @@ fn register_server_routes_inner(
           default_head~,
           loader_url~,
           wc_loader_url~,
+          root_template~,
         )
       }
       @routes.Group(segment~, children~) => {
@@ -830,6 +876,7 @@ fn register_server_routes_inner(
           default_head~,
           loader_url~,
           wc_loader_url~,
+          root_template~,
         )
       }
       @routes.Get(path~, handler~) => {
