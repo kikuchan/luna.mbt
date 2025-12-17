@@ -44,6 +44,7 @@ test-xplat:
     moon test --target all src/core/routes
     moon test --target all src/core/render
     moon test --target all src/core/serialize
+    moon test --target all src/core/markdown
 
 # Run vitest tests
 test-vitest: build-moon
@@ -136,6 +137,15 @@ sol *args:
 # Create new sol project
 sol-new name:
     node target/js/release/build/sol/cli/cli.js new {{name}}
+
+# Build SSG with syntax highlighting
+ssg-build output="dist-ssg": build-moon
+    node target/js/release/build/sol/cli/cli.js ssg build -o {{output}}
+    npx tsx scripts/shiki-highlight.ts {{output}}
+
+# Build SSG without syntax highlighting (faster)
+ssg-build-fast output="dist-ssg": build-moon
+    node target/js/release/build/sol/cli/cli.js ssg build -o {{output}}
 
 # === Coverage Commands ===
 

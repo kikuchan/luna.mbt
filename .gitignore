@@ -15,3 +15,4 @@ coverage/
 docs/private-*
 .wrangler
 __screenshots__
+dist-ssg

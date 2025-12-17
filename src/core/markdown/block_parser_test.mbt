@@ -306,6 +306,43 @@ test "parse table with inline formatting" {
   }
 }
 
+test "parse nested code block with 4 backticks" {
+  // Use 4 backticks to wrap markdown containing 3-backtick code blocks
+  let source = "````md\n```js\nconsole.log('hello');\n```\n````\n"
+  let result = parse(source)
+  match result.document.children[0] {
+    Block::FencedCode(info~, code~, fence_length~, ..) => {
+      inspect(fence_length, content="4")
+      inspect(info, content="md")
+      // The inner code block should be preserved as content
+      inspect(code.contains("```js"), content="true")
+      inspect(code.contains("console.log"), content="true")
+    }
+    _ => fail("Expected fenced code block")
+  }
+}
+
+test "parse code block with lang and filename" {
+  let result = parse("```typescript:src/index.ts\nconst x = 1;\n```\n")
+  match result.document.children[0] {
+    Block::FencedCode(info~, ..) => {
+      inspect(info, content="typescript:src/index.ts")
+    }
+    _ => fail("Expected fenced code")
+  }
+}
+
+test "parse code block with lang, filename, and meta" {
+  // Support meta attributes like {highlight=[1,3]}
+  let result = parse("```js:app.js {highlight=[1,3]}\nconst a = 1;\nconst b = 2;\nconst c = 3;\n```\n")
+  match result.document.children[0] {
+    Block::FencedCode(info~, ..) => {
+      inspect(info, content="js:app.js {highlight=[1,3]}")
+    }
+    _ => fail("Expected fenced code")
+  }
+}
+
 test "serialize table roundtrip" {
   let source = "| A | B |\n|:---|---:|\n| 1 | 2 |\n"
   let result = parse(source)

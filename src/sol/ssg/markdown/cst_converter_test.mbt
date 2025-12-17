@@ -177,3 +177,63 @@ test "parse_markdown_native: inline code" {
     _ => fail!("Expected Paragraph node")
   }
 }
+
+// =============================================================================
+// Info String Parsing Tests
+// =============================================================================
+
+test "parse_code_block_info: lang only" {
+  let info = parse_code_block_info("javascript")
+  inspect!(info.lang, content="javascript")
+  inspect!(info.filename, content="")
+  inspect!(info.meta, content="")
+}
+
+test "parse_code_block_info: lang with filename" {
+  let info = parse_code_block_info("js:app.js")
+  inspect!(info.lang, content="js")
+  inspect!(info.filename, content="app.js")
+  inspect!(info.meta, content="")
+}
+
+test "parse_code_block_info: lang with path filename" {
+  let info = parse_code_block_info("typescript:src/index.ts")
+  inspect!(info.lang, content="typescript")
+  inspect!(info.filename, content="src/index.ts")
+  inspect!(info.meta, content="")
+}
+
+test "parse_code_block_info: lang with meta" {
+  let info = parse_code_block_info("js {highlight=[1,3]}")
+  inspect!(info.lang, content="js")
+  inspect!(info.filename, content="")
+  inspect!(info.meta, content="{highlight=[1,3]}")
+}
+
+test "parse_code_block_info: lang, filename, and meta" {
+  let info = parse_code_block_info("ts:index.ts {highlight=[1,3]}")
+  inspect!(info.lang, content="ts")
+  inspect!(info.filename, content="index.ts")
+  inspect!(info.meta, content="{highlight=[1,3]}")
+}
+
+test "parse_code_block_info: empty string" {
+  let info = parse_code_block_info("")
+  inspect!(info.lang, content="")
+  inspect!(info.filename, content="")
+  inspect!(info.meta, content="")
+}
+
+test "parse_code_block_info: whitespace only" {
+  let info = parse_code_block_info("  ")
+  inspect!(info.lang, content="")
+  inspect!(info.filename, content="")
+  inspect!(info.meta, content="")
+}
+
+test "parse_code_block_info: json package.json" {
+  let info = parse_code_block_info("json:package.json")
+  inspect!(info.lang, content="json")
+  inspect!(info.filename, content="package.json")
+  inspect!(info.meta, content="")
+}

@@ -515,3 +515,152 @@ pub(all) struct Span {
 4. **CRDT導入時の注意**
    - CrdtSpan は絶対位置キャッシュを併用
    - Tombstone比率が高くなったら圧縮検討
+
+---
+
+## 16. シンタックスハイライト設計
+
+### 16.1 現在の実装 (SSG)
+
+SSG ビルド時に shiki でハイライト処理を行い、クライアントでは実行しない。
+
+```
+Markdown
+    ↓
+[MoonBit Parser] src/core/markdown/
+    ↓
+CST (FencedCode with info string)
+    ↓
+[Transformer] src/sol/ssg/markdown/transformer.mbt
+    ↓
+HTML (<pre data-lang="..." data-filename="...">)
+    ↓
+[Shiki Post-processor] scripts/shiki-highlight.ts
+    ↓
+HTML with syntax highlighting
+```
+
+**コードブロックの info string パース:**
+
+```moonbit
+// "ts:index.ts {highlight=[1,3]}" を分解
+pub(all) struct CodeBlockInfo {
+  lang : String      // "ts"
+  filename : String  // "index.ts"
+  meta : String      // "{highlight=[1,3]}"
+}
+
+pub fn parse_code_block_info(info : String) -> CodeBlockInfo
+```
+
+**パフォーマンス（22ファイル、135コードブロック）:**
+
+| シナリオ | 全体時間 | shiki 処理 | shiki 比率 |
+|---------|---------|-----------|-----------|
+| コールドキャッシュ | 2.5秒 | 737ms | 30% |
+| ウォームキャッシュ | 2.0秒 | 23ms | 1% |
+
+永続キャッシュ（content hash）により、再ビルド時は shiki が支配的にならない。
+
+### 16.2 将来設計: trait ベースのハイライターアダプタ
+
+native 環境では tree-sitter を使用するため、プラットフォーム抽象化が必要。
+
+```moonbit
+// ハイライトトークン（プラットフォーム非依存）
+pub(all) struct HighlightToken {
+  text : String
+  scope : HighlightScope
+  start : Int
+  end : Int
+}
+
+pub(all) enum HighlightScope {
+  Keyword
+  String
+  Number
+  Comment
+  Function
+  Type
+  Variable
+  Operator
+  Punctuation
+  Plain
+}
+
+// ハイライターインターフェース
+pub(all) trait Highlighter {
+  highlight(Self, code : String, lang : String) -> Array[HighlightToken]
+  supported_languages(Self) -> Array[String]
+  is_supported(Self, lang : String) -> Bool
+}
+
+// トークン列からHTML生成（共通）
+pub fn tokens_to_html(tokens : Array[HighlightToken]) -> String
+```
+
+**ディレクトリ構造案:**
+
+```
+src/core/highlight/
+├── types.mbt           # HighlightToken, HighlightScope, trait Highlighter
+├── html.mbt            # tokens_to_html (共通)
+└── moon.pkg.json       # target: all
+
+src/platform/highlight/
+├── shiki/              # JS 用 (FFI → shiki)
+│   ├── adapter.mbt
+│   └── moon.pkg.json   # target: js
+└── treesitter/         # Native 用 (FFI → tree-sitter)
+    ├── adapter.mbt
+    └── moon.pkg.json   # target: native
+```
+
+**CST との統合:**
+
+```moonbit
+fn highlight_code_block[H : Highlighter](
+  highlighter : H,
+  block : Block
+) -> Array[HighlightToken] {
+  match block {
+    FencedCode(info~, code~, ..) => {
+      let info = parse_code_block_info(info)
+      if highlighter.is_supported(info.lang) {
+        highlighter.highlight(code, info.lang)
+      } else {
+        [{ text: code, scope: Plain, start: 0, end: code.length() }]
+      }
+    }
+    _ => []
+  }
+}
+```
+
+### 16.3 設計上の考慮点
+
+| 項目 | 考慮事項 |
+|------|---------|
+| scope マッピング | shiki と tree-sitter で scope 名が異なる → 正規化レイヤー必要 |
+| 非同期処理 | shiki は async、tree-sitter は sync → trait 設計に影響 |
+| 出力形式 | トークン列から HTML/ANSI/LSP semantic tokens など生成可能 |
+| キャッシュ | content hash でプラットフォーム間共有可能 |
+
+### 16.4 GFM スタイル
+
+github-markdown-css を使用してGFMスタイルを統一:
+
+```
+assets/
+├── github-markdown.css  # GFM スタイル (npm: github-markdown-css)
+├── shiki.css            # シンタックスハイライト用
+└── style.css            # レイアウト用
+```
+
+HTML テンプレートで `markdown-body` クラスを付与:
+
+```html
+<article class="doc-content markdown-body">
+  <!-- markdown content -->
+</article>
+```

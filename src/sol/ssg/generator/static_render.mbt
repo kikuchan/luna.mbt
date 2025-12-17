@@ -197,7 +197,7 @@ fn build_doc_layout(
   }
 
   // Main content
-  let article = h("article", [attr("class", "doc-content")], [content])
+  let article = h("article", [attr("class", "doc-content markdown-body")], [content])
 
   // TOC (outline)
   let toc_vnode = if not(toc.is_empty()) {
@@ -491,7 +491,7 @@ fn build_html_document(
   // Navigation script for View Transition direction
   let nav_script = get_navigation_script(page_order)
 
-  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\n  <meta name=\"description\" content=\"\{desc}\">\n  <link rel=\"stylesheet\" href=\"\{base}assets/style.css\">\n  <style>:root { --primary-color: \{primary}; }</style>\n  \{preloads}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" src=\"\{base}assets/loader.js\"></script>\n  \{nav_script}\n</body>\n</html>"
+  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\n  <meta name=\"description\" content=\"\{desc}\">\n  <link rel=\"stylesheet\" href=\"\{base}assets/github-markdown.css\">\n  <link rel=\"stylesheet\" href=\"\{base}assets/shiki.css\">\n  <link rel=\"stylesheet\" href=\"\{base}assets/style.css\">\n  <style>:root { --primary-color: \{primary}; }</style>\n  \{preloads}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" src=\"\{base}assets/loader.js\"></script>\n  \{nav_script}\n</body>\n</html>"
 }
 
 // =============================================================================
@@ -874,22 +874,13 @@ fn get_default_css(config : @ssg.SsgConfig) -> String {
   #|
   #|a { color: var(--primary-color); }
   #|
-  #|code {
-  #|  background: var(--code-bg);
-  #|  padding: 0.2rem 0.4rem;
-  #|  border-radius: 4px;
-  #|  font-size: 0.9em;
+  #|/* Markdown body container */
+  #|.markdown-body {
+  #|  box-sizing: border-box;
+  #|  min-width: 200px;
+  #|  max-width: 980px;
+  #|  margin: 0 auto;
   #|}
-  #|
-  #|pre {
-  #|  background: var(--code-bg);
-  #|  padding: 1rem;
-  #|  border-radius: 8px;
-  #|  overflow-x: auto;
-  #|  margin: 1rem 0;
-  #|}
-  #|
-  #|pre code { background: none; padding: 0; }
   #|
   #|/* TOC */
   #|.toc {

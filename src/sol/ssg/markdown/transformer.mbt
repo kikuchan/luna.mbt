@@ -55,12 +55,32 @@ pub fn md_node_to_vnode(node : @ssg.MdNode) -> @luna.Node[Unit] {
     }
     @ssg.MdNode::Code(code) => h("code", [], [@luna.vtext(code)])
     @ssg.MdNode::CodeBlock(lang~, code~) => {
-      let code_el = h(
-        "code",
-        [attr("class", "language-\{lang}")],
-        [@luna.vtext(code)],
-      )
-      h("pre", [attr("class", "code-block")], [code_el])
+      // Parse info string to extract lang, filename, and meta
+      let info = parse_code_block_info(lang)
+
+      // Build code element attributes
+      let code_attrs : Array[(String, @luna.Attr[Unit])] = []
+      if not(info.lang.is_empty()) {
+        code_attrs.push(attr("class", "language-\{info.lang}"))
+      }
+
+      let code_el = h("code", code_attrs, [@luna.vtext(code)])
+
+      // Build pre element attributes with data for shiki processing
+      let pre_attrs : Array[(String, @luna.Attr[Unit])] = [
+        attr("class", "code-block"),
+      ]
+      if not(info.lang.is_empty()) {
+        pre_attrs.push(attr("data-lang", info.lang))
+      }
+      if not(info.filename.is_empty()) {
+        pre_attrs.push(attr("data-filename", info.filename))
+      }
+      if not(info.meta.is_empty()) {
+        pre_attrs.push(attr("data-meta", info.meta))
+      }
+
+      h("pre", pre_attrs, [code_el])
     }
     @ssg.MdNode::Link(href~, title~, children~) => {
       let child_vnodes = children.map(fn(n) { md_node_to_vnode(n) })
