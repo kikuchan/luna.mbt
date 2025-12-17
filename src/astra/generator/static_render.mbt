@@ -32,8 +32,13 @@ pub fn generate_site(
 ) -> Result[Unit, String] {
   println("Scanning docs directory: \{config.docs_dir}")
 
-  // Step 1: Scan docs directory with i18n support
-  let pages = @routes.scan_docs_dir(config.docs_dir, cwd, i18n=config.i18n)
+  // Step 1: Scan docs directory with i18n and exclude support
+  let pages = @routes.scan_docs_dir(
+    config.docs_dir,
+    cwd,
+    i18n=config.i18n,
+    exclude=config.exclude,
+  )
   if pages.is_empty() {
     return Err("No markdown files found in \{config.docs_dir}")
   }

@@ -48,6 +48,12 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
 
     // Parse i18n config
     let i18n = parse_i18n_config(ssg_obj)
+
+    // Parse exclude patterns
+    let exclude = match ssg_obj.get("exclude") {
+      Some(Array(arr)) => parse_string_array_json(arr)
+      _ => []
+    }
     Some(SsgConfig::{
       docs_dir,
       output_dir,
@@ -58,6 +64,7 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
       islands,
       theme,
       i18n,
+      exclude,
     })
   } catch {
     _ => None

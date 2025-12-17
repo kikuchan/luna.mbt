@@ -64,13 +64,14 @@ pub fn scan_docs_dir(
   docs_dir : String,
   cwd : String,
   i18n? : @astra.I18nConfig = @astra.I18nConfig::default(),
+  exclude? : Array[String] = [],
 ) -> Array[@astra.PageMeta] {
   let pages : Array[@astra.PageMeta] = []
   let full_path = @path.join2(cwd, docs_dir)
   if not(@fs.existsSync(full_path)) {
     return pages
   }
-  scan_recursive(full_path, "", docs_dir, cwd, i18n, pages)
+  scan_recursive(full_path, "", docs_dir, cwd, i18n, exclude, pages)
   pages
 }
 
@@ -82,6 +83,7 @@ fn scan_recursive(
   docs_dir : String,
   cwd : String,
   i18n : @astra.I18nConfig,
+  exclude : Array[String],
   pages : Array[@astra.PageMeta],
 ) -> Unit {
   let entries : Array[String] = @fs.readdirSync(dir_path) catch { _ => return }
@@ -93,8 +95,20 @@ fn scan_recursive(
       relative_path + "/" + entry
     }
     if is_directory(entry_path) {
+      // Skip excluded directories
+      if is_excluded(entry, entry_relative, exclude) {
+        continue
+      }
       // Recurse into subdirectory
-      scan_recursive(entry_path, entry_relative, docs_dir, cwd, i18n, pages)
+      scan_recursive(
+        entry_path,
+        entry_relative,
+        docs_dir,
+        cwd,
+        i18n,
+        exclude,
+        pages,
+      )
     } else if entry.has_suffix(".md") {
       // Process markdown file
       let source_path = entry_relative
@@ -175,6 +189,27 @@ fn is_directory(path : String) -> Bool {
   @fs.statSync(path).isDirectory() catch {
     _ => false
   }
+}
+
+///|
+/// Check if directory should be excluded
+/// Matches against directory name or relative path
+fn is_excluded(name : String, relative_path : String, exclude : Array[String]) -> Bool {
+  for pattern in exclude {
+    // Match by directory name (e.g., "internal" matches "docs/internal")
+    if name == pattern {
+      return true
+    }
+    // Match by relative path (e.g., "internal/drafts" matches exactly)
+    if relative_path == pattern {
+      return true
+    }
+    // Match by path prefix (e.g., "internal" matches "internal/foo")
+    if relative_path.has_prefix(pattern + "/") {
+      return true
+    }
+  }
+  false
 }
 
 ///|

@@ -25,6 +25,8 @@ pub(all) struct SsgConfig {
   theme : ThemeConfig
   /// Internationalization configuration
   i18n : I18nConfig
+  /// Directories to exclude from scanning (e.g., ["internal", "drafts"])
+  exclude : Array[String]
 }
 
 ///|
@@ -69,6 +71,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     islands: [],
     theme: ThemeConfig::default(),
     i18n: I18nConfig::default(),
+    exclude: [],
   }
 }
 
