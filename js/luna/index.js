@@ -69,6 +69,11 @@ import {
   stateIsFailure,
   stateValue,
   stateError,
+  // Portal API
+  portalToBody,
+  portalToSelector,
+  portalWithShadow,
+  portalToElementWithShadow,
 } from "../../target/js/release/build/platform/js/api/api.js";
 
 // ============================================================================
@@ -454,6 +459,44 @@ export function Match(props) {
   };
 }
 
+/**
+ * Portal component for rendering outside the component tree (SolidJS-style)
+ * Teleports children to a different DOM location
+ *
+ * @param {{ mount?: Element | string, useShadow?: boolean, children: any | (() => any) }} props
+ * @returns {any}
+ */
+export function Portal(props) {
+  const { mount, useShadow = false, children } = props;
+
+  // Resolve children
+  const resolvedChildren = typeof children === "function" ? [children()] : Array.isArray(children) ? children : [children];
+
+  // Handle different mount targets
+  if (useShadow) {
+    if (typeof mount === "string") {
+      const target = document.querySelector(mount);
+      if (target) {
+        return portalToElementWithShadow(target, resolvedChildren);
+      }
+    } else if (mount) {
+      return portalToElementWithShadow(mount, resolvedChildren);
+    }
+    return portalWithShadow(resolvedChildren);
+  }
+
+  if (typeof mount === "string") {
+    return portalToSelector(mount, resolvedChildren);
+  }
+
+  if (mount) {
+    // For custom element mount, use selector approach
+    return portalToBody(resolvedChildren);
+  }
+
+  return portalToBody(resolvedChildren);
+}
+
 // Re-export unchanged APIs
 export {
   // Batch control
@@ -510,6 +553,11 @@ export {
   stateIsFailure,
   stateValue,
   stateError,
+  // Portal API (low-level)
+  portalToBody,
+  portalToSelector,
+  portalWithShadow,
+  portalToElementWithShadow,
 };
 
 // Legacy API exports (for backwards compatibility during migration)

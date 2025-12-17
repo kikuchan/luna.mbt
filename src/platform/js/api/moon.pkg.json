@@ -11,7 +11,8 @@
     { "path": "mizchi/luna/core/routes", "alias": "routes" },
     { "path": "mizchi/luna/platform/dom/router", "alias": "browser_router" },
     { "path": "mizchi/js/core", "alias": "js" },
-    { "path": "mizchi/js/browser/dom", "alias": "js_dom" }
+    { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
+    { "path": "mizchi/luna/platform/dom/portal", "alias": "portal" }
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom"
@@ -79,7 +80,11 @@
         "state_is_success:stateIsSuccess",
         "state_is_failure:stateIsFailure",
         "state_value:stateValue",
-        "state_error:stateError"
+        "state_error:stateError",
+        "portal_to_body:portalToBody",
+        "portal_to_selector:portalToSelector",
+        "portal_with_shadow:portalWithShadow",
+        "portal_to_element_with_shadow:portalToElementWithShadow"
       ],
       "format": "esm"
     }

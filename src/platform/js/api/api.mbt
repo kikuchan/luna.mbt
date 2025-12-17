@@ -490,3 +490,54 @@ pub fn state_error(state : JsAsyncState) -> String {
     None => ""
   }
 }
+
+// ============================================================================
+// Portal API (SolidJS-style Portal)
+// ============================================================================
+
+///|
+/// Convert element DomNode to portal DomNode
+fn to_portal_node(n : @element.DomNode) -> @portal.DomNode {
+  @portal.DomNode::Raw(n.to_jsdom())
+}
+
+///|
+/// Convert portal DomNode to element DomNode (as Raw)
+fn from_portal_node(n : @portal.DomNode) -> @element.DomNode {
+  @element.dom_node(n.to_jsdom())
+}
+
+///|
+/// Create a portal that renders children into document.body
+/// Returns a placeholder node at the original location
+pub fn portal_to_body(children : Array[@element.DomNode]) -> @element.DomNode {
+  let portal_children = children.map(to_portal_node)
+  from_portal_node(@portal.portal_to_body(portal_children))
+}
+
+///|
+/// Create a portal that renders children into a specific selector
+pub fn portal_to_selector(
+  selector : String,
+  children : Array[@element.DomNode],
+) -> @element.DomNode {
+  let portal_children = children.map(to_portal_node)
+  from_portal_node(@portal.portal_to_selector(selector, portal_children))
+}
+
+///|
+/// Create a portal with Shadow DOM encapsulation
+pub fn portal_with_shadow(children : Array[@element.DomNode]) -> @element.DomNode {
+  let portal_children = children.map(to_portal_node)
+  from_portal_node(@portal.portal_with_shadow(portal_children))
+}
+
+///|
+/// Create a portal to a specific element with Shadow DOM
+pub fn portal_to_element_with_shadow(
+  mount : @js_dom.Element,
+  children : Array[@element.DomNode],
+) -> @element.DomNode {
+  let portal_children = children.map(to_portal_node)
+  from_portal_node(@portal.portal_to_with_shadow(mount, portal_children))
+}

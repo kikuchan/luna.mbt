@@ -273,6 +273,42 @@ export interface MatchProps<T> {
  */
 export function Match<T>(props: MatchProps<T>): MatchResult<Node>;
 
+// ============================================================================
+// Portal API (SolidJS-style)
+// ============================================================================
+
+/** Portal component props */
+export interface PortalProps {
+  /** Target element or CSS selector to mount to (defaults to document.body) */
+  mount?: Element | string;
+  /** Whether to use Shadow DOM for encapsulation */
+  useShadow?: boolean;
+  /** Children to render in the portal */
+  children: Node | Node[] | (() => Node);
+}
+
+/**
+ * Portal component for rendering outside the component tree (SolidJS-style)
+ * Teleports children to a different DOM location
+ * @example
+ * Portal({ children: modal() }) // renders to body
+ * Portal({ mount: "#modal-root", children: modal() }) // renders to #modal-root
+ * Portal({ useShadow: true, children: modal() }) // renders with Shadow DOM
+ */
+export function Portal(props: PortalProps): Node;
+
+/** Low-level portal to body */
+export function portalToBody(children: Node[]): Node;
+
+/** Low-level portal to CSS selector */
+export function portalToSelector(selector: string, children: Node[]): Node;
+
+/** Low-level portal with Shadow DOM */
+export function portalWithShadow(children: Node[]): Node;
+
+/** Low-level portal to element with Shadow DOM */
+export function portalToElementWithShadow(mount: Element, children: Node[]): Node;
+
 // JSX support
 export function jsx(
   type: string | ((props: any) => Node),

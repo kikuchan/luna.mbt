@@ -65,6 +65,7 @@ function Counter() {
 | `Show({ when, children })` | `<Show when={...}>` | Conditional rendering |
 | `Switch/Match` | `<Switch>/<Match>` | Multiple conditions |
 | `Provider` | `<Context.Provider>` | Context provider |
+| `Portal` | `<Portal>` | Render outside tree |
 
 ### Utility Functions
 
@@ -96,6 +97,32 @@ const theme = useContext(ThemeContext); // "dark"
 ```
 
 Context is **Owner-based** (component-tree-scoped), matching SolidJS behavior. Values are inherited through the reactive Owner chain, not JavaScript call stack.
+
+### Portal API
+
+Portal renders children into a different DOM location, outside the normal component hierarchy.
+
+```typescript
+// Render modal to body (default)
+Portal({ children: modalContent() })
+
+// Render to specific CSS selector
+Portal({ mount: "#modal-root", children: modalContent() })
+
+// Render with Shadow DOM encapsulation
+Portal({ useShadow: true, children: modalContent() })
+```
+
+Use cases:
+- Modals that need to avoid z-index issues
+- Dropdowns/tooltips escaping `overflow: hidden`
+- Full-screen overlays
+
+Low-level functions are also available:
+- `portalToBody(children)` - Portal to document.body
+- `portalToSelector(selector, children)` - Portal to CSS selector
+- `portalWithShadow(children)` - Portal with Shadow DOM
+- `portalToElementWithShadow(element, children)` - Portal to element with Shadow DOM
 
 ## Differences from SolidJS
 

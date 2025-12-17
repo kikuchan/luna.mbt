@@ -1,7 +1,7 @@
 /**
  * Tests for SolidJS-compatible API utilities
  */
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import {
   createSignal,
   createEffect,
@@ -14,6 +14,9 @@ import {
   Index,
   Switch,
   Match,
+  Portal,
+  portalToBody,
+  portalToSelector,
   createContext,
   useContext,
   createElement,
@@ -413,5 +416,94 @@ describe("SolidJS API compatibility", () => {
     });
 
     expect(values).toEqual([0, 1, 2]);
+  });
+});
+
+describe("Portal component", () => {
+  let container: HTMLElement;
+  let portalTarget: HTMLElement;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    container.id = "test-container";
+    document.body.appendChild(container);
+
+    portalTarget = document.createElement("div");
+    portalTarget.id = "portal-target";
+    document.body.appendChild(portalTarget);
+  });
+
+  afterEach(() => {
+    container.remove();
+    portalTarget.remove();
+  });
+
+  test("Portal renders children to body by default", () => {
+    const content = createElement("div", [attr("id", AttrValue.Static("portal-content"))], [text("Portal content")]);
+
+    const placeholder = Portal({
+      children: content,
+    });
+
+    // Placeholder should be returned
+    expect(placeholder).toBeDefined();
+
+    // Content should be in body
+    const rendered = document.getElementById("portal-content");
+    expect(rendered).not.toBeNull();
+    expect(rendered?.textContent).toBe("Portal content");
+
+    // Clean up
+    rendered?.remove();
+  });
+
+  test("Portal renders to selector mount target", () => {
+    const content = createElement("div", [attr("id", AttrValue.Static("selector-portal"))], [text("Selector portal")]);
+
+    Portal({
+      mount: "#portal-target",
+      children: content,
+    });
+
+    // Content should be in the portal target
+    const rendered = portalTarget.querySelector("#selector-portal");
+    expect(rendered).not.toBeNull();
+    expect(rendered?.textContent).toBe("Selector portal");
+  });
+
+  test("portalToBody low-level API works", () => {
+    const content = createElement("div", [attr("id", AttrValue.Static("low-level-portal"))], [text("Low level")]);
+
+    portalToBody([content]);
+
+    const rendered = document.getElementById("low-level-portal");
+    expect(rendered).not.toBeNull();
+    expect(rendered?.textContent).toBe("Low level");
+
+    rendered?.remove();
+  });
+
+  test("portalToSelector low-level API works", () => {
+    const content = createElement("div", [attr("class", AttrValue.Static("selector-content"))], [text("Selector content")]);
+
+    portalToSelector("#portal-target", [content]);
+
+    const rendered = portalTarget.querySelector(".selector-content");
+    expect(rendered).not.toBeNull();
+    expect(rendered?.textContent).toBe("Selector content");
+  });
+
+  test("Portal accepts function children", () => {
+    const content = () => createElement("span", [attr("id", AttrValue.Static("func-portal"))], [text("Function child")]);
+
+    Portal({
+      children: content,
+    });
+
+    const rendered = document.getElementById("func-portal");
+    expect(rendered).not.toBeNull();
+    expect(rendered?.textContent).toBe("Function child");
+
+    rendered?.remove();
   });
 });
