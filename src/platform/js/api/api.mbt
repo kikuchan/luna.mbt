@@ -339,3 +339,154 @@ pub fn router_get_match(router : BrowserRouter) -> @routes.RoutesMatch? {
 pub fn router_get_base(router : BrowserRouter) -> String {
   router.0.get_base()
 }
+
+// ============================================================================
+// Context API (Solid.js style)
+// ============================================================================
+
+///|
+/// Context wrapper for JS
+pub struct JsContext(@signal.Context[Any])
+
+///|
+/// Create a new context with a default value
+pub fn create_context(default_value : Any) -> JsContext {
+  JsContext(@signal.create_context(default_value))
+}
+
+///|
+/// Provide a context value for the duration of a function
+pub fn provide(ctx : JsContext, value : Any, f : () -> Any) -> Any {
+  @signal.provide(ctx.0, value, f)
+}
+
+///|
+/// Use a context value - returns the current provided value or default
+pub fn use_context(ctx : JsContext) -> Any {
+  @signal.use_context(ctx.0)
+}
+
+// ============================================================================
+// Resource API (Async state management)
+// ============================================================================
+
+///|
+/// Resource wrapper for JS
+pub struct JsResource(@signal.Resource[Any])
+
+///|
+/// AsyncState wrapper for JS
+pub struct JsAsyncState(@signal.AsyncState[Any])
+
+///|
+/// Create a Resource from a Promise-style fetcher
+/// The fetcher receives (resolve, reject) callbacks
+pub fn create_resource(
+  fetcher : ((Any) -> Unit, (String) -> Unit) -> Unit,
+) -> JsResource {
+  JsResource(@signal.resource(fetcher))
+}
+
+///|
+/// Create a deferred Resource (starts pending, resolve/reject manually)
+pub fn create_deferred() -> (JsResource, (Any) -> Unit, (String) -> Unit) {
+  let (res, resolve, reject) = @signal.deferred()
+  (JsResource(res), resolve, reject)
+}
+
+///|
+/// Get current async state (reactive)
+pub fn resource_get(res : JsResource) -> JsAsyncState {
+  res.0.get()
+}
+
+///|
+/// Peek current state without tracking
+pub fn resource_peek(res : JsResource) -> JsAsyncState {
+  res.0.peek()
+}
+
+///|
+/// Trigger refetch
+pub fn resource_refetch(res : JsResource) -> Unit {
+  res.0.refetch()
+}
+
+///|
+/// Check if currently pending
+pub fn resource_is_pending(res : JsResource) -> Bool {
+  res.0.is_pending()
+}
+
+///|
+/// Check if successfully loaded
+pub fn resource_is_success(res : JsResource) -> Bool {
+  res.0.is_success()
+}
+
+///|
+/// Check if failed
+pub fn resource_is_failure(res : JsResource) -> Bool {
+  res.0.is_failure()
+}
+
+///|
+/// Get value if success, undefined otherwise
+pub fn resource_value(res : JsResource) -> Any {
+  match res.0.value() {
+    Some(v) => v
+    None => undefined()
+  }
+}
+
+///|
+/// Get error if failure, undefined otherwise
+pub fn resource_error(res : JsResource) -> String {
+  match res.0.error() {
+    Some(e) => e
+    None => ""
+  }
+}
+
+///|
+/// JS undefined value
+extern "js" fn undefined() -> Any =
+  #| () => undefined
+
+// AsyncState helpers
+
+///|
+/// Check if state is pending
+pub fn state_is_pending(state : JsAsyncState) -> Bool {
+  state.0.is_pending()
+}
+
+///|
+/// Check if state is success
+pub fn state_is_success(state : JsAsyncState) -> Bool {
+  state.0.is_success()
+}
+
+///|
+/// Check if state is failure
+pub fn state_is_failure(state : JsAsyncState) -> Bool {
+  state.0.is_failure()
+}
+
+///|
+/// Get value from state if success
+pub fn state_value(state : JsAsyncState) -> Any {
+  match state.0.value() {
+    Some(v) => v
+    None => undefined()
+  }
+}
+
+///|
+/// Get error from state if failure
+pub fn state_error(state : JsAsyncState) -> String {
+  match state.0.error() {
+    Some(e) => e
+    None => ""
+  }
+}

@@ -1,49 +1,43 @@
 /**
- * Type-safe TypeScript definitions for MoonBit signals
+ * SolidJS-compatible TypeScript definitions for Luna
  */
 
-/** Reactive signal container */
-export interface Signal<T> {
-  readonly __brand: unique symbol;
-  readonly __type: T;
-}
+// ============================================================================
+// Signal API (SolidJS-style)
+// ============================================================================
 
-/** Create a reactive signal with an initial value */
-export function createSignal<T>(initial: T): Signal<T>;
+/** Signal getter function */
+export type Accessor<T> = () => T;
 
-/** Get the current value of a signal (tracks dependency) */
-export function get<T>(signal: Signal<T>): T;
+/** Signal setter function - accepts value or updater function */
+export type Setter<T> = (value: T | ((prev: T) => T)) => void;
 
-/** Set a new value for a signal */
-export function set<T>(signal: Signal<T>, value: T): void;
+/** Signal tuple [getter, setter] */
+export type Signal<T> = [Accessor<T>, Setter<T>];
 
-/** Update a signal's value using a function */
-export function update<T>(signal: Signal<T>, fn: (current: T) => T): void;
+/**
+ * Creates a reactive signal (SolidJS-style)
+ * @example
+ * const [count, setCount] = createSignal(0);
+ * count(); // 0
+ * setCount(1);
+ * setCount(c => c + 1);
+ */
+export function createSignal<T>(initialValue: T): Signal<T>;
 
-/** Get the current value without tracking (won't create dependency) */
-export function peek<T>(signal: Signal<T>): T;
+/**
+ * Creates a reactive effect (SolidJS-style)
+ * @example
+ * createEffect(() => console.log(count()));
+ */
+export function createEffect(fn: () => void): () => void;
 
-/** Subscribe to signal changes. Returns unsubscribe function */
-export function subscribe<T>(
-  signal: Signal<T>,
-  callback: (value: T) => void
-): () => void;
-
-/** Map a signal to a derived getter */
-export function map<T, U>(signal: Signal<T>, fn: (value: T) => U): () => U;
-
-/** Create a memoized computed value */
-export function createMemo<T>(compute: () => T): () => T;
-
-/** Combine two signals into a derived getter */
-export function combine<A, B, R>(
-  a: Signal<A>,
-  b: Signal<B>,
-  fn: (a: A, b: B) => R
-): () => R;
-
-/** Create a reactive effect. Returns cleanup function */
-export function effect(fn: () => void): () => void;
+/**
+ * Creates a memoized computed value (SolidJS-style)
+ * @example
+ * const doubled = createMemo(() => count() * 2);
+ */
+export function createMemo<T>(compute: () => T): Accessor<T>;
 
 /** Start a batch update */
 export function batchStart(): void;
@@ -51,17 +45,61 @@ export function batchStart(): void;
 /** End a batch update and run pending effects */
 export function batchEnd(): void;
 
-/** Run a function without tracking dependencies */
-export function runUntracked<T>(fn: () => T): T;
-
 /** Run a function in a batch - all signal updates are batched */
 export function batch<T>(fn: () => T): T;
+
+/** Run a function without tracking dependencies (SolidJS: untrack) */
+export function untrack<T>(fn: () => T): T;
 
 /** Register a cleanup function inside an effect */
 export function onCleanup(cleanup: () => void): void;
 
 // ============================================================================
-// Owner-based scope management (Solid.js style)
+// Utility functions (SolidJS-style)
+// ============================================================================
+
+/**
+ * Explicit dependency tracking helper (SolidJS-style)
+ * Wraps a function to explicitly specify which signals to track
+ * @example
+ * createEffect(on(count, (value, prev) => console.log(value, prev)));
+ * createEffect(on([a, b], ([a, b]) => console.log(a, b)));
+ */
+export function on<T, U>(
+  deps: Accessor<T>,
+  fn: (input: T, prevInput: T | undefined, prevValue: U | undefined) => U,
+  options?: { defer?: boolean }
+): () => U | undefined;
+export function on<T extends readonly Accessor<any>[], U>(
+  deps: T,
+  fn: (
+    input: { [K in keyof T]: T[K] extends Accessor<infer V> ? V : never },
+    prevInput: { [K in keyof T]: T[K] extends Accessor<infer V> ? V : never } | undefined,
+    prevValue: U | undefined
+  ) => U,
+  options?: { defer?: boolean }
+): () => U | undefined;
+
+/**
+ * Merge multiple props objects (SolidJS-style)
+ * Event handlers and refs are merged, other props are overwritten
+ * @example
+ * const merged = mergeProps(defaultProps, props);
+ */
+export function mergeProps<T extends object>(...sources: (Partial<T> | undefined)[]): T;
+
+/**
+ * Split props into multiple objects based on key lists (SolidJS-style)
+ * @example
+ * const [local, others] = splitProps(props, ["class", "style"]);
+ */
+export function splitProps<T extends object, K extends (keyof T)[]>(
+  props: T,
+  ...keys: K[]
+): [...{ [I in keyof K]: Pick<T, K[I] extends (keyof T)[] ? K[I][number] : never> }, Omit<T, K[number][number]>];
+
+// ============================================================================
+// Owner-based scope management
 // ============================================================================
 
 /** Opaque Owner type */
@@ -69,7 +107,7 @@ export interface Owner {
   readonly __brand: unique symbol;
 }
 
-/** Create a new reactive root scope. The function receives a dispose callback */
+/** Create a new reactive root scope */
 export function createRoot<T>(fn: (dispose: () => void) => T): T;
 
 /** Get the current owner (if any) */
@@ -81,7 +119,7 @@ export function runWithOwner<T>(owner: Owner, fn: () => T): T;
 /** Check if currently inside an owner scope */
 export function hasOwner(): boolean;
 
-/** Run a function once (Solid.js style onMount) */
+/** Run a function once (SolidJS-style onMount) */
 export function onMount(fn: () => void): void;
 
 // ============================================================================
@@ -133,11 +171,107 @@ export function render(container: Element, node: Node): void;
 export function mount(container: Element, node: Node): void;
 export function show(condition: () => boolean, render: () => Node): Node;
 
-// List rendering
+// List rendering (low-level)
 export function forEach<T>(
   items: () => T[],
   renderItem: (item: T, index: number) => Node
 ): Node;
+
+// ============================================================================
+// SolidJS-compatible Components
+// ============================================================================
+
+/** For component props */
+export interface ForProps<T, U extends Node> {
+  each: Accessor<T[]> | T[];
+  fallback?: Node;
+  children: (item: T, index: Accessor<number>) => U;
+}
+
+/**
+ * For component for list rendering (SolidJS-style)
+ * @example
+ * <For each={items}>{(item, index) => <div>{item}</div>}</For>
+ */
+export function For<T, U extends Node>(props: ForProps<T, U>): Node;
+
+/** Show component props */
+export interface ShowProps<T> {
+  when: T | Accessor<T>;
+  fallback?: Node;
+  children: Node | ((item: NonNullable<T>) => Node);
+}
+
+/**
+ * Show component for conditional rendering (SolidJS-style)
+ * Note: fallback prop is not yet supported (Luna limitation)
+ * @example
+ * <Show when={isVisible}><div>Visible!</div></Show>
+ */
+export function Show<T>(props: ShowProps<T>): Node;
+
+/** Index component props */
+export interface IndexProps<T, U extends Node> {
+  each: Accessor<T[]> | T[];
+  fallback?: Node;
+  children: (item: Accessor<T>, index: number) => U;
+}
+
+/**
+ * Index component for index-based list rendering (SolidJS-style)
+ * Unlike For which tracks items by reference, Index tracks by index position
+ * @example
+ * <Index each={items}>{(item, index) => <div>{item()}</div>}</Index>
+ */
+export function Index<T, U extends Node>(props: IndexProps<T, U>): Node;
+
+/** Provider component props */
+export interface ProviderProps<T> {
+  context: Context<T>;
+  value: T;
+  children: Node | (() => Node);
+}
+
+/**
+ * Provider component for Context (SolidJS-style)
+ * @example
+ * <Provider context={ThemeContext} value="dark"><App /></Provider>
+ */
+export function Provider<T>(props: ProviderProps<T>): Node;
+
+/** Match component result (internal) */
+export interface MatchResult<T> {
+  readonly __isMatch: true;
+  when: () => boolean;
+  children: T | (() => T);
+}
+
+/** Switch component props */
+export interface SwitchProps {
+  fallback?: Node;
+  children: MatchResult<Node>[];
+}
+
+/**
+ * Switch component for conditional rendering with multiple branches (SolidJS-style)
+ * @example
+ * <Switch fallback={<div>Not found</div>}>
+ *   <Match when={isA}><A /></Match>
+ *   <Match when={isB}><B /></Match>
+ * </Switch>
+ */
+export function Switch(props: SwitchProps): Node;
+
+/** Match component props */
+export interface MatchProps<T> {
+  when: T | Accessor<T>;
+  children: Node | ((item: NonNullable<T>) => Node);
+}
+
+/**
+ * Match component for use inside Switch (SolidJS-style)
+ */
+export function Match<T>(props: MatchProps<T>): MatchResult<Node>;
 
 // JSX support
 export function jsx(
@@ -157,8 +291,93 @@ export function createElement(
   children: Node[]
 ): Node;
 
+// ============================================================================
+// Context API
+// ============================================================================
+
+/** Opaque Context type */
+export interface Context<T> {
+  readonly __brand: unique symbol;
+  readonly __type: T;
+}
+
+/** Create a new context with a default value */
+export function createContext<T>(defaultValue: T): Context<T>;
+
+/**
+ * Provide a context value for the current Owner scope and its descendants.
+ * Context values are Owner-based (component-tree-scoped), similar to SolidJS.
+ */
+export function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R;
+
+/** Use a context value - returns the current provided value or default */
+export function useContext<T>(ctx: Context<T>): T;
+
+// ============================================================================
+// Resource API (SolidJS-style)
+// ============================================================================
+
+/** Resource state */
+export type ResourceState = "unresolved" | "pending" | "ready" | "errored";
+
+/** Resource accessor with properties */
+export interface ResourceAccessor<T> {
+  (): T | undefined;
+  readonly loading: boolean;
+  readonly error: string | undefined;
+  readonly state: ResourceState;
+  readonly latest: T | undefined;
+}
+
+/** Resource actions */
+export interface ResourceActions {
+  refetch: () => void;
+}
+
+/**
+ * Create a Resource from a callback-based fetcher (SolidJS-style)
+ * @example
+ * const [data, { refetch }] = createResource((resolve, reject) => {
+ *   fetch('/api').then(r => r.json()).then(resolve).catch(e => reject(e.message));
+ * });
+ * data(); // value or undefined
+ * data.loading; // boolean
+ * data.error; // string or undefined
+ */
+export function createResource<T>(
+  fetcher: (resolve: (value: T) => void, reject: (error: string) => void) => void
+): [ResourceAccessor<T>, ResourceActions];
+
+/**
+ * Create a deferred Resource (SolidJS-style)
+ * Returns [accessor, resolve, reject]
+ */
+export function createDeferred<T>(): [
+  ResourceAccessor<T>,
+  (value: T) => void,
+  (error: string) => void
+];
+
+// Low-level resource helpers
+export function resourceGet<T>(resource: any): any;
+export function resourcePeek<T>(resource: any): any;
+export function resourceRefetch<T>(resource: any): void;
+export function resourceIsPending<T>(resource: any): boolean;
+export function resourceIsSuccess<T>(resource: any): boolean;
+export function resourceIsFailure<T>(resource: any): boolean;
+export function resourceValue<T>(resource: any): T | undefined;
+export function resourceError<T>(resource: any): string | undefined;
+export function stateIsPending<T>(state: any): boolean;
+export function stateIsSuccess<T>(state: any): boolean;
+export function stateIsFailure<T>(state: any): boolean;
+export function stateValue<T>(state: any): T | undefined;
+export function stateError<T>(state: any): string | undefined;
+
+// ============================================================================
 // Timer utilities
-/** Debounce signal updates using setTimeout */
+// ============================================================================
+
+/** Debounce a signal */
 export function debounced<T>(signal: Signal<T>, delayMs: number): Signal<T>;
 
 // ============================================================================
@@ -191,28 +410,10 @@ export interface ParamRoute {
 /** Route definition union type */
 export type Routes = PageRoute | GroupRoute | ParamRoute;
 
-/** Create a page route */
 export function routePage(path: string, component: string): Routes;
-
-/** Create a page route with title */
-export function routePageTitled(
-  path: string,
-  component: string,
-  title: string
-): Routes;
-
-/** Create a page route with full options */
-export function routePageFull(
-  path: string,
-  component: string,
-  title: string,
-  meta: [string, string][]
-): Routes;
-
-/** Create a route group with a segment prefix */
+export function routePageTitled(path: string, component: string, title: string): Routes;
+export function routePageFull(path: string, component: string, title: string, meta: [string, string][]): Routes;
 export function routeGroup(segment: string, children: Routes[]): Routes;
-
-/** Create a param route (dynamic segment) */
 export function routeParam(key: string, children: Routes[]): Routes;
 
 /** Opaque BrowserRouter type */
@@ -236,20 +437,32 @@ export interface RoutesMatch {
   readonly path: string;
 }
 
-/** Create a BrowserRouter from routes definition */
 export function createRouter(routes: Routes[], base?: string): BrowserRouter;
-
-/** Navigate to a path (adds to history) */
 export function routerNavigate(router: BrowserRouter, path: string): void;
-
-/** Replace current path (does not add to history) */
 export function routerReplace(router: BrowserRouter, path: string): void;
-
-/** Get current path */
 export function routerGetPath(router: BrowserRouter): string;
-
-/** Get current match result */
 export function routerGetMatch(router: BrowserRouter): RoutesMatch | undefined;
-
-/** Get base path */
 export function routerGetBase(router: BrowserRouter): string;
+
+// ============================================================================
+// Legacy API (for backwards compatibility)
+// ============================================================================
+
+/** @deprecated Use createSignal()[0] instead */
+export function get<T>(signal: any): T;
+/** @deprecated Use createSignal()[1] instead */
+export function set<T>(signal: any, value: T): void;
+/** @deprecated Use createSignal()[1] with function instead */
+export function update<T>(signal: any, fn: (current: T) => T): void;
+/** @deprecated */
+export function peek<T>(signal: any): T;
+/** @deprecated */
+export function subscribe<T>(signal: any, callback: (value: T) => void): () => void;
+/** @deprecated */
+export function map<T, U>(signal: any, fn: (value: T) => U): () => U;
+/** @deprecated */
+export function combine<A, B, R>(a: any, b: any, fn: (a: A, b: B) => R): () => R;
+/** @deprecated Use createEffect instead */
+export function effect(fn: () => void): () => void;
+/** @deprecated Use untrack instead */
+export function runUntracked<T>(fn: () => T): T;

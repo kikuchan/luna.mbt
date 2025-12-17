@@ -11,10 +11,10 @@ import {
   Fragment,
   events,
   forEach,
+  For,
+  Show,
   createSignal,
-  get,
-  set,
-  effect,
+  createEffect,
 } from "../index.js";
 
 // MoonBit tuple representation for attrs: [name, value] -> { _0: name, _1: value }
@@ -50,12 +50,12 @@ describe("DOM API", () => {
     });
 
     test("textDyn creates reactive text node", () => {
-      const signal = createSignal("initial");
-      const node = textDyn(() => get(signal));
+      const [value, setValue] = createSignal("initial");
+      const node = textDyn(value);
       render(container, node);
       expect(container.textContent).toBe("initial");
 
-      set(signal, "updated");
+      setValue("updated");
       expect(container.textContent).toBe("updated");
     });
   });
@@ -108,17 +108,17 @@ describe("DOM API", () => {
     });
 
     test("createElement with dynamic attribute", () => {
-      const signal = createSignal("initial-class");
+      const [className, setClassName] = createSignal("initial-class");
       const node = createElement(
         "div",
-        [attr("className", AttrValue.Dynamic(() => get(signal)))],
+        [attr("className", AttrValue.Dynamic(className))],
         []
       );
       render(container, node);
       const div = container.querySelector("div");
       expect(div?.className).toBe("initial-class");
 
-      set(signal, "updated-class");
+      setClassName("updated-class");
       expect(div?.className).toBe("updated-class");
     });
 
@@ -183,17 +183,17 @@ describe("DOM API", () => {
     });
 
     test("createElement with dynamic style", () => {
-      const signal = createSignal("color: blue");
+      const [style, setStyle] = createSignal("color: blue");
       const node = createElement(
         "div",
-        [attr("style", AttrValue.Dynamic(() => get(signal)))],
+        [attr("style", AttrValue.Dynamic(style))],
         []
       );
       render(container, node);
       const div = container.querySelector("div");
       expect(div?.getAttribute("style")).toBe("color: blue");
 
-      set(signal, "color: green");
+      setStyle("color: green");
       expect(div?.getAttribute("style")).toBe("color: green");
     });
   });
@@ -239,19 +239,17 @@ describe("DOM API", () => {
 
   describe("show (conditional rendering)", () => {
     test("show creates a node", () => {
-      const visible = createSignal(true);
-      const node = show(
-        () => get(visible),
-        () => createElement("div", [attr("id", AttrValue.Static("shown"))], [text("visible")])
+      const [visible] = createSignal(true);
+      const node = show(visible, () =>
+        createElement("div", [attr("id", AttrValue.Static("shown"))], [text("visible")])
       );
       expect(node).toBeDefined();
     });
 
     test("show with false condition creates placeholder", () => {
-      const visible = createSignal(false);
-      const node = show(
-        () => get(visible),
-        () => createElement("div", [], [text("hidden")])
+      const [visible] = createSignal(false);
+      const node = show(visible, () =>
+        createElement("div", [], [text("hidden")])
       );
       mount(container, node);
       // When false, only a comment placeholder is rendered
@@ -261,11 +259,9 @@ describe("DOM API", () => {
 
   describe("forEach (list rendering)", () => {
     test("forEach renders initial list", () => {
-      const items = createSignal(["a", "b", "c"]);
-      const node = forEach(
-        () => get(items),
-        (item: string, _index: number) =>
-          createElement("span", [], [text(item)])
+      const [items] = createSignal(["a", "b", "c"]);
+      const node = forEach(items, (item: string, _index: number) =>
+        createElement("span", [], [text(item)])
       );
       mount(container, node);
       expect(container.querySelectorAll("span").length).toBe(3);
@@ -273,57 +269,49 @@ describe("DOM API", () => {
     });
 
     test("forEach updates when items change", () => {
-      const items = createSignal(["x", "y"]);
-      const node = forEach(
-        () => get(items),
-        (item: string, _index: number) =>
-          createElement("span", [], [text(item)])
+      const [items, setItems] = createSignal(["x", "y"]);
+      const node = forEach(items, (item: string, _index: number) =>
+        createElement("span", [], [text(item)])
       );
       mount(container, node);
       expect(container.textContent).toBe("xy");
 
-      set(items, ["x", "y", "z"]);
+      setItems(["x", "y", "z"]);
       expect(container.querySelectorAll("span").length).toBe(3);
       expect(container.textContent).toBe("xyz");
     });
 
     test("forEach removes items", () => {
-      const items = createSignal(["1", "2", "3"]);
-      const node = forEach(
-        () => get(items),
-        (item: string, _index: number) =>
-          createElement("span", [], [text(item)])
+      const [items, setItems] = createSignal(["1", "2", "3"]);
+      const node = forEach(items, (item: string, _index: number) =>
+        createElement("span", [], [text(item)])
       );
       mount(container, node);
       expect(container.querySelectorAll("span").length).toBe(3);
 
-      set(items, ["1"]);
+      setItems(["1"]);
       expect(container.querySelectorAll("span").length).toBe(1);
       expect(container.textContent).toBe("1");
     });
 
     test("forEach handles empty array", () => {
-      const items = createSignal<string[]>([]);
-      const node = forEach(
-        () => get(items),
-        (item: string, _index: number) =>
-          createElement("span", [], [text(item)])
+      const [items] = createSignal<string[]>([]);
+      const node = forEach(items, (item: string, _index: number) =>
+        createElement("span", [], [text(item)])
       );
       mount(container, node);
       expect(container.querySelectorAll("span").length).toBe(0);
     });
 
     test("forEach handles clear to empty", () => {
-      const items = createSignal(["a", "b"]);
-      const node = forEach(
-        () => get(items),
-        (item: string, _index: number) =>
-          createElement("span", [], [text(item)])
+      const [items, setItems] = createSignal(["a", "b"]);
+      const node = forEach(items, (item: string, _index: number) =>
+        createElement("span", [], [text(item)])
       );
       mount(container, node);
       expect(container.querySelectorAll("span").length).toBe(2);
 
-      set(items, []);
+      setItems([]);
       expect(container.querySelectorAll("span").length).toBe(0);
     });
   });
@@ -337,16 +325,111 @@ describe("DOM API", () => {
 
   describe("effect with DOM", () => {
     test("effect tracks signal changes", () => {
-      const count = createSignal(0);
+      const [count, setCount] = createSignal(0);
       const log: number[] = [];
 
-      effect(() => {
-        log.push(get(count));
+      createEffect(() => {
+        log.push(count());
       });
 
       expect(log).toEqual([0]);
-      set(count, 1);
+      setCount(1);
       expect(log).toEqual([0, 1]);
+    });
+  });
+
+  describe("For component (SolidJS-style)", () => {
+    test("For renders list with getter", () => {
+      const [items] = createSignal(["a", "b", "c"]);
+
+      const node = For({
+        each: items,
+        children: (item: string, index: () => number) =>
+          createElement("li", [], [text(`${index()}: ${item}`)]),
+      });
+
+      mount(container, node);
+      expect(container.querySelectorAll("li").length).toBe(3);
+      expect(container.textContent).toBe("0: a1: b2: c");
+    });
+
+    test("For updates when signal changes", () => {
+      const [items, setItems] = createSignal(["x", "y"]);
+
+      const node = For({
+        each: items,
+        children: (item: string) => createElement("span", [], [text(item)]),
+      });
+
+      mount(container, node);
+      expect(container.textContent).toBe("xy");
+
+      setItems(["x", "y", "z"]);
+      expect(container.querySelectorAll("span").length).toBe(3);
+      expect(container.textContent).toBe("xyz");
+    });
+
+    test("For provides index as getter function", () => {
+      const [items] = createSignal(["one", "two"]);
+      const indices: number[] = [];
+
+      const node = For({
+        each: items,
+        children: (_item: string, index: () => number) => {
+          indices.push(index());
+          return createElement("div", [], []);
+        },
+      });
+
+      mount(container, node);
+      expect(indices).toEqual([0, 1]);
+    });
+  });
+
+  describe("Show component (SolidJS-style)", () => {
+    test("Show hides content when condition is false", () => {
+      const [visible] = createSignal(false);
+
+      const node = Show({
+        when: visible,
+        children: createElement("div", [], [text("visible")]),
+      });
+
+      mount(container, node);
+      expect(container.querySelector("div")).toBeNull();
+    });
+
+    test("Show toggles visibility", () => {
+      const [visible, setVisible] = createSignal(false);
+
+      const node = Show({
+        when: visible,
+        children: createElement("span", [], [text("content")]),
+      });
+
+      mount(container, node);
+      expect(container.querySelector("span")).toBeNull();
+
+      setVisible(true);
+      expect(container.querySelector("span")).not.toBeNull();
+
+      setVisible(false);
+      expect(container.querySelector("span")).toBeNull();
+    });
+
+    test("Show accepts children as function", () => {
+      const [value, setValue] = createSignal<string | null>(null);
+
+      const node = Show({
+        when: value,
+        children: (v: string) => createElement("span", [], [text(v)]),
+      });
+
+      mount(container, node);
+      expect(container.querySelector("span")).toBeNull();
+
+      setValue("hello");
+      expect(container.querySelector("span")?.textContent).toBe("hello");
     });
   });
 });

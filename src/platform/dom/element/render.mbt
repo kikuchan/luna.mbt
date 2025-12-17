@@ -173,13 +173,19 @@ pub fn show(when : () -> Bool, render_fn : () -> DomNode) -> DomNode {
   let doc = @js_dom.document()
   let placeholder = doc.createComment("show")
   let mut current_node : @js_dom.Node? = None
+  // Capture current owner for context inheritance
+  let captured_owner = @signal.get_owner()
   let _ = @signal.effect(fn() {
     let should_show = when()
     match (should_show, current_node) {
       (true, None) =>
         // Need to show - create and insert node
         if placeholder.parentNode() is Some(parent) {
-          let n = render_fn()
+          // Run render_fn with captured owner for context access
+          let n = match captured_owner {
+            Some(owner) => @signal.run_with_owner(owner, render_fn)
+            None => render_fn()
+          }
           parent.insertBefore(n.to_jsdom(), Some(placeholder)) |> ignore
           current_node = Some(n.to_jsdom())
         }
@@ -208,12 +214,23 @@ pub fn[T] for_each(
   let placeholder = doc.createComment("for")
   let entries : Ref[Array[ItemEntry[T]]] = { val: [] }
   let is_first = { val: true }
+  // Capture current owner for context inheritance
+  let captured_owner = @signal.get_owner()
+
+  // Helper to run render with captured owner
+  fn render_with_owner(item : T, i : Int) -> @js_dom.Node {
+    match captured_owner {
+      Some(owner) =>
+        @signal.run_with_owner(owner, fn() { render_item(item, i) }).to_jsdom()
+      None => render_item(item, i).to_jsdom()
+    }
+  }
 
   // Initial render
   let fragment = doc.createDocumentFragment()
   let initial_items = items()
   for i, item in initial_items {
-    let dom = render_item(item, i).to_jsdom()
+    let dom = render_with_owner(item, i)
     entries.val.push(ItemEntry::new(item, dom))
     fragment.as_node().appendChild(dom) |> ignore
   }
@@ -226,9 +243,7 @@ pub fn[T] for_each(
       is_first.val = false
       return
     }
-    reconcile_for_each(entries, placeholder, new_items, fn(item, i) {
-      render_item(item, i).to_jsdom()
-    })
+    reconcile_for_each(entries, placeholder, new_items, render_with_owner)
   })
   Raw(fragment.as_node())
 }
