@@ -1,0 +1,19 @@
+{
+  "is-main": true,
+  "supported-targets": ["js"],
+  "import": [
+    { "path": "mizchi/js/node/process", "alias": "process" },
+    { "path": "mizchi/js/node/fs", "alias": "fs" },
+    { "path": "mizchi/js/node/path", "alias": "path" },
+    { "path": "mizchi/js/node/util", "alias": "util" },
+    { "path": "mizchi/npm_typed/colorette", "alias": "colorette" },
+    { "path": "mizchi/luna/astra", "alias": "astra" },
+    { "path": "mizchi/luna/astra/generator", "alias": "astra_gen" }
+  ],
+  "warn-list": "-27-20",
+  "link": {
+    "js": {
+      "format": "cjs"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-///| Sol CLI - MoonBit SSR Framework CLI
+///| Astra CLI - Static Site Generator for MoonBit
 
 ///|
 extern "js" fn console_error(msg : String) -> Unit =
@@ -7,29 +7,28 @@ extern "js" fn console_error(msg : String) -> Unit =
 ///|
 fn show_help() -> Unit {
   let help =
-    #|Sol CLI - MoonBit SSR Framework
+    #|Astra - Static Site Generator
     #|
-    #|Usage: sol <command> [options]
+    #|Usage: astra <command> [options]
     #|
     #|Commands:
-    #|  new <name>     Create a new Sol project
-    #|  dev            Start development server (no minify)
-    #|  build          Build for production (with minify)
-    #|  serve          Serve production build
-    #|  generate       Generate _sol directory from config
-    #|  clean          Remove generated files and caches
+    #|  build          Build static site from docs/
+    #|  dev            Start development server with watch (planned)
     #|
     #|Options:
     #|  -h, --help     Show help
     #|  -v, --version  Show version
     #|
-    #|For static site generation, use: astra build
+    #|Examples:
+    #|  astra build                    Build with default config
+    #|  astra build -o public          Build to public/ directory
+    #|  astra build -c astra.json      Use custom config file
   println(help)
 }
 
 ///|
 fn show_version() -> Unit {
-  println("sol 0.1.0")
+  println("astra 0.1.0")
 }
 
 ///|
@@ -46,7 +45,7 @@ fn main {
     show_help()
     return
   }
-  // Check for global flags first (before command)
+  // Check for global flags first
   let first_arg = args[0]
   if first_arg == "--help" || first_arg == "-h" {
     show_help()
@@ -56,24 +55,12 @@ fn main {
     show_version()
     return
   }
-  // First non-flag argument is the command
+  // Dispatch to command handlers
   let command = first_arg
   let command_args = if args.length() > 1 { args[1:].to_array() } else { [] }
-  // Dispatch to command handlers
   match command {
-    "new" => run_new_command(command_args)
-    "dev" => run_dev_command(command_args)
     "build" => run_build_command(command_args)
-    "serve" => run_serve_command(command_args)
-    "generate" => run_generate_command(command_args)
-    "clean" => run_clean_command(command_args)
-    "ssg" => {
-      // Redirect to astra CLI
-      println(@colorette.yellow("Note: 'sol ssg' is deprecated. Use 'astra' instead."))
-      println("")
-      println("Run: astra build")
-      @process.exit(0)
-    }
+    "dev" => run_dev_command(command_args)
     _ => {
       console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")

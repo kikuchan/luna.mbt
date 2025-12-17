@@ -138,14 +138,20 @@ sol *args:
 sol-new name:
     node target/js/release/build/sol/cli/cli.js new {{name}}
 
+# === Astra CLI Commands ===
+
+# Run astra CLI (static site generator)
+astra *args:
+    node target/js/release/build/astra/cli/cli.js {{args}}
+
 # Build SSG with syntax highlighting
-ssg-build output="dist-ssg": build-moon
-    node target/js/release/build/sol/cli/cli.js ssg build -o {{output}}
+ssg-build output="dist": build-moon
+    node target/js/release/build/astra/cli/cli.js build -o {{output}}
     npx tsx scripts/shiki-highlight.ts {{output}}
 
 # Build SSG without syntax highlighting (faster)
-ssg-build-fast output="dist-ssg": build-moon
-    node target/js/release/build/sol/cli/cli.js ssg build -o {{output}}
+ssg-build-fast output="dist": build-moon
+    node target/js/release/build/astra/cli/cli.js build -o {{output}}
 
 # === Coverage Commands ===
 

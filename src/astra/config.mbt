@@ -1,6 +1,18 @@
 ///| SSG Configuration Parser
 
 ///|
+/// Parse SSG config directly (astra.json format)
+pub fn parse_ssg_config(json_str : String) -> SsgConfig? {
+  try {
+    let json = @json.parse(json_str.view())
+    guard json is Object(ssg_obj) else { return None }
+    parse_ssg_object(ssg_obj)
+  } catch {
+    _ => None
+  }
+}
+
+///|
 /// Parse SSG config from sol.config.json content
 pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
   try {
@@ -13,62 +25,82 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
       return Some(SsgConfig::default())
     }
 
-    // Parse ssg fields
-    let docs_dir = match ssg_obj.get("docs") {
-      Some(String(s)) => s
-      _ => "docs"
-    }
-    let output_dir = match ssg_obj.get("output") {
-      Some(String(s)) => s
-      _ => "dist"
-    }
-    let title = match ssg_obj.get("title") {
-      Some(String(s)) => s
-      _ => "Documentation"
-    }
-    let base_url = match ssg_obj.get("base") {
-      Some(String(s)) => s
-      _ => "/"
-    }
-
-    // Parse nav items
-    let nav = parse_nav_items(ssg_obj)
-
-    // Parse sidebar config
-    let sidebar = parse_sidebar_config(ssg_obj)
-
-    // Parse theme
-    let theme = parse_theme_config(ssg_obj)
-
-    // Get islands from root config
+    // Get islands from root config (sol.config.json specific)
     let islands = match obj.get("islands") {
       Some(Array(arr)) => parse_string_array_json(arr)
       _ => []
     }
 
-    // Parse i18n config
-    let i18n = parse_i18n_config(ssg_obj)
-
-    // Parse exclude patterns
-    let exclude = match ssg_obj.get("exclude") {
-      Some(Array(arr)) => parse_string_array_json(arr)
-      _ => []
-    }
-    Some(SsgConfig::{
-      docs_dir,
-      output_dir,
-      title,
-      base_url,
-      nav,
-      sidebar,
-      islands,
-      theme,
-      i18n,
-      exclude,
-    })
+    parse_ssg_object(ssg_obj, islands~)
   } catch {
     _ => None
   }
+}
+
+///|
+/// Parse SSG object (shared by both config formats)
+fn parse_ssg_object(
+  ssg_obj : Map[String, Json],
+  islands~ : Array[String] = [],
+) -> SsgConfig? {
+  // Parse ssg fields
+  let docs_dir = match ssg_obj.get("docs") {
+    Some(String(s)) => s
+    _ => "docs"
+  }
+  let output_dir = match ssg_obj.get("output") {
+    Some(String(s)) => s
+    _ => "dist"
+  }
+  let title = match ssg_obj.get("title") {
+    Some(String(s)) => s
+    _ => "Documentation"
+  }
+  let base_url = match ssg_obj.get("base") {
+    Some(String(s)) => s
+    _ => "/"
+  }
+
+  // Parse nav items
+  let nav = parse_nav_items(ssg_obj)
+
+  // Parse sidebar config
+  let sidebar = parse_sidebar_config(ssg_obj)
+
+  // Parse theme
+  let theme = parse_theme_config(ssg_obj)
+
+  // Parse i18n config
+  let i18n = parse_i18n_config(ssg_obj)
+
+  // Parse exclude patterns
+  let exclude = match ssg_obj.get("exclude") {
+    Some(Array(arr)) => parse_string_array_json(arr)
+    _ => []
+  }
+
+  // Parse islands (astra.json format can have islands in root)
+  let final_islands = if islands.is_empty() {
+    match ssg_obj.get("islands") {
+      Some(Array(arr)) => parse_string_array_json(arr)
+      _ => []
+    }
+  } else {
+    islands
+  }
+
+  Some(SsgConfig::{
+    docs_dir,
+    output_dir,
+    title,
+    base_url,
+    nav,
+    sidebar,
+    islands: final_islands,
+    theme,
+    i18n,
+    exclude,
+  })
 }
 
 ///|
