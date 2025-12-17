@@ -21,3 +21,4 @@ allowed-tools: Read, Grep, Glob
     - Get warning list by `moonc build-package -warn-help`
   - cross target build
     - [xplat-build.md](./xplat-build.md)
+- Writing benchmark https://docs.moonbitlang.com/en/latest/language/benchmarks.html

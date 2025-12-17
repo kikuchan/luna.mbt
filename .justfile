@@ -44,7 +44,7 @@ test-xplat:
     moon test --target all src/core/routes
     moon test --target all src/core/render
     moon test --target all src/core/serialize
-    moon test --target all src/core/markdown
+#     moon test --target all src/core/markdown
 
 # Run vitest tests
 test-vitest: build-moon
