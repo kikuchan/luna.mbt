@@ -421,7 +421,7 @@ function writeShikiCss(targetDir: string): void {
 }
 
 /**
- * Copy github-markdown-css to assets directory
+ * Copy github-markdown-css to assets directory with patches
  */
 function copyGithubMarkdownCss(targetDir: string): void {
   const assetsDir = path.join(targetDir, "assets");
@@ -438,8 +438,15 @@ function copyGithubMarkdownCss(targetDir: string): void {
   for (const srcPath of possiblePaths) {
     if (fs.existsSync(srcPath)) {
       const destPath = path.join(assetsDir, "github-markdown.css");
-      fs.copyFileSync(srcPath, destPath);
-      console.log(`  ✓ Copied github-markdown.css`);
+      // Read, patch, and write
+      let css = fs.readFileSync(srcPath, "utf-8");
+      // Remove .markdown-body background-color to allow parent styling
+      css = css.replace(
+        /\.markdown-body\s*\{([^}]*?)background-color:\s*var\(--bgColor-default\);/g,
+        ".markdown-body {$1/* background-color removed for shiki compatibility */"
+      );
+      fs.writeFileSync(destPath, css);
+      console.log(`  ✓ Copied github-markdown.css (patched)`);
       return;
     }
   }

@@ -8,6 +8,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "js/loader/**/*.test.ts",
       "e2e/sol/cli/**/*.test.ts", // Only CLI tests (Vitest)
+      "scripts/**/*.test.ts", // Script tests
     ],
     exclude: [
       "**/node_modules/**",
