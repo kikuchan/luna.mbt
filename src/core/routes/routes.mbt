@@ -20,21 +20,6 @@ pub(all) enum Routes {
     title~ : String,
     meta~ : Array[(String, String)]
   )
-  /// クライアントコンポーネントページ (Island)
-  /// - path: パス
-  /// - component: コンポーネントID
-  /// - url: Hydration用スクリプトURL
-  /// - trigger: Hydrationトリガー
-  /// - title: ページタイトル
-  /// - meta: メタ情報
-  Island(
-    path~ : String,
-    component~ : String,
-    url~ : String,
-    trigger~ : @luna.IslandTrigger,
-    title~ : String,
-    meta~ : Array[(String, String)]
-  )
   /// 動的パラメータセグメント
   /// - key: パラメータ名 (e.g., "id" for ":id")
   /// - children: 子ルート
@@ -69,17 +54,6 @@ pub struct CompiledRoutes {
   title : String
   /// メタ情報
   meta : Array[(String, String)]
-  /// Island情報 (ClientComponentの場合)
-  island : IslandInfo?
-}
-
-///|
-/// Island情報
-pub struct IslandInfo {
-  /// Hydration用スクリプトURL
-  url : String
-  /// Hydrationトリガー
-  trigger : @luna.IslandTrigger
 }
 
 ///|
@@ -87,8 +61,6 @@ pub struct IslandInfo {
 pub enum RoutesKind {
   /// サーバーコンポーネントページ
   Page
-  /// クライアントコンポーネントページ (Island)
-  IslandPage
   /// GET API
   GetApi
   /// POST API

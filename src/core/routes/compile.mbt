@@ -60,20 +60,6 @@ fn compile_inner(
           kind: Page,
           title,
           meta,
-          island: None,
-        })
-      }
-      Island(path~, component~, url~, trigger~, title~, meta~) => {
-        let full_path = normalize_path(prefix + path)
-        result.push({
-          pattern: full_path,
-          param_names: inherited_params.copy(),
-          component,
-          layouts: inherited_layouts.copy(),
-          kind: IslandPage,
-          title,
-          meta,
-          island: Some({ url, trigger }),
         })
       }
       Get(path~, handler~) => {
@@ -86,7 +72,6 @@ fn compile_inner(
           kind: GetApi,
           title: "",
           meta: [],
-          island: None,
         })
       }
       Post(path~, handler~) => {
@@ -99,7 +84,6 @@ fn compile_inner(
           kind: PostApi,
           title: "",
           meta: [],
-          island: None,
         })
       }
       Param(key~, children~) => {

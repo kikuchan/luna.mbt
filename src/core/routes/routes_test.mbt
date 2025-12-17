@@ -114,18 +114,11 @@ test "compile with layout" {
 test "RoutesKind via match result" {
   let routes = [
     Routes::Page(path="/page", component="page", title="Page", meta=[]),
-    Routes::Island(
-      path="/island",
-      component="island",
-      url="/island.js",
-      trigger=@luna.Load,
-      title="Island",
-      meta=[],
-    ),
+    Routes::Get(path="/api/data", handler="get_data"),
   ]
   let compiled = compile(routes)
   let page_match = match_url("/page", compiled).unwrap()
-  let island_match = match_url("/island", compiled).unwrap()
-  assert_false(page_match.is_island())
-  assert_true(island_match.is_island())
+  let api_match = match_url("/api/data", compiled).unwrap()
+  assert_true(page_match.kind() is Page)
+  assert_true(api_match.kind() is GetApi)
 }

@@ -12,35 +12,13 @@
 pub fn routes() -> Array[@routes.Routes] {
   [
     // Home page with counter island
-    @routes.Island(
-      path="/",
-      component="home",
-      url="/static/hydrate_counter.js",
-      trigger=@luna.Load,
-      title="Home",
-      meta=[],
-    ),
+    @routes.Page(path="/", component="home", title="Home", meta=[]),
     // About page (static, no hydration)
     @routes.Page(path="/about", component="about", title="About", meta=[]),
     // Contact form page with contact_form island
-    @routes.Island(
-      path="/form",
-      component="form_page",
-      url="/static/contact_form.js",
-      trigger=@luna.Load,
-      title="Contact Form",
-      meta=[],
-    ),
+    @routes.Page(path="/form", component="form_page", title="Contact Form", meta=[]),
     // WC Counter page - Web Components based island (Declarative Shadow DOM)
-    // Note: Uses Island route with wc-loader URL; component uses wc_island() for SSR
-    @routes.Island(
-      path="/wc-counter",
-      component="wc_counter",
-      url="/static/wc_counter.js",
-      trigger=@luna.Load,
-      title="WC Counter",
-      meta=[],
-    ),
+    @routes.Page(path="/wc-counter", component="wc_counter", title="WC Counter", meta=[]),
     // API endpoint
     @routes.Get(path="/api/health", handler="health"),
   ]
