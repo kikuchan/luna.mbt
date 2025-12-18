@@ -16,6 +16,7 @@ let wc_loader_script : String = "<script type=\"module\" src=\"/static/wc-loader
 let sol_nav_script : String = "<script type=\"module\" src=\"/static/sol-nav.js\"></script>"
 
 ///| Get default head HTML (styles + loader + wc-loader + sol-nav)
+///| Note: HMR script is auto-injected by Sol runtime in dev mode (SOL_DEV=1)
 pub fn head() -> String {
   default_style + loader_script + wc_loader_script + sol_nav_script
 }

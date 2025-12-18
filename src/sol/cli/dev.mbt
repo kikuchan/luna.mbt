@@ -97,6 +97,16 @@ fn run_dev_command(args : Array[String]) -> Unit {
 /// Run build steps for dev mode
 /// Returns true on success, false on failure
 fn run_build_dev(cwd : String) -> Bool {
+  // Clean stale static files before rebuild to avoid hash conflicts
+  let static_dir = @path.join2(cwd, ".sol/dev/static")
+  if @fs.existsSync(static_dir) {
+    rm_rf_sync(static_dir)
+  }
+  // Also remove .sol/prod to avoid serve_static priority issues
+  let prod_dir = @path.join2(cwd, ".sol/prod")
+  if @fs.existsSync(prod_dir) {
+    rm_rf_sync(prod_dir)
+  }
   // Run generate if sol.config.json exists
   let sol_config_path = @path.join2(cwd, "sol.config.json")
   if @fs.existsSync(sol_config_path) {
@@ -152,6 +162,9 @@ fn run_build_dev(cwd : String) -> Bool {
   true
 }
 
+///| Default HMR WebSocket port
+let hmr_port : Int = 24678
+
 ///|
 /// Run dev server with watch mode
 fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
@@ -163,8 +176,11 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
       @process.exit(1)
     }
     Some(entry_path) => {
-      // Set PORT environment variable
+      // Set environment variables
       set_env("PORT", port)
+      set_env("SOL_DEV", "1") // Enable HMR script injection
+      // Start HMR WebSocket server
+      let hmr_server = HmrServer::start(hmr_port)
       // Start server process (non-blocking)
       let server_proc : Ref[@child_process.ChildProcess?] = { val: None }
       fn start_server() -> Unit {
@@ -246,8 +262,27 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
                 )
                 stop_server()
                 if run_build_dev(cwd) {
+                  // Determine if this is a client-side change (Island)
+                  let is_client_change = filename.contains("client/") ||
+                    filename.contains("islands/")
+                  // Restart server first
                   restart_server()
+                  // Wait for server to start, then send HMR notification
+                  set_timeout(
+                    fn() {
+                      if is_client_change {
+                        // HMR: notify clients to reload islands
+                        hmr_server.notify_update(["*"])
+                      } else {
+                        // Server-side change: full reload
+                        hmr_server.notify_full_reload()
+                      }
+                    },
+                    500,
+                  )
                 } else {
+                  // Build failed: notify error
+                  hmr_server.notify_error("Build failed. Check console for details.")
                   println(
                     @colorette.red(
                       "[watch] Build failed. Waiting for changes...",
@@ -358,3 +393,8 @@ extern "js" fn print_string(s : String) -> Unit =
 /// Print string to stderr without adding newline
 extern "js" fn print_string_stderr(s : String) -> Unit =
   #| (s) => process.stderr.write(s)
+
+///|
+/// Set timeout for delayed execution
+extern "js" fn set_timeout(callback : () -> Unit, ms : Int) -> Unit =
+  #| (callback, ms) => setTimeout(callback, ms)

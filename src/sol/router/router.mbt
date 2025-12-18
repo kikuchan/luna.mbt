@@ -7,6 +7,19 @@
 ///| It provides type-safe routing with support for Pages, Islands, and APIs.
 
 // ============================================================================
+// HMR (Hot Module Replacement) Support
+// ============================================================================
+
+///|
+/// Check if running in dev mode (SOL_DEV env variable)
+extern "js" fn is_dev_mode() -> Bool =
+  #| () => process.env.SOL_DEV === "1"
+
+///|
+/// HMR client script for dev mode (auto-reconnect on disconnect)
+let hmr_script : String = "<script>(function(){var ws=new WebSocket('ws://'+location.hostname+':24678');ws.onmessage=function(e){var m=JSON.parse(e.data);if(m.type==='update'||m.type==='full-reload'){location.reload()}else if(m.type==='error'){console.error('[HMR]',m.message)}};ws.onclose=function(){setTimeout(function(){location.reload()},1000)}})()</script>"
+
+// ============================================================================
 // Router Configuration
 // ============================================================================
 
@@ -709,11 +722,13 @@ fn[E] render_page_html(
     }
     (result.html, tags)
   }
+  // Add HMR script in dev mode
+  let full_head = if is_dev_mode() { head + hmr_script } else { head }
   // Replace placeholders in template
   template
   .replace(old="__LUNA_TITLE__", new=title)
   .replace(old="__LUNA_PRELOAD__", new=preload_tags)
-  .replace(old="__LUNA_HEAD__", new=head)
+  .replace(old="__LUNA_HEAD__", new=full_head)
   .replace(old="__LUNA_MAIN__", new=body_html)
 }
 

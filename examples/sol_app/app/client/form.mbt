@@ -34,16 +34,17 @@ pub fn contact_form(props : ContactFormProps) -> DomNode {
     let target : @js_dom.HTMLInputElement = e.target() |> @js.identity
     name.set(target.value)
   }
-
   let on_email_input : @element.InputHandler = fn(e) {
     let target : @js_dom.HTMLInputElement = e.target() |> @js.identity
     email.set(target.value)
   }
-
   form(
     class="contact-form",
     on=events().submit(handle_submit),
-    attrs=[("action", @element.AttrString(props.action)), ("method", @element.AttrString("POST"))],
+    attrs=[
+      ("action", @element.AttrString(props.action)),
+      ("method", @element.AttrString("POST")),
+    ],
     [
       div(class="form-group", [
         label(for_="name", [text("Name:")]),
@@ -60,7 +61,7 @@ pub fn contact_form(props : ContactFormProps) -> DomNode {
         input(
           type_="email",
           id="email",
-          placeholder="Enter your email",
+          placeholder="Enter your",
           value=props.initial_email,
           on=events().input(on_email_input),
         ),

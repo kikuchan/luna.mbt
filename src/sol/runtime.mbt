@@ -29,6 +29,15 @@ pub async fn create_app() -> App {
 }
 
 ///|
+/// Check if running in dev mode (SOL_DEV env variable)
+extern "js" fn is_dev_mode() -> Bool =
+  #| () => process.env.SOL_DEV === "1"
+
+///|
+/// HMR client script for dev mode
+let hmr_script : String = "<script>(function(){var ws=new WebSocket('ws://'+location.hostname+':24678');ws.onmessage=function(e){var m=JSON.parse(e.data);if(m.type==='update'){location.reload()}else if(m.type==='full-reload'){location.reload()}else if(m.type==='error'){console.error('[HMR]',m.message)}};ws.onclose=function(){console.log('[HMR] Disconnected, reconnecting...');setTimeout(function(){location.reload()},1000)}})()</script>"
+
+///|
 extern "js" fn ffi_init_fs() -> @js.Promise[Unit] =
   #| () => import('node:fs').then(fs => { globalThis.__SOL_FS__ = fs; })
 
@@ -155,18 +164,21 @@ pub fn[E] page(
   app.get(path, fn(c) {
     let node = render_fn(c)
     let enable_hydration = hydration.unwrap_or(false)
+    // Add HMR script in dev mode
+    let dev_script = if is_dev_mode() { hmr_script } else { "" }
     if enable_hydration {
       // Hydration enabled: render with hydration markers and include loader script
       let loader = loader_url.unwrap_or(default_loader_url)
       let loader_script = "<script type=\"module\" src=\"" +
         loader +
         "\"></script>"
-      let full_head = head.unwrap_or("") + loader_script
+      let full_head = head.unwrap_or("") + loader_script + dev_script
       let html = render_page(node, title?, head=full_head, hydration=true)
       c.html(html)
     } else {
-      // Static page: render without hydration
-      let html = render_page(node, title?, head?)
+      // Static page: render without hydration (but still add HMR in dev)
+      let full_head = head.unwrap_or("") + dev_script
+      let html = render_page(node, title?, head=full_head)
       c.html(html)
     }
   })
@@ -553,7 +565,9 @@ pub fn[E] wc_page(
     let loader_script = "<script type=\"module\" src=\"" +
       loader +
       "\"></script>"
-    let full_head = head.unwrap_or("") + loader_script
+    // Add HMR script in dev mode
+    let dev_script = if is_dev_mode() { hmr_script } else { "" }
+    let full_head = head.unwrap_or("") + loader_script + dev_script
     let html = render_page(node, title?, head=full_head, hydration=true)
     c.html(html)
   })
@@ -846,16 +860,17 @@ pub fn serve_static(app : App, config? : StaticFileConfig) -> App {
       }
     }
 
-    // Fallback: try to read from local_dir/filename, then .sol/{prod,dev}/static/filename
+    // Fallback: try to read from local_dir/filename, then .sol/{dev,prod}/static/filename
+    // Dev is checked first as it's more commonly used during development
     let local_path = cfg.local_dir + "/" + filename
-    let sol_prod_path = ".sol/prod/static/" + filename
     let sol_dev_path = ".sol/dev/static/" + filename
+    let sol_prod_path = ".sol/prod/static/" + filename
     let content = match read_file_sync(local_path) {
       Some(c) => Some(c)
       None =>
-        match read_file_sync(sol_prod_path) {
+        match read_file_sync(sol_dev_path) {
           Some(c) => Some(c)
-          None => read_file_sync(sol_dev_path)
+          None => read_file_sync(sol_prod_path)
         }
     }
     match content {
