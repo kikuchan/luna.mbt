@@ -16,3 +16,5 @@ docs/private-*
 .wrangler
 __screenshots__
 dist-ssg
+app
+.sol
