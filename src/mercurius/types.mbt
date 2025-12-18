@@ -1,7 +1,6 @@
-///| Shard Types
-
-///| Types for generating portable, resumable UI snippets (shards)
-
+// Shard Types
+// Types for generating portable, resumable UI snippets (shards)
+//
 
 ///|
 /// How state is provided

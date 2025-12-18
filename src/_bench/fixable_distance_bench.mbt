@@ -1,8 +1,6 @@
-///|
-
-///| Distance-based Benchmarks for Fixable Hydration
-
-///| Measures how repair cost scales with mismatch severity
+//
+// Distance-based Benchmarks for Fixable Hydration
+// Measures how repair cost scales with mismatch severity
 
 // =============================================================================
 // Helper Functions

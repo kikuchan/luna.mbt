@@ -1,12 +1,9 @@
-///| Solid-style reference-based reconciliation for DOM reuse
-
-///|
-
-///| Unlike React's key-based reconciliation, this approach tracks item references
-
-///| using JavaScript's === operator. When items are reordered, their DOM nodes
-
-///| are moved rather than recreated.
+// Solid-style reference-based reconciliation for DOM reuse
+//
+// Unlike React's key-based reconciliation, this approach tracks item references
+// using JavaScript's === operator. When items are reordered, their DOM nodes
+// are moved rather than recreated.
+//
 
 ///|
 /// Check if two values are the same reference (physical equality)

@@ -1,4 +1,5 @@
-///| Reactive Context - Tracks current running effect for auto-subscription
+// Reactive Context - Tracks current running effect for auto-subscription
+//
 
 ///|
 /// Effect wrapper with unique ID for deduplication

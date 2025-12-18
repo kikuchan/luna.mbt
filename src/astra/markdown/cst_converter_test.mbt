@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Tests for CST to MdNode converter
 test "parse_markdown_native: basic paragraph" {

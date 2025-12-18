@@ -1,8 +1,7 @@
-///| HTML Builder for Shards
-
-///|
-
-///| Generates portable HTML snippets for resumable components (shards)
+// HTML Builder for Shards
+//
+// Generates portable HTML snippets for resumable components (shards)
+//
 
 ///|
 /// Generate the complete shard HTML

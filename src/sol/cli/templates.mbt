@@ -1,4 +1,5 @@
-///| Sol CLI Templates - Embedded template files for project scaffolding
+// Sol CLI Templates - Embedded template files for project scaffolding
+//
 
 ///|
 fn template_gitignore() -> String {

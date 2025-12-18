@@ -1,30 +1,17 @@
-///| Event Handler Types - Type-safe event handlers for Luna DOM
-
-///|
-
-///| This module provides typed event handler aliases similar to React's event handler types.
-
-///| Each handler type is parameterized by the target element type [T] for type safety.
-
-///|
-
-///| Usage:
-
-///|   // Type-safe handler with specific element type
-
-///|   let handler : MouseEventHandler[@js_dom.HTMLButtonElement] = fn(e) {
-
-///|     let target = e.target() // Returns HTMLButtonElement
-
-///|     e.preventDefault()
-
-///|   }
-
-///|
-
-///|   // Or use with generic Element when element type doesn't matter
-
-///|   let handler : MouseEventHandler[@js_dom.Element] = fn(e) { ... }
+// Event Handler Types - Type-safe event handlers for Luna DOM
+//
+// This module provides typed event handler aliases similar to React's event handler types.
+// Each handler type is parameterized by the target element type [T] for type safety.
+//
+// Usage:
+// // Type-safe handler with specific element type
+// let handler : MouseEventHandler[@js_dom.HTMLButtonElement] = fn(e) {
+// let target = e.target() // Returns HTMLButtonElement
+// e.preventDefault()
+// }
+//
+// // Or use with generic Element when element type doesn't matter
+// let handler : MouseEventHandler[@js_dom.Element] = fn(e) { ... }
 
 // =============================================================================
 // Event Handler Type Aliases (with target element type parameter)

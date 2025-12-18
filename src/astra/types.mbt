@@ -1,4 +1,4 @@
-///| SSG (Static Site Generator) Type Definitions
+// SSG (Static Site Generator) Type Definitions
 
 // =============================================================================
 // Configuration Types

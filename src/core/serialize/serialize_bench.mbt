@@ -1,6 +1,5 @@
-///| Benchmarks for serialize module
-
-///| Run with: moon bench --target js src/core/serialize
+// Benchmarks for serialize module
+// Run with: moon bench --target js src/core/serialize
 
 // =============================================================================
 // Test Data - StateValue

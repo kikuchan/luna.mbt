@@ -1,4 +1,4 @@
-///| Sol Compiler - Rolldown-based bundler for Islands
+// Sol Compiler - Rolldown-based bundler for Islands
 
 // ============================================================================
 // Rolldown Bindings

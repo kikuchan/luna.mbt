@@ -1,6 +1,6 @@
-///| VNode to JsonNode renderer
-
-///| Evaluates dynamic content at render time
+// VNode to JsonNode renderer
+// Evaluates dynamic content at render time
+//
 
 ///|
 /// Render a VNode to JsonNode
@@ -49,10 +49,7 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       attrs.set("luna:id", Static(island.id))
       attrs.set("luna:url", Static(island.url))
       attrs.set("luna:state", Static(island.state))
-      attrs.set(
-        "luna:client-trigger",
-        Static(island.trigger.to_string()),
-      )
+      attrs.set("luna:client-trigger", Static(island.trigger.to_string()))
       let children : Array[JsonNode] = []
       for child in island.children {
         children.push(render_to_json(child))
@@ -63,10 +60,7 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       // Render WcIsland as a custom element with data-* attributes
       let attrs : Map[String, JsonAttrValue] = {}
       attrs.set("data-state", Static(wc_island.state))
-      attrs.set(
-        "data-trigger",
-        Static(wc_island.trigger.to_string()),
-      )
+      attrs.set("data-trigger", Static(wc_island.trigger.to_string()))
       let children : Array[JsonNode] = []
       for child in wc_island.children {
         children.push(render_to_json(child))
@@ -79,17 +73,11 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
       if iref.wc {
         attrs.set("luna:wc-url", Static(iref.url))
         attrs.set("luna:wc-state", Static(iref.state))
-        attrs.set(
-          "luna:wc-trigger",
-          Static(iref.trigger.to_string()),
-        )
+        attrs.set("luna:wc-trigger", Static(iref.trigger.to_string()))
       } else {
         attrs.set("luna:url", Static(iref.url))
         attrs.set("luna:state", Static(iref.state))
-        attrs.set(
-          "luna:client-trigger",
-          Static(iref.trigger.to_string()),
-        )
+        attrs.set("luna:client-trigger", Static(iref.trigger.to_string()))
       }
       let children : Array[JsonNode] = []
       for child in iref.children {

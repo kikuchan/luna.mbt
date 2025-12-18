@@ -1,10 +1,7 @@
-///| Luna top-level re-exports
-
-///|
-
-///| This module re-exports commonly used types and functions from core modules
-
-///| so that users can import from `mizchi/luna` instead of `mizchi/luna/core`, etc.
+// Luna top-level re-exports
+//
+// This module re-exports commonly used types and functions from core modules
+// so that users can import from `mizchi/luna` instead of `mizchi/luna/core`, etc.
 
 // =============================================================================
 // Core VNode types and functions

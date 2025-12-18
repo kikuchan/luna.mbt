@@ -1,4 +1,5 @@
-///| JS API - Generic wrappers using Any type for JavaScript consumption
+// JS API - Generic wrappers using Any type for JavaScript consumption
+//
 
 ///|
 /// Opaque type for JS interop - represents any JS value

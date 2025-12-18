@@ -1,4 +1,5 @@
-///| Astra build command
+// Astra build command
+//
 
 ///|
 fn show_build_help() -> Unit {
@@ -83,7 +84,9 @@ async fn run_build_command(args : Array[String]) -> Unit {
   }
   let ssg_config = parse_config(config_content, config_path)
   guard ssg_config is Some(config) else {
-    @cli_utils.console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_utils.console_error(
+      @colorette.red("Error: Invalid config file format"),
+    )
     @process.exit(1)
   }
 

@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Routes tests - cross-platform (js, wasm-gc, native)
 test "compile simple page route" {

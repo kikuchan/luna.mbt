@@ -1,4 +1,4 @@
-///| Tests for VNode
+// Tests for VNode
 
 // =============================================================================
 // EventHandler Tests
@@ -286,7 +286,10 @@ test "TriggerType::to_string" {
   assert_eq(TriggerType::Load.to_string(), "load")
   assert_eq(TriggerType::Idle.to_string(), "idle")
   assert_eq(TriggerType::Visible.to_string(), "visible")
-  assert_eq(TriggerType::Media("(min-width: 768px)").to_string(), "media:(min-width: 768px)")
+  assert_eq(
+    TriggerType::Media("(min-width: 768px)").to_string(),
+    "media:(min-width: 768px)",
+  )
   assert_eq(TriggerType::None.to_string(), "none")
 }
 
@@ -447,11 +450,7 @@ test "internal_ref with wc flag" {
 
 ///|
 test "internal_ref with custom trigger" {
-  let node : Node[Unit] = internal_ref(
-    "/static/counter.js",
-    "{}",
-    trigger=Idle,
-  )
+  let node : Node[Unit] = internal_ref("/static/counter.js", "{}", trigger=Idle)
   match node {
     InternalRef(iref) =>
       match iref.trigger {

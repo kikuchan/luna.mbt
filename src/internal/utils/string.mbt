@@ -1,4 +1,5 @@
-///| String Utility Functions
+// String Utility Functions
+//
 
 ///|
 /// Split string by a single separator character

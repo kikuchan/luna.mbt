@@ -1,4 +1,5 @@
-///| Debounced Signal - Timer-based signal debouncing (requires JS runtime)
+// Debounced Signal - Timer-based signal debouncing (requires JS runtime)
+//
 
 ///|
 /// Debounce signal updates using setTimeout

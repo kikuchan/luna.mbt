@@ -1,10 +1,8 @@
-///| Stream SSR - Streaming server-side rendering with Web Streams API
-
-///| Provides chunked HTML output for faster Time-To-First-Byte (TTFB)
-
-///| Uses standard Web Streams API (ReadableStream, WritableStream)
-
-///| VAsync nodes render fallback immediately, then stream resolved content
+// Stream SSR - Streaming server-side rendering with Web Streams API
+// Provides chunked HTML output for faster Time-To-First-Byte (TTFB)
+// Uses standard Web Streams API (ReadableStream, WritableStream)
+// VAsync nodes render fallback immediately, then stream resolved content
+//
 
 ///|
 /// Stream writer callback - receives chunks as they're ready

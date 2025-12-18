@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Tests for JSON Renderer
 
@@ -99,11 +101,7 @@ test "render element with children" {
 
 ///|
 test "render fragment" {
-  let node = @luna.fragment([
-    @luna.text("A"),
-    @luna.text("B"),
-    @luna.text("C"),
-  ])
+  let node = @luna.fragment([@luna.text("A"), @luna.text("B"), @luna.text("C")])
   let json = render_to_json(node)
   match json {
     Fragment(children) => {

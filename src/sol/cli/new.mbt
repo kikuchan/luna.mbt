@@ -1,4 +1,5 @@
-///| sol new command - Create a new Sol project
+// sol new command - Create a new Sol project
+//
 
 ///|
 fn show_new_help() -> Unit {
@@ -53,7 +54,9 @@ fn run_new_command(args : Array[String]) -> Unit {
   }
   let user_ns : String = result.values["user"].cast()
   if user_ns.is_empty() {
-    @cli_utils.console_error(@colorette.red("Error: --user option value is required"))
+    @cli_utils.console_error(
+      @colorette.red("Error: --user option value is required"),
+    )
     @process.exit(1)
   }
   let dev_mode : Bool = if result.values.contains("dev") {
@@ -100,7 +103,9 @@ fn run_new_command(args : Array[String]) -> Unit {
       @fs.writeFileSync(file_path, @js.any(tmpl.content))
     } catch {
       e => {
-        @cli_utils.console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
+        @cli_utils.console_error(
+          @colorette.red("Error creating file \{tmpl.path}: \{e}"),
+        )
         @process.exit(1)
       }
     }

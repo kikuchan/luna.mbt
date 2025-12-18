@@ -1,8 +1,6 @@
-///| Island helpers for server_dom
-
-///|
-
-///| Provides integration with client-side components through islands.
+// Island helpers for server_dom
+//
+// Provides integration with client-side components through islands.
 
 // =============================================================================
 // New ComponentRef-based island API

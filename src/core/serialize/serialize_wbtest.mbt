@@ -1,4 +1,5 @@
-///| Whitebox tests for Signal Serialization
+// Whitebox tests for Signal Serialization
+//
 
 ///|
 test "register_signal int" {

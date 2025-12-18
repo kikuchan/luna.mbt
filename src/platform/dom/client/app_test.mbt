@@ -1,4 +1,5 @@
-///| Real-world Todo App Tests with JSDOM
+// Real-world Todo App Tests with JSDOM
+//
 
 ///|
 /// Todo item structure

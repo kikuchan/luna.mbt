@@ -321,9 +321,7 @@ test "render switch fallback" {
   let node : @luna.Node[Unit] = @luna.switch_(
     cases=[
       @luna.match_case(when=fn() { false }, render=fn() { @luna.text("First") }),
-      @luna.match_case(when=fn() { false }, render=fn() {
-        @luna.text("Second")
-      }),
+      @luna.match_case(when=fn() { false }, render=fn() { @luna.text("Second") }),
     ],
     fallback=Some(fn() { @luna.text("Fallback") }),
   )
@@ -356,9 +354,7 @@ test "render switch with preloads" {
 test "render switch with hydration markers case match" {
   let node : @luna.Node[Unit] = @luna.switch_(
     cases=[
-      @luna.match_case(when=fn() { true }, render=fn() {
-        @luna.text("Matched")
-      }),
+      @luna.match_case(when=fn() { true }, render=fn() { @luna.text("Matched") }),
     ],
     fallback=Some(fn() { @luna.text("Fallback") }),
   )

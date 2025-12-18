@@ -1,16 +1,11 @@
-///| Sol Outlet - Partial update region marker
-
-///|
-
-///| Creates a div element with data-sol-outlet attribute
-
-///| to mark regions for partial DOM updates during CSR navigation.
-
-///| Mark a region for partial updates during CSR navigation
-
-///|
-
-///| Renders as `<div data-sol-outlet="name">` which is used by
+// Sol Outlet - Partial update region marker
+//
+// Creates a div element with data-sol-outlet attribute
+// to mark regions for partial DOM updates during CSR navigation.
+// Mark a region for partial updates during CSR navigation
+//
+// Renders as `<div data-sol-outlet="name">` which is used by
+//
 
 ///|
 /// sol-nav.js to replace content during navigation.

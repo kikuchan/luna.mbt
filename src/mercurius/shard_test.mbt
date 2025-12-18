@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Tests for shard module
 test "escape_json_for_script - safe string passes through" {

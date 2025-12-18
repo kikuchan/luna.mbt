@@ -1,4 +1,5 @@
-///| Routes Compiler - Compile route definitions to optimized format
+// Routes Compiler - Compile route definitions to optimized format
+//
 
 ///|
 /// パスを正規化（重複スラッシュ除去、末尾スラッシュ除去）

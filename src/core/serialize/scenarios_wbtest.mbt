@@ -1,8 +1,6 @@
-///| User Scenario Tests for Resumable State
-
-///|
-
-///| These tests demonstrate real-world usage patterns from a user's perspective.
+// User Scenario Tests for Resumable State
+//
+// These tests demonstrate real-world usage patterns from a user's perspective.
 
 // =============================================================================
 // Scenario 1: Simple Counter App

@@ -1,4 +1,5 @@
-///| sol generate command - Generate __gen__ and .sol directories from sol.config.json
+// sol generate command - Generate __gen__ and .sol directories from sol.config.json
+//
 
 ///|
 fn show_generate_help() -> Unit {
@@ -1382,7 +1383,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     }
   }
   guard parse_sol_config(config_content) is Some(config) else {
-    @cli_utils.console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_utils.console_error(
+      @colorette.red("Error: Invalid config file format"),
+    )
     @process.exit(1)
   }
   println(@colorette.cyan("Generating app/__gen__ and .sol directories..."))
@@ -1398,7 +1401,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let types_dir = @path.join2(output_dir, "types")
   @fs.mkdirSync(types_dir, recursive=true) catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error creating types directory: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error creating types directory: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1425,7 +1430,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
       println(@colorette.gray("  Generated __gen__/types/ from source"))
     } catch {
       e => {
-        @cli_utils.console_error(@colorette.red("Error writing types package: \{e}"))
+        @cli_utils.console_error(
+          @colorette.red("Error writing types package: \{e}"),
+        )
         @process.exit(1)
       }
     }
@@ -1447,7 +1454,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
         )
       } catch {
         e => {
-          @cli_utils.console_error(@colorette.red("Error writing stub types: \{e}"))
+          @cli_utils.console_error(
+            @colorette.red("Error writing stub types: \{e}"),
+          )
           @process.exit(1)
         }
       }
@@ -1458,7 +1467,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let server_dir = @path.join2(output_dir, "server")
   @fs.mkdirSync(server_dir, recursive=true) catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error creating server directory: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error creating server directory: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1467,7 +1478,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let server_pkg_path = @path.join2(server_dir, "moon.pkg.json")
   @fs.writeFileSync(server_pkg_path, @js.any(server_pkg)) catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error writing server/moon.pkg.json: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error writing server/moon.pkg.json: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1478,7 +1491,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     @js.any("///| Stub - will be replaced\nfn main { () }\n"),
   ) catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error writing stub main.mbt: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error writing stub main.mbt: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1499,7 +1514,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
       }
     } catch {
       e => {
-        @cli_utils.console_error(@colorette.red("Error running moon info: \{e}"))
+        @cli_utils.console_error(
+          @colorette.red("Error running moon info: \{e}"),
+        )
         @process.exit(1)
       }
     }
@@ -1535,7 +1552,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     @fs.mkdirSync(sol_server_dir, recursive=true)
   } catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error creating directories: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error creating directories: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1564,7 +1583,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
         println(@colorette.gray("  Generated \{island_pattern}/__gen__.mbt"))
       } catch {
         e => {
-          @cli_utils.console_error(@colorette.red("Error writing __gen__.mbt: \{e}"))
+          @cli_utils.console_error(
+            @colorette.red("Error writing __gen__.mbt: \{e}"),
+          )
           @process.exit(1)
         }
       }
@@ -1603,7 +1624,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     println(@colorette.gray("  Generated __gen__/server/main.mbt"))
   } catch {
     e => {
-      @cli_utils.console_error(@colorette.red("Error writing server/main.mbt: \{e}"))
+      @cli_utils.console_error(
+        @colorette.red("Error writing server/main.mbt: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1640,7 +1663,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
       println(@colorette.gray("  Generated .sol/\{mode}/manifest.json"))
     } catch {
       e => {
-        @cli_utils.console_error(@colorette.red("Error writing manifest.json: \{e}"))
+        @cli_utils.console_error(
+          @colorette.red("Error writing manifest.json: \{e}"),
+        )
         @process.exit(1)
       }
     }

@@ -1,20 +1,13 @@
-///| DomNode - Browser-specific DOM node types
-
-///|
-
-///| DomNode is designed for client-side rendering with full interactivity:
-
-///| - Event handlers (click, input, etc.)
-
-///| - Reactive updates (signals, effects)
-
-///| - DOM manipulation
-
-///|
-
-///| Unlike ServerDomNode, DomNode cannot contain ServerDomNode children.
-
-///| This enforces the Server Component / Client Component boundary.
+// DomNode - Browser-specific DOM node types
+//
+// DomNode is designed for client-side rendering with full interactivity:
+// - Event handlers (click, input, etc.)
+// - Reactive updates (signals, effects)
+// - DOM manipulation
+//
+// Unlike ServerDomNode, DomNode cannot contain ServerDomNode children.
+// This enforces the Server Component / Client Component boundary.
+//
 
 ///|
 /// DomElement wraps a DOM element (internal jsdom.Element)

@@ -1,12 +1,8 @@
-///| Sol Fragment Response
-
-///|
-
-///| Handles X-Sol-Fragment requests for CSR navigation.
-
-///| Returns HTML with <template data-sol-outlet="..."> elements
-
-///| that can be swapped by sol-nav.js on the client.
+// Sol Fragment Response
+//
+// Handles X-Sol-Fragment requests for CSR navigation.
+// Returns HTML with <template data-sol-outlet="..."> elements
+// that can be swapped by sol-nav.js on the client.
 
 // ============================================================================
 // Fragment Header Detection

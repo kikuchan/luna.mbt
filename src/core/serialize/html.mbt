@@ -1,4 +1,5 @@
-///| HTML State Embedding - Embed and extract state from HTML
+// HTML State Embedding - Embed and extract state from HTML
+//
 
 ///|
 /// State script tag attribute name

@@ -1,10 +1,7 @@
-///| Sol Router - Server-side routing based on core/routes
-
-///|
-
-///| This module bridges core/routes definitions to Hono server routing.
-
-///| It provides type-safe routing with support for Pages, Islands, and APIs.
+// Sol Router - Server-side routing based on core/routes
+//
+// This module bridges core/routes definitions to Hono server routing.
+// It provides type-safe routing with support for Pages, Islands, and APIs.
 
 // ============================================================================
 // HMR (Hot Module Replacement) Support

@@ -1,8 +1,6 @@
-///| JS Target Implementation - Uses native String.replace for best performance
-
-///|
-
-///| Benchmark results show JS FFI is 3-38x faster than pure MoonBit iteration
+// JS Target Implementation - Uses native String.replace for best performance
+//
+// Benchmark results show JS FFI is 3-38x faster than pure MoonBit iteration
 
 // =============================================================================
 // JS FFI Functions

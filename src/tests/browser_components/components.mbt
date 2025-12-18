@@ -1,6 +1,6 @@
-///| Browser Test Components - Client-side hydration components for E2E testing
-
-///|
+// Browser Test Components - Client-side hydration components for E2E testing
+//
+//
 
 ///|
 /// Each hydrate_* function is exported and called by ln-loader

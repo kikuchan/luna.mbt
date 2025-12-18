@@ -1,4 +1,5 @@
-///| Hydration - Connect VNode to existing server-rendered DOM
+// Hydration - Connect VNode to existing server-rendered DOM
+//
 
 ///|
 /// Hydration result type
@@ -837,4 +838,3 @@ fn hydrate_switch(
     }
   }
 }
-

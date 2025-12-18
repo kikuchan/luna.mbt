@@ -1,10 +1,8 @@
-///| Web Components Island helpers for server_dom
-
-///|
-
-///| Provides integration with Web Components based client-side components.
-
-///| Uses Declarative Shadow DOM for SSR.
+// Web Components Island helpers for server_dom
+//
+// Provides integration with Web Components based client-side components.
+// Uses Declarative Shadow DOM for SSR.
+//
 
 ///|
 /// Create a Web Components island for client-side hydration

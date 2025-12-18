@@ -1,10 +1,8 @@
-///| WC Sample Application demonstrating Luna Web Components features
-
-///|
-
-///| This file serves as a comprehensive example showing Web Components
-
-///| with MoonBit and Luna's reactive system.
+// WC Sample Application demonstrating Luna Web Components features
+//
+// This file serves as a comprehensive example showing Web Components
+// with MoonBit and Luna's reactive system.
+//
 
 ///|
 /// Check if debug mode is enabled

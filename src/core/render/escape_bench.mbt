@@ -1,6 +1,5 @@
-///| Benchmarks for HTML/Attribute/JS escaping functions
-
-///| Run with: moon bench --target js src/core/render
+// Benchmarks for HTML/Attribute/JS escaping functions
+// Run with: moon bench --target js src/core/render
 
 // =============================================================================
 // Test Data

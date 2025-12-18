@@ -1,4 +1,5 @@
-///| Astra dev command - Development server with watch mode
+// Astra dev command - Development server with watch mode
+//
 
 ///|
 fn show_dev_help() -> Unit {
@@ -68,7 +69,9 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   }
   let ssg_config = parse_config(config_content, config_path)
   guard ssg_config is Some(config) else {
-    @cli_utils.console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_utils.console_error(
+      @colorette.red("Error: Invalid config file format"),
+    )
     @process.exit(1)
   }
 

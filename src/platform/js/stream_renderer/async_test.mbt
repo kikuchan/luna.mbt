@@ -352,7 +352,6 @@ test "chained operations timeout" {
 // Comparison: try-catch vs VAsync
 // =============================================================================
 
-///|
 /// Discussion:
 ///
 /// MoonBit's try-catch is an expression, making it natural for synchronous

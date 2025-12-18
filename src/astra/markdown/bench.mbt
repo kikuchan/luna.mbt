@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Benchmark for SSG markdown parser (pure MoonBit implementation)
 

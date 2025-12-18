@@ -1,4 +1,5 @@
-///|
+//
+
 /// SSR Tests - Pure MoonBit
 ///
 /// Type alias for SSR nodes (Event type = Unit)
@@ -468,9 +469,7 @@ test "render island basic" {
     "/components/counter.js",
     "{\"count\":5}",
     [
-      @luna.h("span", [("data-count", @luna.attr_static(""))], [
-        @luna.text("5"),
-      ]),
+      @luna.h("span", [("data-count", @luna.attr_static(""))], [@luna.text("5")]),
     ],
   )
   let html = render_to_string(node).html
@@ -584,9 +583,7 @@ test "render island with complex children" {
         @luna.for_each(fn() {
           let items : Array[@luna.Node[Unit]] = []
           for i = 0; i < count; i = i + 1 {
-            items.push(
-              @luna.h("li", [], [@luna.text("Item " + i.to_string())]),
-            )
+            items.push(@luna.h("li", [], [@luna.text("Item " + i.to_string())]))
           }
           items
         }),
@@ -624,7 +621,10 @@ test "TriggerType::to_string" {
   assert_eq(@luna.Load.to_string(), "load")
   assert_eq(@luna.Idle.to_string(), "idle")
   assert_eq(@luna.Visible.to_string(), "visible")
-  assert_eq(@luna.Media("(max-width: 600px)").to_string(), "media:(max-width: 600px)")
+  assert_eq(
+    @luna.Media("(max-width: 600px)").to_string(),
+    "media:(max-width: 600px)",
+  )
 }
 
 // =============================================================================
@@ -1058,27 +1058,15 @@ test "preload with wc_island in conditional show" {
 ///|
 test "preload with duplicate wc_island urls" {
   let node : @luna.Node[Unit] = @luna.fragment([
-    @luna.wc_island(
-      "wc-counter-1",
-      "/static/wc_counter.js",
-      "",
-      "{\"id\":1}",
-      [@luna.text("1")],
-    ),
-    @luna.wc_island(
-      "wc-counter-2",
-      "/static/wc_counter.js",
-      "",
-      "{\"id\":2}",
-      [@luna.text("2")],
-    ),
-    @luna.wc_island(
-      "wc-counter-3",
-      "/static/wc_counter.js",
-      "",
-      "{\"id\":3}",
-      [@luna.text("3")],
-    ),
+    @luna.wc_island("wc-counter-1", "/static/wc_counter.js", "", "{\"id\":1}", [
+      @luna.text("1"),
+    ]),
+    @luna.wc_island("wc-counter-2", "/static/wc_counter.js", "", "{\"id\":2}", [
+      @luna.text("2"),
+    ]),
+    @luna.wc_island("wc-counter-3", "/static/wc_counter.js", "", "{\"id\":3}", [
+      @luna.text("3"),
+    ]),
   ])
   let result = render_to_string(node, preload=true)
   // Should deduplicate - only one URL

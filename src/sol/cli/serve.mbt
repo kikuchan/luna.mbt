@@ -1,4 +1,5 @@
-///| sol serve command - Serve pre-built production assets
+// sol serve command - Serve pre-built production assets
+//
 
 ///|
 fn show_serve_help() -> Unit {

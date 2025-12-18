@@ -1,6 +1,6 @@
-///| Watch - Advanced signal utilities
-
-///| Watch a computed expression and run callback when it changes
+// Watch - Advanced signal utilities
+// Watch a computed expression and run callback when it changes
+//
 
 ///|
 /// Returns a dispose function

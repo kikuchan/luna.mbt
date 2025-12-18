@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Hydration Tests
 
@@ -404,11 +406,7 @@ test "hydrate fragment" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @luna.fragment([
-    @luna.text("A"),
-    @luna.text("B"),
-    @luna.text("C"),
-  ])
+  let vnode = @luna.fragment([@luna.text("A"), @luna.text("B"), @luna.text("C")])
   let html = @render.render_to_string(vnode).html
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
@@ -769,11 +767,7 @@ test "render_vnode_to_dom with fragment" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
-  let vnode = @luna.fragment([
-    @luna.text("A"),
-    @luna.text("B"),
-    @luna.text("C"),
-  ])
+  let vnode = @luna.fragment([@luna.text("A"), @luna.text("B"), @luna.text("C")])
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   assert_eq(get_inner_html(container), "ABC")
@@ -796,9 +790,7 @@ test "render_vnode_to_dom with Show initially true" {
   defer cleanup()
   let container = create_container()
   let visible = @signal.signal(true)
-  let vnode = @luna.show(fn() { visible.get() }, fn() {
-    @luna.text("Visible")
-  })
+  let vnode = @luna.show(fn() { visible.get() }, fn() { @luna.text("Visible") })
   let dom_node = render_vnode_to_dom(vnode)
   container.as_node().appendChild(dom_node) |> ignore
   // Show node returns a comment placeholder, content is inserted before it
@@ -1412,9 +1404,7 @@ test "hydrate nested show in for" {
     let arr = items.get()
     let result : Array[@luna.Node[@js.Any]] = []
     for item in arr {
-      result.push(
-        @luna.show(fn() { visible.get() }, fn() { @luna.text(item) }),
-      )
+      result.push(@luna.show(fn() { visible.get() }, fn() { @luna.text(item) }))
     }
     result
   })

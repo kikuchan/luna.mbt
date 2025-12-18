@@ -1,52 +1,29 @@
-///| Element DSL - Simplified API for creating reactive elements
-
-///|
-
-///| Usage:
-
-///|   div(class="myapp", on=events().click(fn(_) { ... }), [text("Hello")])
-
-///|
-
-///| ## Bundle Size Optimization Notes
-
-///|
-
-///| This module uses JS FFI extensively to minimize bundle size:
-
-///|
-
-///| 1. **Double.to_string via JS FFI**: MoonBit's native Double.to_string uses the
-
-///|    ryu algorithm which pulls in ~31KB of Int64 operations. We use JS's native
-
-///|    toString() instead.
-
-///|
-
-///| 2. **HandlerMap as opaque JS object**: Instead of a MoonBit struct with 16 fields,
-
-///|    we use a plain JS object created via FFI. This avoids generating large
-
-///|    to_attrs() functions with 16 if-statements.
-
-///|
-
-///| 3. **Lowercase event names**: Event names are stored as lowercase DOM standard
-
-///|    names (click, input) instead of React-style camelCase (onClick, onInput).
-
-///|    This avoids runtime string conversion and prevents future bloat from
-
-///|    conversion dictionaries.
-
-///|
-
-///| 4. **Method chaining via events() DSL**: Using events().click(...).input(...)
-
-///|    instead of on(click=Some(...)) avoids generating Option wrappers for all
-
-///|    16 event types. MoonBit's dead code elimination removes unused handlers.
+// Element DSL - Simplified API for creating reactive elements
+//
+// Usage:
+// div(class="myapp", on=events().click(fn(_) { ... }), [text("Hello")])
+//
+// ## Bundle Size Optimization Notes
+//
+// This module uses JS FFI extensively to minimize bundle size:
+//
+// 1. **Double.to_string via JS FFI**: MoonBit's native Double.to_string uses the
+// ryu algorithm which pulls in ~31KB of Int64 operations. We use JS's native
+// toString() instead.
+//
+// 2. **HandlerMap as opaque JS object**: Instead of a MoonBit struct with 16 fields,
+// we use a plain JS object created via FFI. This avoids generating large
+// to_attrs() functions with 16 if-statements.
+//
+// 3. **Lowercase event names**: Event names are stored as lowercase DOM standard
+// names (click, input) instead of React-style camelCase (onClick, onInput).
+// This avoids runtime string conversion and prevents future bloat from
+// conversion dictionaries.
+//
+// 4. **Method chaining via events() DSL**: Using events().click(...).input(...)
+// instead of on(click=Some(...)) avoids generating Option wrappers for all
+// 16 event types. MoonBit's dead code elimination removes unused handlers.
+//
 
 ///|
 /// Type alias for event handler

@@ -1,8 +1,6 @@
-///| Non-JS Target Implementation - Pure MoonBit for WASM and Native
-
-///|
-
-///| Optimized single-pass implementation: checks and escapes in one iteration
+// Non-JS Target Implementation - Pure MoonBit for WASM and Native
+//
+// Optimized single-pass implementation: checks and escapes in one iteration
 
 // =============================================================================
 // Internal Implementation (called from escape.mbt)

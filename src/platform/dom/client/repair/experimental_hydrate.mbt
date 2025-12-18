@@ -1,16 +1,11 @@
-///| Experimental Hydration - Morphdom-like DOM diffing/patching during hydration
-
-///|
-
-///| This module provides resilient hydration that can repair mismatches between
-
-///| server-rendered HTML and the expected VDOM structure, similar to morphdom.
-
-///| Use this as a fallback when regular hydration fails.
-
-///|
-
-///| NOTE: This is an experimental module. The API may change in future versions.
+// Experimental Hydration - Morphdom-like DOM diffing/patching during hydration
+//
+// This module provides resilient hydration that can repair mismatches between
+// server-rendered HTML and the expected VDOM structure, similar to morphdom.
+// Use this as a fallback when regular hydration fails.
+//
+// NOTE: This is an experimental module. The API may change in future versions.
+//
 
 ///|
 /// Type of repair operation performed

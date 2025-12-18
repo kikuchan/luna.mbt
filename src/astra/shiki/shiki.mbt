@@ -1,6 +1,5 @@
-///| MoonBit FFI bindings for Shiki syntax highlighter
-
-///| https://shiki.style
+// MoonBit FFI bindings for Shiki syntax highlighter
+// https://shiki.style
 
 // =============================================================================
 // Types

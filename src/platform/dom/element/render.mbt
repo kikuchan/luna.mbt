@@ -1,4 +1,5 @@
-///| DOM Rendering - Fine-grained reactive DOM bindings
+// DOM Rendering - Fine-grained reactive DOM bindings
+//
 
 ///|
 /// Create a reactive text node that updates when the content changes

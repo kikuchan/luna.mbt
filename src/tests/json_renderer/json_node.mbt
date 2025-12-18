@@ -1,6 +1,6 @@
-///| JSON Renderer - Platform-independent render target
-
-///| Renders VNode to a JSON-serializable structure
+// JSON Renderer - Platform-independent render target
+// Renders VNode to a JSON-serializable structure
+//
 
 ///|
 /// JSON-serializable node representation

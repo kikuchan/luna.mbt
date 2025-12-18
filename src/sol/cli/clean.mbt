@@ -1,4 +1,5 @@
-///| sol clean command - Remove generated files and caches
+// sol clean command - Remove generated files and caches
+//
 
 ///|
 fn show_clean_help() -> Unit {

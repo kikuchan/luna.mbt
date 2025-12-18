@@ -1,4 +1,5 @@
-///| HMR WebSocket Server
+// HMR WebSocket Server
+
 /// Provides WebSocket server functionality for Hot Module Replacement
 
 ///|

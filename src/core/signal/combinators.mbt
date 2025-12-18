@@ -1,6 +1,6 @@
-///| Signal Combinators - Transform and combine signals
-
-///| Map a signal's value through a function
+// Signal Combinators - Transform and combine signals
+// Map a signal's value through a function
+//
 
 ///|
 /// Returns a getter function (like memo)

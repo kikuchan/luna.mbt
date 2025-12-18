@@ -1,4 +1,5 @@
-///| Client-side Rendering - Create new DOM nodes from VNode
+// Client-side Rendering - Create new DOM nodes from VNode
+//
 
 ///|
 /// Render VNode to DOM node (for client-side rendering after hydration)
@@ -114,10 +115,7 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       wrapper.setAttribute("luna:id", island.id)
       wrapper.setAttribute("luna:url", island.url)
       wrapper.setAttribute("luna:state", island.state)
-      wrapper.setAttribute(
-        "luna:client-trigger",
-        island.trigger.to_string(),
-      )
+      wrapper.setAttribute("luna:client-trigger", island.trigger.to_string())
       for child in island.children {
         wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
       }
@@ -127,10 +125,7 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
       // For client-side rendering, create the custom element with shadow DOM
       let wrapper = doc.createElement(wc_island.name)
       wrapper.setAttribute("data-state", wc_island.state)
-      wrapper.setAttribute(
-        "data-trigger",
-        wc_island.trigger.to_string(),
-      )
+      wrapper.setAttribute("data-trigger", wc_island.trigger.to_string())
       // Note: Shadow DOM would be created by the custom element itself
       // For CSR, we just create the host element with data attributes
       for child in wc_island.children {
@@ -146,10 +141,7 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         let wrapper = doc.createElement(name)
         wrapper.setAttribute("luna:wc-url", iref.url)
         wrapper.setAttribute("luna:wc-state", iref.state)
-        wrapper.setAttribute(
-          "luna:wc-trigger",
-          iref.trigger.to_string(),
-        )
+        wrapper.setAttribute("luna:wc-trigger", iref.trigger.to_string())
         for child in iref.children {
           wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
         }
@@ -161,10 +153,7 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         wrapper.setAttribute("luna:id", id)
         wrapper.setAttribute("luna:url", iref.url)
         wrapper.setAttribute("luna:state", iref.state)
-        wrapper.setAttribute(
-          "luna:client-trigger",
-          iref.trigger.to_string(),
-        )
+        wrapper.setAttribute("luna:client-trigger", iref.trigger.to_string())
         for child in iref.children {
           wrapper.as_node().appendChild(render_vnode_to_dom(child)) |> ignore
         }

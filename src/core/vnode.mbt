@@ -1,14 +1,10 @@
-///| VNode - DOM-independent virtual node representation
-
-///|
-
-///| Type parameter E represents the event type for handlers:
-
-///| - Browser: E = DomEvent (or specific event types)
-
-///| - SSR: E = Unit (no events)
-
-///| - Other platforms: custom event types
+// VNode - DOM-independent virtual node representation
+//
+// Type parameter E represents the event type for handlers:
+// - Browser: E = DomEvent (or specific event types)
+// - SSR: E = Unit (no events)
+// - Other platforms: custom event types
+//
 
 ///|
 /// Event handler type - newtype wrapper for callback function
@@ -51,7 +47,6 @@ pub(all) enum TriggerType {
   /// Never auto-hydrate (manual only via __LUNA_HYDRATE__)
   None
 }
-
 
 ///|
 /// Virtual Island node - serializable hydration unit

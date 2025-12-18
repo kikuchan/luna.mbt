@@ -1,10 +1,7 @@
-///| Web Components Island Hydration API
-
-///|
-
-///| Provides integration with Web Components based islands.
-
-///| Uses DOM Parts for efficient partial updates.
+// Web Components Island Hydration API
+//
+// Provides integration with Web Components based islands.
+// Uses DOM Parts for efficient partial updates.
 
 // =============================================================================
 // WcIsland Context - For Web Components based islands
@@ -287,7 +284,6 @@ pub fn get_shadow_root_for_hydrate(
   }
 }
 
-///|
 /// Unified hydration function that auto-detects WC vs Luna mode
 ///
 /// For Web Components (has shadowRoot):

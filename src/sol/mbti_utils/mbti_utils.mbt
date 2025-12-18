@@ -1,8 +1,7 @@
-///| MBTI Parser Utilities
-
-///|
-
-///| Extracts public function signatures from .mbti files
+// MBTI Parser Utilities
+//
+// Extracts public function signatures from .mbti files
+//
 
 ///|
 /// Represents a public function extracted from mbti

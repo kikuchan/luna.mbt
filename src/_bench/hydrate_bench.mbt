@@ -1,6 +1,6 @@
-///|
-
-///| Hydration Benchmarks
+//
+// Hydration Benchmarks
+//
 
 ///|
 /// Measures performance of connecting VNodes to server-rendered DOM

@@ -1,6 +1,6 @@
-///| SSR - Server-Side Rendering for VNode
-
-///| Pure MoonBit - works on all targets (js, wasm-gc, native)
+// SSR - Server-Side Rendering for VNode
+// Pure MoonBit - works on all targets (js, wasm-gc, native)
+//
 
 ///|
 /// SSR result with HTML and preload URLs collected from islands

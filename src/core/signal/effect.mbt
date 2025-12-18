@@ -1,4 +1,5 @@
-///| Effect - Reactive side effect that auto-tracks signal dependencies
+// Effect - Reactive side effect that auto-tracks signal dependencies
+//
 
 ///|
 /// Effect state

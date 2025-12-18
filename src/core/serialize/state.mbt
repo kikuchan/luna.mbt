@@ -1,10 +1,8 @@
-///| Resumable State - Qwik-like state serialization and restoration
-
-///|
-
-///| This module provides functionality to serialize Signal states to JSON
-
-///| and restore them on the client side for hydration.
+// Resumable State - Qwik-like state serialization and restoration
+//
+// This module provides functionality to serialize Signal states to JSON
+// and restore them on the client side for hydration.
+//
 
 ///|
 /// State container that can be serialized

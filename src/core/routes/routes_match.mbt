@@ -1,4 +1,5 @@
-///| RoutesMatch accessor methods
+// RoutesMatch accessor methods
+//
 
 ///|
 /// コンポーネントIDを取得

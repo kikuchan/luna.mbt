@@ -1,3 +1,5 @@
+//
+
 ///|
 /// WebComponents tests
 test "register: basic custom element" {

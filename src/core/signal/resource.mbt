@@ -1,10 +1,8 @@
-///| Async Resource - Environment-agnostic async state management
-
-///|
-
-///| This module provides a callback-based async primitive that can be
-
-///| integrated with any async runtime (JS Promise, native async, etc.)
+// Async Resource - Environment-agnostic async state management
+//
+// This module provides a callback-based async primitive that can be
+// integrated with any async runtime (JS Promise, native async, etc.)
+//
 
 ///|
 /// Async state representation - environment independent

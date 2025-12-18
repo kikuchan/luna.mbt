@@ -1,4 +1,4 @@
-///| Tests for Resumable State
+// Tests for Resumable State
 
 // =============================================================================
 // State Serialization Tests

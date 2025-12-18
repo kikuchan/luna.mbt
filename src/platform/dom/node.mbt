@@ -1,4 +1,5 @@
-///| Node types - DOM-independent interface for signals/dom
+// Node types - DOM-independent interface for signals/dom
+//
 
 ///|
 /// Element wraps a DOM element (internal jsdom.Element)

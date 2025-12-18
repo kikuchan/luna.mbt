@@ -1,12 +1,8 @@
-///| HTML/Attribute/JS String Escaping Utilities
-
-///|
-
-///| Cross-platform implementation with target-specific optimizations:
-
-///| - JS target: Uses native String.replace (fastest)
-
-///| - WASM/Native: Pure MoonBit implementation
+// HTML/Attribute/JS String Escaping Utilities
+//
+// Cross-platform implementation with target-specific optimizations:
+// - JS target: Uses native String.replace (fastest)
+// - WASM/Native: Pure MoonBit implementation
 
 // =============================================================================
 // HTML Escaping - Public API

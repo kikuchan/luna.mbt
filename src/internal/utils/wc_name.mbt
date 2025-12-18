@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Extract Web Component name from URL (e.g., /static/wc_counter.js -> wc-counter)
 pub fn extract_wc_name_from_url(url : String) -> String {

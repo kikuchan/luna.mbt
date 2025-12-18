@@ -1,8 +1,6 @@
-///| CST to MdNode Converter
-
-///| Converts @md_parser CST types to @astra.MdNode for VNode transformation
-
-///| Also provides parse_markdown_native() as a pure MoonBit alternative to FFI-based parser
+// CST to MdNode Converter
+// Converts @md_parser CST types to @astra.MdNode for VNode transformation
+// Also provides parse_markdown_native() as a pure MoonBit alternative to FFI-based parser
 
 // =============================================================================
 // Native Parser Entry Point

@@ -1,4 +1,5 @@
-///| sol build command - Build for production
+// sol build command - Build for production
+//
 
 ///|
 /// Generate inline JS script for rolldown build (avoids config file)

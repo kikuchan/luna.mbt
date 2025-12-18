@@ -1,4 +1,4 @@
-///| Markdown AST to VNode Transformer
+// Markdown AST to VNode Transformer
 
 // =============================================================================
 // Helper Functions

@@ -1,24 +1,15 @@
-///| SPA Sample Application demonstrating Luna features
-
-///|
-
-///| This file serves as a comprehensive example showing:
-
-///| - Signal basics (signal, get, set, update)
-
-///| - Effects and cleanup (effect, on_cleanup)
-
-///| - Computed values (memo, combine)
-
-///| - DOM elements and attributes
-
-///| - Event handlers
-
-///| - Reactive text and attributes
-
-///| - Conditional rendering (show)
-
-///| - List rendering (for_each)
+// SPA Sample Application demonstrating Luna features
+//
+// This file serves as a comprehensive example showing:
+// - Signal basics (signal, get, set, update)
+// - Effects and cleanup (effect, on_cleanup)
+// - Computed values (memo, combine)
+// - DOM elements and attributes
+// - Event handlers
+// - Reactive text and attributes
+// - Conditional rendering (show)
+// - List rendering (for_each)
+//
 
 ///|
 /// Console logging helper

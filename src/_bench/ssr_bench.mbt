@@ -1,6 +1,5 @@
-///|
-
-///| SSR (Server-Side Rendering) Benchmarks
+//
+// SSR (Server-Side Rendering) Benchmarks
 
 // =============================================================================
 // Basic SSR Rendering

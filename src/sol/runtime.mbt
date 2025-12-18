@@ -1,10 +1,8 @@
-///| Sol - SSR-first Web Framework for MoonBit
-
-///|
-
-///| Built on top of Hono, providing SSR with Luna VNodes.
-
-///| Inspired by Next.js, Solid Start, and Qwik City.
+// Sol - SSR-first Web Framework for MoonBit
+//
+// Built on top of Hono, providing SSR with Luna VNodes.
+// Inspired by Next.js, Solid Start, and Qwik City.
+//
 
 ///|
 /// Environment bindings (e.g., Cloudflare Workers KV)
@@ -237,7 +235,6 @@ extern "js" fn ffi_set_env(key : String, value : String) -> Unit =
 /// Default loader script URL
 pub let default_loader_url : String = "/loader.js"
 
-
 ///|
 /// Island configuration
 pub struct IslandConfig[E] {
@@ -447,7 +444,6 @@ pub fn escape_json_for_html(json : String) -> String {
 // Island VNode Support (using @luna.island)
 // ============================================================================
 
-
 ///|
 /// Create an Island VNode from a component render function
 /// This is the recommended way to create Islands with type-safe VNode children
@@ -490,7 +486,6 @@ pub fn[E] render_node(
 // ============================================================================
 // Web Components Island VNode Support (using @luna.wc_island)
 // ============================================================================
-
 
 ///|
 /// Default wc-loader script URL
@@ -551,8 +546,6 @@ pub fn[E] wc_page(
 // ============================================================================
 // Streaming SSR Support
 // ============================================================================
-
-
 
 ///|
 /// Render a page with streaming SSR and async boundaries (VAsync nodes)

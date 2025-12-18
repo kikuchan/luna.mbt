@@ -1,8 +1,7 @@
-///| Render functions for server_dom
-
-///|
-
-///| Converts Node tree to HTML string.
+// Render functions for server_dom
+//
+// Converts Node tree to HTML string.
+//
 
 ///|
 /// Render a node tree to HTML string

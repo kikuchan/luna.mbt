@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Tests for async Resource (environment-agnostic)
 test "AsyncState::is_pending" {

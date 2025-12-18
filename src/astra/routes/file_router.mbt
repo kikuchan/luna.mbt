@@ -1,6 +1,5 @@
-///| File-based Router for SSG
-
-///| Scans docs/ directory and generates routes
+// File-based Router for SSG
+// Scans docs/ directory and generates routes
 
 // =============================================================================
 // String Slice Helpers (safe wrappers)

@@ -1,4 +1,5 @@
-///| Signal - Reactive value container with automatic dependency tracking
+// Signal - Reactive value container with automatic dependency tracking
+//
 
 ///|
 /// Signal type - holds a value and notifies subscribers on change

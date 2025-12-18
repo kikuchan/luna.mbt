@@ -1,6 +1,6 @@
-///|
-
-///| Experimental Hydration (Fixable) Benchmarks
+//
+// Experimental Hydration (Fixable) Benchmarks
+//
 
 ///|
 /// Measures performance of morphdom-like DOM diffing/patching during hydration

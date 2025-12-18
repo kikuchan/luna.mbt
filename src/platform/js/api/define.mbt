@@ -1,10 +1,8 @@
-///| WebComponents - Custom Elements integration with Signal reactivity
-
-///|
-
-///| Provides lightweight WebComponents support using jsdom's customElements API.
-
-///| Each component gets its own reactive root for automatic cleanup.
+// WebComponents - Custom Elements integration with Signal reactivity
+//
+// Provides lightweight WebComponents support using jsdom's customElements API.
+// Each component gets its own reactive root for automatic cleanup.
+//
 
 ///|
 /// Register a custom element with a render function

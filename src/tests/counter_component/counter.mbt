@@ -1,12 +1,9 @@
-///| Counter Component - Shared component for SSR and hydration testing
-
-///|
-
-///| This component is used to verify idempotent hydration:
-
-///| SSR output should match the DOM after hydration.
-
-///| Uses Signal for reactive state management.
+// Counter Component - Shared component for SSR and hydration testing
+//
+// This component is used to verify idempotent hydration:
+// SSR output should match the DOM after hydration.
+// Uses Signal for reactive state management.
+//
 
 ///|
 /// Render counter component to VNode

@@ -1,16 +1,10 @@
-///| State Serialization with XSS Prevention
-
-///|
-
-///| Safely serialize state for embedding in HTML.
-
-///| Prevents XSS attacks from malicious state values.
-
-///|
-
-///| Note: Escape functions are now delegated to @render module.
-
-///| The functions here are kept for backward compatibility.
+// State Serialization with XSS Prevention
+//
+// Safely serialize state for embedding in HTML.
+// Prevents XSS attacks from malicious state values.
+//
+// Note: Escape functions are now delegated to @render module.
+// The functions here are kept for backward compatibility.
 
 ///|
 /// Escape JSON for safe embedding in HTML <script> tags

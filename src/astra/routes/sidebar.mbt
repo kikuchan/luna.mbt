@@ -1,6 +1,5 @@
-///| Sidebar Generator for SSG
-
-///| Auto-generates sidebar from page structure
+// Sidebar Generator for SSG
+// Auto-generates sidebar from page structure
 
 // Note: slice_from, slice_to, slice_view_from, slice_view_to helpers
 // are defined in file_router.mbt (same package)

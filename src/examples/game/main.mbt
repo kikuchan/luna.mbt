@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Benchmark Game - Heavy DOM rendering stress test for Luna framework
 

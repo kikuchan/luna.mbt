@@ -1,4 +1,5 @@
-///| SSG Configuration Parser
+// SSG Configuration Parser
+//
 
 ///|
 /// Parse SSG config directly (astra.json format)

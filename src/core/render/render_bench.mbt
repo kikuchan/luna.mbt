@@ -1,12 +1,8 @@
-///| Benchmarks for render_to_string
-
-///| Run with: moon bench --target js -p mizchi/luna/core/render
-
-///|           moon bench --target wasm-gc -p mizchi/luna/core/render
-
-///|
-
-///| Compare JS FFI escape vs pure MoonBit escape impact on full rendering
+// Benchmarks for render_to_string
+// Run with: moon bench --target js -p mizchi/luna/core/render
+// moon bench --target wasm-gc -p mizchi/luna/core/render
+//
+// Compare JS FFI escape vs pure MoonBit escape impact on full rendering
 
 // =============================================================================
 // Test Data - VNode Trees

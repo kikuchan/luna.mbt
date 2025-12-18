@@ -1,8 +1,6 @@
-///|
-
-///| DOM Rendering Benchmarks
-
-///| Fine-grained reactive DOM updates
+//
+// DOM Rendering Benchmarks
+// Fine-grained reactive DOM updates
 
 // =============================================================================
 // VNode to DOM Rendering

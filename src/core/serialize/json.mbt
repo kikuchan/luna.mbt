@@ -1,8 +1,6 @@
-///| JSON Serializer/Parser - Serialize/Parse StateValue to/from JSON string
-
-///|
-
-///| Pure MoonBit implementation using builtin @json package.
+// JSON Serializer/Parser - Serialize/Parse StateValue to/from JSON string
+//
+// Pure MoonBit implementation using builtin @json package.
 
 // =============================================================================
 // JSON Serializer

@@ -1,4 +1,5 @@
-///| Signal Serialization - Serialize Signal values to ResumableState
+// Signal Serialization - Serialize Signal values to ResumableState
+//
 
 ///|
 /// Trait for types that can be serialized to StateValue

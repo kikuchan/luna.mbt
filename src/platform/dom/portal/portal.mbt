@@ -1,10 +1,8 @@
-///| Portal - Render content outside the component tree
-
-///|
-
-///| Similar to SolidJS <Portal>
-
-///| https://docs.solidjs.com/reference/components/portal
+// Portal - Render content outside the component tree
+//
+// Similar to SolidJS <Portal>
+// https://docs.solidjs.com/reference/components/portal
+//
 
 ///|
 /// DomNode type (imported from element package for now)

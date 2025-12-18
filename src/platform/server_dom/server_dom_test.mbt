@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Tests for server_dom module
 test "render simple div" {

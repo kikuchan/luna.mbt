@@ -1,4 +1,5 @@
-///| Tests for mbti_utils
+// Tests for mbti_utils
+//
 
 ///|
 test "parse simple function" {

@@ -1,4 +1,5 @@
-///| Whitebox tests for Element DSL - Attr variants
+// Whitebox tests for Element DSL - Attr variants
+//
 
 ///|
 test "Attr AttrString variant to_attr_value" {

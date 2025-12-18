@@ -1,8 +1,7 @@
-///| Counter Client - Client-side hydration using @dom.hydrate
-
-///|
-
-///| This module provides the hydrate function that connects SSR'd HTML
+// Counter Client - Client-side hydration using @dom.hydrate
+//
+// This module provides the hydrate function that connects SSR'd HTML
+//
 
 ///|
 /// to the reactive counter component using the @dom.hydrate runtime.

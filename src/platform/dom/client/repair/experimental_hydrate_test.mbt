@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Experimental Hydration Tests - jsdom based testing
 
@@ -852,9 +854,7 @@ test "report: show marker missing has correct repair type" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let visible = @signal.signal(true)
-  let vnode = @luna.show(fn() { visible.get() }, fn() {
-    @luna.text("Content")
-  })
+  let vnode = @luna.show(fn() { visible.get() }, fn() { @luna.text("Content") })
   exp_set_inner_html(container, "")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
@@ -903,9 +903,7 @@ test "report: show content missing has correct repair type" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let visible = @signal.signal(true)
-  let vnode = @luna.show(fn() { visible.get() }, fn() {
-    @luna.text("Content")
-  })
+  let vnode = @luna.show(fn() { visible.get() }, fn() { @luna.text("Content") })
   // Markers exist but no content
   exp_set_inner_html(container, "<!--s:0--><!--/s-->")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
@@ -1347,10 +1345,7 @@ test "exp: hydrate for with element items" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   let vnode = @luna.for_each(fn() {
-    [
-      @luna.h("li", [], [@luna.text("A")]),
-      @luna.h("li", [], [@luna.text("B")]),
-    ]
+    [@luna.h("li", [], [@luna.text("A")]), @luna.h("li", [], [@luna.text("B")])]
   })
   // Has markers with element items
   exp_set_inner_html(container, "<!--f:0--><li>A</li><li>B</li><!--/f-->")
@@ -1369,7 +1364,9 @@ test "exp: hydrate for replacing text with element" {
   let container = exp_create_container()
   let logger = StringBuilder::new()
   // VNode expects elements
-  let vnode = @luna.for_each(fn() { [@luna.h("span", [], [@luna.text("Item")])] })
+  let vnode = @luna.for_each(fn() {
+    [@luna.h("span", [], [@luna.text("Item")])]
+  })
   // DOM has text node
   exp_set_inner_html(container, "<!--f:0-->Plain text<!--/f-->")
   let result = experimental_hydrate(container, vnode, logger~)

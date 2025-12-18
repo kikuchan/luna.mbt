@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Shiki binding tests
 test "resolve_language: aliases" {

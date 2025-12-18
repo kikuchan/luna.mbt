@@ -1,8 +1,7 @@
-///| E2E Test Server for MoonBit UI
-
-///| Provides Hono app for Playwright E2E tests
-
-///| Uses @sol module for Island Architecture support
+// E2E Test Server for MoonBit UI
+// Provides Hono app for Playwright E2E tests
+// Uses @sol module for Island Architecture support
+//
 
 ///|
 /// Create the main E2E test server app

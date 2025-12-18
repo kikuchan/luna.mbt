@@ -1,4 +1,5 @@
-///| CLI Console Utilities
+// CLI Console Utilities
+//
 
 ///|
 /// Log error message to console.error

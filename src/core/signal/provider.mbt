@@ -1,10 +1,8 @@
-///| Context Provider - Component-level value sharing (Solid.js style)
-
-///|
-
-///| Context values are associated with Owners (component tree nodes).
-
-///| When useContext is called, it walks up the Owner chain to find the value.
+// Context Provider - Component-level value sharing (Solid.js style)
+//
+// Context values are associated with Owners (component tree nodes).
+// When useContext is called, it walks up the Owner chain to find the value.
+//
 
 ///|
 /// Context type with typed getter

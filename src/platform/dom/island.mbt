@@ -1,12 +1,8 @@
-///| Island Hydration API
-
-///|
-
-///| Provides a minimal API for component hydration.
-
-///| Components only need to provide render() and dispatch() functions.
-
-///| All FFI/boilerplate is handled by the framework.
+// Island Hydration API
+//
+// Provides a minimal API for component hydration.
+// Components only need to provide render() and dispatch() functions.
+// All FFI/boilerplate is handled by the framework.
 
 // =============================================================================
 // Island Context - Passed to component's hydrate function

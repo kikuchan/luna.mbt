@@ -1,4 +1,4 @@
-///| Static Site Generator - Main Render Pipeline
+// Static Site Generator - Main Render Pipeline
 
 // =============================================================================
 // Helper Functions (same pattern as transformer.mbt)
@@ -456,9 +456,7 @@ fn build_nav_item(item : @astra.NavItem) -> @luna.Node[Unit] {
       ])
     })
     h("div", [attr("class", "nav-dropdown")], [
-      h("span", [attr("class", "nav-dropdown-trigger")], [
-        @luna.text(item.text),
-      ]),
+      h("span", [attr("class", "nav-dropdown-trigger")], [@luna.text(item.text)]),
       h("div", [attr("class", "nav-dropdown-menu")], dropdown_items),
     ])
   }

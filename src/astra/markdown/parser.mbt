@@ -1,6 +1,5 @@
-///| Markdown Parser - Pure MoonBit Implementation
-
-///| Uses the CST-based parser from @md_parser for parsing
+// Markdown Parser - Pure MoonBit Implementation
+// Uses the CST-based parser from @md_parser for parsing
 
 // =============================================================================
 // Markdown Parsing

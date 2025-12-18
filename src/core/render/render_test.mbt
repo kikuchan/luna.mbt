@@ -1,3 +1,5 @@
+//
+
 ///|
 /// Render tests - cross-platform (js, wasm-gc, native)
 test "escape_html basic" {

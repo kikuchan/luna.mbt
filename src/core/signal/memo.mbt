@@ -1,4 +1,5 @@
-///| Memo - Cached computed value that updates when dependencies change
+// Memo - Cached computed value that updates when dependencies change
+//
 
 ///|
 /// Memo state
