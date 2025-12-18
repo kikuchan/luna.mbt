@@ -1,10 +1,6 @@
 ///| Sol CLI - MoonBit SSR Framework CLI
 
 ///|
-extern "js" fn console_error(msg : String) -> Unit =
-  #| (msg) => console.error(msg)
-
-///|
 fn show_help() -> Unit {
   let help =
     #|Sol CLI - MoonBit SSR Framework
@@ -77,7 +73,7 @@ fn main {
       @process.exit(0)
     }
     _ => {
-      console_error(@colorette.red("Error: Unknown command '\{command}'"))
+      @cli_utils.console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")
       show_help()
       @process.exit(1)

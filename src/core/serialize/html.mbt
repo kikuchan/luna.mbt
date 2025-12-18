@@ -74,7 +74,7 @@ pub fn extract_state_from_html(html : String) -> String? {
   for i = start; i <= html_len - end_len; i = i + 1 {
     if substring_matches(html, i, end_marker) {
       // Extract the JSON content
-      let json = extract_substring(html, start, i)
+      let json = @utils.extract_substring(html, start, i)
       return Some(unescape_html_content(json))
     }
   }
@@ -112,23 +112,6 @@ fn substring_matches(s : String, pos : Int, pattern : String) -> Bool {
     idx = idx + 1
   }
   true
-}
-
-///|
-/// Extract substring from start to end position
-fn extract_substring(s : String, start : Int, end : Int) -> String {
-  let buf = StringBuilder::new()
-  let mut idx = 0
-  for c in s {
-    if idx >= start && idx < end {
-      buf.write_char(c)
-    }
-    idx = idx + 1
-    if idx >= end {
-      break
-    }
-  }
-  buf.to_string()
 }
 
 ///|

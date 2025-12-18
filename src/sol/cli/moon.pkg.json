@@ -5,6 +5,10 @@
   ],
   "import": [
     {
+      "path": "mizchi/luna/internal/cli",
+      "alias": "cli_utils"
+    },
+    {
       "path": "mizchi/js/core",
       "alias": "js"
     },

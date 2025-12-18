@@ -58,7 +58,7 @@ fn run_dev_command(args : Array[String]) -> Unit {
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
   if not(@fs.existsSync(moon_mod_path)) {
-    console_error(
+    @cli_utils.console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
     @process.exit(1)
@@ -137,12 +137,12 @@ fn run_incremental_build_dev(cwd : String) -> Bool {
       stdio="inherit",
     )
     if build_result.status() != Some(0) {
-      console_error(@colorette.red("Build failed"))
+      @cli_utils.console_error(@colorette.red("Build failed"))
       return false
     }
   } catch {
     e => {
-      console_error(@colorette.red("Build error: \{e}"))
+      @cli_utils.console_error(@colorette.red("Build error: \{e}"))
       return false
     }
   }
@@ -162,13 +162,13 @@ fn run_incremental_build_dev(cwd : String) -> Bool {
         cwd~,
       )
       if bundle_result.status() != Some(0) {
-        console_error(@colorette.red("Rolldown bundle failed"))
+        @cli_utils.console_error(@colorette.red("Rolldown bundle failed"))
         return false
       }
       println(@colorette.green("✓ Client bundle complete"))
     } catch {
       e => {
-        console_error(@colorette.red("Bundle error: \{e}"))
+        @cli_utils.console_error(@colorette.red("Bundle error: \{e}"))
         return false
       }
     }
@@ -187,7 +187,7 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
   let entry = find_server_entry(cwd, "dev")
   match entry {
     None => {
-      console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_utils.console_error(@colorette.red("Error: Could not find server entry point"))
       @process.exit(1)
     }
     Some(entry_path) => {
@@ -363,7 +363,7 @@ fn run_server(cwd : String, port : String, mode : String) -> Unit {
   }
   match entry_point {
     None => {
-      console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_utils.console_error(@colorette.red("Error: Could not find server entry point"))
       println(@colorette.gray("Expected one of:"))
       for entry in possible_entries {
         println(@colorette.gray("  - \{entry}"))
@@ -386,7 +386,7 @@ fn run_server(cwd : String, port : String, mode : String) -> Unit {
         @process.exit(exit_code)
       } catch {
         e => {
-          console_error(@colorette.red("Server error: \{e}"))
+          @cli_utils.console_error(@colorette.red("Server error: \{e}"))
           @process.exit(1)
         }
       }

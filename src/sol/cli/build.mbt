@@ -76,7 +76,7 @@ fn run_build_command(args : Array[String]) -> Unit {
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
   if not(@fs.existsSync(moon_mod_path)) {
-    console_error(
+    @cli_utils.console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
     @process.exit(1)
@@ -113,12 +113,12 @@ fn run_build_command(args : Array[String]) -> Unit {
       stdio="inherit",
     )
     if build_result.status() != Some(0) {
-      console_error(@colorette.red("Moon build failed"))
+      @cli_utils.console_error(@colorette.red("Moon build failed"))
       @process.exit(1)
     }
   } catch {
     e => {
-      console_error(@colorette.red("Build error: \{e}"))
+      @cli_utils.console_error(@colorette.red("Build error: \{e}"))
       @process.exit(1)
     }
   }
@@ -144,12 +144,12 @@ fn run_build_command(args : Array[String]) -> Unit {
         cwd~,
       )
       if bundle_result.status() != Some(0) {
-        console_error(@colorette.red("Rolldown bundle failed"))
+        @cli_utils.console_error(@colorette.red("Rolldown bundle failed"))
         @process.exit(1)
       }
     } catch {
       e => {
-        console_error(@colorette.red("Bundle error: \{e}"))
+        @cli_utils.console_error(@colorette.red("Bundle error: \{e}"))
         @process.exit(1)
       }
     }

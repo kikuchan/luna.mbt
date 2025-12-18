@@ -38,7 +38,7 @@ fn run_new_command(args : Array[String]) -> Unit {
   }
   // Require project name
   if result.positionals.is_empty() {
-    console_error(@colorette.red("Error: Project name is required"))
+    @cli_utils.console_error(@colorette.red("Error: Project name is required"))
     println("")
     show_new_help()
     @process.exit(1)
@@ -46,14 +46,14 @@ fn run_new_command(args : Array[String]) -> Unit {
   let project_name = result.positionals[0]
   // Require --user option
   guard result.values.contains("user") else {
-    console_error(@colorette.red("Error: --user option is required"))
+    @cli_utils.console_error(@colorette.red("Error: --user option is required"))
     println("")
     show_new_help()
     @process.exit(1)
   }
   let user_ns : String = result.values["user"].cast()
   if user_ns.is_empty() {
-    console_error(@colorette.red("Error: --user option value is required"))
+    @cli_utils.console_error(@colorette.red("Error: --user option value is required"))
     @process.exit(1)
   }
   let dev_mode : Bool = if result.values.contains("dev") {
@@ -79,7 +79,7 @@ fn run_new_command(args : Array[String]) -> Unit {
   let project_dir = @path.join2(cwd, project_name)
   // Check if project directory already exists
   if @fs.existsSync(project_dir) {
-    console_error(
+    @cli_utils.console_error(
       @colorette.red("Error: Directory '\{project_name}' already exists"),
     )
     @process.exit(1)
@@ -100,7 +100,7 @@ fn run_new_command(args : Array[String]) -> Unit {
       @fs.writeFileSync(file_path, @js.any(tmpl.content))
     } catch {
       e => {
-        console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
+        @cli_utils.console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
         @process.exit(1)
       }
     }

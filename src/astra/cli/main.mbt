@@ -1,10 +1,6 @@
 ///| Astra CLI - Static Site Generator for MoonBit
 
 ///|
-extern "js" fn console_error(msg : String) -> Unit =
-  #| (msg) => console.error(msg)
-
-///|
 fn show_help() -> Unit {
   let help =
     #|Astra - Static Site Generator
@@ -62,7 +58,7 @@ async fn main {
     "build" => run_build_command(command_args)
     "dev" => run_dev_command(command_args)
     _ => {
-      console_error(@colorette.red("Error: Unknown command '\{command}'"))
+      @cli_utils.console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")
       show_help()
       @process.exit(1)

@@ -25,7 +25,7 @@ pub fn HmrServer::start(port : Int) -> HmrServer {
   inner._call("on", [
     @js.any("error"),
     @js.any(fn(err : @js.Any) {
-      console_error(@colorette.red("[HMR] Server error: \{err}"))
+      @cli_utils.console_error(@colorette.red("[HMR] Server error: \{err}"))
     }),
   ])
   |> ignore

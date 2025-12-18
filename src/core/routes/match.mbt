@@ -35,31 +35,14 @@ fn parse_url_parts(url : String) -> (String, Array[(String, String)]) {
 fn parse_query(query : String) -> Array[(String, String)] {
   guard query != "" else { return [] }
   let result : Array[(String, String)] = []
-  for pair in split_by(query, '&') {
-    let kv = split_by(pair, '=')
+  for pair in @utils.split_by(query, '&') {
+    let kv = @utils.split_by(pair, '=')
     if kv.length() == 2 {
       result.push((kv[0], kv[1]))
     } else if kv.length() == 1 && kv[0] != "" {
       result.push((kv[0], ""))
     }
   }
-  result
-}
-
-///|
-fn split_by(s : String, sep : Char) -> Array[String] {
-  let result : Array[String] = []
-  let chars = s.to_array()
-  let current : Array[Char] = []
-  for c in chars {
-    if c == sep {
-      result.push(String::from_array(current))
-      current.clear()
-    } else {
-      current.push(c)
-    }
-  }
-  result.push(String::from_array(current))
   result
 }
 
@@ -98,5 +81,5 @@ fn starts_with_char(s : String, c : Char) -> Bool {
 
 ///|
 fn split_path_segments(path : String) -> Array[String] {
-  split_by(path, '/').filter(fn(s) { s != "" })
+  @utils.split_by(path, '/').filter(fn(s) { s != "" })
 }

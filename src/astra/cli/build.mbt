@@ -64,10 +64,10 @@ async fn run_build_command(args : Array[String]) -> Unit {
   }
   let full_config_path = @path.join2(cwd, config_path)
   if not(@fs.existsSync(full_config_path)) {
-    console_error(
+    @cli_utils.console_error(
       @colorette.red("Error: Config file not found: \{config_path}"),
     )
-    console_error(
+    @cli_utils.console_error(
       @colorette.gray("  Create astra.json or sol.config.json with ssg config"),
     )
     @process.exit(1)
@@ -76,14 +76,14 @@ async fn run_build_command(args : Array[String]) -> Unit {
   // Read and parse config
   let config_content : String = @fs.readFileSync(full_config_path).to_string() catch {
     e => {
-      console_error(@colorette.red("Error reading config: \{e}"))
+      @cli_utils.console_error(@colorette.red("Error reading config: \{e}"))
       @process.exit(1)
       "" // unreachable
     }
   }
   let ssg_config = parse_config(config_content, config_path)
   guard ssg_config is Some(config) else {
-    console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_utils.console_error(@colorette.red("Error: Invalid config file format"))
     @process.exit(1)
   }
 
@@ -101,7 +101,7 @@ async fn run_build_command(args : Array[String]) -> Unit {
         @colorette.green("✓ Build complete: \{final_config.output_dir}"),
       )
     Err(e) => {
-      console_error(@colorette.red("Build failed: \{e}"))
+      @cli_utils.console_error(@colorette.red("Build failed: \{e}"))
       @process.exit(1)
     }
   }

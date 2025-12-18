@@ -73,10 +73,6 @@ extern "js" fn parse_data_state(element : @js_dom.Element) -> String =
   #| }
 
 ///|
-extern "js" fn parse_state_int(json_str : String, key : String) -> Int =
-  #| (json, key) => { try { return JSON.parse(json)[key] ?? 0; } catch { return 0; } }
-
-///|
 extern "js" fn bind_event_handler(
   shadow_root : @js.Any,
   selector : String,
@@ -175,7 +171,7 @@ pub fn WcIslandContext::signal_int(
   let value = if self.state_json == "" || self.state_json == "{}" {
     default_value
   } else {
-    parse_state_int(self.state_json, key)
+    parse_int_from_state(self.state_json, key)
   }
   @signal.signal(value)
 }
