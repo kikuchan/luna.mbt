@@ -8,10 +8,6 @@
       "alias": "luna"
     },
     {
-      "path": "mizchi/luna/core/routes",
-      "alias": "routes"
-    },
-    {
       "path": "mizchi/luna/sol",
       "alias": "sol"
     },

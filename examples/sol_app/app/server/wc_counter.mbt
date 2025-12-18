@@ -1,29 +1,36 @@
 ///| WC Counter Page Server Component
+
 ///|
+
 ///| Uses wc_island() to embed a Web Components based counter.
+
 ///| Demonstrates Declarative Shadow DOM SSR with unified hydration.
+
 ///|
+
 ///| CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration.
 
-///| WC Counter page - Web Components based island (sync server component)
-pub fn wc_counter(props : @router.PageProps) -> @server_dom.ServerNode {
+///|
+/// WC Counter page - Web Components based island (sync server component)
+async fn wc_counter(props : @router.PageProps) -> @server_dom.ServerNode {
   // Create props using WcCounterProps from client module
   let counter_props : @client.WcCounterProps = { initial_count: 0 }
   let state_json = counter_props.to_json().stringify()
 
   // CSS is imported from client module - shared between SSR and hydration
   let counter_styles = @client.wc_counter_css
-
   let content = [
     h1([text("Web Components Counter")]),
+    p([text("This counter uses Declarative Shadow DOM for SSR.")]),
     p([
-      text("This counter uses Declarative Shadow DOM for SSR."),
+      text(
+        "CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration.",
+      ),
     ]),
     p([
-      text("CSS is defined in app/client/wc_counter.mbt and shared between SSR and hydration."),
-    ]),
-    p([
-      text("Inspect the element to see <template shadowrootmode=\"open\"> with <style>."),
+      text(
+        "Inspect the element to see <template shadowrootmode=\"open\"> with <style>.",
+      ),
     ]),
     // WcIsland with Declarative Shadow DOM
     // Uses wc_counter.js generated from app/client/wc_counter.mbt
@@ -55,16 +62,22 @@ pub fn wc_counter(props : @router.PageProps) -> @server_dom.ServerNode {
     ),
     h2([text("How it works")]),
     p([
-      text("The WcIsland generates a custom element with Declarative Shadow DOM:"),
+      text(
+        "The WcIsland generates a custom element with Declarative Shadow DOM:",
+      ),
     ]),
-    div(class="code-block", style="background: #f5f5f5; padding: 1rem; border-radius: 4px; font-family: monospace; white-space: pre; overflow-x: auto;", [
-      text("<wc-counter data-wc-url=\"...\" data-state=\"...\">\\n"),
-      text("  <template shadowrootmode=\"open\">\\n"),
-      text("    <style>:host { ... }</style>\\n"),
-      text("    <div class=\"counter\">...</div>\\n"),
-      text("  </template>\\n"),
-      text("</wc-counter>"),
-    ]),
+    div(
+      class="code-block",
+      style="background: #f5f5f5; padding: 1rem; border-radius: 4px; font-family: monospace; white-space: pre; overflow-x: auto;",
+      [
+        text("<wc-counter data-wc-url=\"...\" data-state=\"...\">\\n"),
+        text("  <template shadowrootmode=\"open\">\\n"),
+        text("    <style>:host { ... }</style>\\n"),
+        text("    <div class=\"counter\">...</div>\\n"),
+        text("  </template>\\n"),
+        text("</wc-counter>"),
+      ],
+    ),
   ]
 
   // Fragment request: return content only (no layout)
