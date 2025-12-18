@@ -26,8 +26,12 @@ size-check:
 # === Test Commands ===
 
 # Run all tests
-test: test-moonbit test-xplat test-vitest test-browser test-e2e test-examples
+test: test-moonbit test-xplat test-ts test-vitest test-browser test-e2e test-examples
     @echo "✓ All tests passed"
+
+# Run TypeScript type check
+test-ts:
+    pnpm tsc -p .
 
 test-examples:
     moon info

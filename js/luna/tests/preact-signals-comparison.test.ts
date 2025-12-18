@@ -31,7 +31,7 @@ import {
 } from "../index.js";
 
 // Preact imports
-import { h, render as preactRender, Fragment as PreactFragment } from "preact";
+import { h, render as preactRender, Fragment as PreactFragment, type VNode } from "preact";
 import { signal, computed, effect, batch as preactBatch } from "@preact/signals-core";
 
 // =============================================================================
@@ -891,7 +891,7 @@ describe("Complex Scenarios", () => {
     }
 
     // Helper to render tree node in Preact
-    function renderPreactTree(node: TreeNode): ReturnType<typeof h> {
+    function renderPreactTree(node: TreeNode): VNode<any> {
       if (!node.children || node.children.length === 0) {
         return h("span", { className: "leaf" }, node.name);
       }

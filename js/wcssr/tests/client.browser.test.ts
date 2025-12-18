@@ -54,6 +54,13 @@ interface DOMParserOptions {
   includeShadowRoots?: boolean;
 }
 
+// Extend DOMParser to support options argument (newer browser API)
+declare global {
+  interface DOMParser {
+    parseFromString(string: string, type: DOMParserSupportedType, options?: DOMParserOptions): Document;
+  }
+}
+
 // ============================================
 // Test Components
 // ============================================

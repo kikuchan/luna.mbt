@@ -36,11 +36,15 @@ afterEach(() => {
  * setHTMLUnsafe を使用（Chrome 124+, Firefox 129+）
  */
 function insertDeclarativeShadowDOM(html: string, append = false): void {
+  // Use type assertion to handle setHTMLUnsafe which may not exist at runtime in older browsers
+  type MaybeSetHTMLUnsafe = { setHTMLUnsafe?: (html: string) => void };
+
   if (append) {
     // 既存のコンテンツに追加する場合
     const wrapper = document.createElement('div');
-    if ('setHTMLUnsafe' in wrapper) {
-      (wrapper as any).setHTMLUnsafe(html);
+    const wrapperWithMethod = wrapper as unknown as MaybeSetHTMLUnsafe;
+    if (wrapperWithMethod.setHTMLUnsafe) {
+      wrapperWithMethod.setHTMLUnsafe(html);
     } else {
       wrapper.innerHTML = html;
     }
@@ -49,8 +53,9 @@ function insertDeclarativeShadowDOM(html: string, append = false): void {
     }
   } else {
     // 上書きする場合
-    if ('setHTMLUnsafe' in container) {
-      (container as any).setHTMLUnsafe(html);
+    const containerWithMethod = container as unknown as MaybeSetHTMLUnsafe;
+    if (containerWithMethod.setHTMLUnsafe) {
+      containerWithMethod.setHTMLUnsafe(html);
     } else {
       container.innerHTML = html;
     }
@@ -198,7 +203,7 @@ function createList(): ComponentDef<{ items: string[] }> {
       li:last-child { border-bottom: none; }
       li:hover { background: #f9f9f9; }
     `,
-    initialState: { items: [] },
+    initialState: { items: [] as string[] },
     render: (state) => `
       <ul>
         ${state.items.map((item) => `<li>${item}</li>`).join('')}

@@ -17,7 +17,6 @@ export default defineConfig({
     },
     include: [
       "js/luna/**/*.test.ts",
-      "js/luna/**/*.bench.ts",
     ],
     exclude: [
       "**/node_modules/**",
@@ -25,6 +24,8 @@ export default defineConfig({
       "js/**/tmp/**",
       // TSX tests use old bun:test format - need migration
       "js/luna/**/*.test.tsx",
+      // Benchmarks should only run with `vitest bench`
+      "js/luna/**/*.bench.ts",
     ],
   },
 });

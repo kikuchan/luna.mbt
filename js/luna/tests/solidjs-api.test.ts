@@ -161,16 +161,16 @@ describe("mergeProps()", () => {
   });
 
   test("merges style objects", () => {
-    const a = { style: { color: "red", margin: "10px" } };
-    const b = { style: { color: "blue", padding: "5px" } };
-    const result = mergeProps(a, b);
+    const a = { style: { color: "red", margin: "10px" } } as const;
+    const b = { style: { color: "blue", padding: "5px" } } as const;
+    const result = mergeProps<{ style: Record<string, string> }>(a as any, b as any);
 
     expect(result.style).toEqual({ color: "blue", margin: "10px", padding: "5px" });
   });
 
   test("handles undefined sources", () => {
     const a = { foo: 1 };
-    const result = mergeProps(undefined, a, undefined, { bar: 2 });
+    const result = mergeProps<{ foo?: number; bar?: number }>(undefined, a, undefined, { bar: 2 });
 
     expect(result).toEqual({ foo: 1, bar: 2 });
   });

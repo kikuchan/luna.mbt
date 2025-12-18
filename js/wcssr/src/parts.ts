@@ -505,8 +505,4 @@ class ChildNodePartFromMarkers implements Part {
   }
 }
 
-// ============================================
-// Export Types
-// ============================================
-
-export type { Part };
+// Part interface is already exported at line 18

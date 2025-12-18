@@ -1,27 +1,28 @@
 /*! sol-nav v1 - CSR Navigation for Sol Framework */
 
-interface SolWindow extends Window {
+// Use type alias instead of interface to avoid conflicts with global Window declarations
+type SolWindow = Window & {
   __LUNA_UNLOAD_ALL__?: (target: Element) => void;
   __LUNA_SCAN__?: () => void;
   __LUNA_WC_SCAN__?: () => void;
   __SOL_NAVIGATE__: (url: string, replace?: boolean) => Promise<void>;
   __SOL_PREFETCH__: (url: string) => void;
   __SOL_CACHE__: Map<string, string>;
-}
+};
 
-interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
-  setHTMLUnsafe?: (html: string) => void;
-}
+// Type for setHTMLUnsafe which may not exist in older browsers
+type SetHTMLUnsafeMethod = ((html: string) => void) | undefined;
 
 ((d: Document, w: SolWindow) => {
   let isNavigating = false;
   const cache = new Map<string, string>();
 
   // Set HTML with Declarative Shadow DOM support
-  const setHTML = (target: HTMLElementWithSetHTMLUnsafe, html: string): void => {
-    if (target.setHTMLUnsafe) {
+  const setHTML = (target: HTMLElement, html: string): void => {
+    const setHTMLUnsafe = (target as unknown as { setHTMLUnsafe?: SetHTMLUnsafeMethod }).setHTMLUnsafe;
+    if (setHTMLUnsafe) {
       // Modern browsers - setHTMLUnsafe processes Declarative Shadow DOM
-      target.setHTMLUnsafe(html);
+      setHTMLUnsafe(html);
     } else {
       // Fallback for older browsers
       target.innerHTML = html;
@@ -61,7 +62,7 @@ interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
         // Fragment response - update outlets
         templates.forEach(tpl => {
           const name = tpl.dataset.solOutlet;
-          const target = d.querySelector<HTMLElementWithSetHTMLUnsafe>(`[data-sol-outlet="${name}"]`);
+          const target = d.querySelector<HTMLElement>(`[data-sol-outlet="${name}"]`);
           if (target) {
             // Unload existing islands before updating DOM
             w.__LUNA_UNLOAD_ALL__?.(target);
@@ -77,7 +78,7 @@ interface HTMLElementWithSetHTMLUnsafe extends HTMLElement {
       } else {
         // Full page response - extract #app content
         const app = doc.querySelector('#app');
-        const target = d.querySelector<HTMLElementWithSetHTMLUnsafe>('#app');
+        const target = d.querySelector<HTMLElement>('#app');
         if (app && target) {
           // Unload existing islands before updating DOM
           w.__LUNA_UNLOAD_ALL__?.(target);

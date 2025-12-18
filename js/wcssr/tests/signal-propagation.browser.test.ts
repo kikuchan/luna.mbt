@@ -500,10 +500,11 @@ describe('Custom Events (Child -> Parent)', () => {
       connectedCallback() {
         this.render();
         // composed イベントは host element で受け取れる
-        this.addEventListener('child-event', ((e: CustomEvent) => {
+        // @ts-expect-error - custom event type not in HTMLElementEventMap
+        this.addEventListener('child-event', (e: CustomEvent) => {
           this._received.push(e.detail.value);
           this.render();
-        }) as EventListener);
+        });
       }
 
       private render() {

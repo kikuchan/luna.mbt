@@ -5,6 +5,9 @@
  * Uses existing __LUNA_* APIs from loader.ts - no changes to prod loader needed.
  */
 
+// Make this file a module so declare global works
+export {};
+
 declare global {
   interface Window {
     __LUNA_STATE__: Record<string, unknown>;

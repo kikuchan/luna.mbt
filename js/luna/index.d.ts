@@ -2,6 +2,9 @@
  * SolidJS-compatible TypeScript definitions for Luna
  */
 
+// MoonBit tuple type - exported as object with _0 and _1 properties
+export type MoonBitTuple<A, B> = { _0: A; _1: B };
+
 // ============================================================================
 // Signal API (SolidJS-style)
 // ============================================================================
@@ -309,21 +312,27 @@ export function portalWithShadow(children: Node[]): Node;
 /** Low-level portal to element with Shadow DOM */
 export function portalToElementWithShadow(mount: Element, children: Node[]): Node;
 
-// JSX support
+// Low-level element creation (MoonBit API)
 export function jsx(
-  type: string | ((props: any) => Node),
-  props: Record<string, any> | null
+  tag: string,
+  attrs: MoonBitTuple<string, unknown>[],
+  children: Node[]
 ): Node;
 export function jsxs(
-  type: string | ((props: any) => Node),
-  props: Record<string, any> | null
+  tag: string,
+  attrs: MoonBitTuple<string, unknown>[],
+  children: Node[]
 ): Node;
-export const Fragment: unique symbol;
+/** Fragment function - returns children wrapped in a DocumentFragment */
+export function Fragment(children: Node[]): Node;
+
+/** Fragment symbol for JSX */
+export const FragmentSymbol: unique symbol;
 
 // Element creation (low-level)
 export function createElement(
   tag: string,
-  attrs: [string, unknown][],
+  attrs: MoonBitTuple<string, unknown>[],
   children: Node[]
 ): Node;
 
@@ -426,7 +435,7 @@ export interface PageRoute {
   readonly path: string;
   readonly component: string;
   readonly title: string;
-  readonly meta: [string, string][];
+  readonly meta: MoonBitTuple<string, string>[];
 }
 
 /** Route definition - Group route */
@@ -448,7 +457,7 @@ export type Routes = PageRoute | GroupRoute | ParamRoute;
 
 export function routePage(path: string, component: string): Routes;
 export function routePageTitled(path: string, component: string, title: string): Routes;
-export function routePageFull(path: string, component: string, title: string, meta: [string, string][]): Routes;
+export function routePageFull(path: string, component: string, title: string, meta: MoonBitTuple<string, string>[]): Routes;
 export function routeGroup(segment: string, children: Routes[]): Routes;
 export function routeParam(key: string, children: Routes[]): Routes;
 
@@ -468,8 +477,8 @@ export interface CompiledRoute {
 /** Route match result */
 export interface RoutesMatch {
   readonly route: CompiledRoute;
-  readonly params: { _0: string; _1: string }[];
-  readonly query: { _0: string; _1: string }[];
+  readonly params: MoonBitTuple<string, string>[];
+  readonly query: MoonBitTuple<string, string>[];
   readonly path: string;
 }
 
