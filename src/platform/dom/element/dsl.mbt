@@ -295,14 +295,15 @@ fn build_props(
 // =============================================================================
 
 ///|
-/// Inject CSS into Shadow DOM or document.head
+/// Inject CSS into the ShadowRoot containing the element, or document.head
 ///
-/// - If root has shadowRoot, injects into shadowRoot
+/// - Uses getRootNode() to find the ShadowRoot that contains the element
+/// - If element is inside a ShadowRoot, injects into that ShadowRoot
 /// - Otherwise, injects into document.head
 /// - Uses CSS hash as ID to prevent duplicate injection
 ///
 /// Usage:
-///   use_style(css, element)  // element is the WC root
+///   use_style(css, element)  // element can be any element inside a ShadowRoot
 pub fn use_style(css : String, root : @js_dom.Element) -> Unit {
   let style_id = "style-\{hash_css(css)}"
   ffi_use_style(css, style_id, root.as_any())
@@ -310,15 +311,17 @@ pub fn use_style(css : String, root : @js_dom.Element) -> Unit {
 
 ///|
 /// FFI: Inject style into Shadow DOM or document.head
+/// Uses getRootNode() to find the ShadowRoot that contains the element
 extern "js" fn ffi_use_style(css : String, style_id : String, root : @js.Any) =
   #|(css, id, el) => {
-  #|  const shadow = el.shadowRoot;
-  #|  const target = shadow || document.head;
+  #|  const rootNode = el.getRootNode();
+  #|  const isShadow = rootNode instanceof ShadowRoot;
+  #|  const target = isShadow ? rootNode : document.head;
   #|  if (!target.querySelector('#' + id)) {
   #|    const style = document.createElement('style');
   #|    style.id = id;
   #|    style.textContent = css;
-  #|    if (shadow) shadow.prepend(style);
+  #|    if (isShadow) target.prepend(style);
   #|    else target.appendChild(style);
   #|  }
   #|}

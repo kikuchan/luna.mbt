@@ -4,8 +4,8 @@
 
 - [ ] preload 挿入
 - DX
-  - sol: dev コード監視を最適化を追加
-  - sol: hot reload
+  - sol: 細粒度 HMR (Island単位の差分更新、状態保持)
+  - sol: Vite plugin 版 HMR (Vite の HMR API を利用)
   - 今の仕様に合わせて sol new のテンプレートをアップデート
 - Features
   - Critical CSS の抽出
@@ -85,7 +85,8 @@
 
 ### 最優先（開発体験に直結）
 
-- [ ] sol: hot reload - 開発効率に直結
+- [x] sol: hot reload (基本実装) - ページ全体リロード、client_auto_exports: false で高速化
+- [ ] sol: 細粒度 HMR - Island単位の差分更新、状態保持
 - [ ] v0.1.0 ドキュメントの英語化 - 海外ユーザーの参入障壁
 
 ### 高優先（実用性向上）
@@ -109,8 +110,9 @@
 - [ ] sol 中間生成ファイルを見直す - `.sol/` の構造が固まらないとhot reload実装にも影響
 
 ### 技術的な依存関係
-- [ ] sol generate で moon.pkg.json の link を直接更新 → 中間ファイル見直しの一部
-- [ ] hot reload → 上記が決まってから実装
+- [x] sol generate で moon.pkg.json の link を直接更新 → 中間ファイル見直しの一部
+- [x] hot reload (基本実装) → WebSocket通知、ページリロード
+- [ ] 細粒度 HMR → Island差分更新、rolldown watch mode
 
 ### 後回しでよい
 - ~~SSG (src/astra)~~ ✓実装済み (astra build/dev, Shiki, dark/light toggle, file ordering)
@@ -121,5 +123,6 @@
 1. ViewTransition プロトタイプ → MPA/CSR比重を決定
 2. virtual package 導入 → プラットフォーム抽象化
 3. sol 中間ファイル見直し → 生成構造の確定
-4. hot reload → 上記が安定してから
+4. ~~hot reload~~ ✓基本実装済み (WebSocket、ページリロード)
+5. 細粒度 HMR → Island差分更新、状態保持
 
