@@ -47,12 +47,9 @@ pub fn generate_auto_sidebar(
   let dirs = page_groups.keys().to_array()
   dirs.sort()
   for dir in dirs {
-    match page_groups.get(dir) {
-      Some(dir_pages) => {
-        let group = create_sidebar_group(dir, dir_pages)
-        groups.push(group)
-      }
-      None => ()
+    if page_groups.get(dir) is Some(dir_pages) {
+      let group = create_sidebar_group(dir, dir_pages)
+      groups.push(group)
     }
   }
   groups

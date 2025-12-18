@@ -236,17 +236,14 @@ pub fn parse_mbti_imports(content : String) -> Map[String, String] {
           start=1,
           end=trimmed.length(),
         )
-        match after_first.find("\"") {
-          Some(end_quote) => {
-            let pkg_path = after_first.unsafe_substring(start=0, end=end_quote)
-            // Extract alias (last part of path)
-            let parts = pkg_path.split("/").to_array()
-            if parts.length() > 0 {
-              let alias_part = parts[parts.length() - 1].to_string()
-              result[alias_part] = pkg_path
-            }
+        if after_first.find("\"") is Some(end_quote) {
+          let pkg_path = after_first.unsafe_substring(start=0, end=end_quote)
+          // Extract alias (last part of path)
+          let parts = pkg_path.split("/").to_array()
+          if parts.length() > 0 {
+            let alias_part = parts[parts.length() - 1].to_string()
+            result[alias_part] = pkg_path
           }
-          None => ()
         }
       }
     }
@@ -286,16 +283,13 @@ pub fn parse_mbti(content : String) -> Array[(String, String)] {
     if trimmed.has_prefix("pub fn ") {
       let rest = trimmed.unsafe_substring(start=7, end=trimmed.length()) // After "pub fn "
       // Find function name (up to first '(')
-      match rest.find("(") {
-        Some(paren_idx) => {
-          let name = rest.unsafe_substring(start=0, end=paren_idx)
-          // Get signature (from '(' to end of line)
-          let sig = rest.unsafe_substring(start=paren_idx, end=rest.length())
-          // Rewrite type references
-          let rewritten_sig = rewrite_type_refs(sig, imports)
-          result.push((name, rewritten_sig))
-        }
-        None => ()
+      if rest.find("(") is Some(paren_idx) {
+        let name = rest.unsafe_substring(start=0, end=paren_idx)
+        // Get signature (from '(' to end of line)
+        let sig = rest.unsafe_substring(start=paren_idx, end=rest.length())
+        // Rewrite type references
+        let rewritten_sig = rewrite_type_refs(sig, imports)
+        result.push((name, rewritten_sig))
       }
     }
   }
@@ -361,10 +355,8 @@ pub fn extract_package_path(mbti_content : String) -> String? {
     if trimmed.has_prefix("package \"") {
       let start = 9 // len of 'package "'
       let after_prefix = trimmed.unsafe_substring(start~, end=trimmed.length())
-      match after_prefix.find("\"") {
-        Some(end_quote) =>
-          return Some(trimmed.unsafe_substring(start~, end=end_quote + start))
-        None => ()
+      if after_prefix.find("\"") is Some(end_quote) {
+        return Some(trimmed.unsafe_substring(start~, end=end_quote + start))
       }
     }
   }
@@ -965,10 +957,7 @@ fn read_exports_from_pkg_json(pkg_json_path : String) -> Array[String] {
 /// Generate FuncExport from export name (for user-managed exports mode)
 /// Derives Props type from function name using convention:
 /// counter -> CounterProps, contact_form -> ContactFormProps
-fn func_export_from_name(
-  name : String,
-  source_pattern : String,
-) -> FuncExport {
+fn func_export_from_name(name : String, source_pattern : String) -> FuncExport {
   // Convert snake_case to PascalCase for Props type
   let props_type = snake_to_pascal(name) + "Props"
   FuncExport::{
@@ -1269,7 +1258,10 @@ fn generate_island_manifest_json(
 ///|
 /// Generate .sol/{mode}/server/main.js entry point
 /// Path: .sol/{mode}/server/main.js -> ../../../target/js/release/build/__gen__/server/server.js
-pub fn generate_sol_server_main_js(routes_pkg : String, runtime : ServerRuntime) -> String {
+pub fn generate_sol_server_main_js(
+  routes_pkg : String,
+  runtime : ServerRuntime,
+) -> String {
   let _ = routes_pkg
   let buf = StringBuilder::new()
   buf.write_string("// Server entry point\n")
@@ -1282,8 +1274,12 @@ pub fn generate_sol_server_main_js(routes_pkg : String, runtime : ServerRuntime)
         "import * as server from '../../../target/js/release/build/__gen__/server/server.js';\n\n",
       )
       buf.write_string("// Node.js runtime using @hono/node-server\n")
-      buf.write_string("// The server module already handles startup via @sol.run()\n")
-      buf.write_string("export * from '../../../target/js/release/build/__gen__/server/server.js';\n")
+      buf.write_string(
+        "// The server module already handles startup via @sol.run()\n",
+      )
+      buf.write_string(
+        "export * from '../../../target/js/release/build/__gen__/server/server.js';\n",
+      )
     }
     RuntimeCloudflare => {
       // Cloudflare Workers: Import Hono and configure app directly
@@ -1292,7 +1288,9 @@ pub fn generate_sol_server_main_js(routes_pkg : String, runtime : ServerRuntime)
         "import { configure_app } from '../../../target/js/release/build/__gen__/server/server.js';\n\n",
       )
       buf.write_string("// Cloudflare Workers runtime\n")
-      buf.write_string("// Create and configure Hono app directly (no Node.js APIs)\n")
+      buf.write_string(
+        "// Create and configure Hono app directly (no Node.js APIs)\n",
+      )
       buf.write_string("const app = configure_app(new Hono());\n\n")
       buf.write_string("export default app;\n")
     }
@@ -1303,8 +1301,12 @@ pub fn generate_sol_server_main_js(routes_pkg : String, runtime : ServerRuntime)
       )
       buf.write_string("// Deno runtime\n")
       buf.write_string("const app = configure_app(new Hono());\n")
-      buf.write_string("const port = parseInt(Deno.env.get('PORT') || '3000', 10);\n")
-      buf.write_string("console.log(`Server running at http://localhost:${port}`);\n")
+      buf.write_string(
+        "const port = parseInt(Deno.env.get('PORT') || '3000', 10);\n",
+      )
+      buf.write_string(
+        "console.log(`Server running at http://localhost:${port}`);\n",
+      )
       buf.write_string("Deno.serve({ port }, app.fetch);\n")
     }
     RuntimeBun => {
@@ -1314,8 +1316,12 @@ pub fn generate_sol_server_main_js(routes_pkg : String, runtime : ServerRuntime)
       )
       buf.write_string("// Bun runtime\n")
       buf.write_string("const app = configure_app(new Hono());\n")
-      buf.write_string("const port = parseInt(process.env.PORT || '3000', 10);\n")
-      buf.write_string("console.log(`Server running at http://localhost:${port}`);\n")
+      buf.write_string(
+        "const port = parseInt(process.env.PORT || '3000', 10);\n",
+      )
+      buf.write_string(
+        "console.log(`Server running at http://localhost:${port}`);\n",
+      )
       buf.write_string("export default {\n")
       buf.write_string("  port,\n")
       buf.write_string("  fetch: app.fetch\n")
@@ -1501,7 +1507,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
     collect_island_functions(cwd, config)
   } else {
     // User-managed exports mode: read from moon.pkg.json directly
-    println(@colorette.gray("  Reading exports from moon.pkg.json (user-managed)..."))
+    println(
+      @colorette.gray("  Reading exports from moon.pkg.json (user-managed)..."),
+    )
     let result : Array[FuncExport] = []
     for island_pattern in config.islands {
       let island_dir = @path.join2(cwd, island_pattern)

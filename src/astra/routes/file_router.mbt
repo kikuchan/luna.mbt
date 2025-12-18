@@ -183,13 +183,7 @@ fn scan_recursive(
       }
       // Recurse into subdirectory
       scan_recursive(
-        entry_path,
-        entry_relative,
-        docs_dir,
-        cwd,
-        i18n,
-        exclude,
-        pages,
+        entry_path, entry_relative, docs_dir, cwd, i18n, exclude, pages,
       )
     } else if entry.has_suffix(".md") {
       // Process markdown file
@@ -280,7 +274,11 @@ fn is_directory(path : String) -> Bool {
 ///|
 /// Check if directory should be excluded
 /// Matches against directory name or relative path
-fn is_excluded(name : String, relative_path : String, exclude : Array[String]) -> Bool {
+fn is_excluded(
+  name : String,
+  relative_path : String,
+  exclude : Array[String],
+) -> Bool {
   for pattern in exclude {
     // Match by directory name (e.g., "internal" matches "docs/internal")
     if name == pattern {

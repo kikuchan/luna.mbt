@@ -31,9 +31,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   }
   let port : Int = if result.values.contains("port") {
     let port_str : String = result.values["port"].cast()
-    try {
-      @strconv.parse_int!(port_str)
-    } catch {
+    @strconv.parse_int(port_str) catch {
       _ => 3000
     }
   } else {
@@ -53,7 +51,9 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   }
   let full_config_path = @path.join2(cwd, config_path)
   if not(@fs.existsSync(full_config_path)) {
-    console_error(@colorette.red("Error: Config file not found: \{config_path}"))
+    console_error(
+      @colorette.red("Error: Config file not found: \{config_path}"),
+    )
     console_error(
       @colorette.gray("  Create astra.json or sol.config.json with ssg config"),
     )
@@ -79,9 +79,9 @@ async fn run_dev_command(args : Array[String]) -> Unit {
 
   // Start server
   let output_dir = @path.join2(cwd, config.output_dir)
-  let server = @http.createServer(
-    requestListener=fn(req, res) { serve_file(req, res, output_dir) },
-  )
+  let server = @http.createServer(requestListener=fn(req, res) {
+    serve_file(req, res, output_dir)
+  })
   let _ = server.listen(port, callback=fn() {
     println("")
     println(@colorette.green("✓ Dev server running at:"))
@@ -95,25 +95,21 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   println("")
   // Create highlighter once for reuse
   let highlighter = @shiki.create_default_highlighter().wait()
+  let _ = @fs.watch(docs_dir, recursive=true, listener=fn(
+    event_type,
+    filename,
+  ) {
+    if filename.ends_with(".md") || filename.ends_with(".json") {
+      println(@colorette.yellow("[\{event_type}] \{filename} - rebuilding..."))
+      // Use sync rebuild with pre-created highlighter
+      run_build_sync(config, cwd, highlighter)
+    }
+  })
 
-  let _ = @fs.watch(
-    docs_dir,
-    recursive=true,
-    listener=fn(event_type, filename) {
-      if filename.ends_with(".md") || filename.ends_with(".json") {
-        println(
-          @colorette.yellow(
-            "[\{event_type}] \{filename} - rebuilding...",
-          ),
-        )
-        // Use sync rebuild with pre-created highlighter
-        run_build_sync(config, cwd, highlighter)
-      }
-    },
-  )
 }
 
-///| Rebuild using highlighter (sync call with pre-created highlighter)
+///|
+/// Rebuild using highlighter (sync call with pre-created highlighter)
 fn run_build_sync(
   config : @astra.SsgConfig,
   cwd : String,
@@ -124,20 +120,17 @@ fn run_build_sync(
       println(@colorette.green("✓ Rebuild complete"))
       println("")
     }
-    Err(e) => {
-      console_error(@colorette.red("Build failed: \{e}"))
-    }
+    Err(e) => console_error(@colorette.red("Build failed: \{e}"))
   }
 }
 
 ///|
 async fn run_build_async(config : @astra.SsgConfig, cwd : String) -> Unit {
   match @astra_gen.generate_site_async(config, cwd) {
-    Ok(_) => println(@colorette.green("✓ Build complete: \{config.output_dir}"))
-    Err(e) => {
-      console_error(@colorette.red("Build failed: \{e}"))
-      // Don't exit in dev mode, just report the error
-    }
+    Ok(_) =>
+      println(@colorette.green("✓ Build complete: \{config.output_dir}"))
+    Err(e) => console_error(@colorette.red("Build failed: \{e}"))
+    // Don't exit in dev mode, just report the error
   }
 }
 
@@ -149,9 +142,11 @@ fn serve_file(
 ) -> Unit {
   let url = req.url.or("/")
   // Parse URL path (strip query string)
-  let parts : Array[String] = url.split("?").map(fn(v) { v.to_string() }).collect()
+  let parts : Array[String] = url
+    .split("?")
+    .map(fn(v) { v.to_string() })
+    .collect()
   let path_part = if parts.length() > 0 { parts[0] } else { "/" }
-
   let base_path = @path.join2(output_dir, path_part)
 
   // Security: prevent directory traversal
@@ -187,7 +182,6 @@ fn serve_file(
     serve_static_file(res, base_path)
     return
   }
-
   res.writeHead(404) |> ignore
   res.end(data="Not Found: \{path_part}")
 }

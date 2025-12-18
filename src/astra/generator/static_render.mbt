@@ -105,15 +105,6 @@ fn generate_site_internal(
 }
 
 ///|
-/// Generate single page (sync, no highlighting)
-fn generate_page(
-  ctx : @astra.BuildContext,
-  page : @astra.PageMeta,
-) -> Result[Unit, String] {
-  generate_page_with_highlight(ctx, page, None)
-}
-
-///|
 /// Generate single page with optional syntax highlighting
 fn generate_page_with_highlight(
   ctx : @astra.BuildContext,
@@ -404,17 +395,12 @@ fn build_theme_toggle() -> @luna.Node[Unit] {
       attr("stroke-width", "2"),
     ],
     [
-      h(
-        "circle",
-        [attr("cx", "12"), attr("cy", "12"), attr("r", "5")],
-        [],
-      ),
+      h("circle", [attr("cx", "12"), attr("cy", "12"), attr("r", "5")], []),
       h(
         "path",
         [
           attr(
-            "d",
-            "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42",
+            "d", "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42",
           ),
         ],
         [],
@@ -442,7 +428,6 @@ fn build_theme_toggle() -> @luna.Node[Unit] {
       ),
     ],
   )
-
   h(
     "button",
     [
@@ -519,25 +504,21 @@ fn build_prev_next(
   let prev = @routes.find_prev_page(ctx.pages, page.url_path)
   let next = @routes.find_next_page(ctx.pages, page.url_path)
   let children : Array[@luna.Node[Unit]] = []
-  match prev {
-    Some(link) =>
-      children.push(
-        h("a", [attr("href", link.link), attr("class", "prev-link")], [
-          h("span", [attr("class", "label")], [@luna.vtext("Previous")]),
-          h("span", [attr("class", "title")], [@luna.vtext(link.text)]),
-        ]),
-      )
-    None => ()
+  if prev is Some(link) {
+    children.push(
+      h("a", [attr("href", link.link), attr("class", "prev-link")], [
+        h("span", [attr("class", "label")], [@luna.vtext("Previous")]),
+        h("span", [attr("class", "title")], [@luna.vtext(link.text)]),
+      ]),
+    )
   }
-  match next {
-    Some(link) =>
-      children.push(
-        h("a", [attr("href", link.link), attr("class", "next-link")], [
-          h("span", [attr("class", "label")], [@luna.vtext("Next")]),
-          h("span", [attr("class", "title")], [@luna.vtext(link.text)]),
-        ]),
-      )
-    None => ()
+  if next is Some(link) {
+    children.push(
+      h("a", [attr("href", link.link), attr("class", "next-link")], [
+        h("span", [attr("class", "label")], [@luna.vtext("Next")]),
+        h("span", [attr("class", "title")], [@luna.vtext(link.text)]),
+      ]),
+    )
   }
   h("nav", [attr("class", "prev-next")], children)
 }
@@ -548,19 +529,15 @@ fn build_footer(ctx : @astra.BuildContext) -> @luna.Node[Unit] {
   match ctx.config.theme.footer {
     Some(footer_config) => {
       let children : Array[@luna.Node[Unit]] = []
-      match footer_config.message {
-        Some(msg) =>
-          children.push(
-            h("p", [attr("class", "footer-message")], [@luna.vtext(msg)]),
-          )
-        None => ()
+      if footer_config.message is Some(msg) {
+        children.push(
+          h("p", [attr("class", "footer-message")], [@luna.vtext(msg)]),
+        )
       }
-      match footer_config.copyright {
-        Some(copyright) =>
-          children.push(
-            h("p", [attr("class", "footer-copyright")], [@luna.vtext(copyright)]),
-          )
-        None => ()
+      if footer_config.copyright is Some(copyright) {
+        children.push(
+          h("p", [attr("class", "footer-copyright")], [@luna.vtext(copyright)]),
+        )
       }
       h("footer", [attr("class", "site-footer")], children)
     }

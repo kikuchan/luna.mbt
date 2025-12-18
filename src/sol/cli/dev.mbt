@@ -176,7 +176,8 @@ fn run_incremental_build_dev(cwd : String) -> Bool {
   true
 }
 
-///| Default HMR WebSocket port
+///|
+/// Default HMR WebSocket port
 let hmr_port : Int = 24678
 
 ///|
@@ -227,13 +228,10 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
       }
 
       fn stop_server() -> Unit {
-        match server_proc.val {
-          Some(proc) => {
-            println(@colorette.gray("Stopping server..."))
-            proc.kill() |> ignore
-            server_proc.val = None
-          }
-          None => ()
+        if server_proc.val is Some(proc) {
+          println(@colorette.gray("Stopping server..."))
+          proc.kill() |> ignore
+          server_proc.val = None
         }
       }
 
@@ -296,7 +294,9 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
                   )
                 } else {
                   // Build failed: notify error
-                  hmr_server.notify_error("Build failed. Check console for details.")
+                  hmr_server.notify_error(
+                    "Build failed. Check console for details.",
+                  )
                   println(
                     @colorette.red(
                       "[watch] Build failed. Waiting for changes...",

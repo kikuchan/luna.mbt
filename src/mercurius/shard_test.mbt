@@ -292,5 +292,7 @@ test "generate_shard - with media trigger" {
     @mercurius.TriggerType::Media("(min-width: 768px)"),
   )
   let output = @mercurius.generate_shard(config)
-  assert_true(output.html.contains("luna:client-trigger=\"media:(min-width: 768px)\""))
+  assert_true(
+    output.html.contains("luna:client-trigger=\"media:(min-width: 768px)\""),
+  )
 }

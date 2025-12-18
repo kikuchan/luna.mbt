@@ -78,19 +78,6 @@ extern "js" fn ffi_is_node() -> Bool =
   #| () => typeof process !== 'undefined' && process.versions?.node != null
 
 ///|
-/// Create a new Hono app synchronously (for non-Node runtimes)
-extern "js" fn ffi_new_hono_sync() -> @js.Any =
-  #| () => {
-  #|   // Dynamically create Hono instance
-  #|   // This requires Hono to be bundled or available
-  #|   if (typeof globalThis.__HONO__ !== 'undefined') {
-  #|     return new globalThis.__HONO__.Hono();
-  #|   }
-  #|   // Fallback: try to use import.meta for Workers
-  #|   throw new Error('Hono not available. For Cloudflare Workers, use run_sync()');
-  #| }
-
-///|
 /// Run a Sol application with standard configuration
 /// This is the recommended way to start a Sol server.
 ///

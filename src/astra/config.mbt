@@ -30,7 +30,6 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
       Some(Array(arr)) => parse_string_array_json(arr)
       _ => []
     }
-
     parse_ssg_object(ssg_obj, islands~)
   } catch {
     _ => None
@@ -41,7 +40,7 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
 /// Parse SSG object (shared by both config formats)
 fn parse_ssg_object(
   ssg_obj : Map[String, Json],
-  islands~ : Array[String] = [],
+  islands? : Array[String] = [],
 ) -> SsgConfig? {
   // Parse ssg fields
   let docs_dir = match ssg_obj.get("docs") {
@@ -88,7 +87,6 @@ fn parse_ssg_object(
   } else {
     islands
   }
-
   Some(SsgConfig::{
     docs_dir,
     output_dir,
@@ -110,9 +108,8 @@ fn parse_nav_items(obj : Map[String, Json]) -> Array[NavItem] {
     Some(Array(arr)) => {
       let result : Array[NavItem] = []
       for item in arr {
-        match parse_nav_item(item) {
-          Some(nav_item) => result.push(nav_item)
-          None => ()
+        if parse_nav_item(item) is Some(nav_item) {
+          result.push(nav_item)
         }
       }
       result
@@ -137,9 +134,8 @@ fn parse_nav_item(json : Json) -> NavItem? {
     Some(Array(arr)) => {
       let result : Array[NavItem] = []
       for item in arr {
-        match parse_nav_item(item) {
-          Some(nav_item) => result.push(nav_item)
-          None => ()
+        if parse_nav_item(item) is Some(nav_item) {
+          result.push(nav_item)
         }
       }
       result
@@ -163,13 +159,10 @@ fn parse_sidebar_config(obj : Map[String, Json]) -> SidebarConfig {
       // Manual sidebar with path-keyed groups
       let groups : Array[SidebarGroup] = []
       for key in sidebar_obj.keys() {
-        match sidebar_obj.get(key) {
-          Some(Array(arr)) =>
-            match parse_sidebar_group_from_array(key, arr) {
-              Some(group) => groups.push(group)
-              None => ()
-            }
-          _ => ()
+        if sidebar_obj.get(key) is Some(Array(arr)) {
+          if parse_sidebar_group_from_array(key, arr) is Some(group) {
+            groups.push(group)
+          }
         }
       }
       SidebarConfig::Manual(groups)
@@ -178,9 +171,8 @@ fn parse_sidebar_config(obj : Map[String, Json]) -> SidebarConfig {
       // Direct array of sidebar groups
       let groups : Array[SidebarGroup] = []
       for item in arr {
-        match parse_sidebar_group(item) {
-          Some(group) => groups.push(group)
-          None => ()
+        if parse_sidebar_group(item) is Some(group) {
+          groups.push(group)
         }
       }
       SidebarConfig::Manual(groups)
@@ -197,9 +189,8 @@ fn parse_sidebar_group_from_array(
 ) -> SidebarGroup? {
   let items : Array[SidebarItem] = []
   for item in arr {
-    match parse_sidebar_item(item) {
-      Some(sidebar_item) => items.push(sidebar_item)
-      None => ()
+    if parse_sidebar_item(item) is Some(sidebar_item) {
+      items.push(sidebar_item)
     }
   }
   Some(SidebarGroup::{ text: path, collapsed: false, items })
@@ -221,9 +212,8 @@ fn parse_sidebar_group(json : Json) -> SidebarGroup? {
     Some(Array(arr)) => {
       let result : Array[SidebarItem] = []
       for item in arr {
-        match parse_sidebar_item(item) {
-          Some(sidebar_item) => result.push(sidebar_item)
-          None => ()
+        if parse_sidebar_item(item) is Some(sidebar_item) {
+          result.push(sidebar_item)
         }
       }
       result
@@ -238,26 +228,17 @@ fn parse_sidebar_group(json : Json) -> SidebarGroup? {
 fn parse_sidebar_item(json : Json) -> SidebarItem? {
   guard json is Object(obj) else { return None }
   // Check if it's a group (has items) or a link
-  match obj.get("items") {
-    Some(Array(_)) =>
-      // It's a nested group
-      match parse_sidebar_group(json) {
-        Some(group) => Some(SidebarItem::Group(group))
-        None => None
-      }
-    _ => {
-      // It's a link
-      let text = match obj.get("text") {
-        Some(String(s)) => s
-        _ => return None
-      }
-      let link = match obj.get("link") {
-        Some(String(s)) => s
-        _ => return None
-      }
-      Some(SidebarItem::Link(text~, link~))
+  if obj.get("items") is Some(Array(_)) {
+    // It's a nested group
+    if parse_sidebar_group(json) is Some(group) {
+      return Some(SidebarItem::Group(group))
     }
+    return None
   }
+  // It's a link
+  guard obj.get("text") is Some(String(text)) else { return None }
+  guard obj.get("link") is Some(String(link)) else { return None }
+  Some(SidebarItem::Link(text~, link~))
 }
 
 ///|
@@ -328,9 +309,8 @@ fn parse_i18n_config(obj : Map[String, Json]) -> I18nConfig {
 fn parse_locale_configs(arr : Array[Json]) -> Array[LocaleConfig] {
   let result : Array[LocaleConfig] = []
   for item in arr {
-    match parse_locale_config(item) {
-      Some(locale) => result.push(locale)
-      None => ()
+    if parse_locale_config(item) is Some(locale) {
+      result.push(locale)
     }
   }
   result

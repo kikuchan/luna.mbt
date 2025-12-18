@@ -69,7 +69,9 @@ fn main {
     "clean" => run_clean_command(command_args)
     "ssg" => {
       // Redirect to astra CLI
-      println(@colorette.yellow("Note: 'sol ssg' is deprecated. Use 'astra' instead."))
+      println(
+        @colorette.yellow("Note: 'sol ssg' is deprecated. Use 'astra' instead."),
+      )
       println("")
       println("Run: astra build")
       @process.exit(0)

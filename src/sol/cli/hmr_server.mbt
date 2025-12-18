@@ -17,7 +17,9 @@ pub fn HmrServer::start(port : Int) -> HmrServer {
   // Log connections
   inner._call("on", [
     @js.any("connection"),
-    @js.any(fn(_ws : @js.Any) { println(@colorette.gray("[HMR] Client connected")) }),
+    @js.any(fn(_ws : @js.Any) {
+      println(@colorette.gray("[HMR] Client connected"))
+    }),
   ])
   |> ignore
   inner._call("on", [
@@ -39,12 +41,33 @@ pub fn HmrServer::broadcast(self : HmrServer, message : String) -> Unit {
 
 ///|
 /// Send update notification for specific islands
-pub fn HmrServer::notify_update(self : HmrServer, islands : Array[String]) -> Unit {
+pub fn HmrServer::notify_update(
+  self : HmrServer,
+  islands : Array[String],
+) -> Unit {
   let timestamp = date_now().to_int()
   let q = "\""
   let islands_json = islands.map(fn(s) { q + s + q }).join(",")
-  let msg = "{" + q + "type" + q + ":" + q + "update" + q + "," + q + "islands" +
-    q + ":[" + islands_json + "]," + q + "timestamp" + q + ":" + timestamp.to_string() +
+  let msg = "{" +
+    q +
+    "type" +
+    q +
+    ":" +
+    q +
+    "update" +
+    q +
+    "," +
+    q +
+    "islands" +
+    q +
+    ":[" +
+    islands_json +
+    "]," +
+    q +
+    "timestamp" +
+    q +
+    ":" +
+    timestamp.to_string() +
     "}"
   self.broadcast(msg)
   let islands_str = islands.join(", ")
@@ -63,8 +86,23 @@ pub fn HmrServer::notify_full_reload(self : HmrServer) -> Unit {
 pub fn HmrServer::notify_error(self : HmrServer, error : String) -> Unit {
   let escaped = escape_json_string(error)
   let q = "\""
-  let msg = "{" + q + "type" + q + ":" + q + "error" + q + "," + q + "error" + q +
-    ":" + q + escaped + q + "}"
+  let msg = "{" +
+    q +
+    "type" +
+    q +
+    ":" +
+    q +
+    "error" +
+    q +
+    "," +
+    q +
+    "error" +
+    q +
+    ":" +
+    q +
+    escaped +
+    q +
+    "}"
   self.broadcast(msg)
   println(@colorette.red("[HMR] Sent error notification"))
 }

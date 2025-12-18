@@ -454,7 +454,10 @@ test "generate_sol_server_main_js: node runtime" {
 
 ///|
 test "generate_sol_server_main_js: cloudflare runtime" {
-  let js = generate_sol_server_main_js("myapp/routes", parse_runtime("cloudflare"))
+  let js = generate_sol_server_main_js(
+    "myapp/routes",
+    parse_runtime("cloudflare"),
+  )
   assert_true(js.contains("Runtime: RuntimeCloudflare"))
   assert_true(js.contains("import { Hono } from 'hono'"))
   assert_true(js.contains("import { configure_app }"))
