@@ -1,9 +1,9 @@
 ///| Home Page Server Component
 ///|
-///| Uses island() to embed the counter client component.
+///| Uses client() to embed the counter client component.
 ///| This is an async server component that supports data fetching.
 
-///| Home page - with counter island (async server component)
+///| Home page - with counter client component (async server component)
 pub fn home(props : @router.PageProps) -> @server_dom.ServerNode {
   // Return an async ServerNode that can perform data fetching
   @server_dom.ServerNode::async_(async fn() {
@@ -11,10 +11,8 @@ pub fn home(props : @router.PageProps) -> @server_dom.ServerNode {
     // This demonstrates async data fetching capability
     let server_random = generate_random_int(1, 1000)
 
-    // Create props using generated types - auto-serializes to JSON
-    // Use the server-generated random number as initial count
+    // Create props using generated types
     let counter_props : @types.CounterProps = { initial_count: server_random }
-    let state_json = counter_props.to_json().stringify()
 
     let content = [
       h1(children=[text("Welcome to Sol")]),
@@ -30,11 +28,8 @@ pub fn home(props : @router.PageProps) -> @server_dom.ServerNode {
         style="color: #666; font-size: 0.9em;",
         children=[text("(Refresh to see a new random number from the server)")],
       ),
-      @server_dom.island(
-        "counter",
-        "/static/counter.js",
-        state=state_json,
-        trigger=@luna.Load,
+      @server_dom.client(
+        @types.counter(counter_props),
         children=[
           div(class="counter", children=[
             span(class="count-display", children=[

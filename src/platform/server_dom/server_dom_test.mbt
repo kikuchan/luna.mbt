@@ -109,11 +109,11 @@ test "render style element" {
 
 ///|
 test "render island" {
-  let node = island(
+  let node = @luna.island(
     "counter",
     "/components/counter.js",
-    state="{\"count\":0}",
-    children=[@element.text("Loading...")],
+    "{\"count\":0}",
+    [@element.text("Loading...")],
   )
   let html = render(node)
   assert_true(html.contains("luna:id=\"counter\""))
@@ -123,9 +123,13 @@ test "render island" {
 
 ///|
 test "render island with visible trigger" {
-  let node = island("lazy", "/components/lazy.js", trigger=@luna.Visible, children=[
-    @element.text("Lazy content"),
-  ])
+  let node = @luna.island(
+    "lazy",
+    "/components/lazy.js",
+    "{}",
+    [@element.text("Lazy content")],
+    trigger=@luna.Visible,
+  )
   let html = render(node)
   assert_true(html.contains("luna:client-trigger=\"visible\""))
 }
@@ -133,8 +137,8 @@ test "render island with visible trigger" {
 ///|
 test "render_with_preloads collects island URLs" {
   let node = @element.div(children=[
-    island("a", "/a.js", children=[@element.text("A")]),
-    island("b", "/b.js", children=[@element.text("B")]),
+    @luna.island("a", "/a.js", "{}", [@element.text("A")]),
+    @luna.island("b", "/b.js", "{}", [@element.text("B")]),
   ])
   let result = render_with_preloads(node)
   assert_eq(result.preload_urls.length(), 2)
