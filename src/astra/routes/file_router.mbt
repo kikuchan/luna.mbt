@@ -55,6 +55,88 @@ fn _slice_view_to(s : StringView, end : Int) -> String {
 }
 
 // =============================================================================
+// Numeric Prefix Handling
+// =============================================================================
+
+///|
+/// Parse numeric prefix from a path segment (e.g., "00_guide" -> (0, "guide"))
+/// Returns (sort_order, stripped_name). If no prefix, returns (max_int, original)
+pub fn parse_numeric_prefix(name : String) -> (Int, String) {
+  // Look for pattern: digits followed by underscore
+  let chars = name.to_array()
+  let mut i = 0
+  while i < chars.length() && chars[i] >= '0' && chars[i] <= '9' {
+    i = i + 1
+  }
+  // Check if we found digits followed by underscore
+  if i > 0 && i < chars.length() && chars[i] == '_' {
+    let num_str = slice_to(name, i)
+    let stripped = slice_from(name, i + 1)
+    let num = parse_int_simple(num_str)
+    (num, stripped)
+  } else {
+    // No valid prefix, use max int so unprefixed items sort last
+    (2147483647, name)
+  }
+}
+
+///|
+/// Simple integer parser (positive only)
+fn parse_int_simple(s : String) -> Int {
+  let mut result = 0
+  for c in s {
+    if c >= '0' && c <= '9' {
+      result = result * 10 + (c.to_int() - '0'.to_int())
+    }
+  }
+  result
+}
+
+///|
+/// Strip numeric prefixes from all segments of a path
+/// e.g., "00_guide/01_intro.md" -> "guide/intro.md"
+pub fn strip_numeric_prefixes(path : String) -> String {
+  let segments = path.split("/")
+  let stripped : Array[String] = []
+  for seg in segments {
+    let (_, name) = parse_numeric_prefix(seg.to_string())
+    stripped.push(name)
+  }
+  stripped.join("/")
+}
+
+///|
+/// Build sort key from path (preserves structure for proper sorting)
+/// e.g., "00_guide/01_intro.md" -> "00000000_guide/00000001_intro.md"
+pub fn build_sort_key(path : String) -> String {
+  let segments = path.split("/")
+  let keyed : Array[String] = []
+  for seg in segments {
+    let (order, name) = parse_numeric_prefix(seg.to_string())
+    // Pad to 8 digits for proper string sorting
+    let padded = pad_number(order, 8)
+    keyed.push(padded + "_" + name)
+  }
+  keyed.join("/")
+}
+
+///|
+/// Pad number with leading zeros
+pub fn pad_number(n : Int, width : Int) -> String {
+  let s = n.to_string()
+  if s.length() >= width {
+    s
+  } else {
+    let zeros = width - s.length()
+    let mut result = ""
+    for i = 0; i < zeros; i = i + 1 {
+      result = result + "0"
+    }
+    result + s
+  }
+}
+
+// =============================================================================
 // Directory Scanning
 // =============================================================================
 
@@ -117,6 +199,9 @@ fn scan_recursive(
       let (locale, canonical_path) = detect_locale_from_path(source_path, i18n)
       let url_path = build_localized_url(canonical_path, locale, i18n)
 
+      // Build sort key for ordering (preserves numeric prefixes)
+      let sort_key = build_sort_key(source_path)
+
       // Parse frontmatter to get title
       let content : String = @fs.readFileSync(entry_path).to_string() catch {
         _ => continue
@@ -129,6 +214,7 @@ fn scan_recursive(
         last_modified: get_file_mtime(entry_path),
         locale,
         canonical_path,
+        sort_key,
       }
       pages.push(page)
     }
@@ -234,11 +320,13 @@ fn get_file_mtime(path : String) -> String? {
 // =============================================================================
 
 ///|
-/// Convert file path to URL path
-/// docs/guide/getting-started.md -> /guide/getting-started
+/// Convert file path to URL path (strips numeric prefixes)
+/// 00_guide/01_getting-started.md -> /guide/getting-started
 /// docs/index.md -> /
 pub fn file_to_url_path(file_path : String) -> String {
-  let path = file_path.replace(old=".md", new="").replace(old="\\", new="/") // Windows compatibility
+  // First strip numeric prefixes, then remove .md and handle Windows paths
+  let stripped = strip_numeric_prefixes(file_path)
+  let path = stripped.replace(old=".md", new="").replace(old="\\", new="/")
   if path.has_suffix("/index") {
     let trimmed = slice_to(path, path.length() - 6)
     if trimmed.is_empty() {
@@ -279,18 +367,62 @@ pub fn url_to_output_path(url_path : String) -> String {
 // =============================================================================
 
 ///|
-/// Sort pages by URL path for consistent ordering
+/// Compare two strings with proper lexicographic ordering
+/// (Workaround for MoonBit String.compare bug with different length strings)
+fn compare_strings_lex(a : String, b : String) -> Int {
+  let a_chars = a.to_array()
+  let b_chars = b.to_array()
+  let min_len = if a_chars.length() < b_chars.length() {
+    a_chars.length()
+  } else {
+    b_chars.length()
+  }
+  // Compare character by character
+  for i = 0; i < min_len; i = i + 1 {
+    if a_chars[i] < b_chars[i] {
+      return -1
+    }
+    if a_chars[i] > b_chars[i] {
+      return 1
+    }
+  }
+  // If all compared chars equal, shorter string is "less"
+  if a_chars.length() < b_chars.length() {
+    -1
+  } else if a_chars.length() > b_chars.length() {
+    1
+  } else {
+    0
+  }
+}
+
+///|
+/// Sort pages by sort_key (numeric prefix ordering)
+/// Files with numeric prefixes (e.g., 00_intro) come before those without
 pub fn sort_pages(pages : Array[@astra.PageMeta]) -> Array[@astra.PageMeta] {
-  // Simple bubble sort for now (pages array is usually small)
-  let result = pages.copy()
-  let n = result.length()
-  for i = 0; i < n - 1; i = i + 1 {
-    for j = 0; j < n - i - 1; j = j + 1 {
-      if result[j].url_path > result[j + 1].url_path {
-        let temp = result[j]
-        result[j] = result[j + 1]
-        result[j + 1] = temp
+  // Create new array using insertion sort with custom comparison
+  let result : Array[@astra.PageMeta] = []
+  for page in pages {
+    let key = page.sort_key
+    // Find insertion position using custom comparison
+    let mut pos = result.length()
+    for i = 0; i < result.length(); i = i + 1 {
+      let existing_key = result[i].sort_key
+      if compare_strings_lex(key, existing_key) < 0 {
+        pos = i
+        break
       }
+    }
+    // Insert at position
+    if pos == result.length() {
+      result.push(page)
+    } else {
+      // Shift elements and insert
+      result.push(result[result.length() - 1]) // Make room
+      for j = result.length() - 2; j > pos; j = j - 1 {
+        result[j] = result[j - 1]
+      }
+      result[pos] = page
     }
   }
   result

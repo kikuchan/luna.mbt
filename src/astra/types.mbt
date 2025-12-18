@@ -214,7 +214,7 @@ pub(all) struct NavLink {
 pub(all) struct PageMeta {
   /// Source file path (relative to docs_dir)
   source_path : String
-  /// Output URL path
+  /// Output URL path (numeric prefixes stripped)
   url_path : String
   /// Parsed frontmatter
   frontmatter : Frontmatter
@@ -224,6 +224,8 @@ pub(all) struct PageMeta {
   locale : String
   /// URL path without locale prefix (for finding translations)
   canonical_path : String
+  /// Sort key for ordering (preserves numeric prefixes like "00_guide/01_intro")
+  sort_key : String
 }
 
 ///|
@@ -233,12 +235,14 @@ pub fn PageMeta::new(
   url_path : String,
   locale? : String = "en",
   canonical_path? : String = "",
+  sort_key? : String = "",
 ) -> PageMeta {
   let canonical = if canonical_path.is_empty() {
     url_path
   } else {
     canonical_path
   }
+  let key = if sort_key.is_empty() { source_path } else { sort_key }
   {
     source_path,
     url_path,
@@ -246,6 +250,7 @@ pub fn PageMeta::new(
     last_modified: None,
     locale,
     canonical_path: canonical,
+    sort_key: key,
   }
 }
 

@@ -94,7 +94,7 @@ fn create_sidebar_group(
   dir : String,
   pages : Array[@astra.PageMeta],
 ) -> @astra.SidebarGroup {
-  // Sort pages within group
+  // Sort pages within group by sort_key (numeric prefix ordering)
   let sorted = sort_pages(pages)
 
   // Create items

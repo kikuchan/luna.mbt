@@ -192,3 +192,8 @@ coverage-clean:
     rm -rf coverage/
     moon coverage clean
 
+doc:
+    node target/js/release/build/astra/cli/cli.js dev
+
+build-doc:
+    node target/js/release/build/astra/cli/cli.js build
