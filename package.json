@@ -37,6 +37,7 @@
     "global-jsdom": "^27.0.0",
     "happy-dom": "^20.0.11",
     "jsdom": "^27.0.1",
+    "lighthouse": "^13.0.1",
     "monocart-coverage-reports": "^2.12.9",
     "playwright": "^1.57.0",
     "rolldown": "^1.0.0-beta.54",
