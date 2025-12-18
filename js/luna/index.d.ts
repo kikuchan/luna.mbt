@@ -438,28 +438,12 @@ export interface PageRoute {
   readonly meta: MoonBitTuple<string, string>[];
 }
 
-/** Route definition - Group route */
-export interface GroupRoute {
-  readonly $tag: 1;
-  readonly segment: string;
-  readonly children: Routes[];
-}
-
-/** Route definition - Param route */
-export interface ParamRoute {
-  readonly $tag: 2;
-  readonly key: string;
-  readonly children: Routes[];
-}
-
 /** Route definition union type */
-export type Routes = PageRoute | GroupRoute | ParamRoute;
+export type Routes = PageRoute;
 
 export function routePage(path: string, component: string): Routes;
 export function routePageTitled(path: string, component: string, title: string): Routes;
 export function routePageFull(path: string, component: string, title: string, meta: MoonBitTuple<string, string>[]): Routes;
-export function routeGroup(segment: string, children: Routes[]): Routes;
-export function routeParam(key: string, children: Routes[]): Routes;
 
 /** Opaque BrowserRouter type */
 export interface BrowserRouter {

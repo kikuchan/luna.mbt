@@ -55,8 +55,6 @@
         "route_page:routePage",
         "route_page_titled:routePageTitled",
         "route_page_full:routePageFull",
-        "route_group:routeGroup",
-        "route_param:routeParam",
         "create_router:createRouter",
         "router_navigate:routerNavigate",
         "router_replace:routerReplace",

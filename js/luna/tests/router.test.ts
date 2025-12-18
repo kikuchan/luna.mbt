@@ -3,8 +3,6 @@ import {
   routePage,
   routePageTitled,
   routePageFull,
-  routeGroup,
-  routeParam,
   createRouter,
   routerNavigate,
   routerReplace,
@@ -35,25 +33,13 @@ describe("Route definitions", () => {
     expect(route).toBeDefined();
   });
 
-  test("routeGroup creates a group route", () => {
-    const route = routeGroup("admin", [routePage("/dashboard", "Dashboard")]);
-    expect(route).toBeDefined();
-  });
-
-  test("routeParam creates a param route", () => {
-    const route = routeParam("id", [routePage("/", "UserDetail")]);
-    expect(route).toBeDefined();
-  });
-
-  test("nested route structure", () => {
+  test("multiple page routes", () => {
     const routes: Routes[] = [
       routePage("/", "Home"),
-      routeGroup("users", [
-        routePage("/", "UserList"),
-        routeParam("id", [routePage("/", "UserDetail")]),
-      ]),
+      routePage("/about", "About"),
+      routePage("/contact", "Contact"),
     ];
-    expect(routes.length).toBe(2);
+    expect(routes.length).toBe(3);
   });
 });
 
@@ -127,44 +113,5 @@ describe("BrowserRouter", () => {
     // Should be undefined or match might still return something
     // depending on implementation
     expect(typeof match === "undefined" || match !== null).toBe(true);
-  });
-
-  test("param routes extract parameters", () => {
-    const routes = [
-      routeGroup("users", [routeParam("id", [routePage("/", "UserDetail")])]),
-    ];
-    router = createRouter(routes);
-
-    routerNavigate(router, "/users/123");
-    const match = routerGetMatch(router);
-
-    expect(match).toBeDefined();
-    if (match) {
-      expect(match.params).toBeDefined();
-      // params is Array of tuples { _0: key, _1: value }
-      const idParam = match.params.find((p: any) => p._0 === "id");
-      expect(idParam?._1).toBe("123");
-    }
-  });
-
-  test("nested group routes", () => {
-    // Test that nested groups work - the pattern is /admin/users/list
-    const routes = [
-      routeGroup("admin", [
-        routeGroup("users", [routePage("list", "UserList")]),
-      ]),
-    ];
-    router = createRouter(routes);
-
-    routerNavigate(router, "/admin/users/list");
-    const match = routerGetMatch(router);
-
-    // Match may be undefined if the route pattern doesn't match exactly
-    // This is testing the actual behavior
-    if (match) {
-      expect(match.route.component).toBe("UserList");
-    }
-    // If no match, verify path was set correctly
-    expect(routerGetPath(router)).toBe("/admin/users/list");
   });
 });
