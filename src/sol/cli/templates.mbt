@@ -79,10 +79,17 @@ fn template_sol_config_json() -> String {
     #|{
     #|  "islands": ["app/client/*"],
     #|  "routes": "app/routes",
-    #|  "output": "app/__gen__"
+    #|  "output": "app/__gen__",
+    #|  "runtime": "node"
     #|}
   )
 }
+
+// Note: For different runtimes, update sol.config.json:
+// - "node"       - Node.js with @hono/node-server (default)
+// - "cloudflare" - Cloudflare Workers (exports fetch handler)
+// - "deno"       - Deno.serve
+// - "bun"        - Bun.serve
 
 ///|
 pub fn template_components_moon_pkg_json() -> String {

@@ -308,3 +308,178 @@ test "is_web_component detects WcCounterProps correctly" {
   let component_name = extract_component_name_from_props("WcCounterProps")
   assert_true(is_web_component(component_name))
 }
+
+// =============================================================================
+// Runtime Config Tests
+// =============================================================================
+
+///|
+test "parse_runtime: node" {
+  // Use parse_runtime to get enum values (workaround for enum constructor visibility)
+  let node = parse_runtime("node")
+  let node2 = parse_runtime("node")
+  assert_eq(node, node2)
+}
+
+///|
+test "parse_runtime: cloudflare and aliases" {
+  let cf1 = parse_runtime("cloudflare")
+  let cf2 = parse_runtime("cf")
+  let cf3 = parse_runtime("workers")
+  assert_eq(cf1, cf2)
+  assert_eq(cf2, cf3)
+}
+
+///|
+test "parse_runtime: deno" {
+  let deno = parse_runtime("deno")
+  let deno2 = parse_runtime("deno")
+  assert_eq(deno, deno2)
+}
+
+///|
+test "parse_runtime: bun" {
+  let bun = parse_runtime("bun")
+  let bun2 = parse_runtime("bun")
+  assert_eq(bun, bun2)
+}
+
+///|
+test "parse_runtime: unknown defaults to node" {
+  let node = parse_runtime("node")
+  assert_eq(parse_runtime("unknown"), node)
+  assert_eq(parse_runtime(""), node)
+}
+
+///|
+test "parse_runtime: case insensitive" {
+  let cf = parse_runtime("cloudflare")
+  let deno = parse_runtime("deno")
+  let bun = parse_runtime("bun")
+  assert_eq(parse_runtime("CLOUDFLARE"), cf)
+  assert_eq(parse_runtime("Deno"), deno)
+  assert_eq(parse_runtime("BUN"), bun)
+}
+
+///|
+test "parse_runtime: all runtimes are distinct" {
+  let node = parse_runtime("node")
+  let cf = parse_runtime("cloudflare")
+  let deno = parse_runtime("deno")
+  let bun = parse_runtime("bun")
+  assert_true(node != cf)
+  assert_true(node != deno)
+  assert_true(node != bun)
+  assert_true(cf != deno)
+  assert_true(cf != bun)
+  assert_true(deno != bun)
+}
+
+///|
+test "parse_sol_config: with runtime node" {
+  let json =
+    #|{
+    #|  "islands": [],
+    #|  "routes": "app/routes",
+    #|  "runtime": "node"
+    #|}
+  let config = parse_sol_config(json)
+  assert_true(config.is_some())
+  assert_eq(config.unwrap().runtime, parse_runtime("node"))
+}
+
+///|
+test "parse_sol_config: with runtime cloudflare" {
+  let json =
+    #|{
+    #|  "islands": [],
+    #|  "routes": "app/routes",
+    #|  "runtime": "cloudflare"
+    #|}
+  let config = parse_sol_config(json)
+  assert_true(config.is_some())
+  assert_eq(config.unwrap().runtime, parse_runtime("cloudflare"))
+}
+
+///|
+test "parse_sol_config: with runtime deno" {
+  let json =
+    #|{
+    #|  "islands": [],
+    #|  "routes": "app/routes",
+    #|  "runtime": "deno"
+    #|}
+  let config = parse_sol_config(json)
+  assert_true(config.is_some())
+  assert_eq(config.unwrap().runtime, parse_runtime("deno"))
+}
+
+///|
+test "parse_sol_config: with runtime bun" {
+  let json =
+    #|{
+    #|  "islands": [],
+    #|  "routes": "app/routes",
+    #|  "runtime": "bun"
+    #|}
+  let config = parse_sol_config(json)
+  assert_true(config.is_some())
+  assert_eq(config.unwrap().runtime, parse_runtime("bun"))
+}
+
+///|
+test "parse_sol_config: default runtime is node" {
+  let json =
+    #|{
+    #|  "islands": [],
+    #|  "routes": "app/routes"
+    #|}
+  let config = parse_sol_config(json)
+  assert_true(config.is_some())
+  assert_eq(config.unwrap().runtime, parse_runtime("node"))
+}
+
+// =============================================================================
+// Entry Point Generation Tests
+// =============================================================================
+
+///|
+test "generate_sol_server_main_js: node runtime" {
+  let js = generate_sol_server_main_js("myapp/routes", parse_runtime("node"))
+  assert_true(js.contains("Runtime: RuntimeNode"))
+  assert_true(js.contains("@hono/node-server"))
+  assert_true(js.contains("@sol.run()"))
+  assert_true(js.contains("export *"))
+}
+
+///|
+test "generate_sol_server_main_js: cloudflare runtime" {
+  let js = generate_sol_server_main_js("myapp/routes", parse_runtime("cloudflare"))
+  assert_true(js.contains("Runtime: RuntimeCloudflare"))
+  assert_true(js.contains("import { Hono } from 'hono'"))
+  assert_true(js.contains("import { configure_app }"))
+  assert_true(js.contains("const app = configure_app(new Hono())"))
+  assert_true(js.contains("export default app"))
+}
+
+///|
+test "generate_sol_server_main_js: deno runtime" {
+  let js = generate_sol_server_main_js("myapp/routes", parse_runtime("deno"))
+  assert_true(js.contains("Runtime: RuntimeDeno"))
+  assert_true(js.contains("import { Hono } from 'hono'"))
+  assert_true(js.contains("import { configure_app }"))
+  assert_true(js.contains("Deno.serve"))
+  assert_true(js.contains("Deno.env.get('PORT')"))
+  assert_true(js.contains("app.fetch"))
+}
+
+///|
+test "generate_sol_server_main_js: bun runtime" {
+  let js = generate_sol_server_main_js("myapp/routes", parse_runtime("bun"))
+  assert_true(js.contains("Runtime: RuntimeBun"))
+  assert_true(js.contains("import { Hono } from 'hono'"))
+  assert_true(js.contains("import { configure_app }"))
+  assert_true(js.contains("export default {"))
+  assert_true(js.contains("port,"))
+  assert_true(js.contains("fetch: app.fetch"))
+}

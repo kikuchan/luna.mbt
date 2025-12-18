@@ -55,6 +55,33 @@ pub fn create_app_then(callback : (App) -> Unit) -> Unit {
 // ============================================================================
 
 ///|
+/// Global app reference for non-Node runtimes (Cloudflare, Deno, Bun)
+/// This is set by run() and exported as __SOL_APP__
+let sol_app_ref : Ref[App?] = { val: None }
+
+///|
+extern "js" fn ffi_export_sol_app(app : @js.Any) -> Unit =
+  #| (app) => { globalThis.__SOL_APP__ = app; }
+
+///|
+/// Check if running in Node.js environment
+extern "js" fn ffi_is_node() -> Bool =
+  #| () => typeof process !== 'undefined' && process.versions?.node != null
+
+///|
+/// Create a new Hono app synchronously (for non-Node runtimes)
+extern "js" fn ffi_new_hono_sync() -> @js.Any =
+  #| () => {
+  #|   // Dynamically create Hono instance
+  #|   // This requires Hono to be bundled or available
+  #|   if (typeof globalThis.__HONO__ !== 'undefined') {
+  #|     return new globalThis.__HONO__.Hono();
+  #|   }
+  #|   // Fallback: try to use import.meta for Workers
+  #|   throw new Error('Hono not available. For Cloudflare Workers, use run_sync()');
+  #| }
+
+///|
 /// Run a Sol application with standard configuration
 /// This is the recommended way to start a Sol server.
 ///
@@ -68,8 +95,16 @@ pub fn run(configure : (App) -> App, port? : Int) -> Unit {
   let port = port.unwrap_or_else(get_port)
   create_app_then(fn(app) {
     let app = configure(app)
-    println("Server running at http://localhost:" + port.to_string())
-    serve(app, port)
+    // Store app reference for non-Node runtimes
+    sol_app_ref.val = Some(app)
+    // Export app globally for entry point access
+    ffi_export_sol_app(app.as_any())
+    // Only start server in Node.js environment
+    if ffi_is_node() {
+      println("Server running at http://localhost:" + port.to_string())
+      serve(app, port)
+    }
+    // For other runtimes (Cloudflare, Deno, Bun), the entry point handles startup
   })
 }
 
