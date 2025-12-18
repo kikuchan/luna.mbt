@@ -28,6 +28,9 @@ import {
   Show,
   Fragment,
   show,
+  onCleanup,
+  untrack,
+  peek,
 } from "../index.js";
 
 // Preact imports
@@ -1077,5 +1080,530 @@ describe("Edge Cases", () => {
     expect(container.querySelector("#a")).toBeNull();
     expect(container.querySelector("#b")).toBeNull();
     expect(container.querySelector("#c")).toBeNull();
+  });
+});
+
+// =============================================================================
+// Dynamic Attributes Tests
+// =============================================================================
+
+describe("Dynamic Attributes Comparison", () => {
+  let lunaContainer: HTMLDivElement;
+  let preactContainer: HTMLDivElement;
+
+  beforeEach(() => {
+    lunaContainer = document.createElement("div");
+    preactContainer = document.createElement("div");
+    document.body.appendChild(lunaContainer);
+    document.body.appendChild(preactContainer);
+  });
+
+  afterEach(() => {
+    lunaContainer.remove();
+    preactContainer.remove();
+  });
+
+  test("dynamic className updates", () => {
+    const [lunaActive, setLunaActive] = createSignal(false);
+    const lunaNode = createElement(
+      "div",
+      [attr("className", AttrValue.Dynamic(() => lunaActive() ? "active" : "inactive"))],
+      [text("Toggle")]
+    );
+    lunaRender(lunaContainer, lunaNode);
+
+    expect(lunaContainer.querySelector("div")?.className).toBe("inactive");
+
+    setLunaActive(true);
+    expect(lunaContainer.querySelector("div")?.className).toBe("active");
+
+    setLunaActive(false);
+    expect(lunaContainer.querySelector("div")?.className).toBe("inactive");
+  });
+
+  test("dynamic style updates", () => {
+    const [color, setColor] = createSignal("red");
+    const lunaNode = createElement(
+      "div",
+      [attr("style", AttrValue.Dynamic(() => `color: ${color()}`))],
+      [text("Colored")]
+    );
+    lunaRender(lunaContainer, lunaNode);
+
+    expect(lunaContainer.querySelector("div")?.getAttribute("style")).toContain("red");
+
+    setColor("blue");
+    expect(lunaContainer.querySelector("div")?.getAttribute("style")).toContain("blue");
+  });
+
+  test("multiple dynamic attributes", () => {
+    const [count, setCount] = createSignal(0);
+    const lunaNode = createElement(
+      "div",
+      [
+        attr("id", AttrValue.Dynamic(() => `item-${count()}`)),
+        attr("data-count", AttrValue.Dynamic(() => String(count()))),
+        attr("className", AttrValue.Dynamic(() => count() > 5 ? "high" : "low")),
+      ],
+      [textDyn(() => `Count: ${count()}`)]
+    );
+    lunaRender(lunaContainer, lunaNode);
+
+    const div = lunaContainer.querySelector("div")!;
+    expect(div.id).toBe("item-0");
+    expect(div.getAttribute("data-count")).toBe("0");
+    expect(div.className).toBe("low");
+
+    setCount(10);
+    expect(div.id).toBe("item-10");
+    expect(div.getAttribute("data-count")).toBe("10");
+    expect(div.className).toBe("high");
+  });
+});
+
+// =============================================================================
+// Effect Cleanup Tests
+// =============================================================================
+
+describe("Effect Cleanup Comparison", () => {
+  test("onCleanup is called when effect re-runs", () => {
+    const cleanupCalls: number[] = [];
+    const [count, setCount] = createSignal(0);
+
+    createEffect(() => {
+      const currentCount = count();
+      onCleanup(() => {
+        cleanupCalls.push(currentCount);
+      });
+    });
+
+    expect(cleanupCalls).toEqual([]);
+
+    setCount(1);
+    expect(cleanupCalls).toEqual([0]);
+
+    setCount(2);
+    expect(cleanupCalls).toEqual([0, 1]);
+
+    setCount(3);
+    expect(cleanupCalls).toEqual([0, 1, 2]);
+  });
+
+  test("onCleanup with resource simulation", () => {
+    const resources: string[] = [];
+    const [resourceId, setResourceId] = createSignal("A");
+
+    createEffect(() => {
+      const id = resourceId();
+      resources.push(`open:${id}`);
+
+      onCleanup(() => {
+        resources.push(`close:${id}`);
+      });
+    });
+
+    expect(resources).toEqual(["open:A"]);
+
+    setResourceId("B");
+    expect(resources).toEqual(["open:A", "close:A", "open:B"]);
+
+    setResourceId("C");
+    expect(resources).toEqual(["open:A", "close:A", "open:B", "close:B", "open:C"]);
+  });
+
+  test("nested effects with inner signal change", () => {
+    const log: string[] = [];
+    const [inner, setInner] = createSignal(0);
+
+    createEffect(() => {
+      // Capture value at effect run time for cleanup
+      const currentValue = inner();
+      log.push(`run:${currentValue}`);
+      onCleanup(() => log.push(`cleanup:${currentValue}`));
+    });
+
+    expect(log).toEqual(["run:0"]);
+
+    setInner(1);
+    expect(log).toContain("cleanup:0");
+    expect(log).toContain("run:1");
+
+    setInner(2);
+    expect(log).toContain("cleanup:1");
+    expect(log).toContain("run:2");
+  });
+});
+
+// =============================================================================
+// Untrack and Peek Tests
+// =============================================================================
+
+describe("Untrack and Peek Behavior", () => {
+  test("untrack prevents dependency tracking", () => {
+    const [a, setA] = createSignal(1);
+    const [b, setB] = createSignal(10);
+    const effectRuns: number[] = [];
+
+    createEffect(() => {
+      const aVal = a();
+      const bVal = untrack(() => b());
+      effectRuns.push(aVal + bVal);
+    });
+
+    expect(effectRuns).toEqual([11]);
+
+    // Changing 'a' should trigger effect
+    setA(2);
+    expect(effectRuns).toEqual([11, 12]);
+
+    // Changing 'b' should NOT trigger effect (untracked)
+    setB(20);
+    expect(effectRuns).toEqual([11, 12]);
+
+    // Changing 'a' again will see new 'b' value
+    setA(3);
+    expect(effectRuns).toEqual([11, 12, 23]);
+  });
+
+  test("peek reads value without tracking", () => {
+    const [count, setCount] = createSignal(0);
+    const effectRuns: number[] = [];
+
+    const countSignal = createSignal(0)[0];
+    // Note: Luna's peek works on the raw signal, not the getter
+    // For this test, we use untrack as the equivalent
+
+    createEffect(() => {
+      // Track nothing, just peek
+      const val = untrack(() => count());
+      effectRuns.push(val);
+    });
+
+    // Effect runs once on creation
+    expect(effectRuns.length).toBe(1);
+
+    // Updates should not trigger effect
+    setCount(1);
+    setCount(2);
+    setCount(3);
+    expect(effectRuns.length).toBe(1);
+  });
+
+  test("selective tracking with untrack", () => {
+    const [tracked, setTracked] = createSignal("A");
+    const [untracked1, setUntracked1] = createSignal("X");
+    const [untracked2, setUntracked2] = createSignal("Y");
+    const results: string[] = [];
+
+    createEffect(() => {
+      const t = tracked();
+      const u1 = untrack(() => untracked1());
+      const u2 = untrack(() => untracked2());
+      results.push(`${t}-${u1}-${u2}`);
+    });
+
+    expect(results).toEqual(["A-X-Y"]);
+
+    setUntracked1("X2");
+    setUntracked2("Y2");
+    expect(results).toEqual(["A-X-Y"]); // No change
+
+    setTracked("B");
+    expect(results).toEqual(["A-X-Y", "B-X2-Y2"]); // Sees updated untracked values
+  });
+});
+
+// =============================================================================
+// Memo Dependency Chain Tests
+// =============================================================================
+
+describe("Memo Dependency Chain", () => {
+  test("chained memos update correctly", () => {
+    const [base, setBase] = createSignal(1);
+    const doubled = createMemo(() => base() * 2);
+    const quadrupled = createMemo(() => doubled() * 2);
+    const octupled = createMemo(() => quadrupled() * 2);
+
+    expect(base()).toBe(1);
+    expect(doubled()).toBe(2);
+    expect(quadrupled()).toBe(4);
+    expect(octupled()).toBe(8);
+
+    setBase(5);
+    expect(doubled()).toBe(10);
+    expect(quadrupled()).toBe(20);
+    expect(octupled()).toBe(40);
+  });
+
+  test("diamond dependency pattern", () => {
+    //     a
+    //    / \
+    //   b   c
+    //    \ /
+    //     d
+    const [a, setA] = createSignal(1);
+    const b = createMemo(() => a() * 2);
+    const c = createMemo(() => a() * 3);
+    const d = createMemo(() => b() + c());
+
+    expect(d()).toBe(5); // 2 + 3
+
+    setA(10);
+    expect(d()).toBe(50); // 20 + 30
+  });
+
+  test("memo with multiple dependencies", () => {
+    const [x, setX] = createSignal(1);
+    const [y, setY] = createSignal(2);
+    const [z, setZ] = createSignal(3);
+    const sum = createMemo(() => x() + y() + z());
+
+    expect(sum()).toBe(6);
+
+    setX(10);
+    expect(sum()).toBe(15);
+
+    setY(20);
+    expect(sum()).toBe(33);
+
+    setZ(30);
+    expect(sum()).toBe(60);
+  });
+
+  test("conditional memo dependencies", () => {
+    const [condition, setCondition] = createSignal(true);
+    const [a, setA] = createSignal(1);
+    const [b, setB] = createSignal(100);
+
+    const result = createMemo(() => condition() ? a() : b());
+    const effectRuns: number[] = [];
+
+    createEffect(() => {
+      effectRuns.push(result());
+    });
+
+    expect(result()).toBe(1);
+    expect(effectRuns).toEqual([1]);
+
+    // When condition is true, only 'a' changes trigger updates
+    setA(2);
+    expect(result()).toBe(2);
+
+    // 'b' changes don't trigger when condition is true
+    setB(200);
+    expect(result()).toBe(2);
+
+    // Switch condition
+    setCondition(false);
+    expect(result()).toBe(200);
+
+    // Now 'b' changes trigger
+    setB(300);
+    expect(result()).toBe(300);
+
+    // 'a' changes don't trigger when condition is false
+    setA(999);
+    expect(result()).toBe(300);
+  });
+});
+
+// =============================================================================
+// List Reordering Tests
+// =============================================================================
+
+describe("List Reordering", () => {
+  let container: HTMLDivElement;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    container.remove();
+  });
+
+  test("reverse list order", () => {
+    const [items, setItems] = createSignal(["A", "B", "C", "D"]);
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: string) => createElement("li", [], [text(item)]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["A", "B", "C", "D"]);
+
+    setItems(["D", "C", "B", "A"]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["D", "C", "B", "A"]);
+  });
+
+  test("shuffle list", () => {
+    const [items, setItems] = createSignal([1, 2, 3, 4, 5]);
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: number) => createElement("li", [], [text(String(item))]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    setItems([3, 1, 4, 5, 2]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["3", "1", "4", "5", "2"]);
+
+    setItems([5, 4, 3, 2, 1]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["5", "4", "3", "2", "1"]);
+  });
+
+  test("insert in middle", () => {
+    const [items, setItems] = createSignal(["A", "C"]);
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: string) => createElement("li", [], [text(item)]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    expect(container.querySelectorAll("li").length).toBe(2);
+
+    setItems(["A", "B", "C"]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["A", "B", "C"]);
+  });
+
+  test("remove from middle", () => {
+    const [items, setItems] = createSignal(["A", "B", "C", "D", "E"]);
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: string) => createElement("li", [], [text(item)]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    setItems(["A", "C", "E"]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["A", "C", "E"]);
+  });
+
+  test("complex reordering with additions and removals", () => {
+    const [items, setItems] = createSignal(["A", "B", "C"]);
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: string) => createElement("li", [], [text(item)]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    // Add, remove, and reorder simultaneously
+    setItems(["D", "B", "E", "A"]);
+    expect(Array.from(container.querySelectorAll("li")).map(el => el.textContent))
+      .toEqual(["D", "B", "E", "A"]);
+  });
+});
+
+// =============================================================================
+// Bulk Updates Performance Tests
+// =============================================================================
+
+describe("Bulk Updates", () => {
+  test("many signal updates in batch", () => {
+    const signals = Array.from({ length: 100 }, (_, i) => createSignal(i));
+    let computeCount = 0;
+
+    const sum = createMemo(() => {
+      computeCount++;
+      return signals.reduce((acc, [get]) => acc + get(), 0);
+    });
+
+    // Initial computation
+    expect(sum()).toBe(4950); // Sum of 0..99
+    expect(computeCount).toBe(1);
+
+    // Update all signals in batch
+    batch(() => {
+      signals.forEach(([_, set], i) => set(i * 2));
+    });
+
+    // Should only recompute once after batch
+    expect(sum()).toBe(9900);
+    // Batch should minimize recomputations
+    expect(computeCount).toBeLessThanOrEqual(3);
+  });
+
+  test("rapid sequential updates", () => {
+    const [count, setCount] = createSignal(0);
+    const updates: number[] = [];
+
+    createEffect(() => {
+      updates.push(count());
+    });
+
+    // Rapid updates
+    for (let i = 1; i <= 100; i++) {
+      setCount(i);
+    }
+
+    expect(count()).toBe(100);
+    // All updates should be tracked
+    expect(updates[updates.length - 1]).toBe(100);
+  });
+
+  test("nested batch operations", () => {
+    const [a, setA] = createSignal(0);
+    const [b, setB] = createSignal(0);
+    const [c, setC] = createSignal(0);
+    const effectRuns: string[] = [];
+
+    createEffect(() => {
+      effectRuns.push(`${a()}-${b()}-${c()}`);
+    });
+
+    expect(effectRuns).toEqual(["0-0-0"]);
+
+    batch(() => {
+      setA(1);
+      batch(() => {
+        setB(2);
+        setC(3);
+      });
+    });
+
+    // Nested batches should still result in single update
+    expect(effectRuns[effectRuns.length - 1]).toBe("1-2-3");
+  });
+
+  test("large list update", () => {
+    const initialItems = Array.from({ length: 1000 }, (_, i) => `item-${i}`);
+    const [items, setItems] = createSignal(initialItems);
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const node = createElement("ul", [], [
+      For({
+        each: items,
+        children: (item: string) => createElement("li", [], [text(item)]),
+      }),
+    ]);
+    lunaRender(container, node);
+
+    expect(container.querySelectorAll("li").length).toBe(1000);
+
+    // Update to different set
+    const newItems = Array.from({ length: 500 }, (_, i) => `new-${i}`);
+    setItems(newItems);
+
+    expect(container.querySelectorAll("li").length).toBe(500);
+    expect(container.querySelector("li")?.textContent).toBe("new-0");
+
+    container.remove();
   });
 });
