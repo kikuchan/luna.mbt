@@ -20,10 +20,7 @@ using @element {
   text_dyn,
   index_each,
   events,
-  attr_dynamic,
-  type Handler,
   type Attr,
-  type AttrValue,
   type DomNode,
   type DomElement,
   render,
@@ -86,8 +83,8 @@ fn next_frame(callback : () -> Unit) -> Unit {
 
 ///|
 /// Conditionally show/hide element based on condition
-fn visible_when(condition : () -> Bool) -> (String, AttrValue) {
-  ("style", attr_dynamic(() => if condition() { "" } else { "display: none" }))
+fn visible_when(condition : () -> Bool) -> () -> String {
+  fn() { if condition() { "" } else { "display: none" } }
 }
 
 ///|
@@ -103,11 +100,7 @@ fn filter_link(
   } else {
     ""
   }
-  li([
-    a(href~, [
-      span(dyn_attrs=[("className", attr_dynamic(class_getter))], [text(label_)]),
-    ]),
-  ])
+  li([a(href~, [span(dyn_class=class_getter, [text(label_)])])])
 }
 
 // =============================================================================
@@ -245,14 +238,16 @@ fn app() -> DomNode {
         (false, false) => ""
       }
     }
-    li(dyn_attrs=[("className", attr_dynamic(class_name))], [
+    li(dyn_class=class_name, [
       // View mode
       div(class="view", [
         // Toggle checkbox
-        input(class="toggle", type_="checkbox", dyn_attrs=[
-          ("checked", attr_dynamic(() => get_todo().completed.to_string())),
-          ("change", Handler(_ => toggle_todo(get_todo().id))),
-        ]),
+        input(
+          class="toggle",
+          type_="checkbox",
+          dyn_checked=fn() { get_todo().completed },
+          on=events().change(_ => toggle_todo(get_todo().id)),
+        ),
         // Label (double-click to edit)
         label(on=events().dblclick(_ => editing_id.set(Some(get_todo().id))), [
           text_dyn(() => get_todo().title),
@@ -270,37 +265,29 @@ fn app() -> DomNode {
         ref_=el => edit_ref.val = Some(
           @dom.HTMLInputElement::cast_from_element(el),
         ),
-        dyn_attrs=[
-          ("value", attr_dynamic(() => get_todo().title)),
-          ("compositionstart", Handler(_ => edit_composing.val = true)),
-          ("compositionend", Handler(_ => edit_composing.val = false)),
-          (
-            "blur",
-            Handler(e => {
-              let todo = get_todo()
-              if editing_id.peek() == Some(todo.id) {
-                let inp : @dom.HTMLInputElement = e._get("target").cast()
-                update_todo_title(todo.id, inp.value)
-                editing_id.set(None)
-              }
-            }),
-          ),
-          (
-            "keydown",
-            Handler(e => {
-              let key : String = e._get("key").cast()
-              let todo = get_todo()
-              let inp : @dom.HTMLInputElement = e._get("target").cast()
-              if key == "Enter" && not(edit_composing.val) {
-                update_todo_title(todo.id, inp.value)
-                editing_id.set(None)
-              } else if key == "Escape" {
-                inp.value = todo.title
-                editing_id.set(None)
-              }
-            }),
-          ),
-        ],
+        dyn_value=fn() { get_todo().title },
+        on=events()
+          .compositionstart(_ => edit_composing.val = true)
+          .compositionend(_ => edit_composing.val = false)
+          .blur(e => {
+            let todo = get_todo()
+            if editing_id.peek() == Some(todo.id) {
+              let inp = @dom.HTMLInputElement::cast_from_element(e.target())
+              update_todo_title(todo.id, inp.value)
+              editing_id.set(None)
+            }
+          })
+          .keydown(e => {
+            let todo = get_todo()
+            let inp = @dom.HTMLInputElement::cast_from_element(e.target())
+            if e.key == "Enter" && not(edit_composing.val) {
+              update_todo_title(todo.id, inp.value)
+              editing_id.set(None)
+            } else if e.key == "Escape" {
+              inp.value = todo.title
+              editing_id.set(None)
+            }
+          }),
       ),
     ])
   }
@@ -330,12 +317,15 @@ fn app() -> DomNode {
 
   /// Render main section with todo list
   fn render_main() -> DomNode {
-    section(class="main", dyn_attrs=[visible_when(has_todos)], [
+    section(class="main", dyn_style=visible_when(has_todos), [
       // Toggle all checkbox
-      input(id="toggle-all", class="toggle-all", type_="checkbox", dyn_attrs=[
-        ("checked", attr_dynamic(() => all_completed().to_string())),
-        ("change", Handler(_ => toggle_all())),
-      ]),
+      input(
+        id="toggle-all",
+        class="toggle-all",
+        type_="checkbox",
+        dyn_checked=all_completed,
+        on=events().change(_ => toggle_all()),
+      ),
       label(for_="toggle-all", [text("Mark all as complete")]),
       // Todo list
       ul(class="todo-list", [index_each(filtered_todos, render_todo_item)]),
@@ -344,14 +334,16 @@ fn app() -> DomNode {
 
   /// Render footer with count and filters
   fn render_footer() -> DomNode {
-    footer_(class="footer", dyn_attrs=[visible_when(has_todos)], [
+    footer_(class="footer", dyn_style=visible_when(has_todos), [
       // Item count
       span(class="todo-count", [
-        strong([text_dyn(() => active_count().to_string())]),
-        text_dyn(() => if active_count() == 1 {
-          " item left"
-        } else {
-          " items left"
+        strong([text_dyn(fn() { active_count().to_string() })]),
+        text_dyn(fn() {
+          if active_count() == 1 {
+            " item left"
+          } else {
+            " items left"
+          }
         }),
       ]),
       // Filter links
@@ -364,7 +356,7 @@ fn app() -> DomNode {
       button(
         class="clear-completed",
         on=events().click(_ => clear_completed()),
-        dyn_attrs=[visible_when(() => completed_count() > 0)],
+        dyn_style=visible_when(fn() { completed_count() > 0 }),
         [text("Clear completed")],
       ),
     ])

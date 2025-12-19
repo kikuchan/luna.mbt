@@ -23,6 +23,7 @@ interface ElementAttr {
   name: string;
   type: AttrType;
   htmlAttr?: string; // HTML attribute name if different from param name
+  hasDynamic?: boolean; // Generate dyn_ prefix version for this attr (DOM only)
 }
 
 interface ElementDef {
@@ -33,6 +34,9 @@ interface ElementDef {
   hasChildren?: boolean; // default: true
   isVoid?: boolean; // self-closing element (img, br, hr, input, meta, link)
 }
+
+// Attributes that should have dyn_ versions in all elements
+const COMMON_DYNAMIC_ATTRS = ["class", "style"];
 
 // =============================================================================
 // Element Definitions
@@ -144,7 +148,7 @@ const elements: ElementDef[] = [
   {
     tag: "button",
     description: "Create a button element",
-    attrs: [{ name: "disabled", type: "bool" }],
+    attrs: [{ name: "disabled", type: "bool", hasDynamic: true }],
   },
   {
     tag: "input",
@@ -152,11 +156,12 @@ const elements: ElementDef[] = [
     attrs: [
       { name: "type_", type: "string", htmlAttr: "type" },
       { name: "name", type: "string" },
-      { name: "value", type: "string" },
+      { name: "value", type: "string", hasDynamic: true },
       { name: "placeholder", type: "string" },
-      { name: "disabled", type: "bool" },
+      { name: "disabled", type: "bool", hasDynamic: true },
       { name: "readonly_", type: "bool", htmlAttr: "readonly" },
       { name: "required", type: "bool" },
+      { name: "checked", type: "bool", hasDynamic: true },
     ],
     isVoid: true,
     hasChildren: false,
@@ -199,6 +204,12 @@ const elements: ElementDef[] = [
   },
   { tag: "br", description: "Create br element", attrs: [], isVoid: true, hasChildren: false },
   { tag: "hr", description: "Create hr element", attrs: [], isVoid: true, hasChildren: false },
+
+  // Inline text
+  { tag: "strong", description: "Create strong element" },
+  { tag: "em", description: "Create em element" },
+  { tag: "code", description: "Create code element" },
+  { tag: "pre", description: "Create pre element" },
 ];
 
 // Elements only for browser DOM (not server_dom)
@@ -227,6 +238,23 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
       ? allAttrs
       : allAttrs.filter((a) => !["content"].includes(a.name) || elem.tag !== "script");
 
+  // Collect attrs that need dyn_ versions (DOM only)
+  const dynAttrs: ElementAttr[] = [];
+  if (opts.target === "dom") {
+    // Common dynamic attrs (class, style)
+    for (const attr of COMMON_ATTRS) {
+      if (COMMON_DYNAMIC_ATTRS.includes(attr.name)) {
+        dynAttrs.push(attr);
+      }
+    }
+    // Element-specific dynamic attrs
+    for (const attr of elem.attrs ?? []) {
+      if (attr.hasDynamic) {
+        dynAttrs.push(attr);
+      }
+    }
+  }
+
   // Build parameter list
   const params: string[] = [];
 
@@ -252,11 +280,20 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
     params.push(`${attr.name}? : String`);
   }
 
+  // Dynamic attrs (DOM only) - dyn_ prefix
+  if (opts.target === "dom") {
+    for (const attr of dynAttrs) {
+      const type = attr.type === "bool" ? "Bool" : "String";
+      params.push(`dyn_${attr.name}? : () -> ${type}`);
+    }
+  }
+
   // Target-specific params
   if (opts.target === "dom") {
     params.push("on? : HandlerMap");
     params.push("ref_? : ElementRef");
     params.push("attrs? : Array[(String, Attr)]");
+    params.push("dyn_attrs? : Array[(String, AttrValue)]"); // escape hatch
   } else {
     params.push("attrs? : Array[(String, @luna.Attr[Unit])]");
   }
@@ -277,7 +314,7 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
   const bodyLines: string[] = [];
 
   if (opts.target === "dom") {
-    bodyLines.push("let props = build_props(id, class, style, on, ref_, attrs)");
+    bodyLines.push("let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)");
   } else {
     bodyLines.push("let props = build_attrs(id, class, style, attrs)");
   }
@@ -306,6 +343,25 @@ function generateElement(elem: ElementDef, opts: GeneratorOptions): string {
         bodyLines.push(`  props.push(("${htmlAttr}", static_attr(v)))`);
       }
       bodyLines.push("}");
+    }
+  }
+
+  // Add dynamic attrs to props (DOM only)
+  if (opts.target === "dom") {
+    for (const attr of dynAttrs) {
+      const htmlAttr = attr.htmlAttr ?? attr.name;
+      // For class, use className in DOM
+      const propName = attr.name === "class" ? "className" : htmlAttr;
+      if (attr.type === "bool") {
+        // Bool dynamic: convert to string
+        bodyLines.push(`if dyn_${attr.name} is Some(getter) {`);
+        bodyLines.push(`  props.push(("${propName}", Dynamic(fn() { getter().to_string() })))`);
+        bodyLines.push("}");
+      } else {
+        bodyLines.push(`if dyn_${attr.name} is Some(getter) {`);
+        bodyLines.push(`  props.push(("${propName}", Dynamic(getter)))`);
+        bodyLines.push("}");
+      }
     }
   }
 
@@ -574,15 +630,26 @@ pub fn jsxs(
 }
 
 ///|
-/// JSX runtime: Fragment (returns children as-is wrapped in a container)
+/// JSX runtime: Fragment (returns children as a DocumentFragment)
 pub fn fragment(children : Array[DomNode]) -> DomNode {
-  // Return a document fragment or first child
-  // For simplicity, wrap in a span with no attributes
-  // In production, this should return a proper fragment
+  // Return single child directly for optimization
   match children.length() {
-    0 => create_element("span", [], [])
+    0 => {
+      // Empty fragment: return empty DocumentFragment
+      let doc = @js_dom.document()
+      let frag = doc.createDocumentFragment()
+      Raw(frag.as_node())
+    }
     1 => children[0]
-    _ => create_element("span", [], children)
+    _ => {
+      // Multiple children: use real DocumentFragment
+      let doc = @js_dom.document()
+      let frag = doc.createDocumentFragment()
+      for child in children {
+        frag.as_node().appendChild(child.to_jsdom()) |> ignore
+      }
+      Raw(frag.as_node())
+    }
   }
 }
 `;

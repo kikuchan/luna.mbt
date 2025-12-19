@@ -23,12 +23,21 @@ pub fn main_(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("main", props, children)
 }
 
@@ -38,12 +47,21 @@ pub fn nav(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("nav", props, children)
 }
 
@@ -53,12 +71,21 @@ pub fn header_(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("header", props, children)
 }
 
@@ -68,6 +95,8 @@ pub fn footer_(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -75,6 +104,12 @@ pub fn footer_(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("footer", props, children)
 }
 
@@ -84,6 +119,8 @@ pub fn section(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -91,6 +128,12 @@ pub fn section(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("section", props, children)
 }
 
@@ -100,12 +143,21 @@ pub fn article(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("article", props, children)
 }
 
@@ -115,12 +167,21 @@ pub fn aside(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("aside", props, children)
 }
 
@@ -130,12 +191,21 @@ pub fn div(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("div", props, children)
 }
 
@@ -145,6 +215,8 @@ pub fn span(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -152,6 +224,12 @@ pub fn span(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("span", props, children)
 }
 
@@ -161,12 +239,21 @@ pub fn p(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("p", props, children)
 }
 
@@ -178,17 +265,26 @@ pub fn a(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if href is Some(v) {
     props.push(("href", Static(v)))
   }
   if target is Some(v) {
     props.push(("target", Static(v)))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
   }
   create_element("a", props, children)
 }
@@ -199,12 +295,21 @@ pub fn h1(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h1", props, children)
 }
 
@@ -214,12 +319,21 @@ pub fn h2(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h2", props, children)
 }
 
@@ -229,12 +343,21 @@ pub fn h3(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h3", props, children)
 }
 
@@ -244,12 +367,21 @@ pub fn h4(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h4", props, children)
 }
 
@@ -259,12 +391,21 @@ pub fn h5(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h5", props, children)
 }
 
@@ -274,12 +415,21 @@ pub fn h6(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("h6", props, children)
 }
 
@@ -289,12 +439,21 @@ pub fn ul(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("ul", props, children)
 }
 
@@ -304,12 +463,21 @@ pub fn ol(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("ol", props, children)
 }
 
@@ -319,6 +487,8 @@ pub fn li(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -326,6 +496,12 @@ pub fn li(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("li", props, children)
 }
 
@@ -336,6 +512,9 @@ pub fn button(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
+  dyn_disabled? : () -> Bool,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -345,6 +524,15 @@ pub fn button(
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if disabled is Some(true) {
     props.push(("disabled", Static("true")))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
+  if dyn_disabled is Some(getter) {
+    props.push(("disabled", Dynamic(fn() { getter().to_string() })))
   }
   create_element("button", props, children)
 }
@@ -359,9 +547,15 @@ pub fn input(
   disabled? : Bool,
   readonly_? : Bool,
   required? : Bool,
+  checked? : Bool,
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
+  dyn_value? : () -> String,
+  dyn_disabled? : () -> Bool,
+  dyn_checked? : () -> Bool,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -389,6 +583,24 @@ pub fn input(
   if required is Some(true) {
     props.push(("required", Static("true")))
   }
+  if checked is Some(true) {
+    props.push(("checked", Static("true")))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
+  if dyn_value is Some(getter) {
+    props.push(("value", Dynamic(getter)))
+  }
+  if dyn_disabled is Some(getter) {
+    props.push(("disabled", Dynamic(fn() { getter().to_string() })))
+  }
+  if dyn_checked is Some(getter) {
+    props.push(("checked", Dynamic(fn() { getter().to_string() })))
+  }
   create_element("input", props, [])
 }
 
@@ -401,12 +613,15 @@ pub fn textarea(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if name is Some(v) {
     props.push(("name", Static(v)))
   }
@@ -415,6 +630,12 @@ pub fn textarea(
   }
   if disabled is Some(true) {
     props.push(("disabled", Static("true")))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
   }
   create_element("textarea", props, children)
 }
@@ -427,17 +648,26 @@ pub fn form(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if action is Some(v) {
     props.push(("action", Static(v)))
   }
   if http_method is Some(v) {
     props.push(("method", Static(v)))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
   }
   create_element("form", props, children)
 }
@@ -449,14 +679,23 @@ pub fn label(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if for_ is Some(v) {
     props.push(("for", Static(v)))
+  }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
   }
   create_element("label", props, children)
 }
@@ -471,11 +710,14 @@ pub fn img(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if src is Some(v) {
     props.push(("src", Static(v)))
   }
@@ -488,6 +730,12 @@ pub fn img(
   if height is Some(v) {
     props.push(("height", Static(v)))
   }
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("img", props, [])
 }
 
@@ -497,11 +745,20 @@ pub fn br(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("br", props, [])
 }
 
@@ -511,11 +768,20 @@ pub fn hr(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("hr", props, [])
 }
 
@@ -525,6 +791,8 @@ pub fn strong(
   id? : String,
   class? : String,
   style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
@@ -532,7 +800,85 @@ pub fn strong(
   children : Array[DomNode],
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
   create_element("strong", props, children)
+}
+
+///|
+/// Create em element
+pub fn em(
+  id? : String,
+  class? : String,
+  style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
+  on? : HandlerMap,
+  ref_? : ElementRef,
+  attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
+  children : Array[DomNode],
+) -> DomNode {
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
+  create_element("em", props, children)
+}
+
+///|
+/// Create code element
+pub fn code(
+  id? : String,
+  class? : String,
+  style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
+  on? : HandlerMap,
+  ref_? : ElementRef,
+  attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
+  children : Array[DomNode],
+) -> DomNode {
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
+  create_element("code", props, children)
+}
+
+///|
+/// Create pre element
+pub fn pre(
+  id? : String,
+  class? : String,
+  style? : String,
+  dyn_class? : () -> String,
+  dyn_style? : () -> String,
+  on? : HandlerMap,
+  ref_? : ElementRef,
+  attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
+  children : Array[DomNode],
+) -> DomNode {
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  if dyn_class is Some(getter) {
+    props.push(("className", Dynamic(getter)))
+  }
+  if dyn_style is Some(getter) {
+    props.push(("style", Dynamic(getter)))
+  }
+  create_element("pre", props, children)
 }
 
 // =============================================================================

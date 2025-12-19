@@ -517,6 +517,7 @@ pub fn input(
   disabled? : Bool,
   readonly_? : Bool,
   required? : Bool,
+  checked? : Bool,
   id? : String,
   class? : String,
   style? : String,
@@ -543,6 +544,9 @@ pub fn input(
   }
   if required is Some(true) {
     props.push(("required", static_attr("")))
+  }
+  if checked is Some(true) {
+    props.push(("checked", static_attr("")))
   }
   create_element("input", props, [])
 }
@@ -635,6 +639,58 @@ pub fn hr(
 ) -> @luna.Node[Unit] {
   let props = build_attrs(id, class, style, attrs)
   create_element("hr", props, [])
+}
+
+///|
+/// Create strong element
+pub fn strong(
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  create_element("strong", props, children)
+}
+
+///|
+/// Create em element
+pub fn em(
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  create_element("em", props, children)
+}
+
+///|
+/// Create code element
+pub fn code(
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  create_element("code", props, children)
+}
+
+///|
+/// Create pre element
+pub fn pre(
+  id? : String,
+  class? : String,
+  style? : String,
+  attrs? : Array[(String, @luna.Attr[Unit])],
+  children : Array[@luna.Node[Unit]],
+) -> @luna.Node[Unit] {
+  let props = build_attrs(id, class, style, attrs)
+  create_element("pre", props, children)
 }
 
 // =============================================================================
