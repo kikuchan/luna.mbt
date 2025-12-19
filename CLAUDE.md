@@ -1,4 +1,4 @@
-# Luna Framework
+# Luna UI Library
 
 MoonBitで実装されたIsland ArchitectureベースのUIフレームワーク。
 

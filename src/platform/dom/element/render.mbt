@@ -272,15 +272,16 @@ pub fn[T] for_each(
 // =============================================================================
 
 ///|
-/// Entry for index_each - stores node and its dispose function
+/// Entry for index_each - stores node, dispose function, and disposed flag
 priv struct IndexEntry {
   node : @js_dom.Node
   dispose : () -> Unit
+  disposed : Ref[Bool]
 }
 
 ///|
-fn IndexEntry::new(node : @js_dom.Node, dispose : () -> Unit) -> IndexEntry {
-  { node, dispose }
+fn IndexEntry::new(node : @js_dom.Node, dispose : () -> Unit, disposed : Ref[Bool]) -> IndexEntry {
+  { node, dispose, disposed }
 }
 
 ///|
@@ -318,14 +319,45 @@ pub fn[T] index_each(
 
   // Helper to render item with owner scope for proper cleanup
   fn render_with_scope(index : Int) -> IndexEntry {
-    let item_getter = fn() -> T { items()[index] }
+    let disposed : Ref[Bool] = { val: false }
+    // Cache last valid value for when array shrinks and effect hasn't been disposed yet
+    let cached_value : Ref[T?] = { val: None }
+    // Guard against out-of-bounds access during effect cleanup transition.
+    // When items are deleted, effects may still run briefly before disposal.
+    // Use cached value when index is out of bounds.
+    let item_getter = fn() -> T {
+      let arr = items()
+      let len = arr.length()
+      if disposed.val || len == 0 || index >= len {
+        // Effect is disposed or index is out of bounds
+        // Return cached value if available
+        match cached_value.val {
+          Some(v) => v
+          None => {
+            // No cached value - this can happen if items() changed before first access
+            // Use first item as fallback if available
+            if len > 0 {
+              arr[0]
+            } else {
+              // Array is empty, no valid fallback
+              // This is a race condition during cleanup - abort with clear message
+              abort("index_each: array is empty during stale effect execution")
+            }
+          }
+        }
+      } else {
+        let value = arr[index]
+        cached_value.val = Some(value)
+        value
+      }
+    }
     let (dom, dispose) = @signal.create_root_with_dispose(fn() {
       match captured_owner {
         Some(owner) => @signal.run_with_owner(owner, fn() { render_item(item_getter, index) })
         None => render_item(item_getter, index)
       }
     })
-    IndexEntry::new(dom.to_jsdom(), dispose)
+    IndexEntry::new(dom.to_jsdom(), dispose, disposed)
   }
 
   // Initial render
@@ -353,7 +385,9 @@ pub fn[T] index_each(
       let entry = entries.pop()
       match entry {
         Some(e) => {
-          // Dispose effects first to prevent stale callbacks
+          // Mark as disposed FIRST to prevent stale effect execution
+          e.disposed.val = true
+          // Then dispose effects
           (e.dispose)()
           if e.node.parentNode() is Some(par) {
             par.removeChild(e.node) |> ignore

@@ -240,6 +240,7 @@ fn build_props(
   on : HandlerMap?,
   ref_ : ElementRef?,
   attrs : Array[(String, Attr)]?,
+  dyn_attrs~ : Array[(String, AttrValue)]? = None,
 ) -> Array[(String, AttrValue)] {
   let result : Array[(String, AttrValue)] = []
 
@@ -274,10 +275,17 @@ fn build_props(
     result.push(("__ref", Handler(handler)))
   }
 
-  // additional attrs
+  // additional static attrs
   if attrs is Some(extra) {
     for pair in extra {
       result.push((pair.0, pair.1.to_attr_value()))
+    }
+  }
+
+  // additional dynamic attrs (AttrValue - can include Dynamic, Handler)
+  if dyn_attrs is Some(extra) {
+    for pair in extra {
+      result.push(pair)
     }
   }
   result

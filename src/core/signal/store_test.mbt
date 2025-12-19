@@ -17,7 +17,6 @@ test "SplitStore2 fields are independent" {
   let store = SplitStore2::new(0, "hello")
   let field1_runs = { val: 0 }
   let field2_runs = { val: 0 }
-
   let _ = effect(fn() {
     let _ = store.field1.get()
     field1_runs.val = field1_runs.val + 1
@@ -71,15 +70,14 @@ test "LensStore creates store with initial value" {
 ///|
 test "LensStore::focus creates reactive field accessor" {
   let store : LensStore[TestRecord] = LensStore::new({ count: 0, name: "John" })
-  let count_lens : Lens[TestRecord, Int] = Lens::new(
-    fn(s) { s.count },
-    fn(s, v) { { count: v, name: s.name } },
-  )
-
+  let count_lens : Lens[TestRecord, Int] = Lens::new(fn(s) { s.count }, fn(
+    s,
+    v,
+  ) {
+    { count: v, name: s.name }
+  })
   let (count_sig, set_count) = store.focus(count_lens)
-
   assert_eq(count_sig.get(), 0)
-
   set_count(42)
   assert_eq(count_sig.get(), 42)
   assert_eq(store.snapshot().count, 42)
@@ -88,18 +86,20 @@ test "LensStore::focus creates reactive field accessor" {
 ///|
 test "LensStore focused field only updates when value changes" {
   let store : LensStore[TestRecord] = LensStore::new({ count: 0, name: "John" })
-  let count_lens : Lens[TestRecord, Int] = Lens::new(
-    fn(s) { s.count },
-    fn(s, v) { { count: v, name: s.name } },
-  )
-  let name_lens : Lens[TestRecord, String] = Lens::new(
-    fn(s) { s.name },
-    fn(s, v) { { count: s.count, name: v } },
-  )
-
+  let count_lens : Lens[TestRecord, Int] = Lens::new(fn(s) { s.count }, fn(
+    s,
+    v,
+  ) {
+    { count: v, name: s.name }
+  })
+  let name_lens : Lens[TestRecord, String] = Lens::new(fn(s) { s.name }, fn(
+    s,
+    v,
+  ) {
+    { count: s.count, name: v }
+  })
   let (count_sig, _) = store.focus(count_lens)
   let (_, set_name) = store.focus(name_lens)
-
   let count_runs = { val: 0 }
   let _ = effect(fn() {
     let _ = count_sig.get()
@@ -144,16 +144,18 @@ fn ReactiveAppState::new(initial : AppState) -> ReactiveAppState {
 
 ///|
 fn ReactiveAppState::snapshot(self : ReactiveAppState) -> AppState {
-  { count: self.count.peek(), name: self.name.peek(), active: self.active.peek() }
+  {
+    count: self.count.peek(),
+    name: self.name.peek(),
+    active: self.active.peek(),
+  }
 }
 
 ///|
 test "ReactiveRecord pattern provides fine-grained updates" {
   let state = ReactiveAppState::new({ count: 0, name: "User", active: true })
-
   let count_runs = { val: 0 }
   let name_runs = { val: 0 }
-
   let _ = effect(fn() {
     let _ = state.count.get()
     count_runs.val = count_runs.val + 1

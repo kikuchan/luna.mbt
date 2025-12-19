@@ -71,9 +71,10 @@ pub fn footer_(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   create_element("footer", props, children)
 }
 
@@ -86,9 +87,10 @@ pub fn section(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   create_element("section", props, children)
 }
 
@@ -146,9 +148,10 @@ pub fn span(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   create_element("span", props, children)
 }
 
@@ -319,9 +322,10 @@ pub fn li(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   create_element("li", props, children)
 }
 
@@ -335,9 +339,10 @@ pub fn button(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
   children : Array[DomNode],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if disabled is Some(true) {
     props.push(("disabled", Static("true")))
   }
@@ -360,8 +365,9 @@ pub fn input(
   on? : HandlerMap,
   ref_? : ElementRef,
   attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
 ) -> DomNode {
-  let props = build_props(id, class, style, on, ref_, attrs)
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
   if type_ is Some(v) {
     props.push(("type", Static(v)))
   }
@@ -511,6 +517,22 @@ pub fn hr(
 ) -> DomNode {
   let props = build_props(id, class, style, on, ref_, attrs)
   create_element("hr", props, [])
+}
+
+///|
+/// Create strong element
+pub fn strong(
+  id? : String,
+  class? : String,
+  style? : String,
+  on? : HandlerMap,
+  ref_? : ElementRef,
+  attrs? : Array[(String, Attr)],
+  dyn_attrs? : Array[(String, AttrValue)],
+  children : Array[DomNode],
+) -> DomNode {
+  let props = build_props(id, class, style, on, ref_, attrs, dyn_attrs~)
+  create_element("strong", props, children)
 }
 
 // =============================================================================

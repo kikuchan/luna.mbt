@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Luna UI Framework Browser Tests", () => {
+test.describe("Luna UI Browser Tests", () => {
   test.describe("Signal/Effect Reactivity", () => {
     test("hydrates and displays initial values", async ({ page }) => {
       await page.goto("/browser/signal-effect");

@@ -4,8 +4,7 @@
 
 Most internal documents are Japanese. We will translate at `v0.1.0`
 
-# Luna
-
+# Luna UI
 
 A reactive UI library written in [MoonBit](https://www.moonbitlang.com/) with **Island Architecture** and Fine-Grained Reactivity inspired by [Solid.js](https://www.solidjs.com/) and [Qwik](https://qwik.dev/).
 

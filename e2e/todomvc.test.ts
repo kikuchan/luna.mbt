@@ -423,6 +423,32 @@ test.describe("TodoMVC", () => {
     await expect(page.locator(".todo-list li")).toHaveCount(1);
   });
 
+  test("BUG: add, reload, delete sequence works correctly", async ({ page }) => {
+    // This tests the localStorage restore -> delete scenario
+    // Add items
+    await addTodo(page, "Item 1");
+    await addTodo(page, "Item 2");
+    await expect(page.locator(".todo-list li")).toHaveCount(2);
+
+    // Reload the page (items restored from localStorage)
+    await page.reload();
+    await page.waitForSelector(".todoapp");
+    await expect(page.locator(".todo-list li")).toHaveCount(2);
+
+    // Delete first item - this should NOT cause a panic
+    const firstItem = page.locator(".todo-list li").first();
+    await firstItem.hover();
+    await firstItem.locator(".destroy").click();
+    await expect(page.locator(".todo-list li")).toHaveCount(1);
+    await expect(page.locator(".todo-list li label")).toHaveText("Item 2");
+
+    // Delete remaining item
+    const remaining = page.locator(".todo-list li").first();
+    await remaining.hover();
+    await remaining.locator(".destroy").click();
+    await expect(page.locator(".todo-list li")).toHaveCount(0);
+  });
+
   test("BUG: internal state matches DOM after delete", async ({ page }) => {
     // Add items
     await addTodo(page, "Item A");

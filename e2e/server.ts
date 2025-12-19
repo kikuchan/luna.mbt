@@ -562,7 +562,7 @@ const todomvcHtml = `<!DOCTYPE html>
   <section id="app">Loading...</section>
   <footer class="info">
     <p>Double-click to edit a todo</p>
-    <p>Created with Luna Framework</p>
+    <p>Created with Luna UI</p>
     <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
   </footer>
   <script type="module">

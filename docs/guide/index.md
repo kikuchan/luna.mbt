@@ -4,7 +4,7 @@ title: Guide
 
 # Luna Guide
 
-Welcome to the Luna Framework guide. This section covers the core concepts and features of Luna.
+Welcome to the Luna UI guide. This section covers the core concepts and features of Luna.
 
 ## Core Concepts
 

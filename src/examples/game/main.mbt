@@ -1,7 +1,7 @@
 //
 
 ///|
-/// Benchmark Game - Heavy DOM rendering stress test for Luna framework
+/// Benchmark Game - Heavy DOM rendering stress test for Luna UI
 
 // =============================================================================
 // Configuration

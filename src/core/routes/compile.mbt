@@ -39,11 +39,7 @@ fn extract_param_names(path : String) -> Array[String] {
   for segment in segments {
     if segment.has_prefix(":") && segment.length() > 1 {
       // ":id" -> "id"
-      let name = try {
-        segment[1:].to_string()
-      } catch {
-        _ => continue
-      }
+      let name = segment[1:].to_string() catch { _ => continue }
       result.push(name)
     }
   }

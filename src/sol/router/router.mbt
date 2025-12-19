@@ -329,7 +329,13 @@ pub struct RouteParams {
 ///|
 /// Create empty route params
 pub fn RouteParams::empty() -> RouteParams {
-  { params: [], query: [], path: "", is_fragment: false, url_pattern_result: None }
+  {
+    params: [],
+    query: [],
+    path: "",
+    is_fragment: false,
+    url_pattern_result: None,
+  }
 }
 
 ///|
@@ -448,7 +454,10 @@ pub fn PageProps::get_query(self : PageProps, key : String) -> String? {
 
 ///|
 /// Get pathname group from URLPatternResult (convenience method)
-pub fn PageProps::get_pathname_group(self : PageProps, name : String) -> String? {
+pub fn PageProps::get_pathname_group(
+  self : PageProps,
+  name : String,
+) -> String? {
   self.params.get_pathname_group(name)
 }
 

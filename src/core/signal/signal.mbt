@@ -122,4 +122,3 @@ pub fn[T] on_immediate(sig : Signal[T], callback : (T) -> Unit) -> () -> Unit {
   callback(sig.peek()) // Run immediately
   on(sig, callback)
 }
-

@@ -29,7 +29,11 @@ pub struct SplitStore3[A, B, C] {
 }
 
 ///|
-pub fn[A, B, C] SplitStore3::new(v1 : A, v2 : B, v3 : C) -> SplitStore3[A, B, C] {
+pub fn[A, B, C] SplitStore3::new(
+  v1 : A,
+  v2 : B,
+  v3 : C,
+) -> SplitStore3[A, B, C] {
   { field1: signal(v1), field2: signal(v2), field3: signal(v3) }
 }
 
@@ -67,7 +71,7 @@ pub fn[T] LensStore::new(initial : T) -> LensStore[T] {
 /// The getter is memoized and only recomputes when the focused value changes
 pub fn[T, A : Eq] LensStore::focus(
   self : LensStore[T],
-  lens : Lens[T, A]
+  lens : Lens[T, A],
 ) -> (Signal[A], (A) -> Unit) {
   // Create a derived signal for this field
   let field_signal : Signal[A] = signal((lens.get)(self.source.peek()))
@@ -84,7 +88,6 @@ pub fn[T, A : Eq] LensStore::focus(
   let setter = fn(value : A) {
     self.source.update(fn(s) { (lens.set)(s, value) })
   }
-
   (field_signal, setter)
 }
 
@@ -125,4 +128,3 @@ pub trait Snapshot {
 ///   { count: self.count.peek(), name: self.name.peek() }
 /// }
 /// ```
-

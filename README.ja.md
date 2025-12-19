@@ -1,4 +1,4 @@
-# Luna
+# Luna UI
 
 > **Warning: Proof of Concept (PoC)**
 >

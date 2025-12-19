@@ -33,12 +33,7 @@ test "compile with layout" {
 ///|
 test "compile with param in path" {
   let routes = [
-    Routes::Page(
-      path="/users/:id",
-      component="user_detail",
-      title="User",
-      meta=[],
-    ),
+    Routes::Page(path="/users/:id", component="user_detail", title="User", meta=[]),
   ]
   let compiled = compile(routes)
   assert_eq(compiled.length(), 1)

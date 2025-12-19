@@ -1,19 +1,11 @@
-// TodoMVC - Luna Framework Implementation
+// TodoMVC - Luna UI Implementation
 // https://github.com/tastejs/todomvc
-
-///|
-/// Console logging helper
-fn console_log(msg : String) -> Unit {
-  let global = @global.global_this()
-  global["console"]._call("log", [@js.any(msg)]) |> ignore
-}
 
 // =============================================================================
 // Data Structures
 // =============================================================================
 
 ///|
-/// Todo item structure
 struct Todo {
   id : Int
   title : String
@@ -21,7 +13,6 @@ struct Todo {
 } derive(Eq)
 
 ///|
-/// Filter type for routing
 priv enum Filter {
   All
   Active
@@ -33,18 +24,14 @@ priv enum Filter {
 // =============================================================================
 
 ///|
-/// Storage key for todos
 let storage_key : String = "todos-luna"
 
 ///|
-/// Save todos to localStorage
 fn save_todos(todos : Array[Todo]) -> Unit {
-  let json = todos_to_json(todos)
-  ffi_local_storage_set(storage_key, json)
+  ffi_local_storage_set(storage_key, todos_to_json(todos))
 }
 
 ///|
-/// Load todos from localStorage
 fn load_todos() -> Array[Todo] {
   match ffi_local_storage_get(storage_key) {
     Some(json) => json_to_todos(json)
@@ -61,39 +48,34 @@ extern "js" fn ffi_local_storage_get(key : String) -> String? =
   #|(key) => { const v = localStorage.getItem(key); return v === null ? undefined : v; }
 
 ///|
-/// Convert todos array to JSON string
 fn todos_to_json(todos : Array[Todo]) -> String {
-  let items : Array[String] = []
-  for todo in todos {
-    let escaped_title = escape_json_string(todo.title)
-    items.push(
-      "{\"id\":\{todo.id},\"title\":\"\{escaped_title}\",\"completed\":\{todo.completed}}",
-    )
-  }
+  let items = todos.map(fn(todo) {
+    let title = escape_json_string(todo.title)
+    "{\"id\":\{todo.id},\"title\":\"\{title}\",\"completed\":\{todo.completed}}"
+  })
   "[" +
   items.iter().intersperse(",").fold(init="", fn(acc, s) { acc + s }) +
   "]"
 }
 
 ///|
-/// Escape special characters in JSON string
 fn escape_json_string(s : String) -> String {
   let mut result = ""
   for c in s {
-    match c {
-      '"' => result = result + "\\\""
-      '\\' => result = result + "\\\\"
-      '\n' => result = result + "\\n"
-      '\r' => result = result + "\\r"
-      '\t' => result = result + "\\t"
-      _ => result = result + c.to_string()
+    let escaped = match c {
+      '"' => "\\\""
+      '\\' => "\\\\"
+      '\n' => "\\n"
+      '\r' => "\\r"
+      '\t' => "\\t"
+      _ => c.to_string()
     }
+    result = result + escaped
   }
   result
 }
 
 ///|
-/// Parse JSON string to todos array
 fn json_to_todos(json : String) -> Array[Todo] {
   let todos : Array[Todo] = []
   let parsed : Json = @json.parse(json) catch { _ => return todos }
@@ -102,21 +84,17 @@ fn json_to_todos(json : String) -> Array[Todo] {
       for item in items {
         match item {
           Object(obj) => {
-            let mut id = 0
-            let mut title = ""
-            let mut completed = false
-            match obj.get("id") {
-              Some(Number(n, ..)) => id = n.to_int()
-              _ => ()
+            let id = match obj.get("id") {
+              Some(Number(n, ..)) => n.to_int()
+              _ => 0
             }
-            match obj.get("title") {
-              Some(String(s)) => title = s
-              _ => ()
+            let title = match obj.get("title") {
+              Some(String(s)) => s
+              _ => ""
             }
-            match obj.get("completed") {
-              Some(True) => completed = true
-              Some(False) => completed = false
-              _ => ()
+            let completed = match obj.get("completed") {
+              Some(True) => true
+              _ => false
             }
             todos.push({ id, title, completed })
           }
@@ -133,9 +111,8 @@ fn json_to_todos(json : String) -> Array[Todo] {
 // =============================================================================
 
 ///|
-/// Get current hash from location
-fn get_hash() -> String {
-  ffi_get_hash()
+fn get_current_filter() -> Filter {
+  hash_to_filter(ffi_get_hash())
 }
 
 ///|
@@ -143,21 +120,12 @@ extern "js" fn ffi_get_hash() -> String =
   #|() => location.hash || "#/"
 
 ///|
-/// Parse hash to filter
 fn hash_to_filter(hash : String) -> Filter {
-  if hash == "#/active" {
-    Active
-  } else if hash == "#/completed" {
-    Completed
-  } else {
-    All
+  match hash {
+    "#/active" => Active
+    "#/completed" => Completed
+    _ => All
   }
-}
-
-///|
-/// Listen for hash changes
-fn on_hash_change(callback : () -> Unit) -> Unit {
-  ffi_on_hash_change(callback)
 }
 
 ///|
@@ -169,27 +137,64 @@ extern "js" fn ffi_on_hash_change(callback : () -> Unit) -> Unit =
 // =============================================================================
 
 ///|
-/// Focus an element by ref
 fn focus_element(el : @js_dom.Element) -> Unit {
   el.as_any()._call("focus", []) |> ignore
 }
 
 ///|
-/// Get input value
 fn get_input_value(el : @js_dom.Element) -> String {
   el.as_any()._get("value").cast()
 }
 
 ///|
-/// Set input value
 fn set_input_value(el : @js_dom.Element, value : String) -> Unit {
   el.as_any()._set("value", @js.any(value)) |> ignore
 }
 
 ///|
-/// Select all text in input
 fn select_input(el : @js_dom.Element) -> Unit {
   el.as_any()._call("select", []) |> ignore
+}
+
+///|
+extern "js" fn ffi_request_animation_frame(callback : () -> Unit) -> Unit =
+  #|(callback) => requestAnimationFrame(callback)
+
+// =============================================================================
+// UI Helpers
+// =============================================================================
+
+///|
+/// Conditionally show/hide element based on condition
+fn visible_when(condition : () -> Bool) -> (String, @dom.AttrValue) {
+  (
+    "style",
+    @dom.attr_dynamic(fn() { if condition() { "" } else { "display: none" } }),
+  )
+}
+
+///|
+/// Create a filter link with selected state
+fn filter_link(
+  href : String,
+  label : String,
+  current_filter : @signal.Signal[Filter],
+  target_filter : Filter,
+) -> @dom.DomNode {
+  let class_getter = fn() {
+    if current_filter.get() == target_filter {
+      "selected"
+    } else {
+      ""
+    }
+  }
+  @dom.li([
+    @dom.a(href~, [
+      @dom.span(dyn_attrs=[("className", @dom.attr_dynamic(class_getter))], [
+        @dom.text(label),
+      ]),
+    ]),
+  ])
 }
 
 // =============================================================================
@@ -198,67 +203,67 @@ fn select_input(el : @js_dom.Element) -> Unit {
 
 ///|
 fn app() -> @dom.DomNode {
+  // ---------------------------------------------------------------------------
   // State
+  // ---------------------------------------------------------------------------
   let todos : @signal.Signal[Array[Todo]] = @signal.signal(load_todos())
-  let filter = @signal.signal(hash_to_filter(get_hash()))
+  let filter = @signal.signal(get_current_filter())
   let editing_id : @signal.Signal[Int?] = @signal.signal(None)
   let new_todo_text = @signal.signal("")
-  let is_composing = @signal.signal(false) // Track IME composition state
+  let is_composing = @signal.signal(false)
   let next_id = @signal.signal(
-    {
-      let loaded = todos.peek()
-      if loaded.length() == 0 {
-        1
-      } else {
-        let mut max = 0
-        for todo in loaded {
-          if todo.id > max {
-            max = todo.id
-          }
-        }
-        max + 1
-      }
-    },
+    todos
+    .peek()
+    .fold(init=0, fn(max, t) { if t.id > max { t.id } else { max } }) +
+    1,
   )
 
-  // Save todos to localStorage whenever they change
-  let _ = @signal.effect(fn() {
-    let current_todos = todos.get()
-    save_todos(current_todos)
-  })
+  // Auto-save todos to localStorage
+  let _ = @signal.effect(fn() { save_todos(todos.get()) })
 
   // Listen for hash changes
-  on_hash_change(fn() { filter.set(hash_to_filter(get_hash())) })
+  ffi_on_hash_change(fn() { filter.set(get_current_filter()) })
 
-  // Computed values
+  // ---------------------------------------------------------------------------
+  // Computed Values
+  // ---------------------------------------------------------------------------
   let active_count = @signal.memo(fn() {
-    let items = todos.get()
-    let mut count = 0
-    for todo in items {
-      if not(todo.completed) {
-        count = count + 1
+    todos
+    .get()
+    .fold(init=0, fn(count, t) {
+      if not(t.completed) {
+        count + 1
+      } else {
+        count
       }
-    }
-    count
+    })
   })
   let completed_count = @signal.memo(fn() {
-    let items = todos.get()
-    let mut count = 0
-    for todo in items {
-      if todo.completed {
-        count = count + 1
-      }
-    }
-    count
+    todos
+    .get()
+    .fold(init=0, fn(count, t) { if t.completed { count + 1 } else { count } })
   })
   let all_completed = @signal.memo(fn() {
     let items = todos.get()
     items.length() > 0 && active_count() == 0
   })
+  let has_todos = fn() { todos.get().length() > 0 }
+  let filtered_todos = fn() {
+    let items = todos.get()
+    let f = filter.get()
+    items.filter(fn(t) {
+      match f {
+        All => true
+        Active => not(t.completed)
+        Completed => t.completed
+      }
+    })
+  }
 
+  // ---------------------------------------------------------------------------
   // Actions
+  // ---------------------------------------------------------------------------
   fn add_todo() {
-    // Use peek() in event handlers to avoid effect tracking issues
     let text = new_todo_text.peek().trim(chars=" ").to_string()
     if text != "" {
       let id = next_id.peek()
@@ -274,28 +279,18 @@ fn app() -> @dom.DomNode {
 
   fn toggle_todo(id : Int) {
     todos.update(fn(items) {
-      let new_items : Array[Todo] = []
-      for item in items {
-        if item.id == id {
-          new_items.push({ ..item, completed: not(item.completed) })
+      items.map(fn(t) {
+        if t.id == id {
+          { ..t, completed: not(t.completed) }
         } else {
-          new_items.push(item)
+          t
         }
-      }
-      new_items
+      })
     })
   }
 
   fn remove_todo(id : Int) {
-    todos.update(fn(items) {
-      let new_items : Array[Todo] = []
-      for item in items {
-        if item.id != id {
-          new_items.push(item)
-        }
-      }
-      new_items
-    })
+    todos.update(fn(items) { items.filter(fn(t) { t.id != id }) })
   }
 
   fn update_todo_title(id : Int, new_title : String) {
@@ -304,15 +299,7 @@ fn app() -> @dom.DomNode {
       remove_todo(id)
     } else {
       todos.update(fn(items) {
-        let new_items : Array[Todo] = []
-        for item in items {
-          if item.id == id {
-            new_items.push({ ..item, title: trimmed })
-          } else {
-            new_items.push(item)
-          }
-        }
-        new_items
+        items.map(fn(t) { if t.id == id { { ..t, title: trimmed } } else { t } })
       })
     }
   }
@@ -320,184 +307,114 @@ fn app() -> @dom.DomNode {
   fn toggle_all() {
     let all_done = all_completed()
     todos.update(fn(items) {
-      let new_items : Array[Todo] = []
-      for item in items {
-        new_items.push({ ..item, completed: not(all_done) })
-      }
-      new_items
+      items.map(fn(t) { { ..t, completed: not(all_done) } })
     })
   }
 
   fn clear_completed() {
-    todos.update(fn(items) {
-      let new_items : Array[Todo] = []
-      for item in items {
-        if not(item.completed) {
-          new_items.push(item)
-        }
-      }
-      new_items
-    })
+    todos.update(fn(items) { items.filter(fn(t) { not(t.completed) }) })
   }
 
-  // Render single todo item - use index_each for stable rendering
-  fn render_todo_item(get_todo : () -> Todo, index : Int) -> @dom.DomNode {
-    // Ref to edit input for this item
+  // ---------------------------------------------------------------------------
+  // Components
+  // ---------------------------------------------------------------------------
+
+  /// Render a single todo item
+  fn render_todo_item(get_todo : () -> Todo, _index : Int) -> @dom.DomNode {
     let edit_ref : Ref[@js_dom.Element?] = { val: None }
-    // Track IME composition state for this item's edit input
     let edit_composing : Ref[Bool] = { val: false }
 
-    // Effect to focus edit input when this item enters edit mode
+    // Focus edit input when entering edit mode
     let _ = @signal.effect(fn() {
       let todo = get_todo()
-      match editing_id.get() {
-        Some(id) =>
-          if id == todo.id {
-            // Use rAF to ensure DOM is ready after class change
-            ffi_request_animation_frame(fn() {
-              match edit_ref.val {
-                Some(el) => {
-                  set_input_value(el, todo.title)
-                  focus_element(el)
-                  select_input(el)
-                }
-                None => ()
-              }
-            })
+      if editing_id.get() == Some(todo.id) {
+        ffi_request_animation_frame(fn() {
+          if edit_ref.val is Some(el) {
+            set_input_value(el, todo.title)
+            focus_element(el)
+            select_input(el)
           }
-        None => ()
+        })
       }
     })
 
-    @dom.create_element(
-      "li",
-      [
-        (
-          "className",
-          @dom.attr_dynamic(fn() {
-            let todo = get_todo()
-            let is_editing = match editing_id.get() {
-              Some(id) => id == todo.id
-              None => false
-            }
-            let mut classes = if todo.completed { "completed" } else { "" }
-            if is_editing {
-              classes = if classes == "" {
-                "editing"
-              } else {
-                classes + " editing"
-              }
-            }
-            classes
-          }),
-        ),
-      ],
-      [
-        // View mode
-        @dom.div(class="view", [
-          @dom.create_element(
-            "input",
-            [
-              ("className", @dom.attr_static("toggle")),
-              ("type", @dom.attr_static("checkbox")),
-              (
-                "checked",
-                @dom.attr_dynamic(fn() {
-                  if get_todo().completed {
-                    "true"
-                  } else {
-                    "false"
-                  }
-                }),
-              ),
-              (
-                "change",
-                @dom.Handler(fn(_) {
-                  let todo = get_todo()
-                  toggle_todo(todo.id)
-                }),
-              ),
-            ],
-            [],
+    // Build class name dynamically
+    let class_name = fn() {
+      let todo = get_todo()
+      let is_editing = editing_id.get() == Some(todo.id)
+      match (todo.completed, is_editing) {
+        (true, true) => "completed editing"
+        (true, false) => "completed"
+        (false, true) => "editing"
+        (false, false) => ""
+      }
+    }
+    @dom.li(dyn_attrs=[("className", @dom.attr_dynamic(class_name))], [
+      // View mode
+      @dom.div(class="view", [
+        // Toggle checkbox
+        @dom.input(class="toggle", type_="checkbox", dyn_attrs=[
+          (
+            "checked",
+            @dom.attr_dynamic(fn() { get_todo().completed.to_string() }),
           ),
-          @dom.label(
-            on=@dom.events().dblclick(fn(_) {
-              let todo = get_todo()
-              editing_id.set(Some(todo.id))
-            }),
-            [@dom.text_dyn(fn() { get_todo().title })],
-          ),
-          @dom.button(
-            class="destroy",
-            on=@dom.events().click(fn(_) {
-              let todo = get_todo()
-              remove_todo(todo.id)
-            }),
-            [],
-          ),
+          ("change", @dom.Handler(fn(_) { toggle_todo(get_todo().id) })),
         ]),
-        // Edit mode
-        @dom.create_element(
-          "input",
-          [
-            ("className", @dom.attr_static("edit")),
-            ("value", @dom.attr_dynamic(fn() { get_todo().title })),
-            // Capture ref to this input element
-            (
-              "__ref",
-              @dom.Handler(fn(el) { edit_ref.val = Some(el.cast()) }),
-            ),
-            // IME composition handling
-            (
-              "compositionstart",
-              @dom.Handler(fn(_) { edit_composing.val = true }),
-            ),
-            (
-              "compositionend",
-              @dom.Handler(fn(_) { edit_composing.val = false }),
-            ),
-            (
-              "blur",
-              @dom.Handler(fn(e) {
-                let todo = get_todo()
-                if editing_id.peek() is Some(id) && id == todo.id {
-                  let target : @js_dom.Element = e._get("target").cast()
-                  let value = get_input_value(target)
-                  update_todo_title(todo.id, value)
-                  editing_id.set(None)
-                }
-              }),
-            ),
-            (
-              "keydown",
-              @dom.Handler(fn(e) {
-                let key : String = e._get("key").cast()
-                let todo = get_todo()
-                // Don't submit during IME composition
-                if key == "Enter" && not(edit_composing.val) {
-                  let target : @js_dom.Element = e._get("target").cast()
-                  let value = get_input_value(target)
-                  update_todo_title(todo.id, value)
-                  editing_id.set(None)
-                } else if key == "Escape" {
-                  // Reset value and cancel editing
-                  let target : @js_dom.Element = e._get("target").cast()
-                  set_input_value(target, todo.title)
-                  editing_id.set(None)
-                }
-              }),
-            ),
-          ],
+        // Label (double-click to edit)
+        @dom.label(
+          on=@dom.events().dblclick(fn(_) {
+            editing_id.set(Some(get_todo().id))
+          }),
+          [@dom.text_dyn(fn() { get_todo().title })],
+        ),
+        // Delete button
+        @dom.button(
+          class="destroy",
+          on=@dom.events().click(fn(_) { remove_todo(get_todo().id) }),
           [],
         ),
-      ],
-    )
-    |> ignore_index(index)
+      ]),
+      // Edit mode input
+      @dom.input(class="edit", ref_=fn(el) { edit_ref.val = Some(el) }, dyn_attrs=[
+        ("value", @dom.attr_dynamic(fn() { get_todo().title })),
+        ("compositionstart", @dom.Handler(fn(_) { edit_composing.val = true })),
+        ("compositionend", @dom.Handler(fn(_) { edit_composing.val = false })),
+        (
+          "blur",
+          @dom.Handler(fn(e) {
+            let todo = get_todo()
+            if editing_id.peek() == Some(todo.id) {
+              update_todo_title(
+                todo.id,
+                get_input_value(e._get("target").cast()),
+              )
+              editing_id.set(None)
+            }
+          }),
+        ),
+        (
+          "keydown",
+          @dom.Handler(fn(e) {
+            let key : String = e._get("key").cast()
+            let todo = get_todo()
+            if key == "Enter" && not(edit_composing.val) {
+              update_todo_title(
+                todo.id,
+                get_input_value(e._get("target").cast()),
+              )
+              editing_id.set(None)
+            } else if key == "Escape" {
+              set_input_value(e._get("target").cast(), todo.title)
+              editing_id.set(None)
+            }
+          }),
+        ),
+      ]),
+    ])
   }
 
-  // Main app structure
-  @dom.section(class="todoapp", [
-    // Header
+  /// Render header with new todo input
+  fn render_header() -> @dom.DomNode {
     @dom.header_(class="header", [
       @dom.h1([@dom.text("todos")]),
       @dom.input(
@@ -505,196 +422,74 @@ fn app() -> @dom.DomNode {
         placeholder="What needs to be done?",
         attrs=[("autofocus", @dom.Attr::AttrBool(true))],
         on=@dom.events()
-          .input(fn(e) {
-            let target = e.target()
-            let value = get_input_value(target)
-            new_todo_text.set(value)
-          })
+          .input(fn(e) { new_todo_text.set(get_input_value(e.target())) })
           .compositionstart(fn(_) { is_composing.set(true) })
           .compositionend(fn(_) { is_composing.set(false) })
           .keydown(fn(e) {
-            // Don't submit during IME composition (e.g., Japanese input)
             if e.key == "Enter" && not(is_composing.peek()) {
               add_todo()
-              let target = e.target()
-              set_input_value(target, "")
+              set_input_value(e.target(), "")
             }
           }),
       ),
-    ]),
-    // Main section
-    @dom.create_element(
-      "section",
-      [
-        ("className", @dom.attr_static("main")),
-        (
-          "style",
-          @dom.attr_dynamic(fn() {
-            if todos.get().length() > 0 {
-              ""
-            } else {
-              "display: none"
-            }
-          }),
-        ),
-      ],
-      [
-        @dom.create_element(
-          "input",
-          [
-            ("id", @dom.attr_static("toggle-all")),
-            ("className", @dom.attr_static("toggle-all")),
-            ("type", @dom.attr_static("checkbox")),
-            ("checked", @dom.attr_dynamic(fn() { all_completed().to_string() })),
-            ("change", @dom.Handler(fn(_) { toggle_all() })),
-          ],
-          [],
-        ),
-        @dom.label(for_="toggle-all", [@dom.text("Mark all as complete")]),
-        @dom.ul(class="todo-list", [
-          @dom.index_each(
-            fn() {
-              let items = todos.get()
-              let current_filter = filter.get()
-              let result : Array[Todo] = []
-              for todo in items {
-                match current_filter {
-                  All => result.push(todo)
-                  Active => if not(todo.completed) { result.push(todo) }
-                  Completed => if todo.completed { result.push(todo) }
-                }
-              }
-              result
-            },
-            render_todo_item,
-          ),
-        ]),
-      ],
-    ),
-    // Footer
-    @dom.create_element(
-      "footer",
-      [
-        ("className", @dom.attr_static("footer")),
-        (
-          "style",
-          @dom.attr_dynamic(fn() {
-            if todos.get().length() > 0 {
-              ""
-            } else {
-              "display: none"
-            }
-          }),
-        ),
-      ],
-      [
-        @dom.span(class="todo-count", [
-          @dom.create_element("strong", [], [
-            @dom.text_dyn(fn() { active_count().to_string() }),
-          ]),
-          @dom.text_dyn(fn() {
-            if active_count() == 1 {
-              " item left"
-            } else {
-              " items left"
-            }
-          }),
-        ]),
-        @dom.ul(class="filters", [
-          @dom.li([
-            @dom.a(href="#/", [
-              @dom.create_element(
-                "span",
-                [
-                  (
-                    "className",
-                    @dom.attr_dynamic(fn() {
-                      if filter.get() == All {
-                        "selected"
-                      } else {
-                        ""
-                      }
-                    }),
-                  ),
-                ],
-                [@dom.text("All")],
-              ),
-            ]),
-          ]),
-          @dom.li([
-            @dom.a(href="#/active", [
-              @dom.create_element(
-                "span",
-                [
-                  (
-                    "className",
-                    @dom.attr_dynamic(fn() {
-                      if filter.get() == Active {
-                        "selected"
-                      } else {
-                        ""
-                      }
-                    }),
-                  ),
-                ],
-                [@dom.text("Active")],
-              ),
-            ]),
-          ]),
-          @dom.li([
-            @dom.a(href="#/completed", [
-              @dom.create_element(
-                "span",
-                [
-                  (
-                    "className",
-                    @dom.attr_dynamic(fn() {
-                      if filter.get() == Completed {
-                        "selected"
-                      } else {
-                        ""
-                      }
-                    }),
-                  ),
-                ],
-                [@dom.text("Completed")],
-              ),
-            ]),
-          ]),
-        ]),
-        // Clear completed button
-        @dom.create_element(
-          "button",
-          [
-            ("className", @dom.attr_static("clear-completed")),
-            (
-              "style",
-              @dom.attr_dynamic(fn() {
-                if completed_count() > 0 {
-                  ""
-                } else {
-                  "display: none"
-                }
-              }),
-            ),
-            ("click", @dom.Handler(fn(_) { clear_completed() })),
-          ],
-          [@dom.text("Clear completed")],
-        ),
-      ],
-    ),
+    ])
+  }
+
+  /// Render main section with todo list
+  fn render_main() -> @dom.DomNode {
+    @dom.section(class="main", dyn_attrs=[visible_when(has_todos)], [
+      // Toggle all checkbox
+      @dom.input(id="toggle-all", class="toggle-all", type_="checkbox", dyn_attrs=[
+        ("checked", @dom.attr_dynamic(fn() { all_completed().to_string() })),
+        ("change", @dom.Handler(fn(_) { toggle_all() })),
+      ]),
+      @dom.label(for_="toggle-all", [@dom.text("Mark all as complete")]),
+      // Todo list
+      @dom.ul(class="todo-list", [
+        @dom.index_each(filtered_todos, render_todo_item),
+      ]),
+    ])
+  }
+
+  /// Render footer with count and filters
+  fn render_footer() -> @dom.DomNode {
+    @dom.footer_(class="footer", dyn_attrs=[visible_when(has_todos)], [
+      // Item count
+      @dom.span(class="todo-count", [
+        @dom.strong([@dom.text_dyn(fn() { active_count().to_string() })]),
+        @dom.text_dyn(fn() {
+          if active_count() == 1 {
+            " item left"
+          } else {
+            " items left"
+          }
+        }),
+      ]),
+      // Filter links
+      @dom.ul(class="filters", [
+        filter_link("#/", "All", filter, All),
+        filter_link("#/active", "Active", filter, Active),
+        filter_link("#/completed", "Completed", filter, Completed),
+      ]),
+      // Clear completed button
+      @dom.button(
+        class="clear-completed",
+        on=@dom.events().click(fn(_) { clear_completed() }),
+        dyn_attrs=[visible_when(fn() { completed_count() > 0 })],
+        [@dom.text("Clear completed")],
+      ),
+    ])
+  }
+
+  // ---------------------------------------------------------------------------
+  // Main App Structure
+  // ---------------------------------------------------------------------------
+  @dom.section(class="todoapp", [
+    render_header(),
+    render_main(),
+    render_footer(),
   ])
 }
-
-///|
-/// Helper to ignore index parameter
-fn ignore_index(node : @dom.DomNode, _index : Int) -> @dom.DomNode {
-  node
-}
-
-///|
-extern "js" fn ffi_request_animation_frame(callback : () -> Unit) -> Unit =
-  #|(callback) => requestAnimationFrame(callback)
 
 // =============================================================================
 // Main Entry Point
@@ -702,14 +497,9 @@ extern "js" fn ffi_request_animation_frame(callback : () -> Unit) -> Unit =
 
 ///|
 fn main {
-  console_log("TodoMVC - Luna Framework")
   let doc = @js_dom.document()
-  let container = doc.getElementById("app")
-  match container {
-    Some(el) => {
-      @dom.render(el |> @dom.DomElement::from_jsdom, app())
-      console_log("TodoMVC rendered successfully!")
-    }
-    None => console_log("ERROR: Could not find #app container")
+  match doc.getElementById("app") {
+    Some(el) => @dom.render(el |> @dom.DomElement::from_jsdom, app())
+    None => ()
   }
 }
