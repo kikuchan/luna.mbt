@@ -823,10 +823,19 @@ fn get_navigation_script(
   if config.spa {
     let spa_script =
       #|let currentAbortController = null;
+      #|let lastPathname = location.pathname;
+      #|function scrollToHash(hash) {
+      #|  if (!hash) return;
+      #|  const id = hash.startsWith('#') ? hash.slice(1) : hash;
+      #|  const el = document.getElementById(id);
+      #|  if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      #|}
       #|async function spaNavigate(url, pushState = true) {
       #|  // Abort any pending navigation
       #|  if (currentAbortController) currentAbortController.abort();
       #|  currentAbortController = new AbortController();
+      #|  const urlObj = new URL(url, location.origin);
+      #|  const hash = urlObj.hash;
       #|  try {
       #|    const res = await fetch(url, { signal: currentAbortController.signal });
       #|    if (!res.ok) { location.href = url; return; }
@@ -840,7 +849,9 @@ fn get_navigation_script(
       #|    document.getElementById('app').innerHTML = newApp.innerHTML;
       #|    if (newTitle) document.title = newTitle;
       #|    if (pushState) history.pushState({}, '', url);
-      #|    window.scrollTo({ top: 0, behavior: 'instant' });
+      #|    lastPathname = urlObj.pathname;
+      #|    // Scroll: to hash target or top
+      #|    if (hash) { scrollToHash(hash); } else { window.scrollTo({ top: 0, behavior: 'instant' }); }
       #|    // Re-run loader for new islands
       #|    if (window.__LUNA_CLEAR_LOADED__) window.__LUNA_CLEAR_LOADED__();
       #|    if (window.__LUNA_SCAN__) window.__LUNA_SCAN__();
@@ -867,14 +878,27 @@ fn get_navigation_script(
       #|  const link = e.target.closest('a');
       #|  if (!link) return;
       #|  const href = link.getAttribute('href');
-      #|  if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      #|  if (!href || href.startsWith('javascript:')) return;
+      #|  // Handle hash-only links explicitly (TOC links)
+      #|  if (href.startsWith('#')) {
+      #|    e.preventDefault();
+      #|    const hash = href;
+      #|    history.pushState({}, '', location.pathname + hash);
+      #|    scrollToHash(hash);
+      #|    return;
+      #|  }
       #|  if (link.target === '_blank' || link.hasAttribute('download')) return;
       #|  const url = new URL(href, location.origin);
       #|  if (url.origin !== location.origin) return;
-      #|  // Skip if same page (including hash links)
+      #|  // Same page with hash - scroll to hash
+      #|  if (url.pathname === location.pathname && url.hash) {
+      #|    e.preventDefault();
+      #|    history.pushState({}, '', url.pathname + url.hash);
+      #|    scrollToHash(url.hash);
+      #|    return;
+      #|  }
+      #|  // Skip if same page without hash
       #|  if (url.pathname === location.pathname) return;
-      #|  // Skip if URL has hash (anchor link to different page)
-      #|  if (url.hash) return;
       #|  // Skip SPA for home page
       #|  if (isHomePage(url.href) || isHomePage(location.href)) return;
       #|  e.preventDefault();
@@ -886,6 +910,12 @@ fn get_navigation_script(
       #|    location.reload();
       #|    return;
       #|  }
+      #|  // If only hash changed (same page), just scroll
+      #|  if (location.pathname === lastPathname && location.hash) {
+      #|    scrollToHash(location.hash);
+      #|    return;
+      #|  }
+      #|  lastPathname = location.pathname;
       #|  spaNavigate(location.href, false);
       #|});
     parts.push(spa_script)

@@ -1,6 +1,6 @@
 # Luna UI Library
 
-MoonBitで実装されたIsland ArchitectureベースのUIフレームワーク。
+MoonBitで実装されたIsland ArchitectureベースのUI Library。
 
 ## プロジェクト構成
 
