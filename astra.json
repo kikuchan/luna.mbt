@@ -13,6 +13,7 @@
     ]
   },
   "nav": [
+    { "text": "📋 Overview", "link": "/overview/" },
     { "text": "📖 Luna", "link": "/luna/" },
     { "text": "📚 Tutorial", "link": "/tutorial-js/" },
     { "text": "🌟 Astra", "link": "/astra/" },
@@ -36,6 +37,7 @@
         {
           "title": "Docs",
           "items": [
+            { "label": "Overview", "href": "/overview/" },
             { "label": "Luna", "href": "/luna/" },
             { "label": "Tutorial", "href": "/tutorial-js/" },
             { "label": "Astra SSG", "href": "/astra/" },

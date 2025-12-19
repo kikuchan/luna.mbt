@@ -2,6 +2,9 @@
 
 ## TODO
 
+- [ ] todomvc サンプルで JSON を使わない
+  - JSON/strconv 依存で +200KB 以上のバンドルサイズ増加
+  - localStorage 保存を独自シリアライズに変更する
 - [ ] _dyn のDSLをどうするか
 - [ ] インラインCSS の扱いを統一する
 - [ ] SSG で埋め込めることを説明しよう
