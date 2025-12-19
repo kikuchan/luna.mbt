@@ -177,12 +177,32 @@ pub fn ThemeConfig::default() -> ThemeConfig {
 }
 
 ///|
+/// Footer link
+pub(all) struct FooterLink {
+  /// Link text
+  label : String
+  /// Link URL
+  href : String
+} derive(ToJson, FromJson)
+
+///|
+/// Footer column (group of links)
+pub(all) struct FooterColumn {
+  /// Column title
+  title : String
+  /// Links in this column
+  items : Array[FooterLink]
+} derive(ToJson, FromJson)
+
+///|
 /// Footer configuration
 pub(all) struct FooterConfig {
   /// Footer message
   message : String?
   /// Copyright text
   copyright : String?
+  /// Footer link columns (Docusaurus-style)
+  links : Array[FooterColumn]
 } derive(ToJson, FromJson)
 
 ///|

@@ -57,6 +57,10 @@ pub fn generate_auto_sidebar(
 
   for entry in sorted_dirs {
     let (dir, _) = entry
+    // Skip root directory (Home) - accessible via nav title
+    if dir == "/" {
+      continue
+    }
     if page_groups.get(dir) is Some(dir_pages) {
       let group = create_sidebar_group(dir, dir_pages)
       groups.push(group)

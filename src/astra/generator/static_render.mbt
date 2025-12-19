@@ -599,16 +599,43 @@ fn build_footer(ctx : @astra.BuildContext) -> @luna.Node[Unit] {
   match ctx.config.theme.footer {
     Some(footer_config) => {
       let children : Array[@luna.Node[Unit]] = []
+
+      // Render link columns if present
+      if not(footer_config.links.is_empty()) {
+        let columns = footer_config.links.map(fn(col) {
+          let links = col.items.map(fn(link) {
+            h("li", [], [
+              h("a", [attr("href", link.href), attr("class", "footer-link")], [
+                @luna.text(link.label),
+              ]),
+            ])
+          })
+          h("div", [attr("class", "footer-column")], [
+            h("h3", [attr("class", "footer-column-title")], [
+              @luna.text(col.title),
+            ]),
+            h("ul", [attr("class", "footer-links")], links),
+          ])
+        })
+        children.push(h("div", [attr("class", "footer-columns")], columns))
+      }
+
+      // Bottom section with message and copyright
+      let bottom_items : Array[@luna.Node[Unit]] = []
       if footer_config.message is Some(msg) {
-        children.push(
+        bottom_items.push(
           h("p", [attr("class", "footer-message")], [@luna.text(msg)]),
         )
       }
       if footer_config.copyright is Some(copyright) {
-        children.push(
+        bottom_items.push(
           h("p", [attr("class", "footer-copyright")], [@luna.text(copyright)]),
         )
       }
+      if not(bottom_items.is_empty()) {
+        children.push(h("div", [attr("class", "footer-bottom")], bottom_items))
+      }
+
       h("footer", [attr("class", "site-footer")], children)
     }
     None => @luna.fragment([])
@@ -1793,12 +1820,46 @@ fn get_default_css(config : @astra.SsgConfig) -> String {
     #|
     #|/* Footer */
     #|.site-footer {
-    #|  padding: 2rem;
-    #|  text-align: center;
+    #|  padding: 3rem 2rem 2rem;
     #|  border-top: 1px solid var(--border-color);
     #|  color: var(--text-muted);
     #|  font-size: 0.875rem;
+    #|  background: var(--sidebar-bg);
     #|}
+    #|.footer-columns {
+    #|  display: grid;
+    #|  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    #|  gap: 2rem;
+    #|  max-width: 1200px;
+    #|  margin: 0 auto 2rem;
+    #|  padding: 0 1rem;
+    #|}
+    #|.footer-column-title {
+    #|  font-size: 0.875rem;
+    #|  font-weight: 600;
+    #|  color: var(--text-color);
+    #|  margin: 0 0 0.75rem;
+    #|  text-transform: uppercase;
+    #|  letter-spacing: 0.05em;
+    #|}
+    #|.footer-links {
+    #|  list-style: none;
+    #|  padding: 0;
+    #|  margin: 0;
+    #|}
+    #|.footer-links li { margin: 0.5rem 0; }
+    #|.footer-link {
+    #|  color: var(--text-muted);
+    #|  text-decoration: none;
+    #|  transition: color 0.2s;
+    #|}
+    #|.footer-link:hover { color: var(--primary-color); }
+    #|.footer-bottom {
+    #|  text-align: center;
+    #|  padding-top: 2rem;
+    #|  border-top: 1px solid var(--border-color);
+    #|}
+    #|.footer-message, .footer-copyright { margin: 0.25rem 0; }
     #|
     #|/* Ensure dark mode styles work with system preference */
     #|@media (prefers-color-scheme: dark) {

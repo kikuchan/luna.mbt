@@ -265,7 +265,11 @@ fn parse_theme_config(obj : Map[String, Json]) -> ThemeConfig {
             Some(String(s)) => Some(s)
             _ => None
           }
-          Some(FooterConfig::{ message, copyright })
+          let links = match footer_obj.get("links") {
+            Some(Array(arr)) => parse_footer_columns(arr)
+            _ => []
+          }
+          Some(FooterConfig::{ message, copyright, links })
         }
         _ => None
       }
@@ -294,6 +298,44 @@ fn parse_social_links(arr : Array[Json]) -> Array[SocialLink] {
       _ => continue
     }
     result.push(SocialLink::{ icon, link })
+  }
+  result
+}
+
+///|
+/// Parse footer columns array
+fn parse_footer_columns(arr : Array[Json]) -> Array[FooterColumn] {
+  let result : Array[FooterColumn] = []
+  for item in arr {
+    guard item is Object(obj) else { continue }
+    let title = match obj.get("title") {
+      Some(String(s)) => s
+      _ => continue
+    }
+    let items = match obj.get("items") {
+      Some(Array(links_arr)) => parse_footer_links(links_arr)
+      _ => []
+    }
+    result.push(FooterColumn::{ title, items })
+  }
+  result
+}
+
+///|
+/// Parse footer links array
+fn parse_footer_links(arr : Array[Json]) -> Array[FooterLink] {
+  let result : Array[FooterLink] = []
+  for item in arr {
+    guard item is Object(obj) else { continue }
+    let label = match obj.get("label") {
+      Some(String(s)) => s
+      _ => continue
+    }
+    let href = match obj.get("href") {
+      Some(String(s)) => s
+      _ => continue
+    }
+    result.push(FooterLink::{ label, href })
   }
   result
 }

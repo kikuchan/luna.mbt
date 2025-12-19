@@ -13,10 +13,9 @@
     ]
   },
   "nav": [
-    { "text": "📖 Guide", "link": "/guide/" },
-    { "text": "🌙 Tutorial (MoonBit)", "link": "/tutorial-moonbit/" },
-    { "text": "⚡ Tutorial (JS)", "link": "/tutorial-js/" },
-    { "text": "🌟 Astra SSG", "link": "/astra/" },
+    { "text": "📖 Luna", "link": "/luna/" },
+    { "text": "📚 Tutorial", "link": "/tutorial-js/" },
+    { "text": "🌟 Astra", "link": "/astra/" },
     { "text": "☀️ Sol", "link": "/sol/" }
   ],
   "sidebar": "auto",
@@ -32,7 +31,32 @@
     ],
     "footer": {
       "message": "Released under the MIT License.",
-      "copyright": "Copyright 2024 mizchi"
+      "copyright": "Copyright 2024 mizchi",
+      "links": [
+        {
+          "title": "Docs",
+          "items": [
+            { "label": "Luna", "href": "/luna/" },
+            { "label": "Tutorial", "href": "/tutorial-js/" },
+            { "label": "Astra SSG", "href": "/astra/" },
+            { "label": "Sol Framework", "href": "/sol/" }
+          ]
+        },
+        {
+          "title": "Community",
+          "items": [
+            { "label": "GitHub", "href": "https://github.com/prafster/luna.mbt" },
+            { "label": "MoonBit", "href": "https://www.moonbitlang.com/" }
+          ]
+        },
+        {
+          "title": "More",
+          "items": [
+            { "label": "Blog", "href": "https://zenn.dev/mizchi" },
+            { "label": "Twitter", "href": "https://twitter.com/mizchi" }
+          ]
+        }
+      ]
     }
   },
   "ogp": {
