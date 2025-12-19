@@ -1,83 +1,58 @@
 ---
-title: チュートリアル
+title: チュートリアル (MoonBit)
 ---
 
-# Luna チュートリアル
+# チュートリアル (MoonBit)
 
-基本概念から応用パターンまで、Lunaを段階的に学びましょう。
+> TypeScript と MoonBit の両方の例を含む完全なチュートリアルは、[メインチュートリアル](/tutorial-js/)を参照してください。
 
-## 構成
+## MoonBit クイックスタート
 
-このチュートリアルは段階的に進む構成になっています：
+`moon.mod.json` に Luna を追加:
 
-### 1. イントロダクション
+```json
+{
+  "deps": {
+    "mizchi/luna": "0.1.0"
+  }
+}
+```
 
-まずここから始めましょう。Lunaのリアクティブシステムの基礎を学びます。
+## 基本的なカウンター例
 
-| レッスン | トピック |
-|---------|---------|
-| [Basics](/tutorial/introduction_basics) | 最初のLunaコンポーネント |
-| [Signals](/tutorial/introduction_signals) | リアクティブな状態管理 |
-| [Effects](/tutorial/introduction_effects) | 副作用とサブスクリプション |
-| [Memos](/tutorial/introduction_memos) | 算出値/派生値 |
+```moonbit
+using @element {
+  div, p, button, text, text_dyn, events,
+  type DomNode,
+}
+using @luna { signal }
 
-### 2. リアクティビティ
+fn counter() -> DomNode {
+  let count = signal(0)
 
-Lunaのリアクティビティシステムを深掘りします。
+  div([
+    p([text_dyn(() => "Count: " + count.get().to_string())]),
+    button(
+      on=events().click(_ => count.update(n => n + 1)),
+      [text("Increment")],
+    ),
+  ])
+}
+```
 
-| レッスン | トピック |
-|---------|---------|
-| [Batch](/tutorial/reactivity_batch) | 複数更新のバッチ処理 |
-| [Untrack](/tutorial/reactivity_untrack) | 追跡からのオプトアウト |
-| [Nested Effects](/tutorial/reactivity_nested) | Effectの合成 |
+## TypeScript との違い
 
-### 3. 制御フロー
+| TypeScript | MoonBit |
+|------------|---------|
+| `createSignal(0)` | `signal(0)` |
+| `count()` | `count.get()` |
+| `setCount(5)` | `count.set(5)` |
+| `setCount(c => c + 1)` | `count.update(n => n + 1)` |
+| `createEffect(() => ...)` | `effect(() => ...)` |
+| `createMemo(() => ...)` | `memo(() => ...)` |
 
-条件付きレンダリングとリスト。
+## 関連
 
-| レッスン | トピック |
-|---------|---------|
-| [Show](/tutorial/flow_show) | 条件付きレンダリング |
-| [For](/tutorial/flow_for) | リストレンダリング |
-| [Switch](/tutorial/flow_switch) | 複数条件 |
-
-### 4. ライフサイクル
-
-コンポーネントのライフサイクル管理。
-
-| レッスン | トピック |
-|---------|---------|
-| [onMount](/tutorial/lifecycle_onmount) | マウント後にコードを実行 |
-| [onCleanup](/tutorial/lifecycle_oncleanup) | リソースのクリーンアップ |
-
-### 5. Islands
-
-Lunaの部分的ハイドレーションアーキテクチャ。
-
-| レッスン | トピック |
-|---------|---------|
-| [Basics](/tutorial/islands_basics) | 最初のIslandを作成 |
-| [Triggers](/tutorial/islands_triggers) | ハイドレーションタイミングの制御 |
-| [State](/tutorial/islands_state) | サーバーからクライアントへの状態転送 |
-| [Web Components](/tutorial/islands_webcomponents) | Shadow DOMを持つIslands |
-
-## 前提知識
-
-- HTML、CSS、JavaScript/TypeScriptの基本知識
-- コンポーネントベースのUI開発に慣れていること
-
-## コード例
-
-各レッスンには以下が含まれます：
-
-- **説明** - 概念の概要
-- **コード** - TypeScriptとMoonBitの動作例
-- **試してみよう** - インタラクティブな練習問題
-
-## APIリファレンス
-
-完全なAPIドキュメントは以下を参照：
-
-- [Signals API](/ja/guide/signals)
-- [Islands API](/ja/guide/islands)
-- [パフォーマンス](/ja/performance/)
+- [チュートリアル](/tutorial-js/) - 全トピックの完全なチュートリアル
+- [Luna コア](/ja/luna/) - コア概念
+- [Luna API](/ja/luna/signals/) - Signals API リファレンス

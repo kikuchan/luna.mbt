@@ -1,10 +1,10 @@
 ---
-title: Tutorial (JavaScript)
+title: Tutorial
 ---
 
-# Tutorial (JavaScript)
+# Tutorial
 
-Learn Luna UI with JavaScript/TypeScript.
+Learn Luna UI with JavaScript/TypeScript. Each lesson includes both TypeScript and MoonBit examples.
 
 ## Getting Started
 
@@ -12,34 +12,38 @@ Learn Luna UI with JavaScript/TypeScript.
 npm install @mizchi/luna
 ```
 
-## Basic Usage
+## Introduction
 
-```typescript
-import { createSignal, createEffect, createMemo } from '@mizchi/luna';
+- [Basics](/tutorial-js/introduction_basics/) - Your first reactive component
+- [Signals](/tutorial-js/introduction_signals/) - Reactive state containers
+- [Effects](/tutorial-js/introduction_effects/) - Side effects and subscriptions
+- [Memos](/tutorial-js/introduction_memos/) - Computed/derived values
 
-// Create a reactive signal
-const [count, setCount] = createSignal(0);
+## Reactivity
 
-// Create a computed value
-const doubled = createMemo(() => count() * 2);
+- [Batch](/tutorial-js/reactivity_batch/) - Batching multiple updates
+- [Untrack](/tutorial-js/reactivity_untrack/) - Reading without tracking
+- [Nested Effects](/tutorial-js/reactivity_nested/) - Effect composition
 
-// React to changes
-createEffect(() => {
-  console.log(`Count: ${count()}, Doubled: ${doubled()}`);
-});
+## Control Flow
 
-// Update the signal
-setCount(1);      // Logs: Count: 1, Doubled: 2
-setCount(c => c + 1);  // Logs: Count: 2, Doubled: 4
-```
+- [Show](/tutorial-js/flow_show/) - Conditional rendering
+- [For](/tutorial-js/flow_for/) - List rendering
+- [Switch](/tutorial-js/flow_switch/) - Multi-way branching
 
-## Topics
+## Lifecycle
 
-- [Basics](/tutorial-js/basics) - Signals, effects, and memos
-- [Components](/tutorial-js/components) - Building UI components
-- [Islands](/tutorial-js/islands) - Partial hydration
+- [onMount](/tutorial-js/lifecycle_onmount/) - Component mount callback
+- [onCleanup](/tutorial-js/lifecycle_oncleanup/) - Cleanup and disposal
+
+## Islands
+
+- [Basics](/tutorial-js/islands_basics/) - Island architecture fundamentals
+- [State](/tutorial-js/islands_state/) - State management in islands
+- [Triggers](/tutorial-js/islands_triggers/) - Hydration triggers
+- [Web Components](/tutorial-js/islands_webcomponents/) - Custom elements integration
 
 ## See Also
 
-- [MoonBit Tutorial](/tutorial-moonbit/) - For MoonBit developers
-- [API Reference](/api/) - Full API documentation
+- [Luna Core](/luna/) - Core concepts and API
+- [Astra SSG](/astra/) - Static site generation

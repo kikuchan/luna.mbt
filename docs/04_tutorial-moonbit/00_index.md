@@ -1,83 +1,58 @@
 ---
-title: Tutorial
+title: Tutorial (MoonBit)
 ---
 
-# Luna Tutorial
+# Tutorial (MoonBit)
 
-Learn Luna step by step, from basic concepts to advanced patterns.
+> For the full tutorial with both TypeScript and MoonBit examples, see the [main Tutorial](/tutorial-js/).
 
-## Structure
+## MoonBit Quick Start
 
-This tutorial is organized into progressive sections:
+Add Luna to your `moon.mod.json`:
 
-### 1. [Introduction](./introduction_basics)
+```json
+{
+  "deps": {
+    "mizchi/luna": "0.1.0"
+  }
+}
+```
 
-Start here. Learn the fundamentals of Luna's reactive system.
+## Basic Counter Example
 
-| Lesson | Topic |
-|--------|-------|
-| [Basics](./introduction_basics) | Your first Luna component |
-| [Signals](./introduction_signals) | Reactive state management |
-| [Effects](./introduction_effects) | Side effects and subscriptions |
-| [Memos](./introduction_memos) | Computed/derived values |
+```moonbit
+using @element {
+  div, p, button, text, text_dyn, events,
+  type DomNode,
+}
+using @luna { signal }
 
-### 2. [Reactivity](./reactivity_batch)
+fn counter() -> DomNode {
+  let count = signal(0)
 
-Deep dive into Luna's reactivity system.
+  div([
+    p([text_dyn(() => "Count: " + count.get().to_string())]),
+    button(
+      on=events().click(_ => count.update(n => n + 1)),
+      [text("Increment")],
+    ),
+  ])
+}
+```
 
-| Lesson | Topic |
-|--------|-------|
-| [Batch](./reactivity_batch) | Batching multiple updates |
-| [Untrack](./reactivity_untrack) | Opting out of tracking |
-| [Nested Effects](./reactivity_nested) | Effect composition |
+## Key Differences from TypeScript
 
-### 3. [Control Flow](./flow_show)
+| TypeScript | MoonBit |
+|------------|---------|
+| `createSignal(0)` | `signal(0)` |
+| `count()` | `count.get()` |
+| `setCount(5)` | `count.set(5)` |
+| `setCount(c => c + 1)` | `count.update(n => n + 1)` |
+| `createEffect(() => ...)` | `effect(() => ...)` |
+| `createMemo(() => ...)` | `memo(() => ...)` |
 
-Conditional rendering and lists.
+## See Also
 
-| Lesson | Topic |
-|--------|-------|
-| [Show](./flow_show) | Conditional rendering |
-| [For](./flow_for) | List rendering |
-| [Switch](./flow_switch) | Multiple conditions |
-
-### 4. [Lifecycle](./lifecycle_onmount)
-
-Component lifecycle management.
-
-| Lesson | Topic |
-|--------|-------|
-| [onMount](./lifecycle_onmount) | Run code after mount |
-| [onCleanup](./lifecycle_oncleanup) | Cleanup resources |
-
-### 5. [Islands](./islands_basics)
-
-Luna's partial hydration architecture.
-
-| Lesson | Topic |
-|--------|-------|
-| [Basics](./islands_basics) | Creating your first Island |
-| [Triggers](./islands_triggers) | Controlling hydration timing |
-| [State](./islands_state) | Server-to-client state transfer |
-| [Web Components](./islands_webcomponents) | Islands with Shadow DOM |
-
-## Prerequisites
-
-- Basic knowledge of HTML, CSS, and JavaScript/TypeScript
-- Familiarity with component-based UI development
-
-## Code Examples
-
-Each lesson includes:
-
-- **Explanation** - Concept overview
-- **Code** - Working example in TypeScript and MoonBit
-- **Try It** - Interactive playground (when available)
-
-## API Reference
-
-For complete API documentation, see:
-
-- [Signals API](/guide/signals)
-- [Islands API](/guide/islands)
-- [Performance](/performance/)
+- [Tutorial](/tutorial-js/) - Full tutorial with all topics
+- [Luna Core](/luna/) - Core concepts
+- [Luna API](/luna/signals/) - Signals API reference

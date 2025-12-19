@@ -1,10 +1,10 @@
 ---
-title: チュートリアル (JavaScript)
+title: チュートリアル
 ---
 
-# チュートリアル (JavaScript)
+# チュートリアル
 
-JavaScript/TypeScriptでLuna UIを学びます。
+JavaScript/TypeScript で Luna UI を学びます。各レッスンには TypeScript と MoonBit の両方の例が含まれています。
 
 ## はじめに
 
@@ -12,34 +12,38 @@ JavaScript/TypeScriptでLuna UIを学びます。
 npm install @mizchi/luna
 ```
 
-## 基本的な使い方
+## イントロダクション
 
-```typescript
-import { createSignal, createEffect, createMemo } from '@mizchi/luna';
+- [Basics](/tutorial-js/introduction_basics/) - 最初のリアクティブコンポーネント
+- [Signals](/tutorial-js/introduction_signals/) - リアクティブな状態コンテナ
+- [Effects](/tutorial-js/introduction_effects/) - 副作用とサブスクリプション
+- [Memos](/tutorial-js/introduction_memos/) - 算出値/派生値
 
-// リアクティブなシグナルを作成
-const [count, setCount] = createSignal(0);
+## リアクティビティ
 
-// 算出値を作成
-const doubled = createMemo(() => count() * 2);
+- [Batch](/tutorial-js/reactivity_batch/) - 複数更新のバッチ処理
+- [Untrack](/tutorial-js/reactivity_untrack/) - 追跡なしで読み取り
+- [Nested Effects](/tutorial-js/reactivity_nested/) - Effect の合成
 
-// 変更に反応
-createEffect(() => {
-  console.log(`Count: ${count()}, Doubled: ${doubled()}`);
-});
+## 制御フロー
 
-// シグナルを更新
-setCount(1);      // Logs: Count: 1, Doubled: 2
-setCount(c => c + 1);  // Logs: Count: 2, Doubled: 4
-```
+- [Show](/tutorial-js/flow_show/) - 条件付きレンダリング
+- [For](/tutorial-js/flow_for/) - リストレンダリング
+- [Switch](/tutorial-js/flow_switch/) - 複数条件分岐
 
-## トピック
+## ライフサイクル
 
-- [基本](/ja/tutorial-js/basics) - Signal、Effect、Memo
-- [コンポーネント](/ja/tutorial-js/components) - UIコンポーネントの構築
-- [Islands](/ja/tutorial-js/islands) - 部分的ハイドレーション
+- [onMount](/tutorial-js/lifecycle_onmount/) - マウント時コールバック
+- [onCleanup](/tutorial-js/lifecycle_oncleanup/) - クリーンアップと破棄
+
+## Islands
+
+- [Basics](/tutorial-js/islands_basics/) - Island アーキテクチャの基礎
+- [State](/tutorial-js/islands_state/) - Island での状態管理
+- [Triggers](/tutorial-js/islands_triggers/) - ハイドレーショントリガー
+- [Web Components](/tutorial-js/islands_webcomponents/) - カスタム要素との統合
 
 ## 関連
 
-- [MoonBitチュートリアル](/ja/tutorial-moonbit/) - MoonBit開発者向け
-- [APIリファレンス](/ja/api/) - 完全なAPIドキュメント
+- [Luna コア](/ja/luna/) - コア概念と API
+- [Astra SSG](/ja/astra/) - 静的サイト生成
