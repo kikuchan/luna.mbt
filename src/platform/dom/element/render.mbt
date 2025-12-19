@@ -280,7 +280,11 @@ priv struct IndexEntry {
 }
 
 ///|
-fn IndexEntry::new(node : @js_dom.Node, dispose : () -> Unit, disposed : Ref[Bool]) -> IndexEntry {
+fn IndexEntry::new(
+  node : @js_dom.Node,
+  dispose : () -> Unit,
+  disposed : Ref[Bool],
+) -> IndexEntry {
   { node, dispose, disposed }
 }
 
@@ -333,7 +337,7 @@ pub fn[T] index_each(
         // Return cached value if available
         match cached_value.val {
           Some(v) => v
-          None => {
+          None =>
             // No cached value - this can happen if items() changed before first access
             // Use first item as fallback if available
             if len > 0 {
@@ -343,7 +347,6 @@ pub fn[T] index_each(
               // This is a race condition during cleanup - abort with clear message
               abort("index_each: array is empty during stale effect execution")
             }
-          }
         }
       } else {
         let value = arr[index]
@@ -353,7 +356,8 @@ pub fn[T] index_each(
     }
     let (dom, dispose) = @signal.create_root_with_dispose(fn() {
       match captured_owner {
-        Some(owner) => @signal.run_with_owner(owner, fn() { render_item(item_getter, index) })
+        Some(owner) =>
+          @signal.run_with_owner(owner, fn() { render_item(item_getter, index) })
         None => render_item(item_getter, index)
       }
     })

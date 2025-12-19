@@ -240,7 +240,7 @@ fn build_props(
   on : HandlerMap?,
   ref_ : ElementRef?,
   attrs : Array[(String, Attr)]?,
-  dyn_attrs~ : Array[(String, AttrValue)]? = None,
+  dyn_attrs? : Array[(String, AttrValue)]? = None,
 ) -> Array[(String, AttrValue)] {
   let result : Array[(String, AttrValue)] = []
 
