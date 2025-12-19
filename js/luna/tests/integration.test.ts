@@ -286,10 +286,7 @@ describe("Integration: Nested Components with Context", () => {
       expect(container.querySelector("span")).toBeNull();
     });
 
-    test.skip("show renders when initial condition is true (KNOWN LIMITATION)", () => {
-      // This test documents a known limitation:
-      // show() doesn't render initially when condition is true
-      // because the effect runs before placeholder is in DOM
+    test("show renders when initial condition is true", () => {
       const [visible] = createSignal(true);
 
       const node = show(visible, () =>
@@ -298,7 +295,6 @@ describe("Integration: Nested Components with Context", () => {
 
       mount(container, node);
 
-      // TODO: This fails - show doesn't work when initially true
       expect(container.querySelector("span")).not.toBeNull();
     });
   });
