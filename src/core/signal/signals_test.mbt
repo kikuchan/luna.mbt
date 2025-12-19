@@ -1196,3 +1196,4 @@ test "deferred refetch resets to pending" {
   res.refetch()
   assert_true(res.is_pending())
 }
+
