@@ -81,16 +81,16 @@ Islandがいつハイドレートするかを制御:
 ### サーバーサイド (MoonBit)
 
 ```moonbit
-fn comments_section(props : CommentsProps) -> @luna.Node[Unit] {
-  @server_dom.island(
-    id="comments",
-    url="/static/comments.js",
-    state=props.to_json().stringify(),
-    trigger=@luna.Visible,
-    children=[
+fn comments_section(props : CommentsProps) -> @luna.Node {
+  @luna.island(
+    "comments",
+    "/static/comments.js",
+    props.to_json().stringify(),
+    [
       // ハイドレーション前に表示されるSSRコンテンツ
-      @server_dom.div([@server_dom.text("コメントを読み込み中...")])
+      @element.div([@element.text("コメントを読み込み中...")])
     ],
+    trigger=@luna.Visible,
   )
 }
 ```
@@ -156,7 +156,7 @@ function Counter(props: { count: number }) {
 Declarative Shadow DOMでスタイルをカプセル化:
 
 ```moonbit
-@server_dom.wc_island(
+@luna.wc_island(
   name="wc-counter",
   url="/static/wc-counter.js",
   styles=":host { display: block; }",

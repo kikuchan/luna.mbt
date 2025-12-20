@@ -31,11 +31,11 @@ Luna フレームワークでは、2種類の Island アーキテクチャを提
 
 ## 2種類の Island
 
-### Luna Island (`@server_dom.island`)
+### Luna Island (`@luna.island`)
 
 **特徴:**
 - 通常の DOM 内でレンダリング
-- `ln:*` 属性によるハイドレーション
+- `luna:*` 属性によるハイドレーション
 - イベントバブリングが自然に動作
 - 親子間の状態共有が効率的
 
@@ -45,7 +45,7 @@ Luna フレームワークでは、2種類の Island アーキテクチャを提
 - 頻繁な状態更新が必要なUI
 - ネストされたコンポーネント構造
 
-### WC Island (`@server_dom.wc_island`)
+### WC Island (`@luna.wc_island`)
 
 **特徴:**
 - Shadow DOM 内でレンダリング
@@ -108,19 +108,17 @@ Luna フレームワークでは、2種類の Island アーキテクチャを提
 
 ```moonbit
 // server/routes.mbt
-fn home_page() -> @server_dom.HtmlNode {
-  @server_dom.div_(
-    [],
-    [
-      // Luna Island: 通常の Island
-      @server_dom.island(
-        "counter-component",
-        "/static/counter.js",
-        @mbtconv.to_js({ count: 0 }),
-        trigger="load",
-      )
-    ]
-  )
+fn home_page() -> @luna.Node {
+  @element.div([
+    // Luna Island: 通常の Island
+    @luna.island(
+      "counter-component",
+      "/static/counter.js",
+      "{\"count\":0}",
+      [@element.text("Loading...")],
+      trigger=@luna.Load,
+    )
+  ])
 }
 ```
 
@@ -128,20 +126,18 @@ fn home_page() -> @server_dom.HtmlNode {
 
 ```moonbit
 // server/routes.mbt
-fn widget_embed() -> @server_dom.HtmlNode {
-  @server_dom.div_(
-    [],
-    [
-      // WC Island: 外部埋め込み用
-      @server_dom.wc_island(
-        "embed-widget",
-        "/static/widget.js",
-        @mbtconv.to_js({ config: "..." }),
-        styles=widget_styles,  // カプセル化されたスタイル
-        trigger="visible",
-      )
-    ]
-  )
+fn widget_embed() -> @luna.Node {
+  @element.div([
+    // WC Island: 外部埋め込み用
+    @luna.wc_island(
+      name="embed-widget",
+      url="/static/widget.js",
+      state="{\"config\":\"...\"}",
+      styles=widget_styles,  // カプセル化されたスタイル
+      trigger=@luna.Visible,
+      children=[@element.text("Loading...")],
+    )
+  ])
 }
 ```
 
@@ -149,26 +145,30 @@ fn widget_embed() -> @server_dom.HtmlNode {
 
 どちらの Island も同じコンポーネントコードを使用できます:
 
-```moonbit
-// client/counter.mbt
-pub fn counter(props : CounterProps) -> @element.DomNode {
-  let count = @signal.signal(props.initial_count)
+```typescript
+// client/counter.ts
+import { createSignal, hydrate } from '@mizchi/luna';
 
-  @element.div_(
-    [],
-    [
-      @element.span_([text("Count: ")]),
-      @element.span_([text(count.get().to_string())]),
-      @element.button_(
-        [on_click(fn(_) { count.update(fn(n) { n + 1 }) })],
-        [text("+")]
-      )
-    ]
-  )
+interface CounterProps {
+  initial_count: number;
 }
+
+function Counter(props: CounterProps) {
+  const [count, setCount] = createSignal(props.initial_count);
+
+  return (
+    <div>
+      <span>Count: </span>
+      <span>{count()}</span>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  );
+}
+
+hydrate("counter-component", Counter);
 ```
 
-生成されるハイドレーションコード (`@wc.hydrate_auto_dom`) は、
+ハイドレーションローダー (`@mizchi/luna-loader`) は、
 Shadow Root の有無を自動検出して適切に動作します。
 
 ## WC Island を選ぶべき具体例
@@ -177,12 +177,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // チャットウィジェット、フィードバックボタン等
-@server_dom.wc_island(
-  "chat-widget",
-  "/widget/chat.js",
-  state,
+@luna.wc_island(
+  name="chat-widget",
+  url="/widget/chat.js",
+  state=state,
   styles=chat_styles,  // 外部サイトのCSSに影響されない
-  trigger="idle",
+  trigger=@luna.Idle,
 )
 ```
 
@@ -190,12 +190,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // 他プロジェクトで再利用可能なUIライブラリ
-@server_dom.wc_island(
-  "ds-button",
-  "/design-system/button.js",
-  state,
+@luna.wc_island(
+  name="ds-button",
+  url="/design-system/button.js",
+  state=state,
   styles=design_system_styles,
-  trigger="load",
+  trigger=@luna.Load,
 )
 ```
 
@@ -203,12 +203,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // 既存のjQueryサイトに部分的に導入
-@server_dom.wc_island(
-  "modern-component",
-  "/modern/component.js",
-  state,
+@luna.wc_island(
+  name="modern-component",
+  url="/modern/component.js",
+  state=state,
   styles=modern_styles,  // レガシーCSSと分離
-  trigger="visible",
+  trigger=@luna.Visible,
 )
 ```
 
@@ -218,11 +218,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // バリデーション、エラー表示、親への状態伝搬
-@server_dom.island(
+@luna.island(
   "contact-form",
   "/static/form.js",
   state,
-  trigger="load",
+  [@element.text("Loading...")],
+  trigger=@luna.Load,
 )
 ```
 
@@ -230,11 +231,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // ソート、フィルタ、ページネーション、行選択
-@server_dom.island(
+@luna.island(
   "data-table",
   "/static/table.js",
   state,
-  trigger="load",
+  [@element.text("Loading...")],
+  trigger=@luna.Load,
 )
 ```
 
@@ -242,11 +244,12 @@ Shadow Root の有無を自動検出して適切に動作します。
 
 ```moonbit
 // 親子で状態を共有するUI
-@server_dom.island(
+@luna.island(
   "dashboard",
   "/static/dashboard.js",
   state,
-  trigger="idle",
+  [@element.text("Loading...")],
+  trigger=@luna.Idle,
 )
 ```
 

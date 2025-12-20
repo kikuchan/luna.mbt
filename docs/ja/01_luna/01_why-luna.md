@@ -35,10 +35,10 @@ Luna:
 
 ```moonbit
 // このSignalコードはどこでも動作
-let count = @luna.signal(0)
-let doubled = @luna.memo(fn() { count.get() * 2 })
+let count = Signal::new(0)
+let doubled = memo(fn() { count.get() * 2 })
 
-@luna.effect(fn() {
+effect(fn() {
   println("Count: \{count.get()}")
 })
 ```
@@ -275,12 +275,13 @@ pub struct CounterProps {
   max : Int
 } derive(ToJson, FromJson)
 
-fn counter_island(props : CounterProps) -> @luna.Node[Unit] {
-  @server_dom.island(
-    id="counter",
-    url="/static/counter.js",
-    state=props.to_json().stringify(),  // 型安全なシリアライズ
-    children=[...],
+fn counter_island(props : CounterProps) -> @luna.Node {
+  @luna.island(
+    "counter",
+    "/static/counter.js",
+    props.to_json().stringify(),  // 型安全なシリアライズ
+    [@element.div([@element.text("Loading...")])],
+    trigger=@luna.Load,
   )
 }
 ```

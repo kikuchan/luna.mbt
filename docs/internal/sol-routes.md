@@ -120,8 +120,8 @@ fn user_page_handler(
   // params.get_param で既存の params 配列から取得
   let uid = params.get_param("uid").unwrap_or("unknown")
 
-  Some(@server_dom.div([], [
-    @server_dom.text("User: \{uid}"),
+  Some(@element.div([
+    @element.text("User: \{uid}"),
   ]))
 }
 
@@ -134,8 +134,8 @@ fn user_page_with_pattern(
   // url_pattern_result が設定されている場合は groups から取得可能
   let uid = params.get_pathname_group("uid").unwrap_or("unknown")
 
-  Some(@server_dom.div([], [
-    @server_dom.text("User: \{uid}"),
+  Some(@element.div([
+    @element.text("User: \{uid}"),
   ]))
 }
 
@@ -148,8 +148,8 @@ fn user_detail_handler(
   let id_str = params.get_param("id")?
   // バリデーションはユーザー側で行う
 
-  Some(@server_dom.div([], [
-    @server_dom.text("User ID: \{id_str}"),
+  Some(@element.div([
+    @element.text("User ID: \{id_str}"),
   ]))
 }
 ```
