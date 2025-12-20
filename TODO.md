@@ -6,6 +6,7 @@
   - AI 用 llm.txt の生成
   - sitemap.xml
   - RSS
+  - 検索
 - [ ] vite hot reload plugin
 - [ ] todomvc サンプルで JSON を使わない
   - JSON/strconv 依存で +200KB 以上のバンドルサイズ増加

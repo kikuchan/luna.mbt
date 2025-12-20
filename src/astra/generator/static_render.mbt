@@ -913,6 +913,15 @@ fn get_navigation_script(
       #|  }
       #|  spaNavigate(url);
       #|}
+      #|// Handle sidebar chevron clicks (toggle only, no navigation)
+      #|document.addEventListener('click', (e) => {
+      #|  const chevron = e.target.closest('.sidebar-chevron');
+      #|  if (!chevron) return;
+      #|  e.preventDefault();
+      #|  e.stopPropagation();
+      #|  const details = chevron.closest('details');
+      #|  if (details) details.open = !details.open;
+      #|});
       #|// Intercept link clicks
       #|document.addEventListener('click', (e) => {
       #|  const link = e.target.closest('a');
@@ -1691,50 +1700,80 @@ fn get_default_css(config : @astra.SsgConfig) -> String {
     #|  letter-spacing: 0.05em;
     #|}
     #|.sidebar-items { list-style: none; margin: 0; padding: 0; }
-    #|.sidebar-items-inner { list-style: none; margin: 0; padding: 0; padding-left: 1rem; }
+    #|.sidebar-items-inner { list-style: none; margin: 0; padding: 0; }
     #|.sidebar-nested-group { list-style: none; }
     #|.sidebar-link {
     #|  display: block;
-    #|  padding: 0.375rem 0;
-    #|  color: var(--nav-link-color);
+    #|  padding: 0.5rem 0.75rem;
+    #|  color: var(--text-color);
     #|  text-decoration: none;
     #|  font-size: 0.9375rem;
+    #|  border-radius: 0.375rem;
+    #|  transition: background-color 0.15s;
     #|}
-    #|.sidebar-link:hover { color: var(--primary-color); }
-    #|.sidebar-link.active { color: var(--primary-color); font-weight: 600; }
+    #|.sidebar-link:hover { background-color: var(--sidebar-bg); color: var(--primary-color); }
+    #|.sidebar-link.active { color: var(--primary-color); font-weight: 600; background-color: var(--sidebar-bg); }
     #|
-    #|/* Collapsible sidebar groups */
+    #|/* Collapsible sidebar groups - Docusaurus style */
     #|.sidebar-collapse {
     #|  border: none;
-    #|  margin-bottom: 0.5rem;
+    #|  margin-bottom: 0.25rem;
     #|}
     #|.sidebar-collapse summary {
     #|  cursor: pointer;
-    #|  font-weight: 600;
-    #|  font-size: 0.875rem;
-    #|  color: var(--text-color);
-    #|  padding: 0.375rem 0;
     #|  list-style: none;
     #|  display: flex;
     #|  align-items: center;
-    #|  gap: 0.5rem;
+    #|  justify-content: space-between;
+    #|  padding: 0.5rem 0.75rem;
+    #|  border-radius: 0.375rem;
+    #|  transition: background-color 0.15s;
+    #|}
+    #|.sidebar-collapse summary:hover {
+    #|  background-color: var(--sidebar-bg);
     #|}
     #|.sidebar-collapse summary::-webkit-details-marker { display: none; }
-    #|.sidebar-collapse summary::before {
+    #|.sidebar-group-link {
+    #|  color: var(--text-color);
+    #|  text-decoration: none;
+    #|  font-weight: 500;
+    #|  font-size: 0.9375rem;
+    #|  flex: 1;
+    #|}
+    #|.sidebar-group-link:hover { color: var(--primary-color); }
+    #|.sidebar-group-link.active { color: var(--primary-color); }
+    #|.sidebar-chevron {
+    #|  width: 24px;
+    #|  height: 24px;
+    #|  display: flex;
+    #|  align-items: center;
+    #|  justify-content: center;
+    #|  color: var(--nav-link-color);
+    #|  transition: transform 0.2s;
+    #|  flex-shrink: 0;
+    #|}
+    #|.sidebar-chevron::before {
     #|  content: '';
     #|  width: 0;
     #|  height: 0;
-    #|  border-left: 5px solid currentColor;
-    #|  border-top: 4px solid transparent;
-    #|  border-bottom: 4px solid transparent;
-    #|  transition: transform 0.2s;
+    #|  border-top: 5px solid transparent;
+    #|  border-bottom: 5px solid transparent;
+    #|  border-left: 6px solid currentColor;
     #|}
-    #|.sidebar-collapse[open] summary::before {
+    #|.sidebar-collapse[open] .sidebar-chevron {
     #|  transform: rotate(90deg);
     #|}
     #|.sidebar-collapse .sidebar-items {
-    #|  padding-left: 0.75rem;
-    #|  margin-top: 0.25rem;
+    #|  display: grid;
+    #|  grid-template-rows: 0fr;
+    #|  transition: grid-template-rows 0.2s ease;
+    #|}
+    #|.sidebar-collapse[open] .sidebar-items {
+    #|  grid-template-rows: 1fr;
+    #|}
+    #|.sidebar-collapse .sidebar-items-inner {
+    #|  overflow: hidden;
+    #|  padding-left: 1rem;
     #|}
     #|
     #|/* Main Content */
