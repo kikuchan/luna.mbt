@@ -48,7 +48,7 @@ pub fn render_counter(
 ///|
 /// Render counter to HTML string (for SSR)
 /// Uses static signal value and noop handlers
-/// Uses render_to_string_with_hydration to add data-hk markers for client hydration
+/// Uses render_to_string_with_hydration to add sol:hk markers for client hydration
 pub fn render_counter_html(count : Int) -> String {
   let sig = @signal.signal(count)
   let noop = @luna.event_handler()

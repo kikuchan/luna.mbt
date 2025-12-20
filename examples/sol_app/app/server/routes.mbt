@@ -38,6 +38,13 @@ pub fn routes() -> Array[@router.SolRoutes] {
       title="WC Counter",
       meta=[],
     ),
+    // WC Multiple page - multiple instances of same component
+    @router.SolRoutes::Page(
+      path="/wc-multiple",
+      handler=@router.PageHandler(wc_multiple),
+      title="WC Multiple",
+      meta=[],
+    ),
     // API endpoint
     @router.SolRoutes::Get(
       path="/api/health",

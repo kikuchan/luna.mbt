@@ -244,7 +244,7 @@ test "render with hydration markers for element with handler" {
     [@luna.text("Click")],
   )
   let html = render_to_string_with_hydration(node)
-  assert_eq(html, "<button data-hk=\"0\">Click</button>")
+  assert_eq(html, "<button sol:hk=\"0\">Click</button>")
 }
 
 ///|
@@ -1153,7 +1153,11 @@ test "render wc_island basic" {
   assert_true(html.contains("luna:wc-state=\"{&quot;count&quot;:5}\""))
   // Check Declarative Shadow DOM template
   assert_true(html.contains("<template shadowrootmode=\"open\">"))
-  assert_true(html.contains("<style>:host { display: block; }</style>"))
+  // Style tag now has hash ID for deduplication
+  assert_true(html.contains("<style id=\"style-"))
+  // CSS is minified: spaces around { } : ; are removed
+  assert_true(html.contains(":host{display:block;}"))
+  assert_true(html.contains("</style>"))
   // Check children are rendered
   assert_true(html.contains("5"))
   assert_true(html.contains("</template></wc-counter>"))
@@ -1274,7 +1278,8 @@ test "render wc_island with complex children" {
   assert_true(html.contains("<li>A</li>"))
   assert_true(html.contains("<li>B</li>"))
   assert_true(html.contains("<li>C</li>"))
-  assert_true(html.contains(":host { display: block; }"))
+  // CSS is minified: spaces around { } : ; are removed
+  assert_true(html.contains(":host{display:block;}"))
 }
 
 ///|
@@ -1293,6 +1298,175 @@ test "render wc_island with hydration markers" {
   // Should have hydration markers for dynamic text inside
   assert_true(html.contains("<!--t:"))
   assert_true(html.contains("<!--/t-->"))
+}
+
+// =============================================================================
+// SSR Inline CSS Injection Tests
+// =============================================================================
+
+///|
+test "wc_island CSS with :host selector" {
+  let css = ":host { display: block; margin: 1rem; }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-host",
+    "/static/wc-host.js",
+    css,
+    "{}",
+    [@luna.text("Content")],
+  )
+  let html = render_to_string(node).html
+  // CSS should be in <template><style id="style-{hash}">
+  assert_true(html.contains("<template shadowrootmode=\"open\">"))
+  assert_true(html.contains("<style id=\"style-"))
+  // CSS is minified
+  assert_true(html.contains(":host{display:block;margin:1rem;}"))
+}
+
+///|
+test "wc_island CSS with @media query" {
+  let css = "@media (max-width: 768px) { :host { padding: 0.5rem; } }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-responsive",
+    "/static/wc-responsive.js",
+    css,
+    "{}",
+    [@luna.text("Responsive")],
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("<style id=\"style-"))
+  // CSS is minified (space after @media preserved since ( is not punctuation)
+  assert_true(html.contains("@media (max-width:768px){:host{padding:0.5rem;}}"))
+}
+
+///|
+test "wc_island CSS with ::slotted selector" {
+  let css = "::slotted(*) { color: inherit; } ::slotted(p) { margin: 0; }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-slot",
+    "/static/wc-slot.js",
+    css,
+    "{}",
+    [@luna.h("slot", [], [])],
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains("::slotted(*)"))
+  assert_true(html.contains("::slotted(p)"))
+}
+
+///|
+test "wc_island CSS with :host-context" {
+  let css = ":host-context(.dark) { background: #333; color: white; }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-theme",
+    "/static/wc-theme.js",
+    css,
+    "{}",
+    [@luna.text("Themed")],
+  )
+  let html = render_to_string(node).html
+  assert_true(html.contains(":host-context(.dark)"))
+}
+
+///|
+test "wc_island CSS with multiple rules" {
+  let css = ":host { display: block; } .title { font-size: 1.5rem; } .content { padding: 1rem; }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-multi",
+    "/static/wc-multi.js",
+    css,
+    "{}",
+    [
+      @luna.h("h1", [("class", @luna.attr_static("title"))], [@luna.text("Title")]),
+      @luna.h("div", [("class", @luna.attr_static("content"))], [@luna.text("Body")]),
+    ],
+  )
+  let html = render_to_string(node).html
+  // CSS is minified: spaces around { } : ; are removed
+  assert_true(html.contains(":host{display:block;}"))
+  assert_true(html.contains(".title{font-size:1.5rem;}"))
+  assert_true(html.contains(".content{padding:1rem;}"))
+}
+
+///|
+test "multiple wc_islands with different styles" {
+  let node : @luna.Node[Unit] = @luna.fragment([
+    @luna.wc_island(
+      "wc-card-a",
+      "/static/wc-card.js",
+      ":host { background: blue; }",
+      "{\"id\":\"a\"}",
+      [@luna.text("Card A")],
+    ),
+    @luna.wc_island(
+      "wc-card-b",
+      "/static/wc-card.js",
+      ":host { background: red; }",
+      "{\"id\":\"b\"}",
+      [@luna.text("Card B")],
+    ),
+  ])
+  let html = render_to_string(node).html
+  // Each island should have its own style (minified)
+  assert_true(html.contains(":host{background:blue;}"))
+  assert_true(html.contains(":host{background:red;}"))
+  // Check both templates are present
+  let template_count = count_occurrences(html, "<template shadowrootmode=\"open\">")
+  assert_eq(template_count, 2)
+}
+
+///|
+test "wc_island CSS preserved in nested structure" {
+  let node : @luna.Node[Unit] = @luna.h("main", [], [
+    @luna.h("section", [], [
+      @luna.wc_island(
+        "wc-nested",
+        "/static/wc-nested.js",
+        ".inner { display: flex; gap: 1rem; }",
+        "{}",
+        [@luna.h("div", [("class", @luna.attr_static("inner"))], [@luna.text("Nested")])],
+      ),
+    ]),
+  ])
+  let html = render_to_string(node).html
+  // CSS should be properly nested inside the component's template (minified)
+  assert_true(html.contains("<main>"))
+  assert_true(html.contains("<section>"))
+  assert_true(html.contains("<style id=\"style-"))
+  assert_true(html.contains(".inner{display:flex;gap:1rem;}"))
+}
+
+///|
+test "wc_island CSS with CSS variables" {
+  let css = ":host { --primary: #007bff; --spacing: 1rem; } .btn { background: var(--primary); padding: var(--spacing); }"
+  let node : @luna.Node[Unit] = @luna.wc_island(
+    "wc-vars",
+    "/static/wc-vars.js",
+    css,
+    "{}",
+    [@luna.h("button", [("class", @luna.attr_static("btn"))], [@luna.text("Click")])],
+  )
+  let html = render_to_string(node).html
+  // CSS is minified: spaces around : are removed
+  assert_true(html.contains("--primary:#007bff"))
+  assert_true(html.contains("var(--primary)"))
+}
+
+///|
+/// Helper to count occurrences of a substring
+fn count_occurrences(s : String, pattern : String) -> Int {
+  let mut count = 0
+  let mut start = 0
+  while start < s.length() {
+    let view = try { s.sub(start=start) } catch { _ => break }
+    match view.find(pattern) {
+      Some(idx) => {
+        count = count + 1
+        start = start + idx + 1
+      }
+      None => break
+    }
+  }
+  count
 }
 
 // =============================================================================

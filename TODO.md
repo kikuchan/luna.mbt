@@ -7,7 +7,7 @@
   - localStorage 保存を独自シリアライズに変更する
 - [ ] インラインCSS の扱いを統一する
 - [ ] SSG で埋め込めることを説明しよう
-- [ ] preload 挿入
+- [x] preload 挿入
 - DX
   - sol: 細粒度 HMR (Island単位の差分更新、状態保持)
   - sol: Vite plugin 版 HMR (Vite の HMR API を利用)

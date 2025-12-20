@@ -43,6 +43,81 @@ pub fn generate_preload_tags(urls : Array[String]) -> String {
 }
 
 ///|
+/// Minify CSS by removing unnecessary whitespace and newlines
+/// - Removes newlines
+/// - Collapses multiple spaces to one
+/// - Removes spaces around { } : ; ,
+fn minify_css(css : String) -> String {
+  let sb = StringBuilder::new(size_hint=css.length())
+  let mut prev_char : Char = ' '
+  let mut in_space = false
+
+  for c in css {
+    match c {
+      '\n' | '\r' | '\t' => {
+        // Convert to space, will be handled by space collapsing
+        if not(in_space) {
+          in_space = true
+        }
+      }
+      ' ' => {
+        if not(in_space) {
+          in_space = true
+        }
+      }
+      '{' | '}' | ':' | ';' | ',' => {
+        // Remove space before these characters
+        in_space = false
+        sb.write_char(c)
+        prev_char = c
+      }
+      _ => {
+        // Add single space if we had spaces and prev char doesn't make it unnecessary
+        if in_space &&
+          prev_char != '{' &&
+          prev_char != '}' &&
+          prev_char != ':' &&
+          prev_char != ';' &&
+          prev_char != ',' &&
+          prev_char != ' ' {
+          sb.write_char(' ')
+        }
+        in_space = false
+        sb.write_char(c)
+        prev_char = c
+      }
+    }
+  }
+  sb.to_string()
+}
+
+///|
+/// Simple hash function for CSS string (for dedup ID)
+/// Uses same algorithm as use_style() in DOM module for consistency
+fn hash_css(css : String) -> String {
+  let mut hash : UInt = 5381
+  for c in css {
+    hash = (hash << 5) + hash + c.to_uint()
+  }
+  hash.to_string()
+}
+
+///|
+/// Write style tag with hash ID for deduplication
+/// CSS is minified before output. Hash is computed from minified CSS.
+fn write_style_tag(sb : StringBuilder, styles : String) -> Unit {
+  if styles.length() > 0 {
+    let minified = minify_css(styles)
+    let hash = hash_css(minified)
+    sb.write_string("<style id=\"style-")
+    sb.write_string(hash)
+    sb.write_string("\">")
+    sb.write_string(minified)
+    sb.write_string("</style>")
+  }
+}
+
+///|
 /// Render a VNode to StringBuilder and collect island URLs
 fn[E] render_and_collect_urls(
   sb : StringBuilder,
@@ -208,12 +283,8 @@ fn[E] render_wc_island_to(
   // <template shadowrootmode="open">
   sb.write_string("<template shadowrootmode=\"open\">")
 
-  // <style>...</style>
-  if island.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(island.styles) // CSS doesn't need HTML escaping
-    sb.write_string("</style>")
-  }
+  // <style id="style-{hash}">...</style>
+  write_style_tag(sb, island.styles)
 
   // Render children
   for child in island.children {
@@ -258,11 +329,7 @@ fn[E] render_wc_island_and_collect_urls(
   }
   sb.write_char('>')
   sb.write_string("<template shadowrootmode=\"open\">")
-  if island.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(island.styles)
-    sb.write_string("</style>")
-  }
+  write_style_tag(sb, island.styles)
   for child in island.children {
     render_and_collect_urls(sb, child, urls)
   }
@@ -304,11 +371,7 @@ fn[E] render_wc_island_with_id_to(
   }
   sb.write_char('>')
   sb.write_string("<template shadowrootmode=\"open\">")
-  if island.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(island.styles)
-    sb.write_string("</style>")
-  }
+  write_style_tag(sb, island.styles)
   for child in island.children {
     render_with_id_to(sb, child, id_counter)
   }
@@ -391,11 +454,7 @@ fn[E] render_internal_ref_wc_to(
   }
   sb.write_char('>')
   sb.write_string("<template shadowrootmode=\"open\">")
-  if iref.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(iref.styles)
-    sb.write_string("</style>")
-  }
+  write_style_tag(sb, iref.styles)
   for child in iref.children {
     render_to_sb(sb, child)
   }
@@ -478,11 +537,7 @@ fn[E] render_internal_ref_wc_and_collect_urls(
   }
   sb.write_char('>')
   sb.write_string("<template shadowrootmode=\"open\">")
-  if iref.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(iref.styles)
-    sb.write_string("</style>")
-  }
+  write_style_tag(sb, iref.styles)
   for child in iref.children {
     render_and_collect_urls(sb, child, urls)
   }
@@ -572,11 +627,7 @@ fn[E] render_internal_ref_wc_with_id_to(
   }
   sb.write_char('>')
   sb.write_string("<template shadowrootmode=\"open\">")
-  if iref.styles.length() > 0 {
-    sb.write_string("<style>")
-    sb.write_string(iref.styles)
-    sb.write_string("</style>")
-  }
+  write_style_tag(sb, iref.styles)
   for child in iref.children {
     render_with_id_to(sb, child, id_counter)
   }
@@ -761,7 +812,7 @@ fn[E] render_with_id_to(
       sb.write_string(tag)
       render_attrs_to(sb, elem.attrs)
       if needs_hydration {
-        sb.write_string(" data-hk=\"")
+        sb.write_string(" sol:hk=\"")
         sb.write_object(id)
         sb.write_char('"')
       }

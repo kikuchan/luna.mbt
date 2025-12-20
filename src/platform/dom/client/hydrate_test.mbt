@@ -144,7 +144,7 @@ test "hydrate element with click handler" {
 
   // SSR with hydration markers
   let html = @render.render_to_string_with_hydration(vnode)
-  assert_true(html.contains("data-hk=\"0\""))
+  assert_true(html.contains("sol:hk=\"0\""))
   set_inner_html(container, html)
   let _ = hydrate(container, vnode)
 
@@ -575,7 +575,7 @@ test "hydrate logger contains element info" {
   let log_output = logger.to_string()
   // Should mention the expected element
   assert_true(log_output.contains("button"))
-  assert_true(log_output.contains("data-hk"))
+  assert_true(log_output.contains("sol:hk"))
 }
 
 // =============================================================================
@@ -609,7 +609,7 @@ test "hydrate multiple mismatches joined with semicolon" {
   defer cleanup()
   let container = create_container()
   let logger = StringBuilder::new()
-  // Two buttons with handlers - both need data-hk
+  // Two buttons with handlers - both need sol:hk
   let vnode = @luna.fragment([
     @luna.h(
       "button",
@@ -622,19 +622,19 @@ test "hydrate multiple mismatches joined with semicolon" {
       [@luna.text("B")],
     ),
   ])
-  // Wrong HTML - neither button has data-hk
+  // Wrong HTML - neither button has sol:hk
   set_inner_html(container, "<div>Wrong</div>")
   let result = hydrate(container, vnode, recover_on_mismatch=false, logger~)
   match result {
     Mismatch(msg) =>
       // Should contain both mismatches joined
-      assert_true(msg.contains("data-hk"))
+      assert_true(msg.contains("sol:hk"))
     _ => assert_true(true)
   }
 }
 
 ///|
-test "hydrate tag mismatch with correct data-hk" {
+test "hydrate tag mismatch with correct sol:hk" {
   @global_jsdom.register()
   defer cleanup()
   let container = create_container()
@@ -645,8 +645,8 @@ test "hydrate tag mismatch with correct data-hk" {
     [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.text("Click")],
   )
-  // HTML has a span with correct data-hk but wrong tag
-  set_inner_html(container, "<span data-hk=\"0\">Wrong tag</span>")
+  // HTML has a span with correct sol:hk but wrong tag
+  set_inner_html(container, "<span sol:hk=\"0\">Wrong tag</span>")
   let result = hydrate(container, vnode, recover_on_mismatch=false, logger~)
   match result {
     Mismatch(msg) =>

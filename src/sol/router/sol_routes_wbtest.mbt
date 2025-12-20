@@ -25,7 +25,7 @@ test "compile sol layout with children" {
   fn layout_handler(
     _props : PageProps,
     children : @server_dom.ServerNode,
-  ) -> @server_dom.ServerNode raise Error {
+  ) -> @server_dom.ServerNode raise _ {
     children
   }
 

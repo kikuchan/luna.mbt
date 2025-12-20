@@ -120,7 +120,7 @@ test "exp: repair missing element with handler" {
 }
 
 ///|
-test "exp: repair tag mismatch with data-hk" {
+test "exp: repair tag mismatch with sol:hk" {
   @global_jsdom.register()
   defer exp_cleanup()
   let container = exp_create_container()
@@ -130,8 +130,8 @@ test "exp: repair tag mismatch with data-hk" {
     [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.text("Submit")],
   )
-  // Wrong tag (span instead of button) but correct data-hk
-  exp_set_inner_html(container, "<span data-hk=\"0\">Submit</span>")
+  // Wrong tag (span instead of button) but correct sol:hk
+  exp_set_inner_html(container, "<span sol:hk=\"0\">Submit</span>")
   let result = experimental_hydrate(container, vnode, logger~)
   match result {
     Repaired(repairs) => {
@@ -707,8 +707,8 @@ test "exp: handle event handler attachment" {
     [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.text("Click")],
   )
-  // Correct HTML with data-hk
-  exp_set_inner_html(container, "<button data-hk=\"0\">Click</button>")
+  // Correct HTML with sol:hk
+  exp_set_inner_html(container, "<button sol:hk=\"0\">Click</button>")
   let result = experimental_hydrate(container, vnode, logger~)
   match result {
     Clean => assert_true(true)
@@ -802,7 +802,7 @@ test "report: tag mismatch has correct repair type" {
     [("onClick", @luna.attr_handler(@luna.handler(fn(_) { () })))],
     [@luna.text("Click")],
   )
-  exp_set_inner_html(container, "<span data-hk=\"0\">Click</span>")
+  exp_set_inner_html(container, "<span sol:hk=\"0\">Click</span>")
   let report = experimental_hydrate_with_report(container, vnode, logger~)
   assert_false(report.is_clean())
   assert_true(report.has_repair_type(repair_type_tag_mismatch()))

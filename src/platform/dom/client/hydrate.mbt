@@ -152,7 +152,7 @@ fn hydrate_node(
 
       // Find the DOM element
       let dom_elem_opt : @js_dom.Element? = if needs_hydration {
-        // For elements with dynamic content, find by data-hk attribute
+        // For elements with dynamic content, find by sol:hk attribute
         match find_element_by_hk(ctx.container, id) {
           Some(dom_elem) => {
             // Verify tag matches
@@ -176,7 +176,7 @@ fn hydrate_node(
             ctx.mismatches.push(
               "Element not found: expected <" +
               elem.tag +
-              "> with data-hk=\"" +
+              "> with sol:hk=\"" +
               id.to_string() +
               "\"",
             )
@@ -247,13 +247,40 @@ fn hydrate_node(
 }
 
 ///|
-/// Find element with data-hk="id" attribute within container
+/// Find element with sol:hk="id" attribute within container
+/// Uses recursive traversal since CSS selectors with colons have compatibility issues
 fn find_element_by_hk(
   container : @js_dom.Element,
   id : Int,
 ) -> @js_dom.Element? {
-  let selector = "[data-hk=\"" + id.to_string() + "\"]"
-  container.querySelector(selector)
+  let target = id.to_string()
+  find_element_by_attr_recursive(container.as_node(), "sol:hk", target)
+}
+
+///|
+/// Recursively find element with matching attribute value
+fn find_element_by_attr_recursive(
+  node : @js_dom.Node,
+  attr_name : String,
+  attr_value : String,
+) -> @js_dom.Element? {
+  // Check if this node is an element
+  if node.nodeType() == 1 {
+    let elem : @js_dom.Element = node.as_any().cast()
+    match elem.getAttribute(attr_name) {
+      Some(val) => if val == attr_value { return Some(elem) }
+      None => ()
+    }
+  }
+  // Recursively check children
+  let children = node.childNodes()
+  for child in children {
+    match find_element_by_attr_recursive(child, attr_name, attr_value) {
+      Some(found) => return Some(found)
+      None => continue
+    }
+  }
+  None
 }
 
 ///|

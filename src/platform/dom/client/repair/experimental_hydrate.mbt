@@ -229,7 +229,7 @@ priv struct ExperimentalHydrationContext {
   repair_infos : Array[RepairInfo]
   logger : StringBuilder?
   path_stack : Array[String]
-  /// Cache: data-hk -> Element mapping for O(1) lookup
+  /// Cache: sol:hk -> Element mapping for O(1) lookup
   hk_cache : @hashmap.HashMap[Int, @js_dom.Element]
 }
 
@@ -410,15 +410,26 @@ fn get_text_content(node : @js_dom.Node) -> String {
 }
 
 ///|
-/// Build hk_cache by scanning all elements with data-hk attribute once
+/// Build hk_cache by scanning all elements with sol:hk attribute once
+/// Uses recursive traversal since CSS selectors with colons have compatibility issues
 fn build_hk_cache(
   container : @js_dom.Element,
 ) -> @hashmap.HashMap[Int, @js_dom.Element] {
   let cache : @hashmap.HashMap[Int, @js_dom.Element] = @hashmap.new()
-  let elements = container.querySelectorAll("[data-hk]")
-  for i in 0..<elements.length() {
-    let elem = elements[i]
-    match elem.getAttribute("data-hk") {
+  build_hk_cache_recursive(container.as_node(), cache)
+  cache
+}
+
+///|
+/// Recursively collect elements with sol:hk attribute into cache
+fn build_hk_cache_recursive(
+  node : @js_dom.Node,
+  cache : @hashmap.HashMap[Int, @js_dom.Element],
+) -> Unit {
+  // Check if this node is an element
+  if node.nodeType() == 1 {
+    let elem : @js_dom.Element = node.as_any().cast()
+    match elem.getAttribute("sol:hk") {
       Some(id_str) => {
         // Parse integer manually (simple positive int parser)
         let mut id = 0
@@ -438,11 +449,15 @@ fn build_hk_cache(
       None => ()
     }
   }
-  cache
+  // Recursively process children
+  let children = node.childNodes()
+  for child in children {
+    build_hk_cache_recursive(child, cache)
+  }
 }
 
 ///|
-/// Find element with data-hk="id" attribute using cache (O(1))
+/// Find element with sol:hk="id" attribute using cache (O(1))
 fn find_element_by_hk_cached(
   ctx : ExperimentalHydrationContext,
   id : Int,
@@ -903,7 +918,7 @@ fn experimental_hydrate_element(
     let id = ctx.current_id
     ctx.current_id = id + 1
 
-    // Try to find by data-hk using cached lookup (O(1))
+    // Try to find by sol:hk using cached lookup (O(1))
     match find_element_by_hk_cached(ctx, id) {
       Some(found_elem) => {
         // Verify tag
@@ -946,7 +961,7 @@ fn experimental_hydrate_element(
           "> with hk=" +
           id.to_string() +
           ", creating",
-          "<" + elem.tag + " data-hk=\"" + id.to_string() + "\">",
+          "<" + elem.tag + " sol:hk=\"" + id.to_string() + "\">",
           "",
         )
         let new_elem = create_element_from_velem(elem, id)
@@ -995,7 +1010,7 @@ fn create_element_from_velem(
 
   // Add hydration key if needed
   if hk_id >= 0 {
-    dom_elem.setAttribute("data-hk", hk_id.to_string())
+    dom_elem.setAttribute("sol:hk", hk_id.to_string())
   }
 
   // Apply attributes

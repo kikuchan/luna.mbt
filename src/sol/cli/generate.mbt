@@ -44,11 +44,12 @@ pub struct SolConfig {
 
 ///|
 /// Route information extracted from routes.mbt
+/// Note: Fields prefixed with _ are for future use
 struct RouteInfo {
   /// Page component IDs (from Island and Page routes)
-  page_components : Array[String]
+  _page_components : Array[String]
   /// API handler IDs (from Get, Post, etc. routes)
-  api_handlers : Array[String]
+  _api_handlers : Array[String]
 }
 
 // =============================================================================
@@ -61,10 +62,10 @@ fn parse_routes_file(routes_path : String) -> RouteInfo {
   let page_components : Array[String] = []
   let api_handlers : Array[String] = []
   if not(@fs.existsSync(routes_path)) {
-    return RouteInfo::{ page_components, api_handlers }
+    return RouteInfo::{ _page_components: page_components, _api_handlers: api_handlers }
   }
   let content = @fs.readFileSync(routes_path).to_string() catch {
-    _ => return RouteInfo::{ page_components, api_handlers }
+    _ => return RouteInfo::{ _page_components: page_components, _api_handlers: api_handlers }
   }
 
   // Find all component="..." values (for Page and Island routes)
@@ -123,7 +124,7 @@ fn parse_routes_file(routes_path : String) -> RouteInfo {
       None => break
     }
   }
-  RouteInfo::{ page_components, api_handlers }
+  RouteInfo::{ _page_components: page_components, _api_handlers: api_handlers }
 }
 
 // =============================================================================
