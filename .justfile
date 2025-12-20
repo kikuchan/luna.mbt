@@ -34,6 +34,8 @@ test-ts:
     pnpm tsc -p .
 
 test-examples:
+    # Clean up potentially corrupted moon_db files (workaround for vitest/moon interaction issue)
+    rm -f target/js/release/check/check.moon_db
     moon info
     moon build -C examples/sol_app
 
