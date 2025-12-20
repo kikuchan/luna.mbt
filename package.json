@@ -1,7 +1,6 @@
 {
   "name": "@mizchi/luna",
   "version": "0.0.1",
-  "private": true,
   "description": "MoonBit Island Architecture UI Framework",
   "scripts": {
     "test": "just test",
