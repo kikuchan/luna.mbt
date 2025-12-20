@@ -14,8 +14,7 @@
   },
   "nav": [
     { "text": "📋 Overview", "link": "/overview/" },
-    { "text": "📖 Luna", "link": "/luna/" },
-    { "text": "📚 Tutorial", "link": "/tutorial-js/" },
+    { "text": "📚 Tutorial", "link": "/js/tutorial/" },
     { "text": "🌟 Astra", "link": "/astra/" },
     { "text": "☀️ Sol", "link": "/sol/" }
   ],
@@ -38,8 +37,7 @@
           "title": "Docs",
           "items": [
             { "label": "Overview", "href": "/overview/" },
-            { "label": "Luna", "href": "/luna/" },
-            { "label": "Tutorial", "href": "/tutorial-js/" },
+            { "label": "Tutorial", "href": "/js/tutorial/" },
             { "label": "Astra SSG", "href": "/astra/" },
             { "label": "Sol Framework", "href": "/sol/" }
           ]

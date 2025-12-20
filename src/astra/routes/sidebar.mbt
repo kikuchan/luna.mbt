@@ -242,9 +242,24 @@ fn tree_node_to_sidebar_group(
 ) -> @astra.SidebarGroup {
   let items : Array[@astra.SidebarItem] = []
 
-  // Add pages in this directory (sorted)
+  // Find index page for group link (source ends with index.md)
+  let mut group_link : String? = None
+  let mut group_title : String? = None
+  for page in node.pages {
+    if page.source_path.has_suffix("index.md") {
+      group_link = Some(page.url_path)
+      group_title = page.frontmatter.title
+      break
+    }
+  }
+
+  // Add pages in this directory (sorted), excluding index pages
   let sorted_pages = sort_pages(node.pages)
   for page in sorted_pages {
+    // Skip index pages - they become the group link
+    if page.source_path.has_suffix("index.md") {
+      continue
+    }
     let text = page.frontmatter.title.unwrap_or(get_page_name(page.url_path))
     items.push(@astra.SidebarItem::Link(text~, link=page.url_path))
   }
@@ -263,11 +278,11 @@ fn tree_node_to_sidebar_group(
     items.push(@astra.SidebarItem::Group(nested_group))
   }
 
-  // Get group title
-  let text = capitalize(
-    name.replace(old="-", new=" ").replace(old="_", new=" "),
+  // Get group title from index page or generate from name
+  let text = group_title.unwrap_or(
+    capitalize(name.replace(old="-", new=" ").replace(old="_", new=" ")),
   )
-  @astra.SidebarGroup::{ text, collapsed: false, items }
+  @astra.SidebarGroup::{ text, link: group_link, collapsed: true, items }
 }
 
 ///|
@@ -523,34 +538,80 @@ fn is_item_active(item : @astra.SidebarItem, current_path : String) -> Bool {
 ///|
 /// Check if a sidebar group or its children are active
 fn is_group_active(group : @astra.SidebarGroup, current_path : String) -> Bool {
+  // Check if the group's own link matches
+  match group.link {
+    Some(link) =>
+      if link == current_path ||
+        (link.has_suffix("/") && current_path.has_prefix(link)) {
+        return true
+      }
+    None => ()
+  }
+  // Check children
   group.items.iter().any(fn(item) { is_item_active(item, current_path) })
 }
 
 ///|
 /// Render sidebar group (collapsible with details/summary)
+/// Groups with only index.md (no other items) render as simple links
 fn render_sidebar_group(
   group : @astra.SidebarGroup,
   current_path : String,
 ) -> @luna.Node[Unit] {
+  // If group has no items (only index.md), render as simple link
+  if group.items.is_empty() {
+    match group.link {
+      Some(link) => {
+        let is_active = link == current_path ||
+          (link.has_suffix("/") && current_path.has_prefix(link))
+        let class_name = if is_active {
+          "sidebar-link active"
+        } else {
+          "sidebar-link"
+        }
+        return h("a", [attr("href", link), attr("class", class_name)], [
+          @luna.text(group.text),
+        ])
+      }
+      None => return @luna.text(group.text)
+    }
+  }
+
   // Check if any item in this group or nested groups is active
   let has_active = is_group_active(group, current_path)
 
-  // Open by default if has active item or not collapsed in config
-  let is_open = has_active || not(group.collapsed)
-  let summary = h("summary", [], [@luna.text(group.text)])
+  // Only open if has active item (Docusaurus behavior)
+  let is_open = has_active
+
+  // Build summary content - link if available, otherwise just text
+  let summary_content : Array[@luna.Node[Unit]] = match group.link {
+    Some(link) => {
+      let is_link_active = link == current_path
+      let link_class = if is_link_active {
+        "sidebar-group-link active"
+      } else {
+        "sidebar-group-link"
+      }
+      [
+        h("a", [attr("href", link), attr("class", link_class)], [
+          @luna.text(group.text),
+        ]),
+        h("span", [attr("class", "sidebar-chevron")], []),
+      ]
+    }
+    None => [@luna.text(group.text), h("span", [attr("class", "sidebar-chevron")], [])]
+  }
+  let summary = h("summary", [attr("class", "sidebar-group-summary")], summary_content)
+
   let item_vnodes = group.items.map(fn(item) {
     render_sidebar_item(item, current_path)
   })
-  let items_container = h("ul", [attr("class", "sidebar-items")], item_vnodes)
-
-  // Generate a simple key from group text for localStorage
-  let group_key = group.text.to_lower().replace(old=" ", new="-")
+  let items_list = h("ul", [attr("class", "sidebar-items-inner")], item_vnodes)
+  // Wrapper for grid animation
+  let items_container = h("div", [attr("class", "sidebar-items")], [items_list])
 
   // Use details element for collapsible behavior
-  let attrs : Array[(String, @luna.Attr[Unit])] = [
-    attr("class", "sidebar-collapse"),
-    attr("data-sidebar-group", group_key),
-  ]
+  let attrs : Array[(String, @luna.Attr[Unit])] = [attr("class", "sidebar-collapse")]
   if is_open {
     attrs.push(("open", @luna.attr_static("")))
   }
@@ -578,6 +639,9 @@ fn render_sidebar_item(
       h("li", [], [link_el])
     }
     @astra.SidebarItem::Group(nested) =>
-      render_sidebar_group(nested, current_path)
+      // Wrap nested groups in <li> for valid HTML
+      h("li", [attr("class", "sidebar-nested-group")], [
+        render_sidebar_group(nested, current_path),
+      ])
   }
 }

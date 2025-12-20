@@ -206,7 +206,7 @@ src/
 │   ├── js/                    # JS-specific
 │   │   └── api/               # Public API for JS (@mizchi/luna)
 │   └── server_dom/            # Server-side SSR helpers
-├── mercurius/                 # Shard/Island embedding
+├── stella/                    # Shard/Island embedding
 ├── sol/                       # SSR framework (CLI + runtime)
 ├── examples/                  # Example applications
 └── tests/                     # Test fixtures

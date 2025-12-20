@@ -207,4 +207,4 @@ glob パターンをサポート。各サブディレクトリに対して：
 ## 関連ドキュメント
 
 - [Architecture](./architecture.md) - モジュール構成の詳細
-- [Shard Architecture](../src/mercurius/ARCHITECTURE.md) - Island 埋め込みの仕組み
+- [Shard Architecture](../src/stella/ARCHITECTURE.md) - Island 埋め込みの仕組み

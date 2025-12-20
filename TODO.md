@@ -2,12 +2,14 @@
 
 ## TODO
 
+- astra
+  - AI 用 llm.txt の生成
+  - sitemap.xml
+  - RSS
+- [ ] vite hot reload plugin
 - [ ] todomvc サンプルで JSON を使わない
   - JSON/strconv 依存で +200KB 以上のバンドルサイズ増加
-  - localStorage 保存を独自シリアライズに変更する
 - [ ] インラインCSS の扱いを統一する
-- [ ] SSG で埋め込めることを説明しよう
-- [x] preload 挿入
 - DX
   - sol: 細粒度 HMR (Island単位の差分更新、状態保持)
   - sol: Vite plugin 版 HMR (Vite の HMR API を利用)
@@ -63,6 +65,7 @@
 
 ## Done
 
+- localStorage 保存を独自シリアライズに変更する
 - [x] sol multi-runtime support (Node.js, Cloudflare Workers, Deno, Bun)
   - ServerRuntime enum, sol.config.json の runtime フィールド, wrangler で動作確認済み
 - [x] client trigger を astro と互換にする (`luna:trigger` → `luna:client-trigger`)
@@ -88,6 +91,7 @@
   - [x] BF Cache 最適化
   - [x] MPA Mode
   - [x] sol generate で `.sol/client/exports.mbt` を削除して直接 moon.pkg.json の link を更新する
+- [x] preload 挿入
 
 -----
 
@@ -138,4 +142,3 @@
 3. sol 中間ファイル見直し → 生成構造の確定
 4. ~~hot reload~~ ✓基本実装済み (WebSocket、ページリロード)
 5. 細粒度 HMR → Island差分更新、状態保持
-

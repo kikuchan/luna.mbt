@@ -115,6 +115,8 @@ pub(all) enum SidebarConfig {
 pub(all) struct SidebarGroup {
   /// Group title
   text : String
+  /// Link URL for the group title (from index.md)
+  link : String?
   /// Whether collapsed by default
   collapsed : Bool
   /// Items in the group

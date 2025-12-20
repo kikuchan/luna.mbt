@@ -57,7 +57,7 @@ test "IslandConfig::with_state: sets inline state" {
   let config : IslandConfig[Unit] = IslandConfig::new("test", "/test.js").with_state(
     "{\"count\":0}",
   )
-  assert_true(config.state is @mercurius.StateConfig::Inline(_))
+  assert_true(config.state is @stella.StateConfig::Inline(_))
 }
 
 ///|
@@ -65,7 +65,7 @@ test "IslandConfig::with_state_ref: sets script ref state" {
   let config : IslandConfig[Unit] = IslandConfig::new("test", "/test.js").with_state_ref(
     "state-script-id",
   )
-  assert_true(config.state is @mercurius.StateConfig::ScriptRef(_))
+  assert_true(config.state is @stella.StateConfig::ScriptRef(_))
 }
 
 ///|
@@ -73,7 +73,7 @@ test "IslandConfig::with_state_url: sets url state" {
   let config : IslandConfig[Unit] = IslandConfig::new("test", "/test.js").with_state_url(
     "/api/state",
   )
-  assert_true(config.state is @mercurius.StateConfig::Url(_))
+  assert_true(config.state is @stella.StateConfig::Url(_))
 }
 
 ///|
@@ -93,7 +93,7 @@ test "IslandConfig: builder chain" {
   assert_eq(config.id, "counter")
   assert_eq(config.script_url, "/counter.js")
   assert_true(config.trigger is @luna.TriggerType::Visible)
-  assert_true(config.state is @mercurius.StateConfig::Inline(_))
+  assert_true(config.state is @stella.StateConfig::Inline(_))
   assert_true(config.ssr_html is Some(_))
 }
 

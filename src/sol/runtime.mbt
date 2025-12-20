@@ -245,7 +245,7 @@ pub struct IslandConfig[E] {
   /// Hydration trigger type
   trigger : @luna.TriggerType
   /// State configuration
-  state : @mercurius.StateConfig
+  state : @stella.StateConfig
   /// SSR rendered content (VNode)
   content : @luna.Node[E]?
   /// SSR rendered HTML string (alternative to content)
@@ -262,7 +262,7 @@ pub fn[E] IslandConfig::new(
     id,
     script_url,
     trigger: @luna.TriggerType::Load,
-    state: @mercurius.StateConfig::Empty,
+    state: @stella.StateConfig::Empty,
     content: None,
     ssr_html: None,
   }
@@ -283,7 +283,7 @@ pub fn[E] IslandConfig::with_state(
   self : IslandConfig[E],
   json : String,
 ) -> IslandConfig[E] {
-  { ..self, state: @mercurius.StateConfig::Inline(json) }
+  { ..self, state: @stella.StateConfig::Inline(json) }
 }
 
 ///|
@@ -292,7 +292,7 @@ pub fn[E] IslandConfig::with_state_ref(
   self : IslandConfig[E],
   script_id : String,
 ) -> IslandConfig[E] {
-  { ..self, state: @mercurius.StateConfig::ScriptRef(script_id) }
+  { ..self, state: @stella.StateConfig::ScriptRef(script_id) }
 }
 
 ///|
@@ -301,7 +301,7 @@ pub fn[E] IslandConfig::with_state_url(
   self : IslandConfig[E],
   url : String,
 ) -> IslandConfig[E] {
-  { ..self, state: @mercurius.StateConfig::Url(url) }
+  { ..self, state: @stella.StateConfig::Url(url) }
 }
 
 ///|
@@ -336,18 +336,18 @@ pub fn[E] render_island(config : IslandConfig[E]) -> String {
   }
 
   // Convert state to shard format
-  let shard_config = @mercurius.ShardConfig::new(config.id, config.script_url)
+  let shard_config = @stella.ShardConfig::new(config.id, config.script_url)
     .with_trigger(config.trigger)
     .with_ssr_content(ssr_content)
 
   // Apply state configuration
   let final_config = match config.state {
-    @mercurius.StateConfig::Empty => shard_config
-    @mercurius.StateConfig::Inline(json) => shard_config.with_state(json)
-    @mercurius.StateConfig::ScriptRef(id) => shard_config.with_state_ref(id)
-    @mercurius.StateConfig::Url(url) => shard_config.with_state_url(url)
+    @stella.StateConfig::Empty => shard_config
+    @stella.StateConfig::Inline(json) => shard_config.with_state(json)
+    @stella.StateConfig::ScriptRef(id) => shard_config.with_state_ref(id)
+    @stella.StateConfig::Url(url) => shard_config.with_state_url(url)
   }
-  @mercurius.generate_shard(final_config).html
+  @stella.generate_shard(final_config).html
 }
 
 ///|
@@ -412,16 +412,16 @@ pub fn[E] render_island_with_state_script(
         None => ""
       }
   }
-  let shard_config = @mercurius.ShardConfig::new(config.id, config.script_url)
+  let shard_config = @stella.ShardConfig::new(config.id, config.script_url)
     .with_trigger(config.trigger)
     .with_ssr_content(ssr_content)
-  @mercurius.generate_shard_with_state_script(shard_config, state_json).html
+  @stella.generate_shard_with_state_script(shard_config, state_json).html
 }
 
 ///|
 /// Generate state script tag for external state
 pub fn generate_state_script(id : String, json : String) -> String {
-  @mercurius.generate_state_script(id, json)
+  @stella.generate_state_script(id, json)
 }
 
 ///|

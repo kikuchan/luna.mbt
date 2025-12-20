@@ -200,7 +200,7 @@ src/
 │   ├── js/                    # JS 固有
 │   │   └── api/               # JS 向け公開 API (@mizchi/luna)
 │   └── server_dom/            # サーバーサイド SSR ヘルパー
-├── mercurius/                 # Shard/Island 埋め込み
+├── stella/                    # Shard/Island 埋め込み
 ├── sol/                       # SSR フレームワーク (CLI + ランタイム)
 ├── examples/                  # サンプルアプリケーション
 └── tests/                     # テストフィクスチャ

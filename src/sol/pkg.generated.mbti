@@ -4,7 +4,7 @@ package "mizchi/luna/sol"
 import(
   "mizchi/js/web/http"
   "mizchi/luna/core/render"
-  "mizchi/luna/mercurius"
+  "mizchi/luna/stella"
   "mizchi/npm_typed/hono"
 )
 
@@ -126,7 +126,7 @@ pub struct IslandConfig[E] {
   id : String
   script_url : String
   trigger : @mizchi/luna/core.TriggerType
-  state : @mercurius.StateConfig
+  state : @stella.StateConfig
   content : @mizchi/luna/core.Node[E]?
   ssr_html : String?
 }

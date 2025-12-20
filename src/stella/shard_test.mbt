@@ -32,7 +32,7 @@ test "escape_json_for_script - escapes uppercase Script tag" {
 
 ///|
 test "generate_state_script - generates script element" {
-  let result = @mercurius.generate_state_script("my-state", "{\"count\":42}")
+  let result = @stella.generate_state_script("my-state", "{\"count\":42}")
   assert_true(result.has_prefix("<script id=\"my-state\""))
   assert_true(result.contains("type=\"luna/json\""))
   assert_true(result.contains("{\"count\":42}"))
@@ -87,8 +87,8 @@ test "TriggerType::parse - parses from string" {
 
 ///|
 test "format_state_attr - inline JSON" {
-  let result = @mercurius.format_state_attr(
-    @mercurius.StateConfig::Inline("{\"x\":1}"),
+  let result = @stella.format_state_attr(
+    @stella.StateConfig::Inline("{\"x\":1}"),
   )
   // " is escaped as &quot; for HTML attribute safety
   assert_eq(result, Some("{&quot;x&quot;:1}"))
@@ -96,30 +96,30 @@ test "format_state_attr - inline JSON" {
 
 ///|
 test "format_state_attr - script reference" {
-  let result = @mercurius.format_state_attr(
-    @mercurius.StateConfig::ScriptRef("my-state"),
+  let result = @stella.format_state_attr(
+    @stella.StateConfig::ScriptRef("my-state"),
   )
   assert_eq(result, Some("#my-state"))
 }
 
 ///|
 test "format_state_attr - URL reference" {
-  let result = @mercurius.format_state_attr(
-    @mercurius.StateConfig::Url("https://api.example.com/state"),
+  let result = @stella.format_state_attr(
+    @stella.StateConfig::Url("https://api.example.com/state"),
   )
   assert_eq(result, Some("url:https://api.example.com/state"))
 }
 
 ///|
 test "format_state_attr - empty returns None" {
-  let result = @mercurius.format_state_attr(@mercurius.StateConfig::Empty)
+  let result = @stella.format_state_attr(@stella.StateConfig::Empty)
   assert_eq(result, None)
 }
 
 ///|
 test "generate_shard - minimal config" {
-  let config = @mercurius.ShardConfig::new("counter-1", "./counter.js")
-  let output = @mercurius.generate_shard(config)
+  let config = @stella.ShardConfig::new("counter-1", "./counter.js")
+  let output = @stella.generate_shard(config)
   assert_true(output.html.contains("luna:id=\"counter-1\""))
   assert_true(output.html.contains("luna:url=\"./counter.js\""))
   // load is default, should not be included
@@ -128,38 +128,38 @@ test "generate_shard - minimal config" {
 
 ///|
 test "generate_shard - with visible trigger" {
-  let config = @mercurius.ShardConfig::new("lazy-1", "./lazy.js").with_trigger(
+  let config = @stella.ShardConfig::new("lazy-1", "./lazy.js").with_trigger(
     @luna.TriggerType::Visible,
   )
-  let output = @mercurius.generate_shard(config)
+  let output = @stella.generate_shard(config)
   assert_true(output.html.contains("luna:client-trigger=\"visible\""))
 }
 
 ///|
 test "generate_shard - with inline state" {
-  let config = @mercurius.ShardConfig::new("stateful-1", "./stateful.js").with_state(
+  let config = @stella.ShardConfig::new("stateful-1", "./stateful.js").with_state(
     "{\"count\":0}",
   )
-  let output = @mercurius.generate_shard(config)
+  let output = @stella.generate_shard(config)
   // State is HTML-escaped for attribute safety
   assert_true(output.html.contains("luna:state=\"{&quot;count&quot;:0}\""))
 }
 
 ///|
 test "generate_shard - with SSR content" {
-  let config = @mercurius.ShardConfig::new("ssr-1", "./ssr.js").with_ssr_content(
+  let config = @stella.ShardConfig::new("ssr-1", "./ssr.js").with_ssr_content(
     "<span>Hello</span>",
   )
-  let output = @mercurius.generate_shard(config)
+  let output = @stella.generate_shard(config)
   assert_true(output.html.contains("<span>Hello</span>"))
 }
 
 ///|
 test "generate_shard - with loader" {
-  let config = @mercurius.ShardConfig::new("standalone-1", "./standalone.js").with_loader(
+  let config = @stella.ShardConfig::new("standalone-1", "./standalone.js").with_loader(
     "https://cdn.example.com/loader.min.js",
   )
-  let output = @mercurius.generate_shard(config)
+  let output = @stella.generate_shard(config)
   assert_true(
     output.html.contains(
       "<script type=\"module\" src=\"https://cdn.example.com/loader.min.js\">",
@@ -170,17 +170,17 @@ test "generate_shard - with loader" {
 
 ///|
 test "recommend_state_format - small state" {
-  assert_eq(@mercurius.recommend_state_format(500), "inline")
+  assert_eq(@stella.recommend_state_format(500), "inline")
 }
 
 ///|
 test "recommend_state_format - medium state" {
-  assert_eq(@mercurius.recommend_state_format(5000), "script_ref")
+  assert_eq(@stella.recommend_state_format(5000), "script_ref")
 }
 
 ///|
 test "recommend_state_format - large state" {
-  assert_eq(@mercurius.recommend_state_format(200000), "url")
+  assert_eq(@stella.recommend_state_format(200000), "url")
 }
 
 // ============================================================================
@@ -189,8 +189,8 @@ test "recommend_state_format - large state" {
 
 ///|
 test "generate_shard_with_state_script - creates script and reference" {
-  let config = @mercurius.ShardConfig::new("big-1", "./big.js")
-  let output = @mercurius.generate_shard_with_state_script(
+  let config = @stella.ShardConfig::new("big-1", "./big.js")
+  let output = @stella.generate_shard_with_state_script(
     config, "{\"data\":[1,2,3]}",
   )
   // Should have script reference in attributes
@@ -203,7 +203,7 @@ test "generate_shard_with_state_script - creates script and reference" {
 
 ///|
 test "generate_minimal_shard - creates minimal HTML" {
-  let html = @mercurius.generate_minimal_shard(
+  let html = @stella.generate_minimal_shard(
     "min-1", "./min.js", "{\"x\":1}", "<span>Content</span>",
   )
   assert_true(html.contains("luna:id=\"min-1\""))
@@ -217,7 +217,7 @@ test "generate_minimal_shard - creates minimal HTML" {
 
 ///|
 test "generate_standalone_shard - includes loader" {
-  let html = @mercurius.generate_standalone_shard(
+  let html = @stella.generate_standalone_shard(
     "standalone-1", "./standalone.js", "https://cdn.example.com/loader.js", "{\"y\":2}",
     "<div>SSR</div>",
   )
@@ -232,7 +232,7 @@ test "generate_standalone_shard - includes loader" {
 
 ///|
 test "generate_lazy_shard - uses visible trigger" {
-  let html = @mercurius.generate_lazy_shard(
+  let html = @stella.generate_lazy_shard(
     "lazy-1", "./lazy.js", "{\"z\":3}", "<p>Lazy</p>",
   )
   assert_true(html.contains("luna:client-trigger=\"visible\""))
@@ -242,10 +242,10 @@ test "generate_lazy_shard - uses visible trigger" {
 ///|
 test "generate_shard_group - single loader for multiple shards" {
   let configs = [
-    @mercurius.ShardConfig::new("s1", "./s1.js"),
-    @mercurius.ShardConfig::new("s2", "./s2.js"),
+    @stella.ShardConfig::new("s1", "./s1.js"),
+    @stella.ShardConfig::new("s2", "./s2.js"),
   ]
-  let html = @mercurius.generate_shard_group(
+  let html = @stella.generate_shard_group(
     "https://cdn.example.com/loader.js", configs,
   )
   // Should have single loader script at start
@@ -261,9 +261,9 @@ test "generate_shard_group - single loader for multiple shards" {
 
 ///|
 test "auto_select_state_format - small state uses inline" {
-  let base = @mercurius.ShardConfig::new("test-1", "./test.js")
+  let base = @stella.ShardConfig::new("test-1", "./test.js")
   let small_json = "{\"x\":1}"
-  let config = @mercurius.auto_select_state_format(small_json, base)
+  let config = @stella.auto_select_state_format(small_json, base)
   match config.state {
     Inline(json) => assert_eq(json, small_json)
     _ => fail("Expected Inline for small state")
@@ -272,7 +272,7 @@ test "auto_select_state_format - small state uses inline" {
 
 ///|
 test "auto_select_state_format - medium state uses script ref" {
-  let base = @mercurius.ShardConfig::new("test-2", "./test.js")
+  let base = @stella.ShardConfig::new("test-2", "./test.js")
   // Create a string larger than 1KB but smaller than 100KB
   let sb = StringBuilder::new()
   sb.write_string("{\"data\":\"")
@@ -281,7 +281,7 @@ test "auto_select_state_format - medium state uses script ref" {
   }
   sb.write_string("\"}")
   let medium_json = sb.to_string()
-  let config = @mercurius.auto_select_state_format(medium_json, base)
+  let config = @stella.auto_select_state_format(medium_json, base)
   match config.state {
     ScriptRef(id) => assert_eq(id, "luna-state-test-2")
     _ => fail("Expected ScriptRef for medium state")
@@ -290,10 +290,10 @@ test "auto_select_state_format - medium state uses script ref" {
 
 ///|
 test "generate_shard - with media trigger" {
-  let config = @mercurius.ShardConfig::new("media-1", "./media.js").with_trigger(
+  let config = @stella.ShardConfig::new("media-1", "./media.js").with_trigger(
     @luna.TriggerType::Media("(min-width: 768px)"),
   )
-  let output = @mercurius.generate_shard(config)
+  let output = @stella.generate_shard(config)
   assert_true(
     output.html.contains("luna:client-trigger=\"media:(min-width: 768px)\""),
   )

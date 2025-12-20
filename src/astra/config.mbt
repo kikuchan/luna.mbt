@@ -193,7 +193,7 @@ fn parse_sidebar_group_from_array(
       items.push(sidebar_item)
     }
   }
-  Some(SidebarGroup::{ text: path, collapsed: false, items })
+  Some(SidebarGroup::{ text: path, link: None, collapsed: false, items })
 }
 
 ///|
@@ -220,7 +220,7 @@ fn parse_sidebar_group(json : Json) -> SidebarGroup? {
     }
     _ => []
   }
-  Some(SidebarGroup::{ text, collapsed, items })
+  Some(SidebarGroup::{ text, link: None, collapsed, items })
 }
 
 ///|

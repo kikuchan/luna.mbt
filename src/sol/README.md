@@ -436,4 +436,4 @@ dev と prod を分離することで:
 
 - [Sol Architecture v2](../../docs/sol-architecture-v2.md) - 将来の設計提案
 - [Luna Core](../core/README.md) - VNode/Signal の詳細
-- [Shard Architecture](../mercurius/ARCHITECTURE.md) - Island 埋め込みの仕組み
+- [Shard Architecture](../stella/ARCHITECTURE.md) - Island 埋め込みの仕組み

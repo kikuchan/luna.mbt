@@ -872,6 +872,9 @@ fn get_navigation_script(
       #|  currentAbortController = new AbortController();
       #|  const urlObj = new URL(url, location.origin);
       #|  const hash = urlObj.hash;
+      #|  // Save sidebar scroll position before navigation
+      #|  const sidebar = document.querySelector('.sidebar-content');
+      #|  const sidebarScrollTop = sidebar ? sidebar.scrollTop : 0;
       #|  try {
       #|    const res = await fetch(url, { signal: currentAbortController.signal });
       #|    if (!res.ok) { location.href = url; return; }
@@ -886,6 +889,9 @@ fn get_navigation_script(
       #|    if (newTitle) document.title = newTitle;
       #|    if (pushState) history.pushState({}, '', url);
       #|    lastPathname = urlObj.pathname;
+      #|    // Restore sidebar scroll position
+      #|    const newSidebar = document.querySelector('.sidebar-content');
+      #|    if (newSidebar) newSidebar.scrollTop = sidebarScrollTop;
       #|    // Scroll: to hash target or top
       #|    if (hash) { scrollToHash(hash); } else { window.scrollTo({ top: 0, behavior: 'instant' }); }
       #|    // Re-run loader for new islands
@@ -894,8 +900,6 @@ fn get_navigation_script(
       #|    // Re-run Web Components loader
       #|    if (window.__LUNA_WC_CLEAR_LOADED__) window.__LUNA_WC_CLEAR_LOADED__();
       #|    if (window.__LUNA_WC_SCAN__) window.__LUNA_WC_SCAN__();
-      #|    // Re-initialize sidebar state
-      #|    if (window.__ASTRA_INIT_SIDEBAR__) window.__ASTRA_INIT_SIDEBAR__();
       #|  } catch (e) {
       #|    if (e.name !== 'AbortError') location.href = url;
       #|  }
@@ -933,8 +937,8 @@ fn get_navigation_script(
       #|    scrollToHash(url.hash);
       #|    return;
       #|  }
-      #|  // Skip if same page without hash
-      #|  if (url.pathname === location.pathname) return;
+      #|  // Skip if same page without hash (prevent default to avoid scroll jump)
+      #|  if (url.pathname === location.pathname) { e.preventDefault(); return; }
       #|  // Skip SPA for home page
       #|  if (isHomePage(url.href) || isHomePage(location.href)) return;
       #|  e.preventDefault();
@@ -1686,7 +1690,9 @@ fn get_default_css(config : @astra.SsgConfig) -> String {
     #|  text-transform: uppercase;
     #|  letter-spacing: 0.05em;
     #|}
-    #|.sidebar-items { list-style: none; }
+    #|.sidebar-items { list-style: none; margin: 0; padding: 0; }
+    #|.sidebar-items-inner { list-style: none; margin: 0; padding: 0; padding-left: 1rem; }
+    #|.sidebar-nested-group { list-style: none; }
     #|.sidebar-link {
     #|  display: block;
     #|  padding: 0.375rem 0;
