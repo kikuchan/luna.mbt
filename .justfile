@@ -76,11 +76,12 @@ test-moonbit:
 
 # クロスプラットフォームテスト (js, wasm-gc, native)
 test-xplat:
-    moon test --target all src/core/signal
-    moon test --target all src/core/routes
-    moon test --target all src/core/render
-    moon test --target all src/core/serialize
+    moon test --target all src/luna/signal
+    moon test --target all src/luna/routes
+    moon test --target all src/luna/render
+    moon test --target all src/luna/serialize
     moon test --target all src/core/parser
+    moon test --target all src/core/ssg
 
 # TypeScript 型チェック
 test-ts:

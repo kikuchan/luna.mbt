@@ -3,14 +3,16 @@ package "mizchi/luna/platform/dom/client"
 
 import(
   "mizchi/js/browser/dom"
+  "mizchi/js/core"
+  "mizchi/luna/luna"
 )
 
 // Values
 pub fn bind_actions_from_dom(@dom.Element, (String) -> Unit) -> Unit
 
-pub fn hydrate(@dom.Element, @mizchi/luna/core.Node[@mizchi/js/core.Any], recover_on_mismatch? : Bool, warn_on_mismatch? : Bool, logger? : StringBuilder) -> HydrationResult
+pub fn hydrate(@dom.Element, @luna.Node[@core.Any], recover_on_mismatch? : Bool, warn_on_mismatch? : Bool, logger? : StringBuilder) -> HydrationResult
 
-pub fn[State] hydrate_with_actions(@dom.Element, State, (State) -> @mizchi/luna/core.Node[@mizchi/js/core.Any], (State, String) -> State) -> Unit
+pub fn[State] hydrate_with_actions(@dom.Element, State, (State) -> @luna.Node[@core.Any], (State, String) -> State) -> Unit
 
 pub fn hydration_result_mismatch(String) -> HydrationResult
 
@@ -18,9 +20,9 @@ pub fn hydration_result_recovered(String) -> HydrationResult
 
 pub fn hydration_result_success() -> HydrationResult
 
-pub fn render_vnode(@dom.Element, @mizchi/luna/core.Node[@mizchi/js/core.Any]) -> Unit
+pub fn render_vnode(@dom.Element, @luna.Node[@core.Any]) -> Unit
 
-pub fn render_vnode_to_dom(@mizchi/luna/core.Node[@mizchi/js/core.Any]) -> @dom.Node
+pub fn render_vnode_to_dom(@luna.Node[@core.Any]) -> @dom.Node
 
 // Errors
 

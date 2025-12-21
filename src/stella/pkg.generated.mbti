@@ -2,7 +2,7 @@
 package "mizchi/luna/stella"
 
 import(
-  "mizchi/luna/core"
+  "mizchi/luna/luna"
 )
 
 // Values
@@ -40,7 +40,7 @@ pub fn recommend_state_format(Int) -> String
 pub struct ShardConfig {
   id : String
   script_url : String
-  trigger : @core.TriggerType
+  trigger : @luna.TriggerType
   state : StateConfig
   ssr_content : String?
   include_loader : Bool
@@ -53,7 +53,7 @@ pub fn ShardConfig::with_ssr_content(Self, String) -> Self
 pub fn ShardConfig::with_state(Self, String) -> Self
 pub fn ShardConfig::with_state_ref(Self, String) -> Self
 pub fn ShardConfig::with_state_url(Self, String) -> Self
-pub fn ShardConfig::with_trigger(Self, @core.TriggerType) -> Self
+pub fn ShardConfig::with_trigger(Self, @luna.TriggerType) -> Self
 
 pub struct ShardOutput {
   html : String

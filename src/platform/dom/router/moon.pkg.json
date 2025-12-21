@@ -1,7 +1,7 @@
 {
   "supported-targets": ["js"],
   "import": [
-    { "path": "mizchi/luna/core/routes", "alias": "routes" },
-    "mizchi/luna/core/signal"
+    { "path": "mizchi/luna/luna/routes", "alias": "routes" },
+    "mizchi/luna/luna/signal"
   ]
 }

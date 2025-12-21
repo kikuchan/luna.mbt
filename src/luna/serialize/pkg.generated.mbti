@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "mizchi/luna/core/serialize"
+package "mizchi/luna/luna/serialize"
 
 import(
-  "mizchi/luna/core/signal"
+  "mizchi/luna/luna/signal"
 )
 
 // Values

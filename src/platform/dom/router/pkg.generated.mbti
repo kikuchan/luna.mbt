@@ -2,8 +2,8 @@
 package "mizchi/luna/platform/dom/router"
 
 import(
-  "mizchi/luna/core/routes"
-  "mizchi/luna/core/signal"
+  "mizchi/luna/luna/routes"
+  "mizchi/luna/luna/signal"
 )
 
 // Values

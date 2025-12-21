@@ -4,10 +4,10 @@
   ],
   "import": [
     {
-      "path": "mizchi/luna/core",
+      "path": "mizchi/luna/luna",
       "alias": "luna"
     },
-    "mizchi/luna/core/signal",
+    "mizchi/luna/luna/signal",
     { "path": "mizchi/luna/internal/utils", "alias": "utils" },
     { "path": "mizchi/js/core", "alias": "js" },
     {
@@ -19,7 +19,7 @@
   ],
   "test-import": [
     "mizchi/npm_typed/global_jsdom",
-    { "path": "mizchi/luna/core/render", "alias": "render" },
+    { "path": "mizchi/luna/luna/render", "alias": "render" },
     { "path": "mizchi/luna/platform/dom/element", "alias": "element" }
   ]
 }

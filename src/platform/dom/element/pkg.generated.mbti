@@ -4,7 +4,7 @@ package "mizchi/luna/platform/dom/element"
 import(
   "mizchi/js/browser/dom"
   "mizchi/js/core"
-  "mizchi/luna/core/signal"
+  "mizchi/luna/luna/signal"
 )
 
 // Values

@@ -3,7 +3,7 @@ package "mizchi/luna/astra/markdown"
 
 import(
   "mizchi/luna/astra"
-  "mizchi/luna/core"
+  "mizchi/luna/luna"
 )
 
 // Values
@@ -11,9 +11,9 @@ pub fn convert_cst_document(@mizchi/markdown.Document) -> (@astra.Frontmatter, A
 
 pub fn extract_toc(Array[@astra.MdNode]) -> Array[TocItem]
 
-pub fn md_node_to_vnode(@astra.MdNode, islands_base_path? : String) -> @core.Node[Unit]
+pub fn md_node_to_vnode(@astra.MdNode, islands_base_path? : String) -> @luna.Node[Unit]
 
-pub fn md_nodes_to_vnode(Array[@astra.MdNode], islands_base_path? : String) -> @core.Node[Unit]
+pub fn md_nodes_to_vnode(Array[@astra.MdNode], islands_base_path? : String) -> @luna.Node[Unit]
 
 pub fn parse_code_block_info(String) -> CodeBlockInfo
 

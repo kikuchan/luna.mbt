@@ -2,12 +2,12 @@
 package "mizchi/luna/tests/counter_component"
 
 import(
-  "mizchi/luna/core"
-  "mizchi/luna/core/signal"
+  "mizchi/luna/luna"
+  "mizchi/luna/luna/signal"
 )
 
 // Values
-pub fn render_counter(@signal.Signal[Int], @core.EventHandler[Unit], @core.EventHandler[Unit]) -> @core.Node[Unit]
+pub fn render_counter(@signal.Signal[Int], @luna.EventHandler[Unit], @luna.EventHandler[Unit]) -> @luna.Node[Unit]
 
 pub fn render_counter_html(Int) -> String
 

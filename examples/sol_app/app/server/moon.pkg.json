@@ -4,7 +4,7 @@
   ],
   "import": [
     {
-      "path": "mizchi/luna/core",
+      "path": "mizchi/luna/luna",
       "alias": "luna"
     },
     {

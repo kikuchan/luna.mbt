@@ -2,8 +2,8 @@
 package "mizchi/luna/astra"
 
 import(
-  "mizchi/luna/core"
   "mizchi/luna/core/ssg"
+  "mizchi/luna/luna"
   "moonbitlang/core/json"
 )
 
@@ -27,7 +27,7 @@ pub(all) struct ComponentEmbed {
   tag : String
   attrs : Array[(String, String)]
   content : String
-  trigger : @core.TriggerType
+  trigger : @luna.TriggerType
 }
 pub fn ComponentEmbed::new(String) -> Self
 
@@ -71,7 +71,7 @@ pub fn Frontmatter::default() -> Self
 pub(all) struct IslandEmbed {
   name : String
   props : String
-  trigger : @core.TriggerType
+  trigger : @luna.TriggerType
   ssr : Bool
 }
 pub fn IslandEmbed::new(String) -> Self

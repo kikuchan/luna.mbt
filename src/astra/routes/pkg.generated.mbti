@@ -3,8 +3,8 @@ package "mizchi/luna/astra/routes"
 
 import(
   "mizchi/luna/astra"
-  "mizchi/luna/core"
   "mizchi/luna/core/ssg"
+  "mizchi/luna/luna"
 )
 
 // Values
@@ -30,9 +30,9 @@ pub fn get_sidebar_page_order(Array[@astra.SidebarGroup]) -> Array[String]
 
 pub fn group_pages_by_dir(Array[@astra.PageMeta]) -> Map[String, Array[@astra.PageMeta]]
 
-pub fn render_mobile_sidebar(Array[@astra.SidebarGroup], String) -> @core.Node[Unit]
+pub fn render_mobile_sidebar(Array[@astra.SidebarGroup], String) -> @luna.Node[Unit]
 
-pub fn render_sidebar(Array[@astra.SidebarGroup], String) -> @core.Node[Unit]
+pub fn render_sidebar(Array[@astra.SidebarGroup], String) -> @luna.Node[Unit]
 
 pub fn scan_docs_dir(String, String, i18n? : @ssg.I18nConfig, exclude? : Array[String], trailing_slash? : Bool) -> Array[@astra.PageMeta]
 

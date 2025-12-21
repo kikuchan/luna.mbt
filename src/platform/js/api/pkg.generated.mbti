@@ -3,8 +3,10 @@ package "mizchi/luna/platform/js/api"
 
 import(
   "mizchi/js/browser/dom"
-  "mizchi/luna/core/routes"
-  "mizchi/luna/core/signal"
+  "mizchi/js/core"
+  "mizchi/luna/luna"
+  "mizchi/luna/luna/routes"
+  "mizchi/luna/luna/signal"
   "mizchi/luna/platform/dom/element"
   "mizchi/luna/platform/dom/router"
 )
@@ -74,11 +76,11 @@ pub fn portal_with_shadow(Array[@element.DomNode]) -> @element.DomNode
 
 pub fn provide(JsContext, Any, () -> Any) -> Any
 
-pub fn register(String, (@dom.Element) -> @mizchi/luna/core.Node[@mizchi/js/core.Any]) -> Unit
+pub fn register(String, (@dom.Element) -> @luna.Node[@core.Any]) -> Unit
 
-pub fn register_shadow(String, mode? : String, (@dom.Element) -> @mizchi/luna/core.Node[@mizchi/js/core.Any]) -> Unit
+pub fn register_shadow(String, mode? : String, (@dom.Element) -> @luna.Node[@core.Any]) -> Unit
 
-pub fn register_with_attrs(String, Array[String], (@dom.Element, Map[String, @signal.Signal[String]]) -> @mizchi/luna/core.Node[@mizchi/js/core.Any]) -> Unit
+pub fn register_with_attrs(String, Array[String], (@dom.Element, Map[String, @signal.Signal[String]]) -> @luna.Node[@core.Any]) -> Unit
 
 pub fn render_to(@dom.Element, @element.DomNode) -> Unit
 

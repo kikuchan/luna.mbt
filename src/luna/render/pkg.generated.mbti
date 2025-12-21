@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "mizchi/luna/core/render"
+package "mizchi/luna/luna/render"
 
 import(
-  "mizchi/luna/core"
+  "mizchi/luna/luna"
 )
 
 // Values
@@ -32,11 +32,11 @@ pub fn needs_html_escape(String) -> Bool
 
 pub fn render_attr_value(StringBuilder, String, String) -> Unit
 
-pub fn[E] render_attrs_to(StringBuilder, Array[(String, @core.Attr[E])]) -> Unit
+pub fn[E] render_attrs_to(StringBuilder, Array[(String, @luna.Attr[E])]) -> Unit
 
-pub fn[E] render_to_string(@core.Node[E], preload? : Bool) -> SSRResult
+pub fn[E] render_to_string(@luna.Node[E], preload? : Bool) -> SSRResult
 
-pub fn[E] render_to_string_with_hydration(@core.Node[E]) -> String
+pub fn[E] render_to_string_with_hydration(@luna.Node[E]) -> String
 
 // Errors
 

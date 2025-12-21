@@ -3,9 +3,9 @@
     "js"
   ],
   "import": [
-    "mizchi/luna/core/signal",
+    "mizchi/luna/luna/signal",
     {
-      "path": "mizchi/luna/core",
+      "path": "mizchi/luna/luna",
       "alias": "luna"
     },
     {

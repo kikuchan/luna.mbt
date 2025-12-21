@@ -1,6 +1,6 @@
 {
   "import": [
-    { "path": "mizchi/luna/core", "alias": "luna" },
+    { "path": "mizchi/luna/luna", "alias": "luna" },
     { "path": "mizchi/luna/internal/utils", "alias": "utils" }
   ],
   "supported-targets": [
