@@ -65,5 +65,8 @@ fn run_clean_command(args : Array[String]) -> Unit {
 
 ///|
 /// Recursively remove a directory using Node.js fs.rmSync
-extern "js" fn rm_rf_sync(path : String) -> Unit =
-  #| (path) => { require('fs').rmSync(path, { recursive: true, force: true }); }
+fn rm_rf_sync(path : String) -> Unit {
+  @fs.rmSync(path, recursive=true, force=true) catch {
+    _ => ()
+  }
+}

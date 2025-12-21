@@ -71,8 +71,13 @@ test-e2e: build-moon
 # =============================================================================
 
 # MoonBit ユニットテスト
-test-moonbit:
+test-moonbit: _setup-test-env
     moon test --target js
+
+# moon test 用の CommonJS 環境をセットアップ (moon test が CJS を出力するため)
+_setup-test-env:
+    @mkdir -p target/js/debug/test
+    @echo '{"type": "commonjs"}' > target/js/debug/test/package.json
 
 # クロスプラットフォームテスト (js, wasm-gc, native)
 test-xplat:
