@@ -152,3 +152,4 @@ count.set(5)  // Prints: Count: 5, Doubled: 10
 Built with [MoonBit](https://www.moonbitlang.com/) - a fast, safe language designed for cloud and edge computing.
 
 [GitHub](https://github.com/aspect-build/aspect-cli) | [npm](https://www.npmjs.com/package/@mizchi/luna)
+
