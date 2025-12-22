@@ -1,25 +1,63 @@
 {
   "is-main": true,
-  "supported-targets": ["js"],
+  "supported-targets": [
+    "js"
+  ],
   "import": [
-    { "path": "mizchi/js/core", "alias": "js" },
-    { "path": "mizchi/js/web/console", "alias": "console" },
+    {
+      "path": "mizchi/js/core",
+      "alias": "js"
+    },
+    {
+      "path": "mizchi/js/web/console",
+      "alias": "console"
+    },
     "moonbitlang/async",
-    { "path": "mizchi/js/node/process", "alias": "process" },
-    { "path": "mizchi/js/node/fs", "alias": "fs" },
-    { "path": "mizchi/js/node/path", "alias": "path" },
-    { "path": "mizchi/js/node/util", "alias": "util" },
-    { "path": "mizchi/js/node/http", "alias": "http" },
-    { "path": "mizchi/npm_typed/colorette", "alias": "colorette" },
-    { "path": "mizchi/luna/astra", "alias": "astra" },
-    { "path": "mizchi/luna/astra/generator", "alias": "astra_gen" },
-    { "path": "mizchi/luna/astra/routes", "alias": "routes" },
-    { "path": "mizchi/luna/astra/shiki", "alias": "shiki" }
+    {
+      "path": "mizchi/js/node/process",
+      "alias": "process"
+    },
+    {
+      "path": "mizchi/js/node/fs",
+      "alias": "fs"
+    },
+    {
+      "path": "mizchi/js/node/path",
+      "alias": "path"
+    },
+    {
+      "path": "mizchi/js/node/util",
+      "alias": "util"
+    },
+    {
+      "path": "mizchi/js/node/http",
+      "alias": "http"
+    },
+    {
+      "path": "mizchi/npm_typed/colorette",
+      "alias": "colorette"
+    },
+    {
+      "path": "mizchi/luna/astra",
+      "alias": "astra"
+    },
+    {
+      "path": "mizchi/luna/astra/generator",
+      "alias": "astra_gen"
+    },
+    {
+      "path": "mizchi/luna/astra/routes",
+      "alias": "routes"
+    },
+    {
+      "path": "mizchi/luna/astra/shiki",
+      "alias": "shiki"
+    }
   ],
   "warn-list": "-27-20",
   "link": {
     "js": {
-      "format": "cjs"
+      "format": "esm"
     }
   }
 }

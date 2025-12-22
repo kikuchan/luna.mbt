@@ -270,6 +270,142 @@ fn get_url_dir(url_path : String) -> String {
 }
 
 // =============================================================================
+// FileSystem Trait Compatible Scanning
+// =============================================================================
+
+///|
+/// Scan docs directory using FileSystem trait (for testing with memfs)
+pub fn[FS : @env.FileSystem] scan_docs_dir_with_fs(
+  filesystem : FS,
+  docs_dir : String,
+  cwd : String,
+  i18n? : @astra.I18nConfig = @astra.I18nConfig::default(),
+  exclude? : Array[String] = [],
+  trailing_slash? : Bool = true,
+) -> Array[@astra.PageMeta] {
+  let pages : Array[@astra.PageMeta] = []
+  let full_path = join_path_simple(cwd, docs_dir)
+  if not(@env.FileSystem::exists_sync(filesystem, full_path)) {
+    return pages
+  }
+  scan_recursive_with_fs(
+    filesystem,
+    full_path,
+    "",
+    docs_dir,
+    cwd,
+    i18n,
+    exclude,
+    pages,
+    trailing_slash,
+  )
+  pages
+}
+
+///|
+/// Recursively scan directory with FileSystem trait
+fn[FS : @env.FileSystem] scan_recursive_with_fs(
+  filesystem : FS,
+  dir_path : String,
+  relative_path : String,
+  docs_dir : String,
+  cwd : String,
+  i18n : @astra.I18nConfig,
+  exclude : Array[String],
+  pages : Array[@astra.PageMeta],
+  trailing_slash : Bool,
+) -> Unit {
+  let entries : Array[String] = try {
+    @env.FileSystem::readdir_sync(filesystem, dir_path)
+  } catch {
+    _ => return
+  }
+  for entry in entries {
+    let entry_path = join_path_simple(dir_path, entry)
+    let entry_relative = if relative_path.is_empty() {
+      entry
+    } else {
+      relative_path + "/" + entry
+    }
+    if is_directory_with_fs(filesystem, entry_path) {
+      // Skip excluded directories
+      if is_excluded(entry, entry_relative, exclude) {
+        continue
+      }
+      // Recurse into subdirectory
+      scan_recursive_with_fs(
+        filesystem,
+        entry_path,
+        entry_relative,
+        docs_dir,
+        cwd,
+        i18n,
+        exclude,
+        pages,
+        trailing_slash,
+      )
+    } else if entry.has_suffix(".md") {
+      // Process markdown file
+      let source_path = entry_relative
+
+      // Detect locale from path
+      let (locale, canonical_path) = detect_locale_from_path(
+        source_path,
+        i18n,
+        trailing_slash~,
+      )
+      let url_path = build_localized_url(canonical_path, locale, i18n)
+
+      // Build sort key for ordering (preserves numeric prefixes)
+      let sort_key = @ssg.build_sort_key(source_path)
+
+      // Parse frontmatter to get title
+      let content : String = try {
+        @env.FileSystem::read_file_sync(filesystem, entry_path)
+      } catch {
+        _ => continue
+      }
+      let (frontmatter, _) = @markdown.parse_markdown(content)
+      let page = @astra.PageMeta::{
+        source_path,
+        url_path,
+        frontmatter,
+        last_modified: None, // memfs doesn't provide consistent mtime
+        locale,
+        canonical_path,
+        sort_key,
+      }
+      pages.push(page)
+    }
+  }
+}
+
+///|
+/// Check if path is a directory using FileSystem trait
+fn[FS : @env.FileSystem] is_directory_with_fs(
+  filesystem : FS,
+  path : String,
+) -> Bool {
+  try {
+    @env.FileSystem::is_directory_sync(filesystem, path)
+  } catch {
+    _ => false
+  }
+}
+
+///|
+/// Simple path join (without using @path which requires Node.js)
+fn join_path_simple(base : String, name : String) -> String {
+  if base.is_empty() {
+    name
+  } else if base.has_suffix("/") {
+    base + name
+  } else {
+    base + "/" + name
+  }
+}
+
+// =============================================================================
 // Navigation Generation
 // =============================================================================
 

@@ -3,6 +3,7 @@ package "mizchi/luna/astra/routes"
 
 import(
   "mizchi/luna/astra"
+  "mizchi/luna/core/env"
   "mizchi/luna/core/ssg"
   "mizchi/luna/luna"
 )
@@ -35,6 +36,8 @@ pub fn render_mobile_sidebar(Array[@astra.SidebarGroup], String) -> @luna.Node[U
 pub fn render_sidebar(Array[@astra.SidebarGroup], String) -> @luna.Node[Unit]
 
 pub fn scan_docs_dir(String, String, i18n? : @ssg.I18nConfig, exclude? : Array[String], trailing_slash? : Bool) -> Array[@astra.PageMeta]
+
+pub fn[FS : @env.FileSystem] scan_docs_dir_with_fs(FS, String, String, i18n? : @ssg.I18nConfig, exclude? : Array[String], trailing_slash? : Bool) -> Array[@astra.PageMeta]
 
 pub fn sort_pages(Array[@astra.PageMeta]) -> Array[@astra.PageMeta]
 
