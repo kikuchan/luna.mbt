@@ -26,7 +26,7 @@
   "theme": {
     "primaryColor": "#fbbf24",
     "socialLinks": [
-      { "icon": "github", "link": "https://github.com/prafster/luna.mbt" }
+      { "icon": "github", "link": "https://github.com/mizchi/luna.mbt" }
     ],
     "footer": {
       "message": "Released under the MIT License.",
@@ -44,7 +44,7 @@
         {
           "title": "Community",
           "items": [
-            { "label": "GitHub", "href": "https://github.com/prafster/luna.mbt" },
+            { "label": "GitHub", "href": "https://github.com/mizchi/luna.mbt" },
             { "label": "MoonBit", "href": "https://www.moonbitlang.com/" }
           ]
         },
