@@ -200,8 +200,8 @@ astra *args: build-moon
 # ドキュメント
 # =============================================================================
 
-# docs 開発サーバー
-doc: build-moon
+# docs 開発サーバー（インクリメンタルビルド）
+dev-doc: build-moon
     node target/js/release/build/astra/cli/cli.js dev
 
 # docs ビルド

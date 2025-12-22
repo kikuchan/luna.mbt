@@ -1,6 +1,85 @@
 // Astra dev command - Development server with watch mode
 //
 
+// HMR WebSocket port
+let hmr_port : Int = 24679
+
+///|
+/// HMR WebSocket server handle
+struct HmrServer {
+  inner : @js.Any
+  port : Int
+}
+
+///|
+fn HmrServer::start(port : Int) -> HmrServer {
+  let ws = @node.esm_require("ws")
+  let wss_class = ws["WebSocketServer"]
+  let inner = create_wss_instance(wss_class, port)
+  let server = HmrServer::{ inner, port }
+  inner._call("on", [
+    @js.any("connection"),
+    @js.any(fn(_ws : @js.Any) {
+      println(@colorette.gray("[HMR] Client connected"))
+    }),
+  ])
+  |> ignore
+  inner._call("on", [
+    @js.any("error"),
+    @js.any(fn(err : @js.Any) {
+      console_error(@colorette.red("[HMR] Server error: \{err}"))
+    }),
+  ])
+  |> ignore
+  println(@colorette.cyan("[HMR] WebSocket server on port \{port}"))
+  server
+}
+
+///|
+extern "js" fn create_wss_instance(wss_class : @js.Any, port : Int) -> @js.Any =
+  #| (WSSClass, port) => new WSSClass({ port })
+
+///|
+fn HmrServer::broadcast(self : HmrServer, message : String) -> Unit {
+  self.inner._call("clients", [])._call("forEach", [
+    @js.any(fn(client : @js.Any) {
+      let ready_state : Int = client["readyState"].cast()
+      if ready_state == 1 {
+        // WebSocket.OPEN
+        client._call("send", [@js.any(message)]) |> ignore
+      }
+    }),
+  ])
+  |> ignore
+}
+
+///|
+fn HmrServer::notify_reload(self : HmrServer) -> Unit {
+  self.broadcast("{\"type\":\"reload\"}")
+  println(@colorette.green("[HMR] Sent reload"))
+}
+
+///|
+/// HMR client script to inject into HTML
+fn hmr_client_script(port : Int) -> String {
+  let script =
+    #|<script>
+    #|(function() {
+    #|  const ws = new WebSocket('ws://localhost:__HMR_PORT__');
+    #|  ws.onmessage = (e) => {
+    #|    const data = JSON.parse(e.data);
+    #|    if (data.type === 'reload') {
+    #|      console.log('[HMR] Reloading...');
+    #|      location.reload();
+    #|    }
+    #|  };
+    #|  ws.onopen = () => console.log('[HMR] Connected');
+    #|  ws.onclose = () => console.log('[HMR] Disconnected');
+    #|})();
+    #|</script>
+  script.replace(old="__HMR_PORT__", new=port.to_string())
+}
+
 ///|
 fn show_dev_help() -> Unit {
   let help =
@@ -78,10 +157,13 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   println("")
   run_build_async(config, cwd)
 
-  // Start server
+  // Start HMR WebSocket server
+  let hmr_server = HmrServer::start(hmr_port)
+
+  // Start HTTP server
   let output_dir = @path.join2(cwd, config.output_dir)
   let server = @http.createServer(requestListener=fn(req, res) {
-    serve_file(req, res, output_dir)
+    serve_file_with_hmr(req, res, output_dir, hmr_port)
   })
   let _ = server.listen(port, callback=fn() {
     println("")
@@ -137,6 +219,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
         )
         known_pages[source_path] = true
         run_build_sync(config, cwd, highlighter)
+        hmr_server.notify_reload()
       } else if not(file_exists) && is_known {
         // File deleted - need full rebuild for sidebar
         println(
@@ -146,6 +229,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
         )
         let _ = known_pages.remove(source_path)
         run_build_sync(config, cwd, highlighter)
+        hmr_server.notify_reload()
       } else if file_exists && is_known {
         // Existing file updated - incremental build
         println(
@@ -154,6 +238,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
           ),
         )
         rebuild_single_page(build_ctx, source_path, highlighter)
+        hmr_server.notify_reload()
       }
     } else if filename.ends_with(".json") {
       // Config change - full rebuild
@@ -163,12 +248,14 @@ async fn run_dev_command(args : Array[String]) -> Unit {
         ),
       )
       run_build_sync(config, cwd, highlighter)
+      hmr_server.notify_reload()
     } else if filename.ends_with(".js") {
       // Component change - just copy components
       println(
         @colorette.yellow("[\{event_type}] \{filename} - copying components..."),
       )
       copy_components_only(config, cwd)
+      hmr_server.notify_reload()
     }
   })
 
@@ -268,10 +355,11 @@ async fn run_build_async(config : @astra.SsgConfig, cwd : String) -> Unit {
 }
 
 ///|
-fn serve_file(
+fn serve_file_with_hmr(
   req : @http.IncomingMessage,
   res : @http.ServerResponse,
   output_dir : String,
+  hmr_port : Int,
 ) -> Unit {
   let url = req.url.or("/")
   // Parse URL path (strip query string)
@@ -292,27 +380,27 @@ fn serve_file(
   // Try different file resolutions in order:
   // 1. Exact path (for files with extensions)
   if @fs.existsSync(base_path) && path_part.contains(".") {
-    serve_static_file(res, base_path)
+    serve_with_hmr_injection(res, base_path, hmr_port)
     return
   }
 
   // 2. path/index.html (directory index)
   let index_path = @path.join2(base_path, "index.html")
   if @fs.existsSync(index_path) {
-    serve_static_file(res, index_path)
+    serve_with_hmr_injection(res, index_path, hmr_port)
     return
   }
 
   // 3. path.html (clean URLs without trailing slash)
   let html_path = base_path + ".html"
   if @fs.existsSync(html_path) {
-    serve_static_file(res, html_path)
+    serve_with_hmr_injection(res, html_path, hmr_port)
     return
   }
 
   // 4. Exact path without extension check
   if @fs.existsSync(base_path) {
-    serve_static_file(res, base_path)
+    serve_with_hmr_injection(res, base_path, hmr_port)
     return
   }
   res.writeHead(404) |> ignore
@@ -320,7 +408,12 @@ fn serve_file(
 }
 
 ///|
-fn serve_static_file(res : @http.ServerResponse, file_path : String) -> Unit {
+/// Serve file with HMR script injection for HTML files
+fn serve_with_hmr_injection(
+  res : @http.ServerResponse,
+  file_path : String,
+  hmr_port : Int,
+) -> Unit {
   let content : String = @fs.readFileSync(file_path).to_string() catch {
     _ => {
       res.writeHead(500) |> ignore
@@ -332,7 +425,15 @@ fn serve_static_file(res : @http.ServerResponse, file_path : String) -> Unit {
   res.setHeader("Content-Type", content_type)
   res.setHeader("Cache-Control", "no-cache")
   res.writeHead(200) |> ignore
-  res.end(data=content)
+
+  // Inject HMR script into HTML files
+  if file_path.ends_with(".html") {
+    let hmr_script = hmr_client_script(hmr_port)
+    let injected = content.replace(old="</body>", new=hmr_script + "</body>")
+    res.end(data=injected)
+  } else {
+    res.end(data=content)
+  }
 }
 
 ///|
