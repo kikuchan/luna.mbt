@@ -6,6 +6,7 @@ package "mizchi/luna/astra/cli"
 // Errors
 
 // Types and methods
+type HmrServer
 
 // Type aliases
 

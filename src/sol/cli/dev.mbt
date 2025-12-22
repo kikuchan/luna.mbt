@@ -23,6 +23,15 @@ fn show_dev_help() -> Unit {
 
 ///|
 fn run_dev_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_dev_command_with_fs(fs, args)
+}
+
+///|
+fn[FS : @env.FileSystem] run_dev_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   // Parse dev command options
   let result = @util.parseArgs(
     args~,
@@ -58,7 +67,7 @@ fn run_dev_command(args : Array[String]) -> Unit {
   let cwd = @process.cwd()
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
-  if not(@fs.existsSync(moon_mod_path)) {
+  if not(fs.exists_sync(moon_mod_path)) {
     console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
@@ -71,14 +80,14 @@ fn run_dev_command(args : Array[String]) -> Unit {
     let gen_dir = @path.join2(cwd, "app/__gen__")
     let target_dir = @path.join2(cwd, "target")
     println(@colorette.gray("Cleaning generated files..."))
-    if @fs.existsSync(sol_dir) {
-      rm_rf_sync(sol_dir)
+    if fs.exists_sync(sol_dir) {
+      rm_rf_sync_with_fs(fs, sol_dir)
     }
-    if @fs.existsSync(gen_dir) {
-      rm_rf_sync(gen_dir)
+    if fs.exists_sync(gen_dir) {
+      rm_rf_sync_with_fs(fs, gen_dir)
     }
-    if @fs.existsSync(target_dir) {
-      rm_rf_sync(target_dir)
+    if fs.exists_sync(target_dir) {
+      rm_rf_sync_with_fs(fs, target_dir)
     }
     println(@colorette.green("✓ Clean complete"))
   }
@@ -98,19 +107,28 @@ fn run_dev_command(args : Array[String]) -> Unit {
 /// Run initial build steps for dev mode (includes sol generate)
 /// Returns true on success, false on failure
 fn run_initial_build_dev(cwd : String) -> Bool {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_initial_build_dev_with_fs(fs, cwd)
+}
+
+///|
+fn[FS : @env.FileSystem] run_initial_build_dev_with_fs(
+  fs : FS,
+  cwd : String,
+) -> Bool {
   // Clean stale static files before rebuild to avoid hash conflicts
   let static_dir = @path.join2(cwd, ".sol/dev/static")
-  if @fs.existsSync(static_dir) {
-    rm_rf_sync(static_dir)
+  if fs.exists_sync(static_dir) {
+    rm_rf_sync_with_fs(fs, static_dir)
   }
   // Also remove .sol/prod to avoid serve_static priority issues
   let prod_dir = @path.join2(cwd, ".sol/prod")
-  if @fs.existsSync(prod_dir) {
-    rm_rf_sync(prod_dir)
+  if fs.exists_sync(prod_dir) {
+    rm_rf_sync_with_fs(fs, prod_dir)
   }
   // Run generate if sol.config.json exists (only at startup)
   let sol_config_path = @path.join2(cwd, "sol.config.json")
-  if @fs.existsSync(sol_config_path) {
+  if fs.exists_sync(sol_config_path) {
     println(@colorette.gray("Generating .sol directory..."))
     run_generate_command(["--mode", "dev"])
     println(@colorette.green("✓ Generate complete"))
@@ -124,10 +142,19 @@ fn run_initial_build_dev(cwd : String) -> Bool {
 /// Skips sol generate for faster rebuilds
 /// Returns true on success, false on failure
 fn run_incremental_build_dev(cwd : String) -> Bool {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_incremental_build_dev_with_fs(fs, cwd)
+}
+
+///|
+fn[FS : @env.FileSystem] run_incremental_build_dev_with_fs(
+  fs : FS,
+  cwd : String,
+) -> Bool {
   // Clean stale static files before rebuild to avoid hash conflicts
   let static_dir = @path.join2(cwd, ".sol/dev/static")
-  if @fs.existsSync(static_dir) {
-    rm_rf_sync(static_dir)
+  if fs.exists_sync(static_dir) {
+    rm_rf_sync_with_fs(fs, static_dir)
   }
   // Build MoonBit project
   println(@colorette.gray("Building MoonBit project..."))
@@ -150,7 +177,7 @@ fn run_incremental_build_dev(cwd : String) -> Bool {
   println(@colorette.green("✓ Build complete"))
   // Bundle client code with rolldown if manifest exists
   let manifest_path = @path.join2(cwd, ".sol/dev/manifest.json")
-  if @fs.existsSync(manifest_path) {
+  if fs.exists_sync(manifest_path) {
     println(
       @colorette.gray("Bundling client code with rolldown -> .sol/dev/static/"),
     )
@@ -184,8 +211,9 @@ let hmr_port : Int = 24678
 ///|
 /// Run dev server with watch mode
 fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
   // Find server entry point
-  let entry = find_server_entry(cwd, "dev")
+  let entry = find_server_entry_with_fs(fs, cwd, "dev")
   match entry {
     None => {
       console_error(@colorette.red("Error: Could not find server entry point"))
@@ -251,10 +279,11 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
       let last_rebuild : Ref[Double] = { val: 0.0 }
       let debounce_ms = 300.0
       // Watch src directory (and app if exists)
+      // Note: @fs.watch is kept as-is since file watching is not part of FileSystem trait
       let watch_dirs = ["src", "app"]
       for dir in watch_dirs {
         let watch_path = @path.join2(cwd, dir)
-        if @fs.existsSync(watch_path) {
+        if fs.exists_sync(watch_path) {
           let _watcher = @fs.watch(watch_path, recursive=true, listener=fn(
             event : String,
             filename : String,
@@ -317,7 +346,11 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
 
 ///|
 /// Find server entry point
-fn find_server_entry(cwd : String, mode : String) -> String? {
+fn[FS : @env.FileSystem] find_server_entry_with_fs(
+  fs : FS,
+  cwd : String,
+  mode : String,
+) -> String? {
   let possible_entries = [
     ".sol/\{mode}/server/main.js",
     "target/js/release/build/__gen__/server/server.js",
@@ -327,7 +360,7 @@ fn find_server_entry(cwd : String, mode : String) -> String? {
   ]
   for entry in possible_entries {
     let entry_path = @path.join2(cwd, entry)
-    if @fs.existsSync(entry_path) {
+    if fs.exists_sync(entry_path) {
       return Some(entry)
     }
   }
@@ -344,6 +377,17 @@ extern "js" fn keep_alive() -> Unit =
 
 ///|
 fn run_server(cwd : String, port : String, mode : String) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_server_with_fs(fs, cwd, port, mode)
+}
+
+///|
+fn[FS : @env.FileSystem] run_server_with_fs(
+  fs : FS,
+  cwd : String,
+  port : String,
+  mode : String,
+) -> Unit {
   // Step 5: Find and run the server entry point
   // For dev mode, prefer .sol/dev/server/main.js; for prod, .sol/prod/server/main.js
   let possible_entries = [
@@ -356,7 +400,7 @@ fn run_server(cwd : String, port : String, mode : String) -> Unit {
   let mut entry_point : String? = None
   for entry in possible_entries {
     let entry_path = @path.join2(cwd, entry)
-    if @fs.existsSync(entry_path) {
+    if fs.exists_sync(entry_path) {
       entry_point = Some(entry)
       break
     }

@@ -13,7 +13,7 @@ pub fn NodeFsAdapter::new() -> NodeFsAdapter {
 ///|
 pub impl @env.FileSystem for NodeFsAdapter with read_file_sync(self, path) {
   let _ = self
-  @js.throwable(fn() { @fs.read_file_as_string(path, encoding="utf8") })
+  @fs.read_file_as_string(path, encoding="utf8")
 }
 
 ///|
@@ -23,7 +23,7 @@ pub impl @env.FileSystem for NodeFsAdapter with write_file_sync(
   content,
 ) {
   let _ = self
-  @js.throwable(fn() { @fs.writeFileSync(path, @js.any(content)) })
+  @fs.writeFileSync(path, @js.any(content))
 }
 
 ///|
@@ -39,25 +39,25 @@ pub impl @env.FileSystem for NodeFsAdapter with mkdir_sync(
   recursive,
 ) {
   let _ = self
-  @js.throwable(fn() { @fs.mkdirSync(path, recursive~) })
+  @fs.mkdirSync(path, recursive~)
 }
 
 ///|
 pub impl @env.FileSystem for NodeFsAdapter with readdir_sync(self, path) {
   let _ = self
-  @js.throwable(fn() { @fs.readdirSync(path) })
+  @fs.readdirSync(path)
 }
 
 ///|
 pub impl @env.FileSystem for NodeFsAdapter with is_file_sync(self, path) {
   let _ = self
-  @js.throwable(fn() { @fs.statSync(path).isFile() })
+  @fs.statSync(path).isFile()
 }
 
 ///|
 pub impl @env.FileSystem for NodeFsAdapter with is_directory_sync(self, path) {
   let _ = self
-  @js.throwable(fn() { @fs.statSync(path).isDirectory() })
+  @fs.statSync(path).isDirectory()
 }
 
 ///|
@@ -68,13 +68,13 @@ pub impl @env.FileSystem for NodeFsAdapter with cp_sync(
   recursive,
 ) {
   let _ = self
-  @js.throwable(fn() { @fs.cpSync(src, dest, recursive~) })
+  @fs.cpSync(src, dest, recursive~)
 }
 
 ///|
 pub impl @env.FileSystem for NodeFsAdapter with unlink_sync(self, path) {
   let _ = self
-  @js.throwable(fn() { @fs.unlinkSync(path) })
+  @fs.unlinkSync(path)
 }
 
 ///|
@@ -84,5 +84,5 @@ pub impl @env.FileSystem for NodeFsAdapter with rmdir_sync(
   recursive,
 ) {
   let _ = self
-  @js.throwable(fn() { @fs.rmdirSync(path, recursive~) })
+  @fs.rmdirSync(path, recursive~)
 }

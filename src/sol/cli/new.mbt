@@ -22,6 +22,15 @@ fn show_new_help() -> Unit {
 
 ///|
 fn run_new_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_new_command_with_fs(fs, args)
+}
+
+///|
+fn[FS : @env.FileSystem] run_new_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   // Parse new command options
   let result = @util.parseArgs(
     args~,
@@ -79,7 +88,7 @@ fn run_new_command(args : Array[String]) -> Unit {
   let cwd = @process.cwd()
   let project_dir = @path.join2(cwd, project_name)
   // Check if project directory already exists
-  if @fs.existsSync(project_dir) {
+  if fs.exists_sync(project_dir) {
     console_error(
       @colorette.red("Error: Directory '\{project_name}' already exists"),
     )
@@ -97,8 +106,8 @@ fn run_new_command(args : Array[String]) -> Unit {
     let dir_path = @path.dirname(file_path)
     // Create parent directories if needed
     try {
-      @fs.mkdirSync(dir_path, recursive=true)
-      @fs.writeFileSync(file_path, @js.any(tmpl.content))
+      fs.mkdir_sync(dir_path, true)
+      fs.write_file_sync(file_path, tmpl.content)
     } catch {
       e => {
         console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))

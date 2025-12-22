@@ -18,6 +18,14 @@
       "alias": "process"
     },
     {
+      "path": "mizchi/luna/core/env",
+      "alias": "env"
+    },
+    {
+      "path": "mizchi/luna/platform/js/fs_adapter",
+      "alias": "fs_adapter"
+    },
+    {
       "path": "mizchi/js/node/fs",
       "alias": "fs"
     },

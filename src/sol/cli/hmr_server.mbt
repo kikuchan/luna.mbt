@@ -153,7 +153,7 @@ fn escape_json_string(s : String) -> String {
 ///|
 /// Create WebSocket server using 'ws' package
 fn create_ws_server_sync(port : Int) -> @js.Any {
-  let ws = @node.esm_require("ws")
+  let ws = @node.require("ws")
   let wss_class = ws["WebSocketServer"]
   create_wss_instance(wss_class, port)
 }

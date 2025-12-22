@@ -16,78 +16,8 @@ pub fn scan_docs_dir(
   exclude? : Array[String] = [],
   trailing_slash? : Bool = true,
 ) -> Array[@astra.PageMeta] {
-  let pages : Array[@astra.PageMeta] = []
-  let full_path = @path.join2(cwd, docs_dir)
-  if not(@fs.existsSync(full_path)) {
-    return pages
-  }
-  scan_recursive(
-    full_path, "", docs_dir, cwd, i18n, exclude, pages, trailing_slash,
-  )
-  pages
-}
-
-///|
-/// Recursively scan directory
-fn scan_recursive(
-  dir_path : String,
-  relative_path : String,
-  docs_dir : String,
-  cwd : String,
-  i18n : @astra.I18nConfig,
-  exclude : Array[String],
-  pages : Array[@astra.PageMeta],
-  trailing_slash : Bool,
-) -> Unit {
-  let entries : Array[String] = @fs.readdirSync(dir_path) catch { _ => return }
-  for entry in entries {
-    let entry_path = @path.join2(dir_path, entry)
-    let entry_relative = if relative_path.is_empty() {
-      entry
-    } else {
-      relative_path + "/" + entry
-    }
-    if is_directory(entry_path) {
-      // Skip excluded directories
-      if is_excluded(entry, entry_relative, exclude) {
-        continue
-      }
-      // Recurse into subdirectory
-      scan_recursive(
-        entry_path, entry_relative, docs_dir, cwd, i18n, exclude, pages, trailing_slash,
-      )
-    } else if entry.has_suffix(".md") {
-      // Process markdown file
-      let source_path = entry_relative
-
-      // Detect locale from path
-      let (locale, canonical_path) = detect_locale_from_path(
-        source_path,
-        i18n,
-        trailing_slash~,
-      )
-      let url_path = build_localized_url(canonical_path, locale, i18n)
-
-      // Build sort key for ordering (preserves numeric prefixes)
-      let sort_key = @ssg.build_sort_key(source_path)
-
-      // Parse frontmatter to get title
-      let content : String = @fs.readFileSync(entry_path).to_string() catch {
-        _ => continue
-      }
-      let (frontmatter, _) = @markdown.parse_markdown(content)
-      let page = @astra.PageMeta::{
-        source_path,
-        url_path,
-        frontmatter,
-        last_modified: get_file_mtime(entry_path),
-        locale,
-        canonical_path,
-        sort_key,
-      }
-      pages.push(page)
-    }
-  }
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  scan_docs_dir_with_fs(fs, docs_dir, cwd, i18n~, exclude~, trailing_slash~)
 }
 
 ///|
@@ -140,14 +70,6 @@ fn build_localized_url(
 }
 
 ///|
-/// Check if path is a directory
-fn is_directory(path : String) -> Bool {
-  @fs.statSync(path).isDirectory() catch {
-    _ => false
-  }
-}
-
-///|
 /// Check if directory should be excluded
 /// Matches against directory name or relative path
 fn is_excluded(
@@ -170,23 +92,6 @@ fn is_excluded(
     }
   }
   false
-}
-
-///|
-/// Convert timestamp to ISO string
-extern "js" fn ffi_ms_to_iso(ms : Float) -> String =
-  #| (ms) => new Date(ms).toISOString()
-
-///|
-/// Get file modification time as ISO string
-fn get_file_mtime(path : String) -> String? {
-  try {
-    let stats = @fs.statSync(path)
-    let mtime_ms = stats.mtime_ms()
-    Some(ffi_ms_to_iso(mtime_ms))
-  } catch {
-    _ => None
-  }
 }
 
 // =============================================================================

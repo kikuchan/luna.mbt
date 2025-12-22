@@ -12,7 +12,7 @@ struct HmrServer {
 
 ///|
 fn HmrServer::start(port : Int) -> HmrServer {
-  let ws = @node.esm_require("ws")
+  let ws = @node.require("ws")
   let wss_class = ws["WebSocketServer"]
   let inner = create_wss_instance(wss_class, port)
   let server = HmrServer::{ inner, }
@@ -100,8 +100,6 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   // Keep Node.js event loop alive first
   keep_alive()
 
-  // Initialize ESM require for ws package
-  @node.init_esm_require().wait()
 
   let result = @util.parseArgs(
     args~,

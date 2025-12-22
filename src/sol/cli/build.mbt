@@ -30,6 +30,15 @@ fn show_build_help() -> Unit {
 
 ///|
 fn run_build_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_build_command_with_fs(fs, args)
+}
+
+///|
+fn[FS : @env.FileSystem] run_build_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   // Parse build command options
   let result = @util.parseArgs(
     args~,
@@ -76,7 +85,7 @@ fn run_build_command(args : Array[String]) -> Unit {
   let cwd = @process.cwd()
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
-  if not(@fs.existsSync(moon_mod_path)) {
+  if not(fs.exists_sync(moon_mod_path)) {
     console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
@@ -88,20 +97,20 @@ fn run_build_command(args : Array[String]) -> Unit {
     let sol_dir = @path.join2(cwd, ".sol")
     let gen_dir = @path.join2(cwd, "app/__gen__")
     let target_dir = @path.join2(cwd, "target")
-    if @fs.existsSync(sol_dir) {
-      rm_rf_sync(sol_dir)
+    if fs.exists_sync(sol_dir) {
+      rm_rf_sync_with_fs(fs, sol_dir)
     }
-    if @fs.existsSync(gen_dir) {
-      rm_rf_sync(gen_dir)
+    if fs.exists_sync(gen_dir) {
+      rm_rf_sync_with_fs(fs, gen_dir)
     }
-    if @fs.existsSync(target_dir) {
-      rm_rf_sync(target_dir)
+    if fs.exists_sync(target_dir) {
+      rm_rf_sync_with_fs(fs, target_dir)
     }
     println(@colorette.green("✓ Clean complete"))
   }
   // Run generate if sol.config.json exists
   let sol_config_path = @path.join2(cwd, "sol.config.json")
-  if not(skip_generate) && @fs.existsSync(sol_config_path) {
+  if not(skip_generate) && fs.exists_sync(sol_config_path) {
     println(@colorette.cyan("Generating _sol directory..."))
     run_generate_command(["--mode", "prod"])
   }
@@ -126,7 +135,7 @@ fn run_build_command(args : Array[String]) -> Unit {
   println(@colorette.green("✓ Moon build complete"))
   // Bundle client code with rolldown if manifest exists
   let manifest_path = @path.join2(cwd, ".sol/prod/manifest.json")
-  if not(skip_bundle) && @fs.existsSync(manifest_path) {
+  if not(skip_bundle) && fs.exists_sync(manifest_path) {
     let minify_msg = if skip_minify { "" } else { " (minified)" }
     println(
       @colorette.cyan(
@@ -157,8 +166,10 @@ fn run_build_command(args : Array[String]) -> Unit {
     println(@colorette.green("✓ Client bundle complete"))
   }
   // Build static directories (SSG) if configured
-  if @fs.existsSync(sol_config_path) {
-    let config_content = @fs.readFileSync(sol_config_path).to_string() catch {
+  if fs.exists_sync(sol_config_path) {
+    let config_content = try {
+      fs.read_file_sync(sol_config_path)
+    } catch {
       _ => ""
     }
     if not(config_content.is_empty()) {

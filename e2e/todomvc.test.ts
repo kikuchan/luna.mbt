@@ -1,5 +1,8 @@
 import { test, expect } from "@playwright/test";
 
+const debug = process.env.DEBUG === "1";
+const log = (...args: unknown[]) => debug && console.log(...args);
+
 test.describe("TodoMVC", () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test
@@ -344,7 +347,7 @@ test.describe("TodoMVC", () => {
     // Add first item
     await addTodo(page, "First item");
     await page.waitForTimeout(100);
-    console.log("After add first:", logs.slice());
+    log("After add first:", logs.slice());
     await expect(page.locator(".todo-list li")).toHaveCount(1);
 
     // Delete first item
@@ -352,30 +355,30 @@ test.describe("TodoMVC", () => {
     await firstItem.hover();
     await firstItem.locator(".destroy").click();
     await page.waitForTimeout(100);
-    console.log("After delete first:", logs.slice());
+    log("After delete first:", logs.slice());
     await expect(page.locator(".todo-list li")).toHaveCount(0);
 
     // Add second item - check input state first
     const input2 = page.locator(".new-todo");
-    console.log("Input visible:", await input2.isVisible());
-    console.log("Input enabled:", await input2.isEnabled());
+    log("Input visible:", await input2.isVisible());
+    log("Input enabled:", await input2.isEnabled());
 
     await input2.fill("Second item");
-    console.log("Input value after fill:", await input2.inputValue());
+    log("Input value after fill:", await input2.inputValue());
     await page.waitForTimeout(50);
 
     // Try pressing Enter
     await input2.press("Enter");
     await page.waitForTimeout(200);
-    console.log("After add second:", logs.slice());
+    log("After add second:", logs.slice());
 
     // Debug: check the current DOM state
     const liCount = await page.locator(".todo-list li").count();
-    console.log("LI count after adding second item:", liCount);
+    log("LI count after adding second item:", liCount);
 
     // Check the todos signal state via localStorage
     const stored = await page.evaluate(() => localStorage.getItem("todos-luna"));
-    console.log("localStorage todos:", stored);
+    log("localStorage todos:", stored);
 
     await expect(page.locator(".todo-list li")).toHaveCount(1);
 

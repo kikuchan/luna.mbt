@@ -1375,17 +1375,24 @@ async function setupMoonBitRoutes() {
 
 // Start server
 const port = parseInt(process.env.PORT || "3456");
+const debug = process.env.DEBUG === "1";
 
 async function main() {
   await setupMoonBitRoutes();
 
   if (process.env.E2E_SERVER_START !== "false") {
     serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => {
-      console.log(`E2E test server running at http://localhost:${port}`);
+      if (debug) {
+        console.log(`E2E test server running at http://localhost:${port}`);
+      }
     });
   }
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  if (debug) {
+    console.error(err);
+  }
+});
 
 export { app, port };

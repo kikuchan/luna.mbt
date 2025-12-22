@@ -19,6 +19,15 @@ fn show_clean_help() -> Unit {
 
 ///|
 fn run_clean_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_clean_command_with_fs(fs, args)
+}
+
+///|
+fn[FS : @env.FileSystem] run_clean_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   // Parse clean command options
   let result = @util.parseArgs(
     args~,
@@ -41,18 +50,18 @@ fn run_clean_command(args : Array[String]) -> Unit {
   let mut cleaned = 0
   for dir in dirs_to_clean {
     let dir_path = @path.join2(cwd, dir)
-    if @fs.existsSync(dir_path) {
+    if fs.exists_sync(dir_path) {
       println(@colorette.gray("Removing \{dir}/..."))
-      rm_rf_sync(dir_path)
+      rm_rf_sync_with_fs(fs, dir_path)
       cleaned = cleaned + 1
     }
   }
   // Clean target/ if --all flag is set
   if clean_all {
     let target_path = @path.join2(cwd, "target")
-    if @fs.existsSync(target_path) {
+    if fs.exists_sync(target_path) {
       println(@colorette.gray("Removing target/..."))
-      rm_rf_sync(target_path)
+      rm_rf_sync_with_fs(fs, target_path)
       cleaned = cleaned + 1
     }
   }
@@ -64,9 +73,8 @@ fn run_clean_command(args : Array[String]) -> Unit {
 }
 
 ///|
-/// Recursively remove a directory using Node.js fs.rmSync
-fn rm_rf_sync(path : String) -> Unit {
-  @fs.rmSync(path, recursive=true, force=true) catch {
+fn[FS : @env.FileSystem] rm_rf_sync_with_fs(fs : FS, path : String) -> Unit {
+  fs.rmdir_sync(path, true) catch {
     _ => ()
   }
 }

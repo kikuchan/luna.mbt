@@ -33,6 +33,15 @@ fn show_build_help() -> Unit {
 
 ///|
 async fn run_build_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_build_command_with_fs(fs, args)
+}
+
+///|
+async fn[FS : @env.FileSystem] run_build_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   let result = @util.parseArgs(
     args~,
     options=[
@@ -61,10 +70,10 @@ async fn run_build_command(args : Array[String]) -> Unit {
   // Find config file (astra.json > sol.config.json)
   let config_path = match config_path_override {
     Some(p) => p
-    None => find_config_file(cwd)
+    None => find_config_file_with_fs(fs, cwd)
   }
   let full_config_path = @path.join2(cwd, config_path)
-  if not(@fs.existsSync(full_config_path)) {
+  if not(fs.exists_sync(full_config_path)) {
     console_error(
       @colorette.red("Error: Config file not found: \{config_path}"),
     )
@@ -75,7 +84,9 @@ async fn run_build_command(args : Array[String]) -> Unit {
   }
 
   // Read and parse config
-  let config_content : String = @fs.readFileSync(full_config_path).to_string() catch {
+  let config_content : String = try {
+    fs.read_file_sync(full_config_path)
+  } catch {
     e => {
       console_error(@colorette.red("Error reading config: \{e}"))
       @process.exit(1)
@@ -110,9 +121,15 @@ async fn run_build_command(args : Array[String]) -> Unit {
 
 ///|
 fn find_config_file(cwd : String) -> String {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  find_config_file_with_fs(fs, cwd)
+}
+
+///|
+fn[FS : @env.FileSystem] find_config_file_with_fs(fs : FS, cwd : String) -> String {
   // Try astra.json first
   let astra_path = @path.join2(cwd, "astra.json")
-  if @fs.existsSync(astra_path) {
+  if fs.exists_sync(astra_path) {
     return "astra.json"
   }
   // Fall back to sol.config.json

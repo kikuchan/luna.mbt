@@ -110,15 +110,26 @@ struct RouteInfo {
 ///|
 /// Parse routes.mbt and extract component/handler names
 fn parse_routes_file(routes_path : String) -> RouteInfo {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  parse_routes_file_with_fs(fs, routes_path)
+}
+
+///|
+fn[FS : @env.FileSystem] parse_routes_file_with_fs(
+  fs : FS,
+  routes_path : String,
+) -> RouteInfo {
   let page_components : Array[String] = []
   let api_handlers : Array[String] = []
-  if not(@fs.existsSync(routes_path)) {
+  if not(fs.exists_sync(routes_path)) {
     return RouteInfo::{
       _page_components: page_components,
       _api_handlers: api_handlers,
     }
   }
-  let content = @fs.readFileSync(routes_path).to_string() catch {
+  let content = try {
+    fs.read_file_sync(routes_path)
+  } catch {
     _ =>
       return RouteInfo::{
         _page_components: page_components,
@@ -404,12 +415,18 @@ fn parse_ogp_config(obj : Map[String, Json]) -> @astra.OgpConfig {
 ///|
 /// Get project name from moon.mod.json
 fn get_project_name(cwd : String) -> String {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  get_project_name_with_fs(fs, cwd)
+}
+
+///|
+fn[FS : @env.FileSystem] get_project_name_with_fs(fs : FS, cwd : String) -> String {
   let mod_path = @path.join2(cwd, "moon.mod.json")
-  if not(@fs.existsSync(mod_path)) {
+  if not(fs.exists_sync(mod_path)) {
     return "unknown"
   }
   try {
-    let content = @fs.readFileSync(mod_path).to_string()
+    let content = fs.read_file_sync(mod_path)
     let json = @json.parse(content.view())
     guard json is Object(obj) else { return "unknown" }
     match obj.get("name") {
@@ -517,6 +534,16 @@ fn find_mbti_files(
   cwd : String,
   patterns : Array[String],
 ) -> Array[(String, String, String)] {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  find_mbti_files_with_fs(fs, cwd, patterns)
+}
+
+///|
+fn[FS : @env.FileSystem] find_mbti_files_with_fs(
+  fs : FS,
+  cwd : String,
+  patterns : Array[String],
+) -> Array[(String, String, String)] {
   // Returns: Array of (pattern, dir_path, mbti_content)
   let result : Array[(String, String, String)] = []
   for pattern in patterns {
@@ -525,14 +552,14 @@ fn find_mbti_files(
     if pattern.has_suffix("/*") {
       // List subdirectories
       let parent = base_path.substring(end=base_path.length() - 2)
-      if @fs.existsSync(parent) {
+      if fs.exists_sync(parent) {
         try {
-          let entries = @fs.readdirSync(parent)
+          let entries = fs.readdir_sync(parent)
           for entry in entries {
             let entry_path = @path.join2(parent, entry)
             let mbti_path = @path.join2(entry_path, "pkg.generated.mbti")
-            if @fs.existsSync(mbti_path) {
-              let content = @fs.readFileSync(mbti_path).to_string()
+            if fs.exists_sync(mbti_path) {
+              let content = fs.read_file_sync(mbti_path)
               // For glob patterns, use the actual subdirectory as the pattern
               let sub_pattern = pattern.substring(end=pattern.length() - 2) +
                 "/" +
@@ -547,9 +574,9 @@ fn find_mbti_files(
     } else {
       // Direct directory
       let mbti_path = @path.join2(base_path, "pkg.generated.mbti")
-      if @fs.existsSync(mbti_path) {
+      if fs.exists_sync(mbti_path) {
         try {
-          let content = @fs.readFileSync(mbti_path).to_string()
+          let content = fs.read_file_sync(mbti_path)
           result.push((pattern, base_path, content))
         } catch {
           _ => ()
@@ -702,17 +729,27 @@ fn collect_island_structs_from_source(
   cwd : String,
   config : SolConfig,
 ) -> Array[StructExport] {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  collect_island_structs_from_source_with_fs(fs, cwd, config)
+}
+
+///|
+fn[FS : @env.FileSystem] collect_island_structs_from_source_with_fs(
+  fs : FS,
+  cwd : String,
+  config : SolConfig,
+) -> Array[StructExport] {
   let exports : Array[StructExport] = []
   for pattern in config.islands {
     let base_path = @path.join2(cwd, pattern)
     // List all .mbt files in the directory
-    if @fs.existsSync(base_path) {
+    if fs.exists_sync(base_path) {
       try {
-        let entries = @fs.readdirSync(base_path)
+        let entries = fs.readdir_sync(base_path)
         for entry in entries {
           if entry.has_suffix(".mbt") && not(entry.has_suffix("_test.mbt")) {
             let file_path = @path.join2(base_path, entry)
-            let content = @fs.readFileSync(file_path).to_string()
+            let content = fs.read_file_sync(file_path)
             // Parse struct definitions from source
             let structs = @parser.parse_struct_defs(content, entry)
             let props_structs = @parser.get_props_structs(structs)
@@ -1074,7 +1111,18 @@ fn extract_props_type(sig : String, _alias : String) -> String {
 /// Read module name and source from moon.mod.json
 /// Returns (name, source) tuple
 fn read_mod_info(mod_json_path : String) -> (String, String) {
-  let content : String = @fs.readFileSync(mod_json_path).to_string() catch {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  read_mod_info_with_fs(fs, mod_json_path)
+}
+
+///|
+fn[FS : @env.FileSystem] read_mod_info_with_fs(
+  fs : FS,
+  mod_json_path : String,
+) -> (String, String) {
+  let content : String = try {
+    fs.read_file_sync(mod_json_path)
+  } catch {
     _ => return ("", "")
   }
   if content.length() == 0 {
@@ -1152,7 +1200,18 @@ fn generate_client_gen_pkg_json(
 ///|
 /// Read exports from moon.pkg.json (for user-managed exports mode)
 fn read_exports_from_pkg_json(pkg_json_path : String) -> Array[String] {
-  let content : String = @fs.readFileSync(pkg_json_path).to_string() catch {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  read_exports_from_pkg_json_with_fs(fs, pkg_json_path)
+}
+
+///|
+fn[FS : @env.FileSystem] read_exports_from_pkg_json_with_fs(
+  fs : FS,
+  pkg_json_path : String,
+) -> Array[String] {
+  let content : String = try {
+    fs.read_file_sync(pkg_json_path)
+  } catch {
     _ => return []
   }
   let json = @json.parse(content.view()) catch { _ => return [] }
@@ -1439,6 +1498,15 @@ pub fn generate_sol_server_main_js(
 
 ///|
 fn run_generate_command(args : Array[String]) -> Unit {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  run_generate_command_with_fs(fs, args)
+}
+
+///|
+fn[FS : @env.FileSystem] run_generate_command_with_fs(
+  fs : FS,
+  args : Array[String],
+) -> Unit {
   let result = @util.parseArgs(
     args~,
     options=[
@@ -1470,13 +1538,15 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let cwd = @process.cwd()
   // Read config file
   let full_config_path = @path.join2(cwd, config_path)
-  if not(@fs.existsSync(full_config_path)) {
+  if not(fs.exists_sync(full_config_path)) {
     console_error(
       @colorette.red("Error: Config file not found: \{config_path}"),
     )
     @process.exit(1)
   }
-  let config_content : String = @fs.readFileSync(full_config_path).to_string() catch {
+  let config_content : String = try {
+    fs.read_file_sync(full_config_path)
+  } catch {
     e => {
       console_error(@colorette.red("Error reading config: \{e}"))
       @process.exit(1)
@@ -1498,7 +1568,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   // Create output directories first (needed for types)
   let output_dir = @path.join2(cwd, config.output) // app/__gen__
   let types_dir = @path.join2(output_dir, "types")
-  @fs.mkdirSync(types_dir, recursive=true) catch {
+  fs.mkdir_sync(types_dir, true) catch {
     e => {
       console_error(@colorette.red("Error creating types directory: \{e}"))
       @process.exit(1)
@@ -1522,8 +1592,8 @@ fn run_generate_command(args : Array[String]) -> Unit {
     let types_mbt_path = @path.join2(types_dir, "types.mbt")
     let types_pkg_path = @path.join2(types_dir, "moon.pkg.json")
     try {
-      @fs.writeFileSync(types_mbt_path, @js.any(types_mbt_content))
-      @fs.writeFileSync(types_pkg_path, @js.any(types_pkg_content))
+      fs.write_file_sync(types_mbt_path, types_mbt_content)
+      fs.write_file_sync(types_pkg_path, types_pkg_content)
       println(@colorette.gray("  Generated __gen__/types/ from source"))
     } catch {
       e => {
@@ -1535,17 +1605,12 @@ fn run_generate_command(args : Array[String]) -> Unit {
     // Create empty stub if no Props found
     let stub_types_mbt_path = @path.join2(types_dir, "types.mbt")
     let stub_types_pkg_path = @path.join2(types_dir, "moon.pkg.json")
-    if not(@fs.existsSync(stub_types_mbt_path)) {
+    if not(fs.exists_sync(stub_types_mbt_path)) {
       try {
-        @fs.writeFileSync(
-          stub_types_mbt_path,
-          @js.any("///| No Props types found\n"),
-        )
-        @fs.writeFileSync(
+        fs.write_file_sync(stub_types_mbt_path, "///| No Props types found\n")
+        fs.write_file_sync(
           stub_types_pkg_path,
-          @js.any(
-            "{\n  \"supported-targets\": [\"js\"],\n  \"warn-list\": \"-29\"\n}\n",
-          ),
+          "{\n  \"supported-targets\": [\"js\"],\n  \"warn-list\": \"-29\"\n}\n",
         )
       } catch {
         e => {
@@ -1558,7 +1623,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   // Step 2.5: Pre-create server moon.pkg.json with warn-list (before moon info)
   // This ensures warnings are suppressed during moon info
   let server_dir = @path.join2(output_dir, "server")
-  @fs.mkdirSync(server_dir, recursive=true) catch {
+  fs.mkdir_sync(server_dir, true) catch {
     e => {
       console_error(@colorette.red("Error creating server directory: \{e}"))
       @process.exit(1)
@@ -1567,7 +1632,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let routes_pkg = get_routes_package_path(cwd, config.routes)
   let server_pkg = generate_server_pkg_json(routes_pkg)
   let server_pkg_path = @path.join2(server_dir, "moon.pkg.json")
-  @fs.writeFileSync(server_pkg_path, @js.any(server_pkg)) catch {
+  fs.write_file_sync(server_pkg_path, server_pkg) catch {
     e => {
       console_error(@colorette.red("Error writing server/moon.pkg.json: \{e}"))
       @process.exit(1)
@@ -1575,9 +1640,9 @@ fn run_generate_command(args : Array[String]) -> Unit {
   }
   // Create stub main.mbt so is-main: true doesn't fail
   let stub_main_path = @path.join2(server_dir, "main.mbt")
-  @fs.writeFileSync(
+  fs.write_file_sync(
     stub_main_path,
-    @js.any("///| Stub - will be replaced\nfn main { () }\n"),
+    "///| Stub - will be replaced\nfn main { () }\n",
   ) catch {
     e => {
       console_error(@colorette.red("Error writing stub main.mbt: \{e}"))
@@ -1633,8 +1698,8 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let sol_client_dir = @path.join2(sol_dir, "client")
   let sol_server_dir = @path.join2(sol_dir, "server")
   try {
-    @fs.mkdirSync(sol_client_dir, recursive=true)
-    @fs.mkdirSync(sol_server_dir, recursive=true)
+    fs.mkdir_sync(sol_client_dir, true)
+    fs.mkdir_sync(sol_server_dir, true)
   } catch {
     e => {
       console_error(@colorette.red("Error creating directories: \{e}"))
@@ -1649,7 +1714,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   if not(funcs.is_empty()) {
     // Create __gen__/client directory
     let client_gen_dir = @path.join2(output_dir, "client")
-    @fs.mkdirSync(client_gen_dir, recursive=true) catch {
+    fs.mkdir_sync(client_gen_dir, true) catch {
       _ => ()
     }
     // Group functions by source_pattern (for now assume single client pattern)
@@ -1685,7 +1750,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
       } else {
         relative_path
       }
-      let client_alias_name = "client"
+      let client_alias_name = "app_client"
       // Collect export names for __sol_internal__client_* functions only
       let export_names : Array[String] = []
       for f in island_funcs {
@@ -1702,7 +1767,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
       )
       let hydrate_path = @path.join2(client_gen_dir, "__gen__.mbt")
       try {
-        @fs.writeFileSync(hydrate_path, @js.any(hydrate_content))
+        fs.write_file_sync(hydrate_path, hydrate_content)
         println(@colorette.gray("  Generated __gen__/client/__gen__.mbt"))
       } catch {
         e => {
@@ -1718,7 +1783,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
       )
       let pkg_json_path = @path.join2(client_gen_dir, "moon.pkg.json")
       try {
-        @fs.writeFileSync(pkg_json_path, @js.any(pkg_json_content))
+        fs.write_file_sync(pkg_json_path, pkg_json_content)
         println(@colorette.gray("  Generated __gen__/client/moon.pkg.json"))
       } catch {
         e => {
@@ -1744,7 +1809,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   )
   let server_main_path = @path.join2(server_dir, "main.mbt")
   try {
-    @fs.writeFileSync(server_main_path, @js.any(server_main))
+    fs.write_file_sync(server_main_path, server_main)
     println(@colorette.gray("  Generated __gen__/server/main.mbt"))
   } catch {
     e => {
@@ -1775,7 +1840,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
         func, include_hydrate, relative_path,
       )
       let island_entry_path = @path.join2(sol_client_dir, "\{func.name}.js")
-      @fs.writeFileSync(island_entry_path, @js.any(island_entry_content)) catch {
+      fs.write_file_sync(island_entry_path, island_entry_content) catch {
         e => {
           console_error(
             @colorette.red("Error writing client entry \{func.name}.js: \{e}"),
@@ -1793,7 +1858,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
     let manifest_content = generate_island_manifest_json(funcs, mode)
     let manifest_path = @path.join2(sol_dir, "manifest.json")
     try {
-      @fs.writeFileSync(manifest_path, @js.any(manifest_content))
+      fs.write_file_sync(manifest_path, manifest_content)
       println(@colorette.gray("  Generated .sol/\{mode}/manifest.json"))
     } catch {
       e => {
@@ -1806,7 +1871,7 @@ fn run_generate_command(args : Array[String]) -> Unit {
   let server_main_js = generate_sol_server_main_js(routes_pkg, config.runtime)
   let server_main_js_path = @path.join2(sol_server_dir, "main.js")
   try {
-    @fs.writeFileSync(server_main_js_path, @js.any(server_main_js))
+    fs.write_file_sync(server_main_js_path, server_main_js)
     println(@colorette.gray("  Generated .sol/\{mode}/server/main.js"))
   } catch {
     e => {
@@ -1822,11 +1887,21 @@ fn run_generate_command(args : Array[String]) -> Unit {
 ///|
 /// Get routes package path from moon.mod.json
 fn get_routes_package_path(cwd : String, routes_dir : String) -> String {
+  let fs = @fs_adapter.NodeFsAdapter::new()
+  get_routes_package_path_with_fs(fs, cwd, routes_dir)
+}
+
+///|
+fn[FS : @env.FileSystem] get_routes_package_path_with_fs(
+  fs : FS,
+  cwd : String,
+  routes_dir : String,
+) -> String {
   // Read moon.mod.json to get package name
   let mod_path = @path.join2(cwd, "moon.mod.json")
-  if @fs.existsSync(mod_path) {
+  if fs.exists_sync(mod_path) {
     try {
-      let content = @fs.readFileSync(mod_path).to_string()
+      let content = fs.read_file_sync(mod_path)
       let json = @json.parse(content.view())
       guard json is Object(obj) else { return "\{routes_dir}" }
       guard obj.get("name") is Some(String(pkg_name)) else {
