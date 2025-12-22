@@ -7,7 +7,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   testDir: __dirname,
   testMatch: ["**/*.test.ts", "**/*.test.mts"],
-  testIgnore: ["**/template-app/**", "**/sol/cli/**", "**/sol-app/**", "**/wc_counter*.test.ts", "**/wc-css-isolation.test.ts", "**/wc-ssr-css.test.ts"], // template-app and sol-app have their own configs, sol/cli uses vitest, wc_counter, wc-css-isolation and wc-ssr-css use playwright.config-sol.mts
+  testIgnore: [
+    "**/template-app/**",
+    "**/sol/cli/**",
+    "**/sol-app/**",
+    "**/wc_counter*.test.ts",
+    "**/wc-css-isolation.test.ts",
+    "**/wc-ssr-css.test.ts",
+    // Visual snapshot tests are skipped in CI due to cross-platform rendering differences
+    ...(process.env.CI ? ["**/visual-snapshots.test.ts"] : []),
+  ],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
