@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "node ../../target/js/release/build/sol/cli/cli.js dev",
     "build": "node ../../target/js/release/build/sol/cli/cli.js build",
-    "serve": "node ../../target/js/release/build/sol/cli/cli.js serve"
+    "serve": "node ../../target/js/release/build/sol/cli/cli.js serve",
+    "test": "playwright test",
+    "test:e2e": "playwright test tests/e2e.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.0.0",

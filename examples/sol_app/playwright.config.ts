@@ -8,9 +8,9 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: 'node target/js/release/build/__gen__/server/server.js',
+    command: 'cd ../.. && moon build --target js && cd examples/sol_app && node ../../target/js/release/build/sol/cli/cli.js build && node .sol/prod/server/main.js',
     port: 3000,
     reuseExistingServer: !process.env.CI,
-    timeout: 10000,
+    timeout: 120000,
   },
 });

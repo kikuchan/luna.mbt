@@ -115,6 +115,10 @@ test-examples:
 test-sol-new: build-moon
     node scripts/test-sol-new.ts
 
+# Sol example E2E テスト
+test-sol-example: build-moon
+    cd examples/sol_app && pnpm test:e2e
+
 # =============================================================================
 # CI
 # =============================================================================
