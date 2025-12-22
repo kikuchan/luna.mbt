@@ -32,16 +32,27 @@ docs/internal は内部の開発ログが設置される。
 
 ## 開発コマンド
 
+タスク一覧は `just --list` で確認できる。
+
 ```bash
 # 基本
-moon check                    # 型チェック
-moon test --target js         # ユニットテスト
-moon fmt                      # フォーマット
+just check                    # 型チェック (moon check)
+just fmt                      # フォーマット (moon fmt)
+just build-moon               # MoonBit ビルド
 
-# テスト
-pnpm test                     # Vitestテスト
-pnpm test:browser             # ブラウザテスト
-pnpm test:e2e                 # E2Eテスト
+# テスト（ピラミッド軸）
+just test-unit                # Unit tests (MoonBit)
+just test-integration         # Integration tests (Vitest, Browser)
+just test-e2e                 # E2E tests (Playwright)
+
+# テスト（プロダクト軸）
+just test-astra               # Astra 全テスト
+just test-sol                 # Sol 全テスト
+just test-luna                # Luna 全テスト
+
+# ドキュメント
+just dev-doc                  # docs 開発サーバー (HMR対応)
+just build-doc                # docs ビルド
 ```
 
 ## 開発ポリシー
