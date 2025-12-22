@@ -2,16 +2,16 @@
 
 ///|
 /// Helper to create a minimal DocumentTree for testing
-fn create_test_tree() -> DocumentTree {
-  let site = SiteInfo::new(
+fn create_test_tree() -> @ssg.DocumentTree {
+  let site = @ssg.SiteInfo::new(
     title="Test Site",
     description="A test documentation site",
     base_url="https://example.com",
     language="en",
     updated_at="2024-12-22T12:00:00.000Z",
   )
-  let pages : Array[PageInfo] = [
-    PageInfo::new(
+  let pages : Array[@ssg.PageInfo] = [
+    @ssg.PageInfo::new(
       id="index",
       url_path="/",
       source_path="index.md",
@@ -20,10 +20,10 @@ fn create_test_tree() -> DocumentTree {
       locale="en",
       updated_at="2024-12-22T12:00:00.000Z",
       content_md="# Welcome\n\nThis is the home page.",
-      headings=[Heading::new(level=1, text="Welcome", id="welcome")],
+      headings=[@ssg.Heading::new(level=1, text="Welcome", id="welcome")],
       sort_key="000_index",
     ),
-    PageInfo::new(
+    @ssg.PageInfo::new(
       id="guide-intro",
       url_path="/guide/intro/",
       source_path="guide/intro.md",
@@ -33,12 +33,12 @@ fn create_test_tree() -> DocumentTree {
       updated_at="2024-12-21T10:00:00.000Z",
       content_md="# Introduction\n\n## Overview\n\nThis is the intro.",
       headings=[
-        Heading::new(level=1, text="Introduction", id="introduction"),
-        Heading::new(level=2, text="Overview", id="overview"),
+        @ssg.Heading::new(level=1, text="Introduction", id="introduction"),
+        @ssg.Heading::new(level=2, text="Overview", id="overview"),
       ],
       sort_key="001_guide/001_intro",
     ),
-    PageInfo::new(
+    @ssg.PageInfo::new(
       id="guide-advanced",
       url_path="/guide/advanced/",
       source_path="guide/advanced.md",
@@ -48,19 +48,19 @@ fn create_test_tree() -> DocumentTree {
       updated_at="2024-12-20T08:00:00.000Z",
       content_md="# Advanced Topics\n\nAdvanced content here.",
       headings=[
-        Heading::new(level=1, text="Advanced Topics", id="advanced-topics"),
+        @ssg.Heading::new(level=1, text="Advanced Topics", id="advanced-topics"),
       ],
       sort_key="001_guide/002_advanced",
     ),
   ]
-  let root = TreeNode::Section(name="", path="/", children=[
-    TreeNode::Page(page_id="index"),
-    TreeNode::Section(name="guide", path="/guide/", children=[
-      TreeNode::Page(page_id="guide-intro"),
-      TreeNode::Page(page_id="guide-advanced"),
+  let root = @ssg.TreeNode::Section(name="", path="/", children=[
+    @ssg.TreeNode::Page(page_id="index"),
+    @ssg.TreeNode::Section(name="guide", path="/guide/", children=[
+      @ssg.TreeNode::Page(page_id="guide-intro"),
+      @ssg.TreeNode::Page(page_id="guide-advanced"),
     ]),
   ])
-  DocumentTree::new(site~, pages~, root~)
+  @ssg.DocumentTree::new(site~, pages~, root~)
 }
 
 // =============================================================================
@@ -268,7 +268,7 @@ test "DocumentTree::get_pages_sorted_by_date - with limit" {
 
 ///|
 test "PageInfo::canonical_url" {
-  let page = PageInfo::new(id="test", url_path="/guide/intro/", title="Test")
+  let page = @ssg.PageInfo::new(id="test", url_path="/guide/intro/", title="Test")
   inspect(
     page.canonical_url("https://example.com"),
     content="https://example.com/guide/intro/",

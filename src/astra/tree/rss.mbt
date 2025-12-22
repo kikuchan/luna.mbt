@@ -6,7 +6,7 @@
 
 ///|
 /// RSS 2.0 フィードを生成
-pub fn generate_rss(tree : DocumentTree, limit? : Int = 20) -> String {
+pub fn generate_rss(tree : @ssg.DocumentTree, limit? : Int = 20) -> String {
   let pages = tree.get_pages_sorted_by_date(limit~)
   let mut items = ""
   for page in pages {
@@ -31,7 +31,7 @@ pub fn generate_rss(tree : DocumentTree, limit? : Int = 20) -> String {
 }
 
 ///|
-fn generate_rss_item(page : PageInfo, base_url : String) -> String {
+fn generate_rss_item(page : @ssg.PageInfo, base_url : String) -> String {
   let url = page.canonical_url(base_url)
   let rfc822_date = iso_to_rfc822(page.updated_at)
   "    <item>\n      <title>" +

@@ -21,7 +21,7 @@ pub fn scan_docs_dir(
 }
 
 ///|
-/// Detect locale from file path
+/// Detect locale from file path - delegates to @ssg
 /// e.g., "ja/guide/intro.md" -> ("ja", "guide/intro.md")
 ///       "guide/intro.md" -> ("en", "guide/intro.md")
 fn detect_locale_from_path(
@@ -29,23 +29,11 @@ fn detect_locale_from_path(
   i18n : @astra.I18nConfig,
   trailing_slash? : Bool = true,
 ) -> (String, String) {
-  // Check if path starts with a locale directory
-  for locale in i18n.locales {
-    if locale.path.is_empty() {
-      continue
-    }
-    let prefix = locale.path + "/"
-    if path.has_prefix(prefix) {
-      let canonical = @ssg.slice_from(path, prefix.length())
-      return (locale.code, @ssg.file_to_url_path(canonical, trailing_slash~))
-    }
-  }
-  // No locale prefix found, use default locale
-  (i18n.default_locale, @ssg.file_to_url_path(path, trailing_slash~))
+  @ssg.detect_locale_from_path(path, i18n, trailing_slash~)
 }
 
 ///|
-/// Build localized URL path
+/// Build localized URL path - delegates to @ssg
 /// e.g., ("/guide/intro", "ja", config) -> "/ja/guide/intro"
 ///       ("/guide/intro", "en", config) -> "/guide/intro"
 fn build_localized_url(
@@ -53,20 +41,7 @@ fn build_localized_url(
   locale : String,
   i18n : @astra.I18nConfig,
 ) -> String {
-  // Find locale config
-  for loc in i18n.locales {
-    if loc.code == locale {
-      if loc.path.is_empty() {
-        return canonical_path
-      } else if canonical_path == "/" {
-        return "/" + loc.path + "/"
-      } else {
-        return "/" + loc.path + canonical_path
-      }
-    }
-  }
-  // Fallback to canonical path
-  canonical_path
+  @ssg.build_localized_url(canonical_path, locale, i18n)
 }
 
 ///|

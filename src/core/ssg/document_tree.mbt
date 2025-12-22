@@ -1,24 +1,26 @@
-///| Astra DocumentTree Types
+// SSG Document Tree Types
+//
+// Intermediate representation for document trees.
+// Scanned from filesystem and can be converted to multiple output formats
+// (HTML, RSS, sitemap, llms.txt).
+//
+// These types are shared between Sol (SSR framework) and Astra (SSG).
+
+// =============================================================================
+// Core Types
+// =============================================================================
 
 ///|
-
-///| 中間表現としてのドキュメントツリー。
-
-///| ファイルシステムからスキャンした構造を保持し、
-
-///| 複数の出力形式（HTML, RSS, sitemap, llms.txt）に変換可能。
-
-///|
-/// サイト全体を表現するルート構造
-pub struct DocumentTree {
+/// Root structure representing an entire site
+pub(all) struct DocumentTree {
   site : SiteInfo
   pages : Array[PageInfo]
   root : TreeNode
 }
 
 ///|
-/// サイト全体のメタデータ
-pub struct SiteInfo {
+/// Site-wide metadata
+pub(all) struct SiteInfo {
   title : String
   description : String
   base_url : String
@@ -27,38 +29,38 @@ pub struct SiteInfo {
 }
 
 ///|
-/// 1ページの完全な情報
-pub struct PageInfo {
-  // 識別子
+/// Complete information for a single page
+pub(all) struct PageInfo {
+  // Identifier
   id : String
   url_path : String
   source_path : String
-  // メタデータ
+  // Metadata
   title : String
   description : String
   locale : String
-  // 日時 (ISO 8601)
+  // Timestamp (ISO 8601)
   updated_at : String
-  // コンテンツ
+  // Content
   content_md : String
-  // 構造
+  // Structure
   headings : Array[Heading]
-  // ソート用
+  // Sorting
   sort_key : String
 }
 
 ///|
-/// 階層構造を表現するノード
-pub enum TreeNode {
-  /// セクション（ディレクトリに対応）
+/// Tree node representing hierarchical structure
+pub(all) enum TreeNode {
+  /// Section (corresponds to a directory)
   Section(name~ : String, path~ : String, children~ : Array[TreeNode])
-  /// ページへの参照
+  /// Reference to a page
   Page(page_id~ : String)
 }
 
 ///|
-/// 見出し情報（TOC、llms.txt用）
-pub struct Heading {
+/// Heading information (for TOC, llms.txt)
+pub(all) struct Heading {
   level : Int
   text : String
   id : String
@@ -121,11 +123,11 @@ pub fn DocumentTree::new(
 }
 
 // =============================================================================
-// Helper Methods
+// DocumentTree Methods
 // =============================================================================
 
 ///|
-/// ページIDからPageInfoを取得
+/// Get PageInfo by page ID
 pub fn DocumentTree::get_page(self : DocumentTree, id : String) -> PageInfo? {
   for page in self.pages {
     if page.id == id {
@@ -136,7 +138,7 @@ pub fn DocumentTree::get_page(self : DocumentTree, id : String) -> PageInfo? {
 }
 
 ///|
-/// URLパスからPageInfoを取得
+/// Get PageInfo by URL path
 pub fn DocumentTree::get_page_by_url(
   self : DocumentTree,
   url_path : String,
@@ -150,7 +152,7 @@ pub fn DocumentTree::get_page_by_url(
 }
 
 ///|
-/// ロケールでフィルタしたページ一覧を取得
+/// Get pages filtered by locale
 pub fn DocumentTree::get_pages_by_locale(
   self : DocumentTree,
   locale : String,
@@ -165,7 +167,7 @@ pub fn DocumentTree::get_pages_by_locale(
 }
 
 ///|
-/// 更新日時でソートしたページ一覧を取得（新しい順）
+/// Get pages sorted by date (newest first)
 pub fn DocumentTree::get_pages_sorted_by_date(
   self : DocumentTree,
   limit? : Int,
@@ -184,8 +186,12 @@ pub fn DocumentTree::get_pages_sorted_by_date(
   }
 }
 
+// =============================================================================
+// PageInfo Methods
+// =============================================================================
+
 ///|
-/// 正規URLを生成
+/// Generate canonical URL
 pub fn PageInfo::canonical_url(self : PageInfo, base_url : String) -> String {
   let base = if base_url.has_suffix("/") {
     base_url[:base_url.length() - 1].to_string() catch {
@@ -197,8 +203,12 @@ pub fn PageInfo::canonical_url(self : PageInfo, base_url : String) -> String {
   base + self.url_path
 }
 
+// =============================================================================
+// TreeNode Methods
+// =============================================================================
+
 ///|
-/// TreeNodeをフラットなページID配列に変換
+/// Flatten TreeNode to array of page IDs
 pub fn TreeNode::flatten(self : TreeNode) -> Array[String] {
   let result : Array[String] = []
   self.flatten_into(result)

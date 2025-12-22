@@ -8,7 +8,7 @@
 
 ///|
 /// llms.txt を生成
-pub fn generate_llms_txt(tree : DocumentTree) -> String {
+pub fn generate_llms_txt(tree : @ssg.DocumentTree) -> String {
   let mut result = ""
   // ヘッダー
   result = result + "# " + tree.site.title + "\n\n"
@@ -30,7 +30,7 @@ pub fn generate_llms_txt(tree : DocumentTree) -> String {
 
 ///|
 /// 目次を生成
-fn generate_toc(tree : DocumentTree) -> String {
+fn generate_toc(tree : @ssg.DocumentTree) -> String {
   let mut result = ""
   result = result + generate_toc_node(tree.root, tree, 0)
   result
@@ -38,18 +38,18 @@ fn generate_toc(tree : DocumentTree) -> String {
 
 ///|
 fn generate_toc_node(
-  node : TreeNode,
-  tree : DocumentTree,
+  node : @ssg.TreeNode,
+  tree : @ssg.DocumentTree,
   depth : Int,
 ) -> String {
   let indent = "  ".repeat(depth)
   match node {
-    TreeNode::Page(page_id~) =>
+    @ssg.TreeNode::Page(page_id~) =>
       match tree.get_page(page_id) {
         Some(page) => indent + "- [" + page.title + "](" + page.url_path + ")\n"
         None => ""
       }
-    TreeNode::Section(name~, children~, ..) => {
+    @ssg.TreeNode::Section(name~, children~, ..) => {
       let mut result = ""
       if name != "" {
         result = result + indent + "- " + name + "\n"
@@ -64,7 +64,7 @@ fn generate_toc_node(
 
 ///|
 /// ページコンテンツを生成
-fn generate_page_content(page : PageInfo) -> String {
+fn generate_page_content(page : @ssg.PageInfo) -> String {
   let mut result = ""
   // ページタイトル
   result = result + "# " + page.title + "\n\n"

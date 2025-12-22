@@ -2,13 +2,61 @@
 
 ## TODO
 
-- astra
-  - AI 用 llm.txt の生成
-  - sitemap.xml
-  - RSS
-  - 検索
+- sol (フルスタック)
+  - 高優先
+    - [ ] キャッチオールルート (`[...slug]`, `[[...slug]]`)
+    - [ ] ミドルウェア (認証、リダイレクト、CORS)
+    - [ ] レイアウト完成 (現在TODO状態)
+    - [ ] 環境変数管理 (`.env` ファイル)
+    - [ ] Error Boundary (コンポーネント単位エラー処理)
+  - 中優先
+    - [ ] Server Actions (フォーム送信のサーバー直接処理)
+    - [ ] ISR (Incremental Static Regeneration) → Astra借用
+    - [ ] データキャッシング (メモ化、SWR)
+    - [ ] リクエスト検証 (スキーマバリデーション)
+  - 低優先
+    - [ ] WebSocket (リアルタイム通信)
+    - [ ] ルートグループ `(group)`
+    - [ ] Source Maps
+
+- astra (SSG)
+  - [x] AI 用 llm.txt の生成
+  - [x] sitemap.xml
+  - [x] RSS
+  - 高優先
+    - [ ] 動的ルート (`[id].md`, `[...slug].md`)
+    - [ ] 画像最適化 (リサイズ、WebP変換)
+    - [ ] MDX サポート (Markdown内コンポーネント)
+    - [ ] プラグインシステム (mermaid, math等)
+  - 中優先
+    - [ ] 検索インデックス生成 (クライアント側全文検索)
+    - [ ] JSON-LD (Schema.org 構造化データ)
+    - [ ] ページネーション (記事一覧の自動分割)
+    - [ ] Robots/Noindex (ページ単位制御)
+  - 低優先
+    - [ ] ディスクキャッシュ (永続ビルドキャッシュ)
+    - [ ] アセットハッシング (キャッシュバスティング)
+    - [ ] デプロイアダプタ (Vercel/Netlify/GitHub Pages)
+
+- sol/astra 共通化
+  - 共有可能なパーツ
+    - [ ] 動的ルート解析 (`[id]`, `[...slug]` パターンマッチ)
+    - [ ] 画像最適化パイプライン
+    - [ ] sitemap/RSS/llms.txt 生成
+    - [ ] ディスクキャッシュ層 (ビルド成果物)
+    - [ ] アセットハッシング
+  - ISR 実装案
+    - Astra の静的生成 + Sol のランタイム再生成を統合
+    - `revalidate: number` でページ単位の TTL 設定
+    - ビルド時: Astra で静的生成
+    - ランタイム: Sol で期限切れ時に再生成
+  - 統合のステップ
+    1. [ ] src/core/ssg を sol/astra 両方から使う共通層に
+    2. [ ] FileSystem trait で静的生成出力を抽象化
+    3. [ ] Astra の DocumentTree を Sol でも利用可能に
+
 - luna cli
-- [ ] vite hot reload plugin
+- [x] vite hot reload plugin
 - [ ] todomvc サンプルで JSON を使わない
   - JSON/strconv 依存で +200KB 以上のバンドルサイズ増加
 - [ ] インラインCSS の扱いを統一する

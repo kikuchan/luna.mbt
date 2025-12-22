@@ -6,7 +6,7 @@
 
 ///|
 /// sitemap.xml を生成
-pub fn generate_sitemap(tree : DocumentTree) -> String {
+pub fn generate_sitemap(tree : @ssg.DocumentTree) -> String {
   let mut urls = ""
   for page in tree.pages {
     urls = urls + generate_sitemap_url(page, tree.site.base_url)
@@ -17,7 +17,7 @@ pub fn generate_sitemap(tree : DocumentTree) -> String {
 }
 
 ///|
-fn generate_sitemap_url(page : PageInfo, base_url : String) -> String {
+fn generate_sitemap_url(page : @ssg.PageInfo, base_url : String) -> String {
   let url = page.canonical_url(base_url)
   let lastmod = iso_to_date(page.updated_at)
   "  <url>\n    <loc>" +

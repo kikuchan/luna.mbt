@@ -1386,7 +1386,7 @@ fn copy_public_dir(ctx : @astra.BuildContext) -> Unit {
 /// Generate meta files (sitemap.xml, feed.xml, llms.txt) using DocumentTree
 fn generate_meta_files(
   ctx : @astra.BuildContext,
-  doc_tree : @tree.DocumentTree,
+  doc_tree : @ssg.DocumentTree,
 ) -> Unit {
   let output_dir = @path.join2(ctx.cwd, ctx.config.output_dir)
 
