@@ -18,11 +18,11 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
+      - run: pnpm install
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: "pnpm"
-      - run: pnpm install
       - uses: illusory0x0/setup-moonbit@v0.1.0
         with:
           version: stable
@@ -44,11 +44,11 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
+      - run: pnpm install
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: "pnpm"
-      - run: pnpm install
       - uses: illusory0x0/setup-moonbit@v0.1.0
         with:
           version: stable
@@ -62,7 +62,7 @@ jobs:
       - name: moon test
         run: moon test --target js
 
-  # Cross-platform tests (luna modules: signal, routes, render, serialize)
+  # Cross-platform tests (non-JS targets: wasm, wasm-gc, native)
   test-xplat:
     runs-on: ubuntu-latest
     steps:
@@ -75,18 +75,36 @@ jobs:
       - run: |
           moon update
           moon install
-      - name: Test luna/signal (all targets)
-        run: moon test --target all src/luna/signal
-      - name: Test luna/routes (all targets)
-        run: moon test --target all src/luna/routes
-      - name: Test luna/render (all targets)
-        run: moon test --target all src/luna/render
-      - name: Test luna/serialize (all targets)
-        run: moon test --target all src/luna/serialize
-      - name: Test core/parser (all targets)
-        run: moon test --target all src/core/parser
-      - name: Test core/ssg (all targets)
-        run: moon test --target all src/core/ssg
+      - name: Test luna/signal (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/luna/signal
+          moon test --target wasm-gc src/luna/signal
+          moon test --target native src/luna/signal
+      - name: Test luna/routes (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/luna/routes
+          moon test --target wasm-gc src/luna/routes
+          moon test --target native src/luna/routes
+      - name: Test luna/render (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/luna/render
+          moon test --target wasm-gc src/luna/render
+          moon test --target native src/luna/render
+      - name: Test luna/serialize (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/luna/serialize
+          moon test --target wasm-gc src/luna/serialize
+          moon test --target native src/luna/serialize
+      - name: Test core/parser (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/core/parser
+          moon test --target wasm-gc src/core/parser
+          moon test --target native src/core/parser
+      - name: Test core/ssg (wasm, wasm-gc, native)
+        run: |
+          moon test --target wasm src/core/ssg
+          moon test --target wasm-gc src/core/ssg
+          moon test --target native src/core/ssg
 
   # Example projects
   test-examples:
