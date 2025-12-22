@@ -195,126 +195,122 @@ fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
       // Set environment variables
       set_env("PORT", port)
       set_env("SOL_DEV", "1") // Enable HMR script injection
-      // Start HMR WebSocket server (async via callback)
-      HmrServer::start(
-        hmr_port,
-        fn(hmr_server) {
-          // Start server process (non-blocking)
-          let server_proc : Ref[@child_process.ChildProcess?] = { val: None }
-          fn start_server() -> Unit {
-            println(@colorette.cyan("Starting server: \{entry_path}..."))
-            let proc = @child_process.spawn("node", args=[entry_path], cwd~)
-            // Pipe stdout/stderr to console
-            proc
-            .stdout()
-            .as_any()
-            ._call("on", [
-              @js.any("data"),
-              @js.any(fn(data : @js.Any) {
-                let s : String = data._call("toString", []).cast()
-                print_string(s)
-              }),
-            ])
-            |> ignore
-            proc
-            .stderr()
-            .as_any()
-            ._call("on", [
-              @js.any("data"),
-              @js.any(fn(data : @js.Any) {
-                let s : String = data._call("toString", []).cast()
-                print_string_stderr(s)
-              }),
-            ])
-            |> ignore
-            server_proc.val = Some(proc)
-          }
+      // Start HMR WebSocket server
+      let hmr_server = HmrServer::start(hmr_port)
+      // Start server process (non-blocking)
+      let server_proc : Ref[@child_process.ChildProcess?] = { val: None }
+      fn start_server() -> Unit {
+        println(@colorette.cyan("Starting server: \{entry_path}..."))
+        let proc = @child_process.spawn("node", args=[entry_path], cwd~)
+        // Pipe stdout/stderr to console
+        proc
+        .stdout()
+        .as_any()
+        ._call("on", [
+          @js.any("data"),
+          @js.any(fn(data : @js.Any) {
+            let s : String = data._call("toString", []).cast()
+            print_string(s)
+          }),
+        ])
+        |> ignore
+        proc
+        .stderr()
+        .as_any()
+        ._call("on", [
+          @js.any("data"),
+          @js.any(fn(data : @js.Any) {
+            let s : String = data._call("toString", []).cast()
+            print_string_stderr(s)
+          }),
+        ])
+        |> ignore
+        server_proc.val = Some(proc)
+      }
 
-          fn stop_server() -> Unit {
-            if server_proc.val is Some(proc) {
-              println(@colorette.gray("Stopping server..."))
-              proc.kill() |> ignore
-              server_proc.val = None
-            }
-          }
+      fn stop_server() -> Unit {
+        if server_proc.val is Some(proc) {
+          println(@colorette.gray("Stopping server..."))
+          proc.kill() |> ignore
+          server_proc.val = None
+        }
+      }
 
-          fn restart_server() -> Unit {
-            stop_server()
-            start_server()
-          }
+      fn restart_server() -> Unit {
+        stop_server()
+        start_server()
+      }
 
-          // Start initial server
-          start_server()
-          // Setup file watcher for .mbt files
-          println(
-            @colorette.cyan("Watching for .mbt file changes... (Ctrl+C to stop)"),
-          )
-          // Debounce mechanism
-          let last_rebuild : Ref[Double] = { val: 0.0 }
-          let debounce_ms = 300.0
-          // Watch src directory (and app if exists)
-          let watch_dirs = ["src", "app"]
-          for dir in watch_dirs {
-            let watch_path = @path.join2(cwd, dir)
-            if @fs.existsSync(watch_path) {
-              let _watcher = @fs.watch(watch_path, recursive=true, listener=fn(
-                event : String,
-                filename : String,
-              ) {
-                // Only rebuild for .mbt files, excluding auto-generated files
-                let is_generated = filename.contains("__gen__")
-                if filename.ends_with(".mbt") &&
-                  event == "change" &&
-                  not(is_generated) {
-                  let now = date_now()
-                  // Debounce rapid changes
-                  if now - last_rebuild.val > debounce_ms {
-                    last_rebuild.val = now
-                    println(
-                      @colorette.yellow(
-                        "\n[watch] File changed: \{filename}, rebuilding...",
-                      ),
-                    )
-                    stop_server()
-                    if run_incremental_build_dev(cwd) {
-                      // Determine if this is a client-side change (Island)
-                      let is_client_change = filename.contains("client/") ||
-                        filename.contains("islands/")
-                      // Restart server first
-                      restart_server()
-                      // Wait for server to start, then send HMR notification
-                      set_timeout(
-                        fn() {
-                          if is_client_change {
-                            // HMR: notify clients to reload islands
-                            hmr_server.notify_update(["*"])
-                          } else {
-                            // Server-side change: full reload
-                            hmr_server.notify_full_reload()
-                          }
-                        },
-                        500,
-                      )
-                    } else {
-                      // Build failed: notify error
-                      hmr_server.notify_error(
-                        "Build failed. Check console for details.",
-                      )
-                      println(
-                        @colorette.red(
-                          "[watch] Build failed. Waiting for changes...",
-                        ),
-                      )
-                    }
-                  }
-                }
-              })
-            }
-          }
-          // Keep process alive
-          keep_alive()
-        },
+      // Start initial server
+      start_server()
+      // Setup file watcher for .mbt files
+      println(
+        @colorette.cyan("Watching for .mbt file changes... (Ctrl+C to stop)"),
       )
+      // Debounce mechanism
+      let last_rebuild : Ref[Double] = { val: 0.0 }
+      let debounce_ms = 300.0
+      // Watch src directory (and app if exists)
+      let watch_dirs = ["src", "app"]
+      for dir in watch_dirs {
+        let watch_path = @path.join2(cwd, dir)
+        if @fs.existsSync(watch_path) {
+          let _watcher = @fs.watch(watch_path, recursive=true, listener=fn(
+            event : String,
+            filename : String,
+          ) {
+            // Only rebuild for .mbt files, excluding auto-generated files
+            let is_generated = filename.contains("__gen__")
+            if filename.ends_with(".mbt") &&
+              event == "change" &&
+              not(is_generated) {
+              let now = date_now()
+              // Debounce rapid changes
+              if now - last_rebuild.val > debounce_ms {
+                last_rebuild.val = now
+                println(
+                  @colorette.yellow(
+                    "\n[watch] File changed: \{filename}, rebuilding...",
+                  ),
+                )
+                stop_server()
+                if run_incremental_build_dev(cwd) {
+                  // Determine if this is a client-side change (Island)
+                  let is_client_change = filename.contains("client/") ||
+                    filename.contains("islands/")
+                  // Restart server first
+                  restart_server()
+                  // Wait for server to start, then send HMR notification
+                  set_timeout(
+                    fn() {
+                      if is_client_change {
+                        // HMR: notify clients to reload islands
+                        hmr_server.notify_update(["*"])
+                      } else {
+                        // Server-side change: full reload
+                        hmr_server.notify_full_reload()
+                      }
+                    },
+                    500,
+                  )
+                } else {
+                  // Build failed: notify error
+                  hmr_server.notify_error(
+                    "Build failed. Check console for details.",
+                  )
+                  println(
+                    @colorette.red(
+                      "[watch] Build failed. Waiting for changes...",
+                    ),
+                  )
+                }
+              }
+            }
+          })
+        }
+      }
+      // Keep process alive
+      keep_alive()
     }
   }
 }
