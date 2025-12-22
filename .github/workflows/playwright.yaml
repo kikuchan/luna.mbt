@@ -59,6 +59,8 @@ jobs:
           moon install
       - name: Build MoonBit
         run: moon build --target js
+      - name: Build Loader
+        run: pnpm exec rolldown -c rolldown.config.mjs
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
       - name: E2E tests
