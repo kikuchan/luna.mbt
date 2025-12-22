@@ -68,7 +68,7 @@ test-e2e: build-moon
     pnpm playwright test --config e2e/playwright.config.mts
 
 # =============================================================================
-# テスト（カテゴリ別）
+# テスト（ピラミッド軸 - カテゴリ別）
 # =============================================================================
 
 # MoonBit ユニットテスト
@@ -111,6 +111,38 @@ test-examples:
     moon info
     moon build -C examples/sol_app
 
+# =============================================================================
+# テスト（プロダクト軸）
+# =============================================================================
+
+# --- Astra (SSG) ---
+# Astra 全テスト
+test-astra: test-astra-unit test-astra-e2e
+    @echo "✓ All Astra tests passed"
+
+# Astra ユニットテスト (MoonBit)
+test-astra-unit: _setup-test-env
+    moon test --target js src/astra/shiki
+    moon test --target js src/astra/markdown
+    moon test --target js src/astra/routes
+    moon test --target js src/astra/tree
+
+# Astra E2E テスト (Playwright)
+test-astra-e2e: build-moon
+    pnpm playwright test --config e2e/astra/playwright.config.ts
+
+# --- Sol (SSR Framework) ---
+# Sol 全テスト
+test-sol: test-sol-unit test-sol-e2e
+    @echo "✓ All Sol tests passed"
+
+# Sol ユニットテスト (MoonBit)
+test-sol-unit: _setup-test-env
+    moon test --target js src/sol
+
+# Sol E2E テスト
+test-sol-e2e: build-moon test-sol-new test-sol-example
+
 # Sol new テンプレートテスト
 test-sol-new: build-moon
     node scripts/test-sol-new.ts
@@ -119,9 +151,21 @@ test-sol-new: build-moon
 test-sol-example: build-moon
     cd examples/sol_app && pnpm test:e2e
 
-# Astra HMR E2E テスト
-test-astra-hmr: build-moon
-    pnpm playwright test --config e2e/astra/playwright.config.ts
+# --- Luna (Core UI Library) ---
+# Luna 全テスト
+test-luna: test-luna-unit test-luna-browser
+    @echo "✓ All Luna tests passed"
+
+# Luna ユニットテスト (MoonBit, クロスプラットフォーム)
+test-luna-unit: _setup-test-env
+    moon test --target all src/luna/signal
+    moon test --target all src/luna/routes
+    moon test --target all src/luna/render
+    moon test --target all src/luna/serialize
+
+# Luna ブラウザテスト
+test-luna-browser: build-moon
+    pnpm vitest run --config vitest.browser.config.ts
 
 # =============================================================================
 # CI
