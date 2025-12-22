@@ -7,6 +7,7 @@
   - sitemap.xml
   - RSS
   - 検索
+- luna cli
 - [ ] vite hot reload plugin
 - [ ] todomvc サンプルで JSON を使わない
   - JSON/strconv 依存で +200KB 以上のバンドルサイズ増加
@@ -14,7 +15,8 @@
 - DX
   - sol: 細粒度 HMR (Island単位の差分更新、状態保持)
   - sol: Vite plugin 版 HMR (Vite の HMR API を利用)
-  - 今の仕様に合わせて sol new のテンプレートをアップデート
+  - 今の仕様に合わせて sol new のテンプレ
+  ートをアップデート
 - Features
   - Critical CSS の抽出
 - Internal
@@ -57,7 +59,7 @@
   - [ ] src/platform/dom/integrations/react
   - [ ] src/platform/dom/integrations/preact
 - [ ] sol validate
-  - client/*.mbt の link.js.exports で、Generic パラメータを持つものを警告する
+  - client/*.mbt の link.js.exports で、Generic パラメータを持1つものを警告する
 - [ ] WASM/Native 向け escape 関数の最適化
   - JS は FFI で高速化済み (18-22倍)
   - WASM: SIMD 的なバッチ処理、または extern "wasm" で最適化

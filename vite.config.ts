@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
+import { moonbitPlugin } from 'vite-plugin-moonbit';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,7 +42,9 @@ function mpaFallback(): Plugin {
 
 export default defineConfig({
   appType: 'mpa',
-  plugins: [serveDemoSrc(), mpaFallback()],
+  plugins: [serveDemoSrc(), mpaFallback(), moonbitPlugin({
+    
+  })],
   // Use project root so target/ is accessible
   root: '.',
   base: '/',
