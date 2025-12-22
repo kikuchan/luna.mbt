@@ -61,10 +61,7 @@ test.describe("SPA Example", () => {
     await expect(inputSection.locator("p").nth(1)).toContainText("You typed: Hello");
   });
 
-  // TODO: Fix @dom.show initial rendering - currently the show effect runs
-  // before the placeholder is inserted into the DOM, so initial condition=true
-  // doesn't render the element. This is a known issue to be fixed.
-  test.skip("conditional example works", async ({ page }) => {
+  test("conditional example works", async ({ page }) => {
     await page.waitForSelector(".conditional-example");
 
     const conditionalSection = page.locator(".conditional-example");
