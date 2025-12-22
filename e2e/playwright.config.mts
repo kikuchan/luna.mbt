@@ -11,6 +11,7 @@ export default defineConfig({
     "**/template-app/**",
     "**/sol/cli/**",
     "**/sol-app/**",
+    "**/astra/**", // Uses its own config
     "**/wc_counter*.test.ts",
     "**/wc-css-isolation.test.ts",
     "**/wc-ssr-css.test.ts",

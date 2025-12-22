@@ -119,6 +119,10 @@ test-sol-new: build-moon
 test-sol-example: build-moon
     cd examples/sol_app && pnpm test:e2e
 
+# Astra HMR E2E テスト
+test-astra-hmr: build-moon
+    pnpm playwright test --config e2e/astra/playwright.config.ts
+
 # =============================================================================
 # CI
 # =============================================================================
