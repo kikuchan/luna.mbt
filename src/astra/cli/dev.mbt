@@ -159,10 +159,13 @@ async fn run_dev_command(args : Array[String]) -> Unit {
     @process.exit(1)
   }
 
-  // Initial build
+  // Create highlighter once for reuse (before initial build)
   println(@colorette.cyan("Starting development server..."))
   println("")
-  run_initial_build(config, cwd)
+  let highlighter = @shiki.create_default_highlighter().wait()
+
+  // Initial build with highlighter
+  run_initial_build(config, cwd, highlighter)
 
   // Start HMR WebSocket server
   let hmr_server = HmrServer::start(hmr_port)
@@ -183,9 +186,6 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   let docs_dir = @path.join2(cwd, config.docs_dir)
   println(@colorette.gray("Watching for changes in: \{config.docs_dir}/"))
   println("")
-
-  // Create highlighter once for reuse
-  let highlighter = @shiki.create_default_highlighter().wait()
 
   // Track known pages for detecting add/remove
   let known_pages : Map[String, Bool] = {}
@@ -355,8 +355,12 @@ fn copy_components_only(config : @astra.SsgConfig, cwd : String) -> Unit {
 }
 
 ///|
-fn run_initial_build(config : @astra.SsgConfig, cwd : String) -> Unit {
-  match @astra_gen.generate_site(config, cwd) {
+fn run_initial_build(
+  config : @astra.SsgConfig,
+  cwd : String,
+  highlighter : @shiki.Highlighter,
+) -> Unit {
+  match @astra_gen.generate_site_with_highlighter(config, cwd, highlighter) {
     Ok(_) =>
       println(@colorette.green("✓ Build complete: \{config.output_dir}"))
     Err(e) => console_error(@colorette.red("Build failed: \{e}"))
