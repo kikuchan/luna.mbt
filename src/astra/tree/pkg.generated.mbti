@@ -3,10 +3,13 @@ package "mizchi/luna/astra/tree"
 
 import(
   "mizchi/luna/astra"
+  "mizchi/luna/core/env"
 )
 
 // Values
 pub fn build_document_tree(@astra.SsgConfig, Array[@astra.PageMeta], String) -> DocumentTree
+
+pub fn[F : @env.FileSystem] build_document_tree_with_fs(F, @astra.SsgConfig, Array[@astra.PageMeta], String) -> DocumentTree
 
 pub fn generate_llms_txt(DocumentTree) -> String
 

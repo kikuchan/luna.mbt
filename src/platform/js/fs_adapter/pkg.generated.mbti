@@ -21,6 +21,11 @@ pub fn MemFSAdapter::new() -> Self
 pub fn MemFSAdapter::volume(Self) -> @memfs.Volume
 pub impl @env.FileSystem for MemFSAdapter
 
+pub struct NodeFsAdapter {
+}
+pub fn NodeFsAdapter::new() -> Self
+pub impl @env.FileSystem for NodeFsAdapter
+
 // Type aliases
 
 // Traits

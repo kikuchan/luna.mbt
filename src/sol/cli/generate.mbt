@@ -844,7 +844,7 @@ fn generate_types_pkg_json(
   // Import @luna for ComponentRef type
   buf.write_string("  \"import\": [\n")
   buf.write_string(
-    "    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" }\n",
+    "    { \"path\": \"mizchi/luna/luna\", \"alias\": \"luna\" }\n",
   )
   buf.write_string("  ],\n")
   buf.write_string("  \"link\": {\n")
@@ -1279,12 +1279,6 @@ fn generate_server_pkg_json(routes_pkg : String) -> String {
   )
   buf.write_string(
     "    { \"path\": \"mizchi/luna/sol/router\", \"alias\": \"router\" },\n",
-  )
-  buf.write_string(
-    "    { \"path\": \"mizchi/luna/core\", \"alias\": \"luna\" },\n",
-  )
-  buf.write_string(
-    "    { \"path\": \"mizchi/luna/platform/server_dom\", \"alias\": \"server_dom\" },\n",
   )
   buf.write_string(
     "    { \"path\": \"mizchi/js/core\", \"alias\": \"core\" },\n",
