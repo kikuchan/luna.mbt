@@ -241,7 +241,7 @@ fn create_test_context() -> MwContext {
   let request : MwRequest = {
     http_method: "GET",
     path: "/test",
-    headers: {},
+    headers: [],
     query: [],
     url: "http://localhost/test",
   }

@@ -159,8 +159,8 @@ pub struct MwRequest {
   http_method : String
   /// Request path
   path : String
-  /// Request headers
-  headers : Map[String, String]
+  /// Request headers (as array of tuples for JS compatibility)
+  headers : Array[(String, String)]
   /// Query parameters
   query : Array[(String, String)]
   /// Request URL
@@ -171,9 +171,9 @@ pub struct MwRequest {
 /// Get header value (case-insensitive)
 pub fn MwRequest::get_header(self : MwRequest, name : String) -> String? {
   let lower_name = name.to_lower()
-  for entry in self.headers {
-    if entry.0.to_lower() == lower_name {
-      return Some(entry.1)
+  for pair in self.headers {
+    if pair.0.to_lower() == lower_name {
+      return Some(pair.1)
     }
   }
   None
@@ -290,10 +290,10 @@ extern "js" fn ffi_get_url(ctx : @js.Any) -> String =
   #| (c) => c.req.url
 
 ///|
-extern "js" fn ffi_get_headers(ctx : @js.Any) -> Map[String, String] =
+extern "js" fn ffi_get_headers(ctx : @js.Any) -> Array[(String, String)] =
   #| (c) => {
-  #|   const result = new Map();
-  #|   c.req.raw.headers.forEach((v, k) => result.set(k, v));
+  #|   const result = [];
+  #|   c.req.raw.headers.forEach((v, k) => result.push({_0: k, _1: v}));
   #|   return result;
   #| }
 
