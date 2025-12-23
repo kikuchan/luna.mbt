@@ -7,3 +7,4 @@ app/client/__gen__*
 .sol
 package-lock.json
 wrangler.json
+zap-reports

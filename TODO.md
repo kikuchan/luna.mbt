@@ -17,7 +17,6 @@
   - 低優先
     - [ ] WebSocket (リアルタイム通信)
     - [ ] ルートグループ `(group)`
-    - [ ] Source Maps
 
 - astra (SSG)
   - [x] AI 用 llm.txt の生成
