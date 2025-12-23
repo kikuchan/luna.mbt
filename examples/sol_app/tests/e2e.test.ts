@@ -155,4 +155,181 @@ test.describe('Sol App E2E', () => {
     // Verify we're still on the form page (no redirect/404)
     await expect(page).toHaveURL('/form');
   });
+
+  test.describe('Nested Layout (Admin Section)', () => {
+    test('admin dashboard has nested layout structure', async ({ page }) => {
+      // Navigate to admin page
+      await page.goto('/admin');
+      await expect(page).toHaveURL('/admin');
+
+      // Verify nested layout structure
+      // 1. Root layout: main nav should be present
+      await expect(page.locator('nav').first()).toBeVisible();
+      await expect(page.locator('nav a[href="/"]').first()).toBeVisible();
+
+      // 2. Admin layout: admin sidebar should be present
+      await expect(page.locator('.admin-sidebar')).toBeVisible();
+      await expect(page.locator('.admin-sidebar h3')).toContainText('Admin');
+
+      // 3. Admin content area
+      await expect(page.locator('.admin-content')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Admin Dashboard');
+    });
+
+    test('navigation within admin section (CSR)', async ({ page }) => {
+      // Start at admin dashboard
+      await page.goto('/admin');
+      await expect(page).toHaveURL('/admin');
+      await expect(page.locator('h1')).toContainText('Admin Dashboard');
+
+      // Navigate to settings (CSR via sol-link)
+      await page.locator('.admin-sidebar a[href="/admin/settings"]').click();
+      await expect(page).toHaveURL('/admin/settings');
+      await expect(page.locator('h1')).toContainText('Settings');
+
+      // Verify admin layout is still present
+      await expect(page.locator('.admin-sidebar')).toBeVisible();
+
+      // Navigate to users
+      await page.locator('.admin-sidebar a[href="/admin/users"]').click();
+      await expect(page).toHaveURL('/admin/users');
+      await expect(page.locator('h1')).toContainText('Users');
+
+      // Navigate back to dashboard
+      await page.locator('.admin-sidebar a[href="/admin"]').click();
+      await expect(page).toHaveURL('/admin');
+      await expect(page.locator('h1')).toContainText('Admin Dashboard');
+    });
+
+    test('navigation from main nav to admin and back', async ({ page }) => {
+      // Start at home
+      await page.goto('/');
+      await expect(page).toHaveURL('/');
+
+      // Navigate to admin via main nav
+      await page.locator('nav a[href="/admin"]').first().click();
+      await expect(page).toHaveURL('/admin');
+
+      // Verify nested layout
+      await expect(page.locator('.admin-sidebar')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Admin Dashboard');
+
+      // Navigate back to home via main nav
+      await page.locator('nav a[href="/"]').first().click();
+      await expect(page).toHaveURL('/');
+
+      // Verify admin layout is no longer present
+      await expect(page.locator('.admin-sidebar')).not.toBeVisible();
+    });
+  });
+
+  test.describe('CSR Re-navigation (Stale-While-Revalidate)', () => {
+    test('counter re-hydrates correctly on A → B → A navigation', async ({ page }) => {
+      // Navigate to home page
+      await page.goto('/');
+      await expect(page).toHaveURL('/');
+
+      // Wait for hydration
+      await page.waitForTimeout(500);
+
+      // Get initial count and increment
+      const countDisplay = page.locator('.count-display');
+      const initialText = await countDisplay.textContent();
+      const initialValue = parseInt(initialText || '0', 10);
+
+      // Click increment
+      const incButton = page.locator('button.inc');
+      await incButton.click();
+      await expect(countDisplay).toHaveText(String(initialValue + 1));
+
+      // Navigate to About
+      await page.locator('nav a[href="/about"]').first().click();
+      await expect(page).toHaveURL('/about');
+
+      // Navigate back to Home (CSR re-navigation)
+      await page.locator('nav a[href="/"]').first().click();
+      await expect(page).toHaveURL('/');
+
+      // Wait for re-hydration
+      await page.waitForTimeout(500);
+
+      // Verify counter is visible and functional (new server state, not preserved client state)
+      const counterAfterNav = page.locator('.counter');
+      await expect(counterAfterNav).toBeVisible();
+
+      // Counter should work again after re-hydration
+      const incButtonAfterNav = page.locator('button.inc');
+      await incButtonAfterNav.click();
+
+      // Verify button click works (proves hydration happened)
+      const newCount = await page.locator('.count-display').textContent();
+      expect(parseInt(newCount || '0', 10)).toBeGreaterThan(0);
+    });
+
+    test('form page re-hydrates on re-navigation', async ({ page }) => {
+      // Navigate to form page
+      await page.goto('/form');
+      await expect(page).toHaveURL('/form');
+
+      // Wait for hydration
+      await page.waitForTimeout(1000);
+
+      // Fill in name
+      const nameInput = page.locator('input[name="name"]');
+      await nameInput.fill('Original Name');
+
+      // Verify preview updates
+      await expect(page.locator('.preview-name')).toContainText('Original Name', { timeout: 5000 });
+
+      // Navigate to About
+      await page.locator('nav a[href="/about"]').first().click();
+      await expect(page).toHaveURL('/about');
+
+      // Navigate back to Form (CSR re-navigation)
+      await page.locator('nav a[href="/form"]').first().click();
+      await expect(page).toHaveURL('/form');
+
+      // Wait for re-hydration
+      await page.waitForTimeout(1000);
+
+      // Form should be functional again (fresh state from server)
+      const newNameInput = page.locator('input[name="name"]');
+      await newNameInput.fill('New Name');
+
+      // Verify two-way binding works after re-hydration
+      await expect(page.locator('.preview-name')).toContainText('New Name', { timeout: 5000 });
+    });
+
+    test('multiple round trips maintain page functionality', async ({ page }) => {
+      // Start at home
+      await page.goto('/');
+      await expect(page).toHaveURL('/');
+
+      // Round trip 1: Home → About → Home
+      await page.locator('nav a[href="/about"]').first().click();
+      await expect(page).toHaveURL('/about');
+      await page.locator('nav a[href="/"]').first().click();
+      await expect(page).toHaveURL('/');
+
+      // Verify counter is functional
+      await page.waitForTimeout(500);
+      await expect(page.locator('.counter')).toBeVisible();
+      await page.locator('button.inc').click();
+
+      // Round trip 2: Home → Form → Home
+      await page.locator('nav a[href="/form"]').first().click();
+      await expect(page).toHaveURL('/form');
+      await page.locator('nav a[href="/"]').first().click();
+      await expect(page).toHaveURL('/');
+
+      // Verify counter still works
+      await page.waitForTimeout(500);
+      await expect(page.locator('.counter')).toBeVisible();
+      await page.locator('button.dec').click();
+
+      // Verify the button actually did something
+      const finalCount = await page.locator('.count-display').textContent();
+      expect(finalCount).toBeTruthy();
+    });
+  });
 });

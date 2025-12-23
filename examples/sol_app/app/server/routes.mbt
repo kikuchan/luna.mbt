@@ -28,6 +28,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Home",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // About page (static, no hydration)
             @router.SolRoutes::Page(
@@ -36,6 +37,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="About",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // Contact form page with contact_form island
             @router.SolRoutes::Page(
@@ -44,6 +46,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Contact Form",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // WC Counter page - Web Components based island
             @router.SolRoutes::Page(
@@ -52,6 +55,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="WC Counter",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // WC Multiple page - multiple instances of same component
             @router.SolRoutes::Page(
@@ -60,6 +64,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="WC Multiple",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // Docs page - catch-all route [...slug]
             @router.SolRoutes::Page(
@@ -68,6 +73,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Documentation",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // Blog page - optional catch-all route [[...path]]
             @router.SolRoutes::Page(
@@ -76,6 +82,7 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Blog",
               meta=[],
               revalidate=None,
+              cache=None,
             ),
             // Middleware test page
             @router.SolRoutes::Page(
@@ -84,6 +91,38 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Middleware Test",
               meta=[],
               revalidate=None,
+              cache=None,
+            ),
+            // Admin section - nested layout example
+            @router.SolRoutes::Layout(
+              segment="/admin",
+              layout=admin_layout,
+              children=[
+                @router.SolRoutes::Page(
+                  path="/",
+                  handler=@router.PageHandler(admin_home),
+                  title="Admin Dashboard",
+                  meta=[],
+                  revalidate=None,
+                  cache=None,
+                ),
+                @router.SolRoutes::Page(
+                  path="/settings",
+                  handler=@router.PageHandler(admin_settings),
+                  title="Admin Settings",
+                  meta=[],
+                  revalidate=None,
+                  cache=None,
+                ),
+                @router.SolRoutes::Page(
+                  path="/users",
+                  handler=@router.PageHandler(admin_users),
+                  title="Admin Users",
+                  meta=[],
+                  revalidate=None,
+                  cache=None,
+                ),
+              ],
             ),
           ],
         ),

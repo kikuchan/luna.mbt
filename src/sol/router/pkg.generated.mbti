@@ -38,6 +38,14 @@ pub(all) struct ApiHandler(async (PageProps) -> @core.Any)
 #deprecated
 pub fn ApiHandler::inner(Self) -> async (PageProps) -> @core.Any
 
+pub(all) enum CacheStrategy {
+  AlwaysFetch
+  StaleWhileRevalidate
+}
+pub fn CacheStrategy::default() -> Self
+pub impl Eq for CacheStrategy
+pub impl Show for CacheStrategy
+
 pub(all) struct CatchAllInfo {
   name : String
   optional : Bool
@@ -71,6 +79,7 @@ pub struct CompiledSolRoute {
   meta : Array[(String, String)]
   catch_all : CatchAllInfo?
   revalidate : Int?
+  cache_strategy : CacheStrategy
 }
 
 pub(all) struct PageHandler(async (PageProps) -> @server_dom.ServerNode)
@@ -136,7 +145,7 @@ pub impl Eq for SolRouteKind
 pub impl Show for SolRouteKind
 
 pub(all) enum SolRoutes {
-  Page(path~ : String, handler~ : PageHandler, title~ : String, meta~ : Array[(String, String)], revalidate~ : Int?)
+  Page(path~ : String, handler~ : PageHandler, title~ : String, meta~ : Array[(String, String)], revalidate~ : Int?, cache~ : CacheStrategy?)
   Layout(segment~ : String, layout~ : (PageProps, @server_dom.ServerNode) -> @server_dom.ServerNode raise, children~ : Array[SolRoutes])
   Get(path~ : String, handler~ : ApiHandler)
   Post(path~ : String, handler~ : ApiHandler)

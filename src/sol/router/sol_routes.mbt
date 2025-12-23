@@ -16,6 +16,28 @@ pub(all) struct PageHandler(async (PageProps) -> @server_dom.ServerNode)
 pub(all) struct ApiHandler(async (PageProps) -> @js.Any)
 
 // ============================================================================
+// Cache Strategy
+// ============================================================================
+
+///|
+/// Cache strategy for CSR navigation
+/// Controls how the client handles navigation to the same page
+pub(all) enum CacheStrategy {
+  /// Always fetch from server (default)
+  /// Each navigation triggers a fresh server request
+  AlwaysFetch
+  /// Stale-While-Revalidate
+  /// Shows cached content immediately, then fetches and updates in background
+  StaleWhileRevalidate
+} derive(Eq, Show)
+
+///|
+/// Default cache strategy is AlwaysFetch
+pub fn CacheStrategy::default() -> CacheStrategy {
+  CacheStrategy::AlwaysFetch
+}
+
+// ============================================================================
 // Sol Routes Definition
 // ============================================================================
 
@@ -28,12 +50,14 @@ pub(all) enum SolRoutes {
   /// - title: Page title
   /// - meta: Meta information
   /// - revalidate: ISR revalidation interval in seconds (None = no caching)
+  /// - cache: CSR cache strategy (default: AlwaysFetch)
   Page(
     path~ : String,
     handler~ : PageHandler,
     title~ : String,
     meta~ : Array[(String, String)],
-    revalidate~ : Int?
+    revalidate~ : Int?,
+    cache~ : CacheStrategy?
   )
   /// Layout wrapper for nested routes
   /// - segment: Path segment (e.g., "/admin")
@@ -101,6 +125,8 @@ pub struct CompiledSolRoute {
   catch_all : CatchAllInfo?
   /// ISR revalidation interval in seconds (None = no caching)
   revalidate : Int?
+  /// CSR cache strategy
+  cache_strategy : CacheStrategy
 }
 
 ///|
@@ -293,7 +319,7 @@ fn compile_sol_routes_inner(
 ) -> Unit {
   for route in routes {
     match route {
-      Page(path~, handler~, title~, meta~, revalidate~) => {
+      Page(path~, handler~, title~, meta~, revalidate~, cache~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
         let catch_all = extract_catch_all(full_path)
@@ -309,6 +335,7 @@ fn compile_sol_routes_inner(
           meta,
           catch_all,
           revalidate,
+          cache_strategy: cache.unwrap_or(CacheStrategy::AlwaysFetch),
         })
       }
       Layout(segment~, layout~, children~) => {
@@ -335,6 +362,7 @@ fn compile_sol_routes_inner(
           meta: [],
           catch_all,
           revalidate: None,
+          cache_strategy: CacheStrategy::AlwaysFetch,
         })
       }
       Post(path~, handler~) => {
@@ -353,6 +381,7 @@ fn compile_sol_routes_inner(
           meta: [],
           catch_all,
           revalidate: None,
+          cache_strategy: CacheStrategy::AlwaysFetch,
         })
       }
       WithMiddleware(middleware~, children~) => {
@@ -467,15 +496,16 @@ async fn render_page_to_html(
   // Call handler and apply layouts
   let content : @server_dom.ServerNode = handler(props)
 
-  // Apply layouts from innermost to outermost (only for full page)
+  // Apply layouts from innermost to outermost
+  // For fragments: skip root layout (index 0), apply nested layouts
+  // For full pages: apply all layouts
   let mut node = content
-  if not(is_fragment) {
-    let mut i = layouts.length() - 1
-    while i >= 0 {
-      let layout_fn = layouts[i]
-      node = layout_fn(props, node)
-      i -= 1
-    }
+  let end_idx = if is_fragment { 1 } else { 0 }
+  let mut i = layouts.length() - 1
+  while i >= end_idx {
+    let layout_fn = layouts[i]
+    node = layout_fn(props, node)
+    i -= 1
   }
   if is_fragment {
     render_server_fragment(node, title)
@@ -589,18 +619,18 @@ fn register_compiled_sol_routes(
                   }
 
                   // Apply layouts from innermost to outermost
-                  // BUT only for full page requests, not fragments
+                  // For fragments: skip root layout (index 0), apply nested layouts
+                  // For full pages: apply all layouts
                   let mut node = content
-                  if not(is_fragment) {
-                    let layouts = route.layouts
-                    let mut i = layouts.length() - 1
-                    while i >= 0 {
-                      let layout_fn = layouts[i]
-                      node = layout_fn(props, node) catch {
-                        e => return c.text("Layout error: " + e.to_string())
-                      }
-                      i -= 1
+                  let layouts = route.layouts
+                  let end_idx = if is_fragment { 1 } else { 0 }
+                  let mut i = layouts.length() - 1
+                  while i >= end_idx {
+                    let layout_fn = layouts[i]
+                    node = layout_fn(props, node) catch {
+                      e => return c.text("Layout error: " + e.to_string())
                     }
+                    i -= 1
                   }
                   if is_fragment {
                     let fragment_html = render_server_fragment(node, page_title)

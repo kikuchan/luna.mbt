@@ -13,6 +13,7 @@ test "compile simple sol page route" {
       title="Home",
       meta=[],
       revalidate=None,
+      cache=None,
     ),
   ]
   let compiled = compile_sol_routes(routes)
@@ -43,6 +44,7 @@ test "compile sol layout with children" {
         title="Dashboard",
         meta=[],
         revalidate=None,
+        cache=None,
       ),
     ]),
   ]
@@ -87,6 +89,7 @@ test "extract param names from sol routes" {
       title="User Post",
       meta=[],
       revalidate=None,
+      cache=None,
     ),
   ]
   let compiled = compile_sol_routes(routes)
