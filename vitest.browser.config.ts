@@ -23,7 +23,7 @@ export default defineConfig({
       "**/node_modules/**",
       "**/.mooncakes/**",
       "js/**/tmp/**",
-      // TSX tests use old bun:test format - need migration
+      // TSX tests use global-jsdom (jsdom environment only, not real browser)
       "js/luna/**/*.test.tsx",
       // Benchmarks should only run with `vitest bench`
       "js/luna/**/*.bench.ts",

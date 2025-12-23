@@ -1,7 +1,7 @@
 // Test actual TSX syntax with jsxImportSource
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect } from "vitest";
 import "global-jsdom/register";
-import { createSignal, get, set } from "../index.js";
+import { createSignal } from "../index.js";
 import { render } from "../dom.js";
 import type { JSX } from "../jsx-runtime.js";
 
@@ -98,10 +98,10 @@ describe("TSX Syntax with jsxImportSource", () => {
   });
 
   test("reactive value with signal", () => {
-    const count = createSignal(0);
+    const [count] = createSignal(0);
 
     const node = (
-      <div className={() => `count-${get(count)}`}>
+      <div className={() => `count-${count()}`}>
         Count value
       </div>
     );
