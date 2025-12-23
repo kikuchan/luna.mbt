@@ -50,6 +50,13 @@ pub(all) enum SolRoutes {
   /// - path: URL pattern
   /// - handler: Handler that returns JSON
   Post(path~ : String, handler~ : ApiHandler)
+  /// Middleware wrapper for route groups
+  /// - middleware: Array of middlewares to apply
+  /// - children: Nested routes
+  WithMiddleware(
+    middleware~ : Array[@middleware.Middleware],
+    children~ : Array[SolRoutes]
+  )
 }
 
 // ============================================================================
@@ -80,6 +87,8 @@ pub struct CompiledSolRoute {
   layouts : Array[
     (PageProps, @server_dom.ServerNode) -> @server_dom.ServerNode raise Error,
   ]
+  /// Middleware chain (from outermost to innermost)
+  middlewares : Array[@middleware.Middleware]
   /// Route kind
   kind : SolRouteKind
   /// Page title
@@ -139,16 +148,12 @@ fn extract_catch_all(path : String) -> CatchAllInfo? {
   let last = segments[segments.length() - 1]
   // Optional catch-all: [[...name]]
   if last.has_prefix("[[...") && last.has_suffix("]]") && last.length() > 7 {
-    let name = last[5:last.length() - 2].to_string() catch {
-      _ => return None
-    }
+    let name = last[5:last.length() - 2].to_string() catch { _ => return None }
     return Some({ name, optional: true })
   }
   // Required catch-all: [...name]
   if last.has_prefix("[...") && last.has_suffix("]") && last.length() > 5 {
-    let name = last[4:last.length() - 1].to_string() catch {
-      _ => return None
-    }
+    let name = last[4:last.length() - 1].to_string() catch { _ => return None }
     return Some({ name, optional: false })
   }
   None
@@ -268,7 +273,7 @@ pub fn compile_sol_routes(
   base? : String = "",
 ) -> Array[CompiledSolRoute] {
   let result : Array[CompiledSolRoute] = []
-  compile_sol_routes_inner(routes, base, [], result)
+  compile_sol_routes_inner(routes, base, [], [], result)
   result
 }
 
@@ -279,6 +284,7 @@ fn compile_sol_routes_inner(
   inherited_layouts : Array[
     (PageProps, @server_dom.ServerNode) -> @server_dom.ServerNode raise Error,
   ],
+  inherited_middlewares : Array[@middleware.Middleware],
   result : Array[CompiledSolRoute],
 ) -> Unit {
   for route in routes {
@@ -293,6 +299,7 @@ fn compile_sol_routes_inner(
           page_handler: Some(handler),
           api_handler: None,
           layouts: inherited_layouts.copy(),
+          middlewares: inherited_middlewares.copy(),
           kind: SolRouteKind::Page,
           title,
           meta,
@@ -303,7 +310,9 @@ fn compile_sol_routes_inner(
         let new_prefix = normalize_path(prefix + segment)
         let new_layouts = inherited_layouts.copy()
         new_layouts.push(layout)
-        compile_sol_routes_inner(children, new_prefix, new_layouts, result)
+        compile_sol_routes_inner(
+          children, new_prefix, new_layouts, inherited_middlewares, result,
+        )
       }
       Get(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
@@ -315,6 +324,7 @@ fn compile_sol_routes_inner(
           page_handler: None,
           api_handler: Some(handler),
           layouts: [],
+          middlewares: inherited_middlewares.copy(),
           kind: SolRouteKind::GetApi,
           title: "",
           meta: [],
@@ -331,11 +341,21 @@ fn compile_sol_routes_inner(
           page_handler: None,
           api_handler: Some(handler),
           layouts: [],
+          middlewares: inherited_middlewares.copy(),
           kind: SolRouteKind::PostApi,
           title: "",
           meta: [],
           catch_all,
         })
+      }
+      WithMiddleware(middleware~, children~) => {
+        let new_middlewares = inherited_middlewares.copy()
+        for mw in middleware {
+          new_middlewares.push(mw)
+        }
+        compile_sol_routes_inner(
+          children, prefix, inherited_layouts, new_middlewares, result,
+        )
       }
     }
   }
@@ -358,6 +378,72 @@ pub fn register_sol_routes(
 }
 
 ///|
+/// Execute middleware chain and return halted response or continue with context
+async fn run_middlewares(
+  c : Ctx,
+  middlewares : Array[@middleware.Middleware],
+) -> @middleware.Flow[@middleware.MwContext] {
+  if middlewares.is_empty() {
+    return @middleware.Flow::Continue(@middleware.MwContext::from_ctx(c))
+  }
+  let mw_ctx = @middleware.MwContext::from_ctx(c)
+  let pipeline = @middleware.pipeline(middlewares)
+  @middleware.run(pipeline, mw_ctx) catch {
+    e =>
+      @middleware.Flow::Halt(
+        @middleware.MwResponse::text(e.to_string(), status=500),
+      )
+  }
+}
+
+///|
+/// Convert MwResponse to Hono response
+fn send_mw_response(c : Ctx, resp : @middleware.MwResponse) -> @http.Response {
+  // Set headers
+  for header in resp.headers {
+    ffi_set_header(c.as_any(), header.0, header.1)
+  }
+  // Set content type
+  ffi_set_header(c.as_any(), "Content-Type", resp.content_type)
+  // Return response
+  match resp.status {
+    301 | 302 | 303 | 307 | 308 =>
+      c.redirect(
+        resp.headers
+        .iter()
+        .find_first(fn(h) { h.0 == "Location" })
+        .map(fn(h) { h.1 })
+        .unwrap_or("/"),
+      )
+    _ => ffi_create_response(c.as_any(), resp.body, resp.status)
+  }
+}
+
+///|
+extern "js" fn ffi_set_header(
+  c : @js.Any,
+  name : String,
+  value : String,
+) -> Unit =
+  #| (c, name, value) => c.header(name, value)
+
+///|
+extern "js" fn ffi_create_response(
+  c : @js.Any,
+  body : String,
+  status : Int,
+) -> @http.Response =
+  #| (c, body, status) => c.body(body, status)
+
+///|
+/// Apply response headers from middleware context
+fn apply_response_headers(c : Ctx, mw_ctx : @middleware.MwContext) -> Unit {
+  for header in mw_ctx.response_headers {
+    ffi_set_header(c.as_any(), header.0, header.1)
+  }
+}
+
+///|
 fn register_compiled_sol_routes(
   app : App,
   routes : Array[CompiledSolRoute],
@@ -370,6 +456,13 @@ fn register_compiled_sol_routes(
     result = match route.kind {
       SolRouteKind::Page =>
         result.get(hono_pattern, async fn(c) {
+          // Run middleware chain first
+          let mw_result = run_middlewares(c, route.middlewares)
+          let mw_ctx = match mw_result {
+            @middleware.Flow::Halt(resp) => return send_mw_response(c, resp)
+            @middleware.Flow::Continue(ctx) => ctx
+          }
+          apply_response_headers(c, mw_ctx)
           let is_fragment = has_fragment_header(c)
           let mut params = extract_route_params(c, is_fragment~)
           // Add catch-all parameter if present
@@ -420,6 +513,13 @@ fn register_compiled_sol_routes(
         })
       SolRouteKind::GetApi =>
         result.get(hono_pattern, async fn(c) {
+          // Run middleware chain first
+          let mw_result = run_middlewares(c, route.middlewares)
+          let mw_ctx = match mw_result {
+            @middleware.Flow::Halt(resp) => return send_mw_response(c, resp)
+            @middleware.Flow::Continue(ctx) => ctx
+          }
+          apply_response_headers(c, mw_ctx)
           let mut params = extract_route_params(c)
           params = add_catch_all_param(params, route.catch_all)
           let props = PageProps::from_ctx_with_params(c, params)
@@ -435,6 +535,13 @@ fn register_compiled_sol_routes(
         })
       SolRouteKind::PostApi =>
         result.post(hono_pattern, async fn(c) {
+          // Run middleware chain first
+          let mw_result = run_middlewares(c, route.middlewares)
+          let mw_ctx = match mw_result {
+            @middleware.Flow::Halt(resp) => return send_mw_response(c, resp)
+            @middleware.Flow::Continue(ctx) => ctx
+          }
+          apply_response_headers(c, mw_ctx)
           let mut params = extract_route_params(c)
           params = add_catch_all_param(params, route.catch_all)
           let props = PageProps::from_ctx_with_params(c, params)

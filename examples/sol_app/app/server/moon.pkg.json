@@ -16,6 +16,10 @@
       "alias": "router"
     },
     {
+      "path": "mizchi/luna/sol/middleware",
+      "alias": "mw"
+    },
+    {
       "path": "mizchi/luna/platform/server_dom",
       "alias": "server_dom"
     },
