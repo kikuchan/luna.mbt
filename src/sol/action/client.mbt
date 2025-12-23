@@ -109,6 +109,21 @@ pub fn submit_form_as_action(form : @js.Any, config : ActionFormConfig) -> Unit 
 // FFI Implementation
 // ============================================================================
 
+// TODO: MoonBit enum serialization format
+// Currently using $tag (numeric index) format for enum variants:
+//   { $tag: 0, _0: data }     // Success
+//   { $tag: 1, _0: url }      // Redirect
+//   { $tag: 2, _0: status, _1: msg }  // Error
+//   { $tag: 3, _0: msg }      // NetworkError
+//
+// Issues to investigate:
+// 1. Is $tag the stable/official format? Or should we use $ with string names?
+// 2. MoonBit's Option uses { $: "Some", _0: value } but enums use $tag
+// 3. Consider creating a helper function or macro for enum construction
+// 4. Document the serialization format in MoonBit FFI best practices
+//
+// See: docs/internal/server-action-implementation.md
+
 ///|
 extern "js" fn ffi_invoke_action_cb(
   url : String,
