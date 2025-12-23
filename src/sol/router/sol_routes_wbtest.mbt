@@ -96,3 +96,144 @@ test "extract param names from sol routes" {
   assert_eq(compiled.length(), 1)
   assert_eq(compiled[0].param_names, ["userId", "postId"])
 }
+
+///|
+test "page with no layout has empty layouts array" {
+  async fn home_handler(_props : PageProps) -> @server_dom.ServerNode {
+    @server_dom.ServerNode::sync(@luna.text("Home"))
+  }
+
+  let routes = [
+    SolRoutes::Page(
+      path="/",
+      handler=PageHandler(home_handler),
+      title="Home",
+      meta=[],
+      revalidate=None,
+      cache=None,
+    ),
+  ]
+  let compiled = compile_sol_routes(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].layouts.length(), 0)
+}
+
+///|
+test "page with single layout (root only)" {
+  async fn home_handler(_props : PageProps) -> @server_dom.ServerNode {
+    @server_dom.ServerNode::sync(@luna.text("Home"))
+  }
+
+  fn root_layout(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  let routes = [
+    SolRoutes::Layout(segment="", layout=root_layout, children=[
+      SolRoutes::Page(
+        path="/",
+        handler=PageHandler(home_handler),
+        title="Home",
+        meta=[],
+        revalidate=None,
+        cache=None,
+      ),
+    ]),
+  ]
+  let compiled = compile_sol_routes(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].pattern, "/")
+  assert_eq(compiled[0].layouts.length(), 1)
+}
+
+///|
+test "page with nested layouts (root + admin)" {
+  async fn admin_home_handler(_props : PageProps) -> @server_dom.ServerNode {
+    @server_dom.ServerNode::sync(@luna.text("Admin Home"))
+  }
+
+  fn root_layout(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  fn admin_layout(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  let routes = [
+    SolRoutes::Layout(segment="", layout=root_layout, children=[
+      SolRoutes::Layout(segment="/admin", layout=admin_layout, children=[
+        SolRoutes::Page(
+          path="/",
+          handler=PageHandler(admin_home_handler),
+          title="Admin",
+          meta=[],
+          revalidate=None,
+          cache=None,
+        ),
+      ]),
+    ]),
+  ]
+  let compiled = compile_sol_routes(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].pattern, "/admin")
+  assert_eq(compiled[0].layouts.length(), 2)
+}
+
+///|
+test "page with deeply nested layouts (3 levels)" {
+  async fn page_handler(_props : PageProps) -> @server_dom.ServerNode {
+    @server_dom.ServerNode::sync(@luna.text("Deep"))
+  }
+
+  fn layout1(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  fn layout2(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  fn layout3(
+    _props : PageProps,
+    children : @server_dom.ServerNode,
+  ) -> @server_dom.ServerNode raise _ {
+    children
+  }
+
+  let routes = [
+    SolRoutes::Layout(segment="", layout=layout1, children=[
+      SolRoutes::Layout(segment="/a", layout=layout2, children=[
+        SolRoutes::Layout(segment="/b", layout=layout3, children=[
+          SolRoutes::Page(
+            path="/c",
+            handler=PageHandler(page_handler),
+            title="Deep Page",
+            meta=[],
+            revalidate=None,
+            cache=None,
+          ),
+        ]),
+      ]),
+    ]),
+  ]
+  let compiled = compile_sol_routes(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].pattern, "/a/b/c")
+  assert_eq(compiled[0].layouts.length(), 3)
+}
