@@ -57,6 +57,15 @@ pub(all) enum SolRoutes {
 // ============================================================================
 
 ///|
+/// Catch-all parameter info
+pub(all) struct CatchAllInfo {
+  /// Parameter name (e.g., "slug")
+  name : String
+  /// Whether it's optional ([[...slug]] = true)
+  optional : Bool
+}
+
+///|
 /// Compiled route for efficient matching
 pub struct CompiledSolRoute {
   /// Full path pattern
@@ -77,6 +86,8 @@ pub struct CompiledSolRoute {
   title : String
   /// Meta information
   meta : Array[(String, String)]
+  /// Catch-all parameter info (for [...slug] or [[...slug]])
+  catch_all : CatchAllInfo?
 }
 
 ///|
@@ -92,7 +103,7 @@ pub enum SolRouteKind {
 // ============================================================================
 
 ///|
-/// Extract parameter names from path pattern
+/// Extract parameter names from path pattern (excludes catch-all)
 /// Example: "/user/:id/posts/:postId" -> ["id", "postId"]
 fn extract_param_names(path : String) -> Array[String] {
   let result : Array[String] = []
@@ -101,9 +112,104 @@ fn extract_param_names(path : String) -> Array[String] {
     if segment.has_prefix(":") && segment.length() > 1 {
       let name = segment[1:].to_string() catch { _ => continue }
       result.push(name)
+    } else if segment.has_prefix("[") &&
+      not(segment.has_prefix("[...")) &&
+      not(segment.has_prefix("[[...")) {
+      // [id] style param (Next.js style)
+      if segment.has_suffix("]") && segment.length() > 2 {
+        let name = segment[1:segment.length() - 1].to_string() catch {
+          _ => continue
+        }
+        result.push(name)
+      }
     }
   }
   result
+}
+
+///|
+/// Extract catch-all info from path pattern
+/// Example: "/docs/[...slug]" -> Some({ name: "slug", optional: false })
+///          "/docs/[[...slug]]" -> Some({ name: "slug", optional: true })
+fn extract_catch_all(path : String) -> CatchAllInfo? {
+  let segments = split_by_char(path, '/')
+  if segments.is_empty() {
+    return None
+  }
+  let last = segments[segments.length() - 1]
+  // Optional catch-all: [[...name]]
+  if last.has_prefix("[[...") && last.has_suffix("]]") && last.length() > 7 {
+    let name = last[5:last.length() - 2].to_string() catch {
+      _ => return None
+    }
+    return Some({ name, optional: true })
+  }
+  // Required catch-all: [...name]
+  if last.has_prefix("[...") && last.has_suffix("]") && last.length() > 5 {
+    let name = last[4:last.length() - 1].to_string() catch {
+      _ => return None
+    }
+    return Some({ name, optional: false })
+  }
+  None
+}
+
+///|
+/// Convert catch-all pattern to Hono v4 regex pattern
+/// Example: "/docs/[...slug]" -> "/docs/:slug{.+}"    (required: 1+ chars)
+///          "/blog/[[...path]]" -> "/blog/:path{.*}?" (optional: 0+ chars)
+fn convert_to_hono_pattern(path : String, catch_all : CatchAllInfo?) -> String {
+  match catch_all {
+    Some(info) => {
+      // Remove the catch-all segment and add Hono v4 regex pattern
+      let segments = split_by_char(path, '/')
+      let base_segments = segments[0:segments.length() - 1]
+      let base = if base_segments.length() == 0 {
+        ""
+      } else {
+        "/" + join_segments(base_segments)
+      }
+      // Hono v4: :name{regex} for named catch-all
+      // Required: {.+} matches 1 or more chars (must have at least one segment)
+      // Optional: {.*}? matches 0 or more chars (can be empty)
+      if info.optional {
+        base + "/:" + info.name + "{.*}?"
+      } else {
+        base + "/:" + info.name + "{.+}"
+      }
+    }
+    None => path
+  }
+}
+
+///|
+/// Join segments with "/"
+fn join_segments(segments : ArrayView[String]) -> String {
+  if segments.length() == 0 {
+    return ""
+  }
+  let result = StringBuilder::new()
+  for i, seg in segments {
+    if i > 0 {
+      result.write_string("/")
+    }
+    result.write_string(seg)
+  }
+  result.to_string()
+}
+
+///|
+/// Add catch-all parameter (Hono v4 compatibility)
+/// With Hono v4's `:name{regex}` pattern, the parameter is already
+/// available with the correct name, so this function just returns params as-is.
+fn add_catch_all_param(
+  params : RouteParams,
+  _catch_all : CatchAllInfo?,
+) -> RouteParams {
+  // Hono v4 uses named regex patterns like :slug{.+} which automatically
+  // populate the params with the correct key name.
+  // No transformation needed.
+  params
 }
 
 ///|
@@ -180,6 +286,7 @@ fn compile_sol_routes_inner(
       Page(path~, handler~, title~, meta~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -189,6 +296,7 @@ fn compile_sol_routes_inner(
           kind: SolRouteKind::Page,
           title,
           meta,
+          catch_all,
         })
       }
       Layout(segment~, layout~, children~) => {
@@ -200,6 +308,7 @@ fn compile_sol_routes_inner(
       Get(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -209,11 +318,13 @@ fn compile_sol_routes_inner(
           kind: SolRouteKind::GetApi,
           title: "",
           meta: [],
+          catch_all,
         })
       }
       Post(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -223,6 +334,7 @@ fn compile_sol_routes_inner(
           kind: SolRouteKind::PostApi,
           title: "",
           meta: [],
+          catch_all,
         })
       }
     }
@@ -253,11 +365,15 @@ fn register_compiled_sol_routes(
 ) -> App {
   let mut result = app
   for route in routes {
+    // Convert catch-all pattern to Hono wildcard pattern
+    let hono_pattern = convert_to_hono_pattern(route.pattern, route.catch_all)
     result = match route.kind {
       SolRouteKind::Page =>
-        result.get(route.pattern, async fn(c) {
+        result.get(hono_pattern, async fn(c) {
           let is_fragment = has_fragment_header(c)
-          let params = extract_route_params(c, is_fragment~)
+          let mut params = extract_route_params(c, is_fragment~)
+          // Add catch-all parameter if present
+          params = add_catch_all_param(params, route.catch_all)
           let props = PageProps::from_ctx_with_params(c, params)
           match route.page_handler {
             Some(PageHandler(handler)) => {
@@ -267,15 +383,19 @@ fn register_compiled_sol_routes(
               }
 
               // Apply layouts from innermost to outermost
+              // BUT only for full page requests, not fragments
+              // Fragments only need the page content (outlet will swap it)
               let mut node = content
-              let layouts = route.layouts
-              let mut i = layouts.length() - 1
-              while i >= 0 {
-                let layout_fn = layouts[i]
-                node = layout_fn(props, node) catch {
-                  e => return c.text("Layout error: " + e.to_string())
+              if not(is_fragment) {
+                let layouts = route.layouts
+                let mut i = layouts.length() - 1
+                while i >= 0 {
+                  let layout_fn = layouts[i]
+                  node = layout_fn(props, node) catch {
+                    e => return c.text("Layout error: " + e.to_string())
+                  }
+                  i -= 1
                 }
-                i -= 1
               }
               let page_title = format_title(
                 route.title,
@@ -299,8 +419,9 @@ fn register_compiled_sol_routes(
           }
         })
       SolRouteKind::GetApi =>
-        result.get(route.pattern, async fn(c) {
-          let params = extract_route_params(c)
+        result.get(hono_pattern, async fn(c) {
+          let mut params = extract_route_params(c)
+          params = add_catch_all_param(params, route.catch_all)
           let props = PageProps::from_ctx_with_params(c, params)
           match route.api_handler {
             Some(ApiHandler(handler)) => {
@@ -313,8 +434,9 @@ fn register_compiled_sol_routes(
           }
         })
       SolRouteKind::PostApi =>
-        result.post(route.pattern, async fn(c) {
-          let params = extract_route_params(c)
+        result.post(hono_pattern, async fn(c) {
+          let mut params = extract_route_params(c)
+          params = add_catch_all_param(params, route.catch_all)
           let props = PageProps::from_ctx_with_params(c, params)
           match route.api_handler {
             Some(ApiHandler(handler)) => {

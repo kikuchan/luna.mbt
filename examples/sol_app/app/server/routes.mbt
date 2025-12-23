@@ -8,49 +8,91 @@
 
 ///|
 /// Application routes - defines all pages and API endpoints
+/// Uses Layout to wrap all pages with shared navigation
 pub fn routes() -> Array[@router.SolRoutes] {
   [
-    // Home page with counter island
-    @router.SolRoutes::Page(
-      path="/",
-      handler=@router.PageHandler(home),
-      title="Home",
-      meta=[],
+    // Root layout - wraps all pages with navigation
+    @router.SolRoutes::Layout(
+      segment="",
+      layout=root_layout,
+      children=[
+        // Home page with counter island
+        @router.SolRoutes::Page(
+          path="/",
+          handler=@router.PageHandler(home),
+          title="Home",
+          meta=[],
+        ),
+        // About page (static, no hydration)
+        @router.SolRoutes::Page(
+          path="/about",
+          handler=@router.PageHandler(about),
+          title="About",
+          meta=[],
+        ),
+        // Contact form page with contact_form island
+        @router.SolRoutes::Page(
+          path="/form",
+          handler=@router.PageHandler(form_page),
+          title="Contact Form",
+          meta=[],
+        ),
+        // WC Counter page - Web Components based island
+        @router.SolRoutes::Page(
+          path="/wc-counter",
+          handler=@router.PageHandler(wc_counter),
+          title="WC Counter",
+          meta=[],
+        ),
+        // WC Multiple page - multiple instances of same component
+        @router.SolRoutes::Page(
+          path="/wc-multiple",
+          handler=@router.PageHandler(wc_multiple),
+          title="WC Multiple",
+          meta=[],
+        ),
+        // Docs page - catch-all route [...slug]
+        @router.SolRoutes::Page(
+          path="/docs/[...slug]",
+          handler=@router.PageHandler(docs_page),
+          title="Documentation",
+          meta=[],
+        ),
+        // Blog page - optional catch-all route [[...path]]
+        @router.SolRoutes::Page(
+          path="/blog/[[...path]]",
+          handler=@router.PageHandler(blog_page),
+          title="Blog",
+          meta=[],
+        ),
+      ],
     ),
-    // About page (static, no hydration)
-    @router.SolRoutes::Page(
-      path="/about",
-      handler=@router.PageHandler(about),
-      title="About",
-      meta=[],
-    ),
-    // Contact form page with contact_form island
-    @router.SolRoutes::Page(
-      path="/form",
-      handler=@router.PageHandler(form_page),
-      title="Contact Form",
-      meta=[],
-    ),
-    // WC Counter page - Web Components based island
-    @router.SolRoutes::Page(
-      path="/wc-counter",
-      handler=@router.PageHandler(wc_counter),
-      title="WC Counter",
-      meta=[],
-    ),
-    // WC Multiple page - multiple instances of same component
-    @router.SolRoutes::Page(
-      path="/wc-multiple",
-      handler=@router.PageHandler(wc_multiple),
-      title="WC Multiple",
-      meta=[],
-    ),
-    // API endpoint
+    // API endpoints (outside layout - no HTML rendering)
     @router.SolRoutes::Get(
       path="/api/health",
       handler=@router.ApiHandler(api_health),
     ),
+    // Debug API - test catch-all params
+    @router.SolRoutes::Get(
+      path="/api/test/[...path]",
+      handler=@router.ApiHandler(api_test_catch_all),
+    ),
   ]
+}
+
+///|
+/// Debug API - returns catch-all params
+async fn api_test_catch_all(props : @router.PageProps) -> @core.Any {
+  let path = props.params.get_param("path").unwrap_or("(none)")
+  let star = props.params.get_param("*").unwrap_or("(none)")
+  let all_params = props.params.params
+    .map(fn(p) { p.0 + "=" + p.1 })
+    .join(",")
+  @sol.json_obj([
+    ("path", @core.any(path)),
+    ("star", @core.any(star)),
+    ("all_params", @core.any(all_params)),
+  ])
 }
 
 ///|

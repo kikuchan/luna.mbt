@@ -135,3 +135,157 @@ test "RoutesKind via match result" {
   assert_true(page_match.kind() is Page)
   assert_true(api_match.kind() is GetApi)
 }
+
+// =============================================================================
+// Catch-All Route Tests
+// =============================================================================
+
+///|
+test "compile catch-all route [...slug]" {
+  let routes = [
+    Routes::Page(path="/docs/[...slug]", component="docs", title="Docs", meta=[]),
+  ]
+  let compiled = compile(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].pattern, "/docs/[...slug]")
+  assert_true(compiled[0].catch_all is Some(_))
+  let catch_all = compiled[0].catch_all.unwrap()
+  assert_eq(catch_all.name, "slug")
+  assert_eq(catch_all.optional, false)
+}
+
+///|
+test "compile optional catch-all route [[...slug]]" {
+  let routes = [
+    Routes::Page(
+      path="/blog/[[...path]]",
+      component="blog",
+      title="Blog",
+      meta=[],
+    ),
+  ]
+  let compiled = compile(routes)
+  assert_eq(compiled.length(), 1)
+  assert_eq(compiled[0].pattern, "/blog/[[...path]]")
+  assert_true(compiled[0].catch_all is Some(_))
+  let catch_all = compiled[0].catch_all.unwrap()
+  assert_eq(catch_all.name, "path")
+  assert_eq(catch_all.optional, true)
+}
+
+///|
+test "match_url catch-all single segment" {
+  let routes = [
+    Routes::Page(path="/docs/[...slug]", component="docs", title="Docs", meta=[]),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/docs/intro", compiled)
+  assert_true(m is Some(_))
+  let matched = m.unwrap()
+  assert_eq(matched.component(), "docs")
+  assert_eq(matched.get_param("slug"), Some("intro"))
+}
+
+///|
+test "match_url catch-all multiple segments" {
+  let routes = [
+    Routes::Page(path="/docs/[...slug]", component="docs", title="Docs", meta=[]),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/docs/guide/getting-started/install", compiled)
+  assert_true(m is Some(_))
+  let matched = m.unwrap()
+  assert_eq(matched.component(), "docs")
+  assert_eq(matched.get_param("slug"), Some("guide/getting-started/install"))
+}
+
+///|
+test "match_url required catch-all no segments fails" {
+  let routes = [
+    Routes::Page(path="/docs/[...slug]", component="docs", title="Docs", meta=[]),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/docs", compiled)
+  assert_true(m is None)
+}
+
+///|
+test "match_url optional catch-all no segments succeeds" {
+  let routes = [
+    Routes::Page(
+      path="/blog/[[...path]]",
+      component="blog",
+      title="Blog",
+      meta=[],
+    ),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/blog", compiled)
+  assert_true(m is Some(_))
+  let matched = m.unwrap()
+  assert_eq(matched.component(), "blog")
+  assert_eq(matched.get_param("path"), Some(""))
+}
+
+///|
+test "match_url optional catch-all with segments" {
+  let routes = [
+    Routes::Page(
+      path="/blog/[[...path]]",
+      component="blog",
+      title="Blog",
+      meta=[],
+    ),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/blog/2024/12/post", compiled)
+  assert_true(m is Some(_))
+  let matched = m.unwrap()
+  assert_eq(matched.component(), "blog")
+  assert_eq(matched.get_param("path"), Some("2024/12/post"))
+}
+
+///|
+test "match_url catch-all with prefix param" {
+  let routes = [
+    Routes::Page(
+      path="/user/:id/files/[...path]",
+      component="user_files",
+      title="Files",
+      meta=[],
+    ),
+  ]
+  let compiled = compile(routes)
+  let m = match_url("/user/123/files/documents/report.pdf", compiled)
+  assert_true(m is Some(_))
+  let matched = m.unwrap()
+  assert_eq(matched.component(), "user_files")
+  assert_eq(matched.get_param("id"), Some("123"))
+  assert_eq(matched.get_param("path"), Some("documents/report.pdf"))
+}
+
+///|
+test "compile does not extract catch-all as regular param" {
+  let routes = [
+    Routes::Page(path="/docs/[...slug]", component="docs", title="Docs", meta=[]),
+  ]
+  let compiled = compile(routes)
+  // param_names should not include catch-all
+  assert_eq(compiled[0].param_names.length(), 0)
+}
+
+///|
+test "compile mixed params and catch-all" {
+  let routes = [
+    Routes::Page(
+      path="/org/:orgId/repo/:repoId/tree/[...path]",
+      component="tree",
+      title="Tree",
+      meta=[],
+    ),
+  ]
+  let compiled = compile(routes)
+  assert_eq(compiled[0].param_names, ["orgId", "repoId"])
+  assert_true(compiled[0].catch_all is Some(_))
+  assert_eq(compiled[0].catch_all.unwrap().name, "path")
+}

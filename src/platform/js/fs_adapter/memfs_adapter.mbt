@@ -94,6 +94,19 @@ pub impl @env.FileSystem for MemFSAdapter with rmdir_sync(self, path, recursive)
   @js.throwable(fn() { self.fs.rmdirSync(path, recursive~) })
 }
 
+///|
+pub impl @env.FileSystem for MemFSAdapter with stat_sync(self, path) {
+  @js.throwable(fn() {
+    let stat = self.fs.statSync(path)
+    @env.StatInfo::{
+      is_file: stat.isFile(),
+      is_directory: stat.isDirectory(),
+      mtime_ms: stat.mtime_ms(),
+      size: stat.size(),
+    }
+  })
+}
+
 // ============================================================
 // Helper functions for cpSync implementation
 // ============================================================

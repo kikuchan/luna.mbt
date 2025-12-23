@@ -14,7 +14,35 @@ pub(open) trait FileStat {
 
   /// Returns true if this is a directory
   isDirectory(Self) -> Bool
+
+  /// Returns the modification time in milliseconds since epoch
+  mtime_ms(Self) -> Float
+
+  /// Returns the file size in bytes
+  size(Self) -> Int
 }
+
+///|
+/// Platform-independent file statistics
+/// Used as the return type for stat_sync across all platforms
+pub(all) struct StatInfo {
+  is_file : Bool
+  is_directory : Bool
+  mtime_ms : Float
+  size : Int
+} derive(Eq, Show)
+
+///|
+pub impl FileStat for StatInfo with isFile(self) { self.is_file }
+
+///|
+pub impl FileStat for StatInfo with isDirectory(self) { self.is_directory }
+
+///|
+pub impl FileStat for StatInfo with mtime_ms(self) { self.mtime_ms }
+
+///|
+pub impl FileStat for StatInfo with size(self) { self.size }
 
 ///|
 /// Abstract file system operations
@@ -48,4 +76,8 @@ pub(open) trait FileSystem {
 
   /// Remove directory (recursive: Bool)
   rmdir_sync(Self, String, Bool) -> Unit raise Error
+
+  /// Get file/directory statistics
+  /// Returns StatInfo with mtime_ms and size
+  stat_sync(Self, String) -> StatInfo raise Error
 }

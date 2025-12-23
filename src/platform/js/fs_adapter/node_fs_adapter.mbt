@@ -86,3 +86,15 @@ pub impl @env.FileSystem for NodeFsAdapter with rmdir_sync(
   let _ = self
   @fs.rmdirSync(path, recursive~)
 }
+
+///|
+pub impl @env.FileSystem for NodeFsAdapter with stat_sync(self, path) {
+  let _ = self
+  let stat = @fs.statSync(path)
+  @env.StatInfo::{
+    is_file: stat.isFile(),
+    is_directory: stat.isDirectory(),
+    mtime_ms: stat.mtime_ms(),
+    size: stat.size(),
+  }
+}

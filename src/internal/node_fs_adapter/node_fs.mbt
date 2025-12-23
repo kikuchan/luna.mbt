@@ -69,3 +69,15 @@ pub impl @env.FileSystem for NodeFS with rmdir_sync(self, path, recursive) {
   ignore(self)
   @fs.rmSync(path, recursive~, force=true)
 }
+
+///|
+pub impl @env.FileSystem for NodeFS with stat_sync(self, path) {
+  ignore(self)
+  let stat = @fs.statSync(path)
+  @env.StatInfo::{
+    is_file: stat.isFile(),
+    is_directory: stat.isDirectory(),
+    mtime_ms: stat.mtime_ms(),
+    size: stat.size(),
+  }
+}

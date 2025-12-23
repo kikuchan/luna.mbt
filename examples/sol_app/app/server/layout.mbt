@@ -29,7 +29,21 @@ pub fn layout(inner : Array[@luna.Node[Unit]]) -> @luna.Node[Unit] {
       sol_link(href="/about", [text("About")]),
       sol_link(href="/form", [text("Form")]),
       sol_link(href="/wc-counter", [text("WC Counter")]),
+      sol_link(href="/docs/intro", [text("Docs")]),
+      sol_link(href="/blog", [text("Blog")]),
     ]),
     outlet(name="main", inner),
   ])
+}
+
+///| Root layout function for SolRoutes::Layout
+/// Wraps child content with navigation and container
+pub fn root_layout(
+  _props : @router.PageProps,
+  content : @server_dom.ServerNode,
+) -> @server_dom.ServerNode raise Error {
+  @server_dom.ServerNode::async_(async fn() {
+    let inner = content.resolve()
+    layout([inner])
+  })
 }

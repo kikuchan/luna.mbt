@@ -12,12 +12,6 @@ async fn about(props : @router.PageProps) -> @server_dom.ServerNode {
     p([text("Built with MoonBit and Sol framework.")]),
   ]
 
-  // Fragment request: return content only (no layout)
-  // Full page request: wrap with layout
-  let node = if props.params.is_fragment {
-    @luna.fragment(content)
-  } else {
-    layout(content)
-  }
-  @server_dom.ServerNode::sync(node)
+  // Return content only - layout is applied by SolRoutes::Layout
+  @server_dom.ServerNode::sync(@luna.fragment(content))
 }

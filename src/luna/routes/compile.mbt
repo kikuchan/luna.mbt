@@ -33,6 +33,7 @@ fn normalize_path(path : String) -> String {
 ///|
 /// パスパターンからパラメータ名を抽出
 /// 例: "/user/:id/posts/:postId" -> ["id", "postId"]
+/// キャッチオールパラメータ ([...slug], [[...slug]]) は含まない
 fn extract_param_names(path : String) -> Array[String] {
   let result : Array[String] = []
   let segments = @utils.split_by(path, '/')
@@ -41,9 +42,47 @@ fn extract_param_names(path : String) -> Array[String] {
       // ":id" -> "id"
       let name = segment[1:].to_string() catch { _ => continue }
       result.push(name)
+    } else if segment.has_prefix("[") &&
+      not(segment.has_prefix("[...")) &&
+      not(segment.has_prefix("[[...")) {
+      // "[id]" -> "id" (Next.js style single param)
+      if segment.has_suffix("]") && segment.length() > 2 {
+        let name = segment[1:segment.length() - 1].to_string() catch {
+          _ => continue
+        }
+        result.push(name)
+      }
     }
+    // [...slug] and [[...slug]] are handled separately as catch-all
   }
   result
+}
+
+///|
+/// パスパターンからキャッチオール情報を抽出
+/// 例: "/docs/[...slug]" -> Some({ name: "slug", optional: false })
+///     "/docs/[[...slug]]" -> Some({ name: "slug", optional: true })
+fn extract_catch_all(path : String) -> CatchAllInfo? {
+  let segments = @utils.split_by(path, '/')
+  if segments.is_empty() {
+    return None
+  }
+  let last = segments[segments.length() - 1]
+  // Optional catch-all: [[...name]]
+  if last.has_prefix("[[...") && last.has_suffix("]]") && last.length() > 7 {
+    let name = last[5:last.length() - 2].to_string() catch {
+      _ => return None
+    }
+    return Some({ name, optional: true })
+  }
+  // Required catch-all: [...name]
+  if last.has_prefix("[...") && last.has_suffix("]") && last.length() > 5 {
+    let name = last[4:last.length() - 1].to_string() catch {
+      _ => return None
+    }
+    return Some({ name, optional: false })
+  }
+  None
 }
 
 ///|
@@ -69,6 +108,7 @@ fn compile_inner(
       Page(path~, component~, title~, meta~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -77,11 +117,13 @@ fn compile_inner(
           kind: Page,
           title,
           meta,
+          catch_all,
         })
       }
       Get(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -90,11 +132,13 @@ fn compile_inner(
           kind: GetApi,
           title: "",
           meta: [],
+          catch_all,
         })
       }
       Post(path~, handler~) => {
         let full_path = normalize_path(prefix + path)
         let param_names = extract_param_names(full_path)
+        let catch_all = extract_catch_all(full_path)
         result.push({
           pattern: full_path,
           param_names,
@@ -103,6 +147,7 @@ fn compile_inner(
           kind: PostApi,
           title: "",
           meta: [],
+          catch_all,
         })
       }
       Layout(segment~, children~, layout~) => {

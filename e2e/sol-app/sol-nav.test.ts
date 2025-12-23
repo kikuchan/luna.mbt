@@ -78,28 +78,23 @@ test.describe("Sol CSR Navigation", () => {
     test("counter island works after navigating away and back", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Wait for hydration
-      await page.waitForTimeout(500);
-
-      // Manually hydrate the counter
-      await page.evaluate(async () => {
-        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
-        if (counterEl) {
-          const mod = await import("/static/counter.js");
-          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
-          const fn = mod.hydrate_counter || mod.hydrate || mod.default;
-          if (fn) fn(counterEl, state, "counter");
-        }
-      });
-      await page.waitForTimeout(200);
+      // Wait for automatic hydration by loader.js
+      await page.waitForTimeout(1500);
 
       // Verify counter works initially
       const display = page.locator(".count-display");
-      const incButton = page.locator('button.inc');
+      const incButton = page.locator("button.inc");
+
+      // Get initial value (server-generated random number)
+      const initial = await display.textContent();
+      const initialNum = parseInt(initial || "0", 10);
 
       await incButton.click();
       await page.waitForTimeout(100);
-      await expect(display).toHaveText("1");
+
+      // Verify increment worked
+      const afterClick = await display.textContent();
+      expect(parseInt(afterClick || "0", 10)).toBe(initialNum + 1);
 
       // Navigate to about
       await page.click('[data-sol-link][href="/about"]');
@@ -111,40 +106,31 @@ test.describe("Sol CSR Navigation", () => {
       await page.waitForURL(`${BASE_URL}/`);
       await expect(page.locator("h1")).toContainText("Welcome to Sol");
 
-      // Wait for potential re-hydration
-      await page.waitForTimeout(500);
+      // Wait for re-hydration
+      await page.waitForTimeout(1500);
 
-      // Re-hydrate manually since we need to test this works
-      await page.evaluate(async () => {
-        // Clear loaded state to allow re-hydration
-        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
-        if (counterEl) {
-          const mod = await import("/static/counter.js");
-          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
-          const fn = mod.hydrate_counter || mod.hydrate || mod.default;
-          if (fn) fn(counterEl, state, "counter");
-        }
-      });
-      await page.waitForTimeout(200);
-
-      // Counter should be reset to initial state and clickable again
+      // Counter should be reset to server-rendered initial state
       const displayAfter = page.locator(".count-display");
-      const incButtonAfter = page.locator('button.inc');
+      const incButtonAfter = page.locator("button.inc");
 
-      await expect(displayAfter).toHaveText("0");
+      // Get new initial value (different random number from server)
+      const newInitial = await displayAfter.textContent();
+      const newInitialNum = parseInt(newInitial || "0", 10);
 
-      // Click should work
+      // Click should work after re-hydration
       await incButtonAfter.click();
       await page.waitForTimeout(100);
-      await expect(displayAfter).toHaveText("1");
+
+      const afterRehydrate = await displayAfter.textContent();
+      expect(parseInt(afterRehydrate || "0", 10)).toBe(newInitialNum + 1);
     });
 
     test("counter re-hydrates automatically after CSR navigation", async ({ page }) => {
       // This test verifies the loader properly re-hydrates islands after CSR nav
       await page.goto(BASE_URL);
 
-      // Wait for initial load
-      await page.waitForTimeout(1000);
+      // Wait for initial load and hydration
+      await page.waitForTimeout(1500);
 
       // Navigate away
       await page.click('[data-sol-link][href="/about"]');
@@ -155,23 +141,26 @@ test.describe("Sol CSR Navigation", () => {
       await page.waitForURL(`${BASE_URL}/`);
 
       // Wait for re-hydration
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(1500);
 
       // Try clicking increment - if re-hydration worked, this should work
       const display = page.locator(".count-display");
-      const incButton = page.locator('button.inc');
+      const incButton = page.locator("button.inc");
 
-      // Check that island exists
-      await expect(page.locator('[luna\\:id="counter"]')).toBeVisible();
+      // Check that island exists (using new ID format)
+      await expect(page.locator('[luna\\:id="_static/counter_js"]')).toBeVisible();
+
+      // Get initial value
+      const initial = await display.textContent();
+      const initialNum = parseInt(initial || "0", 10);
 
       // Click the button
       await incButton.click();
       await page.waitForTimeout(100);
 
-      // If re-hydration worked, counter should show 1
-      // If not, it will still show 0 (the server-rendered value)
+      // If re-hydration worked, counter should increment
       const value = await display.textContent();
-      expect(value).toBe("1");
+      expect(parseInt(value || "0", 10)).toBe(initialNum + 1);
     });
   });
 

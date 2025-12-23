@@ -16,15 +16,16 @@ test.describe("Sol App E2E", () => {
     test("renders counter island with correct attributes", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      const counter = page.locator('[luna\\:id="counter"]');
+      // Island ID is generated from the component path
+      const counter = page.locator('[luna\\:id="_static/counter_js"]');
       await expect(counter).toBeVisible();
 
       // Verify hydration attributes
       const url = await counter.getAttribute("luna:url");
-      expect(url).toBe("/static/hydrate_counter.js");
+      expect(url).toBe("/static/counter.js");
 
       const state = await counter.getAttribute("luna:state");
-      expect(state).toContain("count");
+      expect(state).toContain("initial_count");
     });
 
     test("renders about page", async ({ page }) => {
@@ -37,88 +38,67 @@ test.describe("Sol App E2E", () => {
     test("counter increments on click", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Wait for hydration
-      await page.waitForTimeout(1000);
-
-      // Manually hydrate if loader didn't run
-      await page.evaluate(async () => {
-        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
-        if (counterEl) {
-          const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
-          const fn = mod.hydrate_counter || mod.hydrate || mod.default;
-          if (fn) fn(counterEl, state, "counter");
-        }
-      });
-      await page.waitForTimeout(200);
+      // Wait for automatic hydration by loader.js
+      await page.waitForTimeout(1500);
 
       const display = page.locator(".count-display");
-      const incButton = page.locator('button[data-action-click="increment"]');
+      const incButton = page.locator("button.inc");
 
-      // Get initial value
+      // Get initial value (server-generated random number)
       const initial = await display.textContent();
-      expect(initial).toBe("0");
+      const initialNum = parseInt(initial || "0", 10);
 
       // Click increment
       await incButton.click();
       await page.waitForTimeout(100);
 
       const afterClick = await display.textContent();
-      expect(afterClick).toBe("1");
+      expect(parseInt(afterClick || "0", 10)).toBe(initialNum + 1);
     });
 
     test("counter decrements on click", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Manually hydrate
-      await page.evaluate(async () => {
-        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
-        if (counterEl) {
-          const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
-          const fn = mod.hydrate_counter || mod.hydrate || mod.default;
-          if (fn) fn(counterEl, state, "counter");
-        }
-      });
-      await page.waitForTimeout(200);
+      // Wait for automatic hydration
+      await page.waitForTimeout(1500);
 
       const display = page.locator(".count-display");
-      const decButton = page.locator('button[data-action-click="decrement"]');
+      const decButton = page.locator("button.dec");
+
+      // Get initial value
+      const initial = await display.textContent();
+      const initialNum = parseInt(initial || "0", 10);
 
       // Click decrement
       await decButton.click();
       await page.waitForTimeout(100);
 
       const afterClick = await display.textContent();
-      expect(afterClick).toBe("-1");
+      expect(parseInt(afterClick || "0", 10)).toBe(initialNum - 1);
     });
 
     test("multiple clicks work correctly", async ({ page }) => {
       await page.goto(BASE_URL);
 
-      // Manually hydrate
-      await page.evaluate(async () => {
-        const counterEl = document.querySelector('[luna\\:id="counter"]') as HTMLElement;
-        if (counterEl) {
-          const mod = await import("/static/hydrate_counter.js");
-          const state = JSON.parse(counterEl.getAttribute("luna:state") || "{}");
-          const fn = mod.hydrate_counter || mod.hydrate || mod.default;
-          if (fn) fn(counterEl, state, "counter");
-        }
-      });
-      await page.waitForTimeout(200);
+      // Wait for automatic hydration
+      await page.waitForTimeout(1500);
 
       const display = page.locator(".count-display");
-      const incButton = page.locator('button[data-action-click="increment"]');
+      const incButton = page.locator("button.inc");
+
+      // Get initial value
+      const initial = await display.textContent();
+      const initialNum = parseInt(initial || "0", 10);
 
       // Click 5 times
       for (let i = 0; i < 5; i++) {
         await incButton.click();
+        await page.waitForTimeout(50);
       }
       await page.waitForTimeout(100);
 
       const finalValue = await display.textContent();
-      expect(finalValue).toBe("5");
+      expect(parseInt(finalValue || "0", 10)).toBe(initialNum + 5);
     });
   });
 
@@ -154,7 +134,7 @@ test.describe("Sol App E2E", () => {
     });
 
     test("island bundle is served", async ({ request }) => {
-      const response = await request.get(`${BASE_URL}/static/hydrate_counter.js`);
+      const response = await request.get(`${BASE_URL}/static/counter.js`);
       expect(response.ok()).toBeTruthy();
       const content = await response.text();
       expect(content.length).toBeGreaterThan(100);

@@ -47,6 +47,17 @@ pub struct CompiledRoutes {
   title : String
   /// メタ情報
   meta : Array[(String, String)]
+  /// キャッチオールパラメータ情報 (末尾の [...slug] or [[...slug]])
+  catch_all : CatchAllInfo?
+}
+
+///|
+/// キャッチオールパラメータ情報
+pub(all) struct CatchAllInfo {
+  /// パラメータ名 (e.g., "slug")
+  name : String
+  /// オプショナルかどうか ([[...slug]] の場合 true)
+  optional : Bool
 }
 
 ///|
