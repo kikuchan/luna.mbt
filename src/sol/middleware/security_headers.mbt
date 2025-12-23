@@ -159,7 +159,9 @@ pub fn security_headers_relaxed() -> Middleware {
 
 ///|
 /// Create security headers middleware with custom configuration
-pub fn security_headers_with_config(config : SecurityHeadersConfig) -> Middleware {
+pub fn security_headers_with_config(
+  config : SecurityHeadersConfig,
+) -> Middleware {
   Middleware(async fn(ctx) {
     // Add security headers to context
     let new_ctx = ctx
@@ -178,7 +180,6 @@ pub fn security_headers_with_config(config : SecurityHeadersConfig) -> Middlewar
       config.cache_control_html
     }
     let final_ctx = new_ctx.add_header("Cache-Control", cache_control)
-
     Continue(final_ctx)
   })
 }
@@ -187,13 +188,13 @@ pub fn security_headers_with_config(config : SecurityHeadersConfig) -> Middlewar
 /// Check if path is a static asset
 fn is_static_asset(path : String) -> Bool {
   path.has_prefix("/static/") ||
-    path.has_suffix(".js") ||
-    path.has_suffix(".css") ||
-    path.has_suffix(".png") ||
-    path.has_suffix(".jpg") ||
-    path.has_suffix(".svg") ||
-    path.has_suffix(".woff") ||
-    path.has_suffix(".woff2")
+  path.has_suffix(".js") ||
+  path.has_suffix(".css") ||
+  path.has_suffix(".png") ||
+  path.has_suffix(".jpg") ||
+  path.has_suffix(".svg") ||
+  path.has_suffix(".woff") ||
+  path.has_suffix(".woff2")
 }
 
 // ============================================================================
@@ -211,7 +212,9 @@ pub fn nosniff() -> Middleware {
 ///|
 /// Add X-Frame-Options header
 pub fn frame_options(value : String) -> Middleware {
-  Middleware(async fn(ctx) { Continue(ctx.add_header("X-Frame-Options", value)) })
+  Middleware(async fn(ctx) {
+    Continue(ctx.add_header("X-Frame-Options", value))
+  })
 }
 
 ///|

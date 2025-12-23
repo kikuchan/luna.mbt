@@ -129,7 +129,9 @@ test "ActionResult::server_error creates 500 error" {
 
 ///|
 test "ActionDef::new creates default action" {
-  let handler = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
+  let handler = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
   let action = ActionDef::new("test-action", handler)
   assert_eq(action.id, "test-action")
   assert_true(action.require_json)
@@ -138,7 +140,9 @@ test "ActionDef::new creates default action" {
 
 ///|
 test "ActionDef::with_require_json toggles json requirement" {
-  let handler = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
+  let handler = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
   let action = ActionDef::new("test-action", handler).with_require_json(false)
   assert_false(action.require_json)
 }
@@ -162,7 +166,9 @@ test "ActionRegistry::with_base_path sets base path" {
 
 ///|
 test "ActionRegistry::register adds action" {
-  let handler = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
+  let handler = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
   let action = ActionDef::new("create-user", handler)
   let registry = ActionRegistry::new().register(action)
   assert_eq(registry.action_ids().length(), 1)
@@ -171,7 +177,9 @@ test "ActionRegistry::register adds action" {
 
 ///|
 test "ActionRegistry::get returns registered action" {
-  let handler = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
+  let handler = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
   let action = ActionDef::new("get-user", handler)
   let registry = ActionRegistry::new().register(action)
   match registry.get("get-user") {
@@ -194,8 +202,12 @@ test "ActionRegistry::action_url generates correct URL" {
 
 ///|
 test "ActionRegistry::register_all adds multiple actions" {
-  let handler1 = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
-  let handler2 = ActionHandler(async fn(_ctx) { ActionResult::ok(@js.new_object()) })
+  let handler1 = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
+  let handler2 = ActionHandler(async fn(_ctx) {
+    ActionResult::ok(@js.new_object())
+  })
   let actions = [
     ActionDef::new("action1", handler1),
     ActionDef::new("action2", handler2),

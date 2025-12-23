@@ -28,11 +28,14 @@ pub fn register_actions(app : App, registry : ActionRegistry) -> App {
     let allowed_origins = registry.allowed_origins
 
     // Create CSRF middleware for this action
-    let csrf_config = @middleware.CsrfConfig::for_origins(allowed_origins)
-      .with_fetch_metadata(true)
+    let csrf_config = @middleware.CsrfConfig::for_origins(allowed_origins).with_fetch_metadata(
+      true,
+    )
     // Only require JSON content-type if action.require_json is true
     let csrf_mw = if action.require_json {
-      @middleware.csrf_with_config(csrf_config.with_content_type("application/json"))
+      @middleware.csrf_with_config(
+        csrf_config.with_content_type("application/json"),
+      )
     } else {
       // Allow any content-type (for progressive enhancement with form submissions)
       @middleware.csrf_with_config(csrf_config)
@@ -108,7 +111,6 @@ fn send_action_mw_response(
   // Return response
   ffi_create_response(c.as_any(), resp.body, resp.status)
 }
-
 
 ///|
 /// Convert action result to HTTP response

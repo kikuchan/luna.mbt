@@ -108,7 +108,7 @@ pub fn HmrServer::notify_error(Self, String) -> Unit
 pub fn HmrServer::notify_full_reload(Self) -> Unit
 pub fn HmrServer::notify_update(Self, Array[String]) -> Unit
 pub fn HmrServer::on_connection(Self, (@core.Any) -> Unit) -> Unit
-pub fn HmrServer::start(Int) -> Self
+pub async fn HmrServer::start(Int) -> Self
 
 type RouteInfo
 
