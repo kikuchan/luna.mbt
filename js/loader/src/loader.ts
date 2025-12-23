@@ -2,15 +2,16 @@
 import { setupTrigger, onReady, observeAdditions, createLoadedTracker } from './lib';
 
 type StateMap = Record<string, unknown>;
-type HydrateFn = (el: Element, state: unknown, id: string) => void;
+type HydrateFn = (el: Element, state: unknown, id: string, isRerender?: boolean) => void;
 
 interface LunaWindow extends Window {
   __LUNA_STATE__: StateMap;
-  __LUNA_HYDRATE__: (el: Element) => Promise<void>;
+  __LUNA_HYDRATE__: (el: Element, isRerender?: boolean) => Promise<void>;
   __LUNA_SCAN__: () => void;
   __LUNA_UNLOAD__: (id: string) => boolean;
   __LUNA_UNLOAD_ALL__: (root?: Element) => void;
   __LUNA_CLEAR_LOADED__: () => void;
+  __LUNA_RERENDER_ALL__: (root?: Element) => void;
 }
 
 const d = document;
@@ -25,16 +26,19 @@ const parseState = async (el: Element): Promise<unknown> => {
   try { return JSON.parse(a); } catch { /* ignore */ }
 };
 
-const hydrate = async (el: Element): Promise<void> => {
+const hydrate = async (el: Element, isRerender = false): Promise<void> => {
   const id = el.getAttribute('luna:id');
-  if (!id || loaded.has(id)) return;
+  if (!id) return;
+  // Skip if already loaded (unless rerendering)
+  if (!isRerender && loaded.has(id)) return;
   loaded.add(id);
   const url = el.getAttribute('luna:url');
   if (!url) return;
   S[id] = await parseState(el);
   const mod = await import(url) as Record<string, HydrateFn>;
   const ex = el.getAttribute('luna:export');
-  (ex ? mod[ex] : mod.hydrate ?? mod.default)?.(el, S[id], id);
+  // Pass isRerender flag to hydrate function
+  (ex ? mod[ex] : mod.hydrate ?? mod.default)?.(el, S[id], id, isRerender);
 };
 
 const setup = (el: Element): void => {
@@ -67,9 +71,15 @@ const unloadAll = (root: Element = d.body): void => {
   });
 };
 
+// Rerender all islands within an element (for CSR navigation with updated data)
+const rerenderAll = (root: Element = d.body): void => {
+  root.querySelectorAll('[luna\\:id]').forEach(el => hydrate(el, true));
+};
+
 w.__LUNA_STATE__ = S;
 w.__LUNA_HYDRATE__ = hydrate;
 w.__LUNA_SCAN__ = scan;
 w.__LUNA_UNLOAD__ = unload;
 w.__LUNA_UNLOAD_ALL__ = unloadAll;
 w.__LUNA_CLEAR_LOADED__ = clear;
+w.__LUNA_RERENDER_ALL__ = rerenderAll;

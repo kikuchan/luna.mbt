@@ -5,6 +5,7 @@ type SolWindow = Window & {
   __LUNA_UNLOAD_ALL__?: (target: Element) => void;
   __LUNA_SCAN__?: () => void;
   __LUNA_WC_SCAN__?: () => void;
+  __LUNA_RERENDER_ALL__?: (root?: Element) => void;
   __SOL_NAVIGATE__: (url: string, replace?: boolean) => Promise<void>;
   __SOL_PREFETCH__: (url: string) => void;
   __SOL_CACHE__: Map<string, string>;
@@ -29,83 +30,110 @@ type SetHTMLUnsafeMethod = ((html: string) => void) | undefined;
     }
   };
 
+  // Update DOM from HTML response
+  const updateDOM = (html: string, isRerender = false): void => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Check if this is a fragment response (has template elements)
+    const templates = doc.querySelectorAll<HTMLTemplateElement>('template[data-sol-outlet]');
+
+    if (templates.length > 0) {
+      // Fragment response - update outlets
+      templates.forEach(tpl => {
+        const name = tpl.dataset.solOutlet;
+        const target = d.querySelector<HTMLElement>(`[data-sol-outlet="${name}"]`);
+        if (target) {
+          // Unload existing islands before updating DOM
+          w.__LUNA_UNLOAD_ALL__?.(target);
+          setHTML(target, tpl.innerHTML);
+        }
+      });
+
+      // Update title
+      const titleTpl = doc.querySelector<HTMLTemplateElement>('template[data-sol-title]');
+      if (titleTpl) {
+        d.title = titleTpl.textContent ?? '';
+      }
+    } else {
+      // Full page response - extract #app content
+      const app = doc.querySelector('#app');
+      const target = d.querySelector<HTMLElement>('#app');
+      if (app && target) {
+        // Unload existing islands before updating DOM
+        w.__LUNA_UNLOAD_ALL__?.(target);
+        setHTML(target, app.innerHTML);
+      }
+
+      // Update title from full page
+      const title = doc.querySelector('title');
+      if (title) {
+        d.title = title.textContent ?? '';
+      }
+    }
+
+    // Handle islands: scan for new ones or rerender existing ones
+    if (isRerender) {
+      // Rerender: call rerender on existing islands with updated state
+      w.__LUNA_RERENDER_ALL__?.();
+    } else {
+      // Initial: scan and hydrate new islands
+      w.__LUNA_SCAN__?.();
+    }
+    // Re-scan for Web Components
+    w.__LUNA_WC_SCAN__?.();
+  };
+
   // Navigate to URL with CSR
   const navigate = async (url: string, replace = false): Promise<void> => {
     if (isNavigating) return;
     isNavigating = true;
 
     try {
-      // Check cache first
-      let html = cache.get(url);
-      if (!html) {
-        const res = await fetch(url, {
-          headers: { 'X-Sol-Fragment': 'true' }
-        });
-        html = await res.text();
+      const cachedHtml = cache.get(url);
 
-        // Only cache if fragment response
-        if (res.headers.get('X-Sol-Fragment-Response')) {
-          cache.set(url, html);
-          // Clear cache after 5 minutes
-          setTimeout(() => cache.delete(url), 5 * 60 * 1000);
+      // Show cached content immediately if available (Stale-While-Revalidate)
+      if (cachedHtml) {
+        updateDOM(cachedHtml, false);
+        // Update history immediately for cached content
+        if (replace) {
+          w.history.replaceState({ sol: true }, '', url);
+        } else {
+          w.history.pushState({ sol: true }, '', url);
         }
+        w.scrollTo(0, 0);
       }
 
-      // Parse response
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+      // Always fetch from server (default behavior: AlwaysFetch)
+      const res = await fetch(url, {
+        headers: { 'X-Sol-Fragment': 'true' }
+      });
+      const html = await res.text();
 
-      // Check if this is a fragment response (has template elements)
-      const templates = doc.querySelectorAll<HTMLTemplateElement>('template[data-sol-outlet]');
+      // Update cache if fragment response
+      if (res.headers.get('X-Sol-Fragment-Response')) {
+        cache.set(url, html);
+        // Clear cache after 5 minutes
+        setTimeout(() => cache.delete(url), 5 * 60 * 1000);
+      }
 
-      if (templates.length > 0) {
-        // Fragment response - update outlets
-        templates.forEach(tpl => {
-          const name = tpl.dataset.solOutlet;
-          const target = d.querySelector<HTMLElement>(`[data-sol-outlet="${name}"]`);
-          if (target) {
-            // Unload existing islands before updating DOM
-            w.__LUNA_UNLOAD_ALL__?.(target);
-            setHTML(target, tpl.innerHTML);
-          }
-        });
-
-        // Update title
-        const titleTpl = doc.querySelector<HTMLTemplateElement>('template[data-sol-title]');
-        if (titleTpl) {
-          d.title = titleTpl.textContent ?? '';
+      // If we showed cached content, now rerender with fresh data
+      if (cachedHtml) {
+        // Check if content actually changed
+        if (html !== cachedHtml) {
+          updateDOM(html, true);
         }
       } else {
-        // Full page response - extract #app content
-        const app = doc.querySelector('#app');
-        const target = d.querySelector<HTMLElement>('#app');
-        if (app && target) {
-          // Unload existing islands before updating DOM
-          w.__LUNA_UNLOAD_ALL__?.(target);
-          setHTML(target, app.innerHTML);
+        // No cache, update DOM with fetched content
+        updateDOM(html, false);
+        // Update history for non-cached navigation
+        if (replace) {
+          w.history.replaceState({ sol: true }, '', url);
+        } else {
+          w.history.pushState({ sol: true }, '', url);
         }
-
-        // Update title from full page
-        const title = doc.querySelector('title');
-        if (title) {
-          d.title = title.textContent ?? '';
-        }
+        w.scrollTo(0, 0);
       }
-
-      // Update history
-      if (replace) {
-        w.history.replaceState({ sol: true }, '', url);
-      } else {
-        w.history.pushState({ sol: true }, '', url);
-      }
-
-      // Scroll to top
-      w.scrollTo(0, 0);
-
-      // Re-scan for islands (if loader is available)
-      w.__LUNA_SCAN__?.();
-      // Re-scan for Web Components (if wc-loader is available)
-      w.__LUNA_WC_SCAN__?.();
     } catch (e) {
       console.error('Sol navigation failed:', e);
       // Fallback to full page load
