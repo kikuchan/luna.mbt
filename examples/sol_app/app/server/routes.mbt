@@ -70,6 +70,13 @@ pub fn routes() -> Array[@router.SolRoutes] {
               title="Blog",
               meta=[],
             ),
+            // Middleware test page
+            @router.SolRoutes::Page(
+              path="/middleware-test",
+              handler=@router.PageHandler(middleware_test),
+              title="Middleware Test",
+              meta=[],
+            ),
           ],
         ),
         // API endpoints with CORS middleware
@@ -80,6 +87,11 @@ pub fn routes() -> Array[@router.SolRoutes] {
             @router.SolRoutes::Get(
               path="/api/health",
               handler=@router.ApiHandler(api_health),
+            ),
+            // Middleware test API - returns info about current request
+            @router.SolRoutes::Get(
+              path="/api/middleware-test",
+              handler=@router.ApiHandler(api_middleware_test),
             ),
             // Debug API - test catch-all params
             @router.SolRoutes::Get(
@@ -115,6 +127,20 @@ async fn api_health(_props : @router.PageProps) -> @core.Any {
 }
 
 ///|
+/// API handler: middleware test - returns request info
+async fn api_middleware_test(_props : @router.PageProps) -> @core.Any {
+  @sol.json_obj([
+    ("middleware", @core.any("logger >> cors")),
+    ("timestamp", @core.any(get_timestamp())),
+    ("message", @core.any("Middleware is working! Check CORS headers in response.")),
+  ])
+}
+
+///|
+extern "js" fn get_timestamp() -> String =
+  #| () => new Date().toISOString()
+
+///|
 /// Root HTML template - customize the document structure
 // Available placeholders:
 // - __LUNA_TITLE__ : Page title
@@ -144,4 +170,49 @@ pub fn config() -> @router.RouterConfig {
   .with_root_template(ROOT)
   .with_default_head(head())
   .with_loader_url("/static/loader.js")
+}
+///| Middleware Test Page
+
+///|
+
+///| Demonstrates middleware functionality with Logger and CORS.
+
+///|
+/// Middleware test page - shows middleware information
+async fn middleware_test(_props : @router.PageProps) -> @server_dom.ServerNode {
+  let content : Array[@luna.Node[Unit]] = [
+    h1([text("Middleware Test")]),
+    p([text("This page tests middleware functionality.")]),
+    div([
+      h2([text("Middleware Stack")]),
+      ul([
+        li([text("Logger - logs requests to console")]),
+        li([text("CORS - adds cross-origin headers to API responses")]),
+      ]),
+    ]),
+    div([
+      h2([text("Test API Endpoints")]),
+      ul([
+        li([
+          a(href="/api/middleware-test", [text("/api/middleware-test")]),
+          text(" - Returns middleware info with CORS headers"),
+        ]),
+        li([
+          a(href="/api/health", [text("/api/health")]),
+          text(" - Health check endpoint"),
+        ]),
+      ]),
+    ]),
+    div([
+      h2([text("Expected Behavior")]),
+      ul([
+        li([text("Check server console for request logs")]),
+        li([
+          text("API responses should include Access-Control-Allow-Origin header"),
+        ]),
+      ]),
+    ]),
+  ]
+
+  @server_dom.ServerNode::sync(@luna.fragment(content))
 }
