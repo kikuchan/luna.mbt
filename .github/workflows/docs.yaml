@@ -45,12 +45,12 @@ jobs:
         run: node target/js/release/build/astra/cli/cli.js build
 
       - name: Apply syntax highlighting
-        run: npx tsx scripts/shiki-highlight.ts dist
+        run: npx tsx scripts/shiki-highlight.ts dist-docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: dist-docs
 
       # Cloudflare Pages deploy (dry-run)
       # To enable actual deployment:
@@ -59,14 +59,14 @@ jobs:
       - name: Deploy to Cloudflare Pages (dry-run)
         run: |
           echo "=== Cloudflare Pages Deploy (dry-run) ==="
-          echo "Would deploy dist/ to Cloudflare Pages"
+          echo "Would deploy dist-docs/ to Cloudflare Pages"
           echo ""
           echo "Files to deploy:"
-          find dist -type f | head -20
+          find dist-docs -type f | head -20
           echo "..."
           echo ""
-          echo "Total files: $(find dist -type f | wc -l)"
-          echo "Total size: $(du -sh dist | cut -f1)"
+          echo "Total files: $(find dist-docs -type f | wc -l)"
+          echo "Total size: $(du -sh dist-docs | cut -f1)"
           echo ""
           echo "To enable actual deployment, configure the following secrets:"
           echo "  - CLOUDFLARE_API_TOKEN"
@@ -80,4 +80,4 @@ jobs:
       #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       #     CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       #   run: |
-      #     npx wrangler pages deploy dist --project-name=luna-docs
+      #     npx wrangler pages deploy dist-docs --project-name=luna-docs
