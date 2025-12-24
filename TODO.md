@@ -113,9 +113,28 @@ vitest 4.x 環境では Worker ランタイムなしでルーティングロジ�
 - `router/spa.js`: 3.8KB
 - `router/scroll.js`: 3.8KB
 
-### 残りのフェーズ (未着手)
+### Phase 8: Lint & DX ✅ 完了
 
-- **Phase 8**: Lint & DX
+| タスク | ファイル | 状態 |
+|--------|----------|------|
+| orphan-client 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| orphan-server 通知 | `src/astra/cli/lint.mbt` | ✅ |
+| missing-props 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| empty-static-params 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| page.json JSON Schema | `schemas/page.schema.json` | ✅ |
+| luna.config.json Schema | `schemas/luna.config.schema.json` | ✅ |
+
+**Lintルール:**
+- `orphan-client`: client/ のみで server/ がない (Warning)
+- `orphan-server`: server/ のみで client/ がない (Info)
+- `missing-props`: client/ があるが props_type 未定義 (Warning)
+- `empty-static-params`: 動的ルートで staticParams 未定義 (Warning)
+
+---
+
+## ✅ Unified Progressive Architecture 完了
+
+全8フェーズが完了しました。
 
 ---
 

@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luna.dev/schemas/luna.config.json",
+  "title": "Luna Project Configuration",
+  "description": "Configuration for luna.config.json files",
+  "type": "object",
+  "properties": {
+    "output": {
+      "type": "string",
+      "enum": ["static", "hybrid", "server"],
+      "description": "Output mode for the project",
+      "default": "static"
+    },
+    "routing": {
+      "$ref": "#/definitions/RoutingConfig",
+      "description": "Routing configuration"
+    },
+    "layouts": {
+      "type": "string",
+      "description": "Layouts directory path",
+      "default": "src/layouts"
+    },
+    "public": {
+      "type": "string",
+      "description": "Public assets directory path",
+      "default": "public"
+    },
+    "outDir": {
+      "type": "string",
+      "description": "Output directory path",
+      "default": "dist"
+    },
+    "build": {
+      "$ref": "#/definitions/BuildConfig",
+      "description": "Build configuration"
+    },
+    "dev": {
+      "$ref": "#/definitions/DevConfig",
+      "description": "Development server configuration"
+    },
+    "navigation": {
+      "$ref": "#/definitions/NavigationConfig",
+      "description": "Client navigation configuration"
+    },
+    "performance": {
+      "$ref": "#/definitions/PerformanceConfig",
+      "description": "Performance optimization configuration"
+    }
+  },
+  "definitions": {
+    "RoutingConfig": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["file-based", "explicit", "hybrid"],
+          "description": "Routing mode",
+          "default": "file-based"
+        },
+        "pages": {
+          "type": "string",
+          "description": "Pages directory for file-based routing",
+          "default": "src/pages"
+        },
+        "explicit": {
+          "type": "string",
+          "description": "Explicit routes file path (for explicit routing mode)"
+        }
+      }
+    },
+    "BuildConfig": {
+      "type": "object",
+      "properties": {
+        "minify": {
+          "type": "boolean",
+          "description": "Enable minification",
+          "default": true
+        },
+        "sourcemap": {
+          "type": "boolean",
+          "description": "Generate source maps",
+          "default": false
+        }
+      }
+    },
+    "DevConfig": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Development server port",
+          "default": 3000
+        },
+        "hmr": {
+          "type": "boolean",
+          "description": "Enable Hot Module Replacement",
+          "default": true
+        }
+      }
+    },
+    "NavigationConfig": {
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["simple", "hybrid", "unified"],
+          "description": "Navigation strategy for client-side transitions",
+          "default": "simple"
+        },
+        "prefetch": {
+          "type": "boolean",
+          "description": "Enable prefetch on link hover",
+          "default": true
+        },
+        "scrollRestoration": {
+          "type": "boolean",
+          "description": "Enable scroll position restoration",
+          "default": true
+        }
+      }
+    },
+    "PerformanceConfig": {
+      "type": "object",
+      "properties": {
+        "inlineThreshold": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Inline JS if smaller than this threshold (bytes)",
+          "default": 1024
+        },
+        "prefetch": {
+          "type": "string",
+          "enum": ["hover", "visible", "none"],
+          "description": "Prefetch strategy for links",
+          "default": "hover"
+        },
+        "lazyIslands": {
+          "type": "boolean",
+          "description": "Enable lazy loading for islands by default",
+          "default": false
+        },
+        "modulePreload": {
+          "type": "boolean",
+          "description": "Use <link rel=\"modulepreload\">",
+          "default": true
+        },
+        "bundler": {
+          "type": "string",
+          "enum": ["rolldown", "esbuild"],
+          "description": "Bundler to use",
+          "default": "rolldown"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

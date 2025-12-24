@@ -86,6 +86,10 @@ pub fn lint_docs(config : @astra.SsgConfig, cwd : String) -> LintResult {
     trailing_slash=config.trailing_slash,
   )
 
+  // Check components in pages directory
+  let pages_dir = @path.join2(cwd, config.docs_dir)
+  check_components(pages_dir, issues)
+
   // Check for duplicate pages (e.g., index.md and index.html)
   let duplicates = @routes.check_duplicate_pages(pages)
   for dup in duplicates {
@@ -447,6 +451,178 @@ fn check_images_recursive(
         }
       _ => ()
     }
+  }
+}
+
+// =============================================================================
+// Component Linting
+// =============================================================================
+
+///|
+/// Check component directories for issues
+fn check_components(base_dir : String, issues : Array[LintIssue]) -> Unit {
+  if not(@fs.existsSync(base_dir)) {
+    return
+  }
+  check_components_recursive(base_dir, "", issues)
+}
+
+///|
+/// Recursively check component directories
+fn check_components_recursive(
+  base_dir : String,
+  rel_path : String,
+  issues : Array[LintIssue],
+) -> Unit {
+  let current_path = if rel_path.is_empty() {
+    base_dir
+  } else {
+    @path.join2(base_dir, rel_path)
+  }
+
+  // Read directory entries
+  let entries : Array[String] = @fs.readdirSync(current_path) catch { _ => [] }
+
+  for entry in entries {
+    let entry_path = @path.join2(current_path, entry)
+
+    // Check if it's a directory
+    let is_dir : Bool = @fs.statSync(entry_path).isDirectory() catch {
+      _ => false
+    }
+
+    if is_dir {
+      let entry_rel = if rel_path.is_empty() { entry } else { rel_path + "/" + entry }
+
+      // Check if it's a component directory (has moon.pkg.json)
+      let moon_pkg_path = @path.join2(entry_path, "moon.pkg.json")
+      if @fs.existsSync(moon_pkg_path) {
+        // It's a component directory - check for issues
+        check_component_dir(entry_path, entry_rel, issues)
+      } else {
+        // Recurse into subdirectory
+        check_components_recursive(base_dir, entry_rel, issues)
+      }
+    }
+  }
+}
+
+///|
+/// Check a component directory for lint issues
+fn check_component_dir(
+  dir_path : String,
+  rel_path : String,
+  issues : Array[LintIssue],
+) -> Unit {
+  // Check for client/ and server/ directories
+  let client_path = @path.join2(dir_path, "client")
+  let server_path = @path.join2(dir_path, "server")
+  let has_client = @fs.existsSync(client_path) && is_dir(client_path)
+  let has_server = @fs.existsSync(server_path) && is_dir(server_path)
+
+  // Load page.json if exists
+  let page_json_path = @path.join2(dir_path, "page.json")
+  let page_config = if @fs.existsSync(page_json_path) {
+    let content : String = @fs.readFileSync(page_json_path).to_string() catch {
+      _ => ""
+    }
+    @core_routes.parse_page_config(content)
+  } else {
+    None
+  }
+
+  // Rule: orphan-client
+  // Client-only component (no server directory) - warning
+  if has_client && not(has_server) {
+    issues.push(LintIssue::{
+      severity: Warning,
+      file: rel_path,
+      line: None,
+      message: "Component has client/ but no server/ directory (client-only, no SSR)",
+      rule: "orphan-client",
+    })
+  }
+
+  // Rule: orphan-server
+  // Server-only component (no client directory) - info
+  if has_server && not(has_client) {
+    issues.push(LintIssue::{
+      severity: Info,
+      file: rel_path,
+      line: None,
+      message: "Component has server/ but no client/ directory (server-only, no hydration)",
+      rule: "orphan-server",
+    })
+  }
+
+  // Rule: missing-props
+  // Component with client/ should have props_type defined
+  if has_client {
+    match page_config {
+      Some(cfg) =>
+        match cfg.component {
+          Some(comp) =>
+            if comp.props_type is None {
+              issues.push(LintIssue::{
+                severity: Warning,
+                file: rel_path + "/page.json",
+                line: None,
+                message: "Component with client/ should define 'component.props_type' in page.json",
+                rule: "missing-props",
+              })
+            }
+          None =>
+            issues.push(LintIssue::{
+              severity: Warning,
+              file: rel_path,
+              line: None,
+              message: "Component with client/ should have 'component' config in page.json",
+              rule: "missing-props",
+            })
+        }
+      None =>
+        issues.push(LintIssue::{
+          severity: Warning,
+          file: rel_path,
+          line: None,
+          message: "Component directory should have page.json with component configuration",
+          rule: "missing-props",
+        })
+    }
+  }
+
+  // Rule: empty-static-params
+  // Dynamic route component should have static_params for pre-generation
+  let is_dynamic = rel_path.contains("_") // Contains dynamic segment like _slug_
+  if is_dynamic {
+    match page_config {
+      Some(cfg) =>
+        if cfg.static_params.is_empty() && cfg.mode != Some("ssr") {
+          issues.push(LintIssue::{
+            severity: Warning,
+            file: rel_path + "/page.json",
+            line: None,
+            message: "Dynamic route component should define 'static_params' for static generation",
+            rule: "empty-static-params",
+          })
+        }
+      None =>
+        issues.push(LintIssue::{
+          severity: Warning,
+          file: rel_path,
+          line: None,
+          message: "Dynamic route should have page.json with static_params",
+          rule: "empty-static-params",
+        })
+    }
+  }
+}
+
+///|
+/// Check if path is a directory
+fn is_dir(path : String) -> Bool {
+  @fs.statSync(path).isDirectory() catch {
+    _ => false
   }
 }
 

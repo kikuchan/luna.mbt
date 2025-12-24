@@ -1175,18 +1175,18 @@ export class MinimalRouter {
 
 ---
 
-### Phase 8: Lint & DX
+### Phase 8: Lint & DX ✅ 完了
 
 **目標:** 開発者体験の向上
 
 | タスク | 対象ファイル | 状態 |
 |--------|-------------|------|
-| orphan-client 警告 | `src/astra/cli/lint.mbt` | 未着手 |
-| orphan-server 通知 | `src/astra/cli/lint.mbt` | 未着手 |
-| missing-props 警告 | `src/astra/cli/lint.mbt` | 未着手 |
-| empty-static-params 警告 | `src/astra/cli/lint.mbt` | 未着手 |
-| page.json JSON Schema | `schemas/page.schema.json` | 未着手 |
-| luna.config.json Schema | `schemas/luna.config.schema.json` | 未着手 |
+| orphan-client 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| orphan-server 通知 | `src/astra/cli/lint.mbt` | ✅ |
+| missing-props 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| empty-static-params 警告 | `src/astra/cli/lint.mbt` | ✅ |
+| page.json JSON Schema | `schemas/page.schema.json` | ✅ |
+| luna.config.json Schema | `schemas/luna.config.schema.json` | ✅ |
 
 **成果物:**
 - `just lint` での警告出力

@@ -58,6 +58,10 @@
       "alias": "routes"
     },
     {
+      "path": "mizchi/luna/core/routes",
+      "alias": "core_routes"
+    },
+    {
       "path": "mizchi/luna/astra/shiki",
       "alias": "shiki"
     },
