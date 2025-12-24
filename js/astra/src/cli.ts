@@ -11,5 +11,8 @@ const __dirname = dirname(__filename);
 // assets -> js/astra/assets/
 (globalThis as any).__astra_assets_dir = join(__dirname, "..", "assets");
 
+// Worker script is at dist/worker.js relative to dist/cli.js
+(globalThis as any).__astra_worker_script = join(__dirname, "worker.js");
+
 // Import MoonBit CLI (dynamic import to ensure globalThis is set first)
 await import("../../../target/js/release/build/astra/cli/cli");

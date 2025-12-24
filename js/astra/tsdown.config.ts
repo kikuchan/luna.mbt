@@ -4,6 +4,7 @@ export default defineConfig({
   entry: [
     "src/index.ts",
     "src/cli.ts",
+    "src/worker.ts",
   ],
   format: ["esm"],
   dts: true,

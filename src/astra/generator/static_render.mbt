@@ -1271,8 +1271,8 @@ fn ensure_dir(path : String) -> Unit {
 }
 
 ///|
-/// Copy static assets
-fn copy_static_assets(ctx : @astra.BuildContext) -> Unit {
+/// Copy static assets to output directory
+pub fn copy_static_assets(ctx : @astra.BuildContext) -> Unit {
   let output_assets = @path.join2(
     @path.join2(ctx.cwd, ctx.config.output_dir),
     "assets",
@@ -1384,7 +1384,7 @@ fn copy_public_dir(ctx : @astra.BuildContext) -> Unit {
 
 ///|
 /// Generate meta files (sitemap.xml, feed.xml, llms.txt) using DocumentTree
-fn generate_meta_files(
+pub fn generate_meta_files(
   ctx : @astra.BuildContext,
   doc_tree : @ssg.DocumentTree,
 ) -> Unit {
@@ -1417,7 +1417,7 @@ fn generate_meta_files(
 
 ///|
 /// Generate 404.html page
-fn generate_404_page(ctx : @astra.BuildContext) -> Unit {
+pub fn generate_404_page(ctx : @astra.BuildContext) -> Unit {
   let base = ctx.config.base_url
   let title = "Page Not Found"
   let site_title = ctx.config.title

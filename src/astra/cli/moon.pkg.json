@@ -60,6 +60,18 @@
     {
       "path": "mizchi/luna/astra/shiki",
       "alias": "shiki"
+    },
+    {
+      "path": "mizchi/luna/core/ssg",
+      "alias": "ssg"
+    },
+    {
+      "path": "mizchi/luna/astra/tree",
+      "alias": "tree"
+    },
+    {
+      "path": "mizchi/luna/astra/builder_pool",
+      "alias": "builder_pool"
     }
   ],
   "warn-list": "-27-20",

@@ -2,6 +2,12 @@
 //
 
 ///|
+/// Get worker script path from globalThis (set by npm package)
+/// Returns empty string if not set
+extern "js" fn ffi_get_worker_script() -> String =
+  #| () => globalThis.__astra_worker_script || ""
+
+///|
 fn show_build_help() -> Unit {
   let help =
     #|Usage: astra build [options]
@@ -11,6 +17,8 @@ fn show_build_help() -> Unit {
     #|Options:
     #|  -c, --config <path>  Config file path (default: astra.json, sol.config.json)
     #|  -o, --output <dir>   Output directory (overrides config)
+    #|  -p, --parallel       Enable parallel build with worker processes
+    #|  -j, --jobs <n>       Number of worker processes (default: 4, implies --parallel)
     #|  -h, --help           Show help
     #|
     #|Configuration file format:
@@ -47,6 +55,8 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
     options=[
       @util.String(key="config", short="c", multiple=false, default=None),
       @util.String(key="output", short="o", multiple=false, default=None),
+      @util.Boolean(key="parallel", short="p"),
+      @util.String(key="jobs", short="j", multiple=false, default=None),
       @util.Boolean(key="help", short="h"),
     ],
     allow_positionals=false,
@@ -62,6 +72,17 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   }
   let output_override : String? = if result.values.contains("output") {
     Some(result.values["output"].cast())
+  } else {
+    None
+  }
+  let use_parallel = if result.values.contains("parallel") {
+    result.values["parallel"].cast()
+  } else {
+    false
+  }
+  let num_workers : Int? = if result.values.contains("jobs") {
+    let jobs_str : String = result.values["jobs"].cast()
+    Some(@ssg.parse_int_simple(jobs_str))
   } else {
     None
   }
@@ -105,16 +126,124 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   println(@colorette.cyan("Building static site..."))
   println(@colorette.gray("  Docs: \{final_config.docs_dir}"))
   println(@colorette.gray("  Output: \{final_config.output_dir}"))
-  match @astra_gen.generate_site_async(final_config, cwd) {
-    Ok(_) =>
-      println(
-        @colorette.green("✓ Build complete: \{final_config.output_dir}"),
-      )
-    Err(e) => {
-      console_error(@colorette.red("Build failed: \{e}"))
-      @process.exit(1)
+
+  // Determine if parallel build should be used
+  let should_parallel = use_parallel || num_workers is Some(_)
+  if should_parallel {
+    // Parallel build with worker processes
+    let workers = num_workers.unwrap_or(4)
+    println(@colorette.gray("  Mode: parallel (\{workers} workers)"))
+    match run_parallel_build_internal(final_config, cwd, workers) {
+      Ok(_) =>
+        println(
+          @colorette.green("✓ Build complete: \{final_config.output_dir}"),
+        )
+      Err(e) => {
+        console_error(@colorette.red("Build failed: \{e}"))
+        @process.exit(1)
+      }
+    }
+  } else {
+    // Sequential build (default)
+    match @astra_gen.generate_site_async(final_config, cwd) {
+      Ok(_) =>
+        println(
+          @colorette.green("✓ Build complete: \{final_config.output_dir}"),
+        )
+      Err(e) => {
+        console_error(@colorette.red("Build failed: \{e}"))
+        @process.exit(1)
+      }
     }
   }
+}
+
+///|
+/// Internal parallel build implementation
+async fn run_parallel_build_internal(
+  config : @astra.SsgConfig,
+  cwd : String,
+  num_workers : Int,
+) -> Result[Unit, String] {
+  println("Scanning docs directory: \{config.docs_dir}")
+
+  // Step 1: Scan docs directory
+  let pages = @routes.scan_docs_dir(
+    config.docs_dir,
+    cwd,
+    i18n=config.i18n,
+    exclude=config.exclude,
+    trailing_slash=config.trailing_slash,
+  )
+  if pages.is_empty() {
+    return Err("No markdown files found in \{config.docs_dir}")
+  }
+  println("Found \{pages.length()} pages")
+
+  // Step 2: Generate sidebar
+  let sidebar = match config.sidebar {
+    @astra.SidebarConfig::Auto => @routes.generate_auto_sidebar(pages)
+    @astra.SidebarConfig::Manual(groups) => groups
+  }
+
+  // Step 3: Create output directory
+  let output_dir = @path.join2(cwd, config.output_dir)
+  @fs.mkdirSync(output_dir, recursive=true) catch {
+    _ => ()
+  }
+
+  // Step 4: Worker script path
+  // First check if running from npm package (globalThis.__astra_worker_script)
+  // Otherwise fall back to local development path
+  let worker_script = {
+    let global_path = ffi_get_worker_script()
+    if global_path.is_empty() {
+      // Development mode: use target directory
+      let target = @path.join2(cwd, "target")
+      let js = @path.join2(target, "js")
+      let release = @path.join2(js, "release")
+      let build = @path.join2(release, "build")
+      let astra = @path.join2(build, "astra")
+      let worker_dir = @path.join2(astra, "astra_worker")
+      @path.join2(worker_dir, "astra_worker.js")
+    } else {
+      // NPM package mode: use bundled worker
+      global_path
+    }
+  }
+
+  // Step 5: Run parallel build
+  let results = @builder_pool.run_parallel_build(
+    config,
+    pages,
+    sidebar,
+    cwd,
+    worker_script,
+    num_workers~,
+  )
+
+  // Step 6: Report results
+  for result in results {
+    if result.success {
+      println("  Generated: \{result.url_path}")
+    } else {
+      let error_msg = result.error.unwrap_or("Unknown error")
+      println("  Error generating \{result.url_path}: \{error_msg}")
+    }
+  }
+
+  // Step 7: Copy static assets
+  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd }
+  @astra_gen.copy_static_assets(ctx)
+
+  // Step 8: Build DocumentTree and generate meta files
+  let doc_tree = @tree.build_document_tree(config, pages, cwd)
+  @astra_gen.generate_meta_files(ctx, doc_tree)
+
+  // Step 9: Generate 404 page
+  @astra_gen.generate_404_page(ctx)
+
+  Ok(())
 }
 
 ///|
