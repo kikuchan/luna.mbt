@@ -270,8 +270,8 @@ dev-sol: build-moon
 dev-doc: build-moon
     node target/js/release/build/astra/cli/cli.js dev
 
-# docs ビルド
-build-doc: build-moon
+# docs ビルド (例: just build-doc -j 4)
+build-doc *args: build-moon
     @echo "Linting docs..."
     -node target/js/release/build/astra/cli/cli.js lint
     @echo ""
@@ -281,7 +281,7 @@ build-doc: build-moon
     mv docs/public/demo/demo-src/* docs/public/demo/
     rm -rf docs/public/demo/demo-src
     @echo "Building docs..."
-    node target/js/release/build/astra/cli/cli.js build
+    node target/js/release/build/astra/cli/cli.js build --parallel {{args}}
     @echo "✓ Documentation built in dist/"
 
 # docs lint のみ
