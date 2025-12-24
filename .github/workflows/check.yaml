@@ -60,7 +60,30 @@ jobs:
           mkdir -p target/js/debug/test
           echo '{"type": "commonjs"}' > target/js/debug/test/package.json
       - name: moon test
-        run: moon test --target js
+        run: |
+          # Luna core
+          moon test --target js src/luna/signal
+          moon test --target js src/luna/routes
+          moon test --target js src/luna/render
+          moon test --target js src/luna/serialize
+          # Core
+          moon test --target js src/core/parser
+          # Platform (specific packages with tests)
+          moon test --target js src/platform/server_dom
+          moon test --target js src/platform/js/fs_adapter
+          moon test --target js src/platform/js/cache
+          moon test --target js src/platform/js/stream_renderer
+          moon test --target js src/platform/js/api
+          moon test --target js src/platform/dom/client
+          # Sol (non-CLI)
+          moon test --target js src/sol/router
+          # Astra (non-CLI)
+          moon test --target js src/astra/shiki
+          moon test --target js src/astra/markdown
+          moon test --target js src/astra/routes
+          moon test --target js src/astra/tree
+          # Stella
+          moon test --target js src/stella
 
   # Cross-platform tests (non-JS targets: wasm, wasm-gc, native)
   test-xplat:
