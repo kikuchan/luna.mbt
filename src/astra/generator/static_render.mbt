@@ -912,7 +912,7 @@ fn build_html_document(
   } else {
     ""
   }
-  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\{desc_tag}\{ogp_tags}\{ogp_text}\n  <script>\{theme_script}</script>\n  <style>\{combined_css}:root{--primary-color:\{primary};}</style>\n  \{preloads}\{prefetch_tags}\{head_snippets}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" async src=\"\{base}assets/loader.js\"></script>\n  \{wc_loader_script}\n  \{nav_script}\n  \{sidebar_script}\n  \{toc_script}\{body_snippets}\n</body>\n</html>"
+  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\{desc_tag}\{ogp_tags}\{ogp_text}\n  <link rel=\"preload\" href=\"\{base}assets/loader.js\" as=\"script\">\n  <script>\{theme_script}</script>\n  <style>\{combined_css}:root{--primary-color:\{primary};}</style>\n  \{preloads}\{prefetch_tags}\{head_snippets}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" async src=\"\{base}assets/loader.js\"></script>\n  \{wc_loader_script}\n  \{nav_script}\n  \{sidebar_script}\n  \{toc_script}\{body_snippets}\n</body>\n</html>"
 }
 
 ///|
