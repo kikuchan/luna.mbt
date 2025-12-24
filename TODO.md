@@ -62,19 +62,39 @@ counter/                      # moon.pkg.json ディレクトリ
 - `ChunkManifest`: RouteManifest → クライアント向けマニフェスト変換
 - ビルド時に `_luna/manifest.json` を自動生成
 
-### Phase 4: ビルドパイプライン 🔄 進行中
+### Phase 4: ビルドパイプライン ✅ 完了
 
 | タスク | ファイル | 状態 |
 |--------|----------|------|
-| Rolldown 設定 | `rolldown.config.js` | 未着手 |
-| エントリポイント解析 | `src/astra/cli/build.mbt` | 未着手 |
-| チャンク依存グラフ生成 | `src/astra/builder_pool/` | 未着手 |
-| modulepreload 挿入 | `src/astra/html/inject.mbt` | 未着手 |
+| Rolldown boot エントリ | `rolldown.config.mjs` | ✅ |
+| boot ランタイムコピー | `src/astra/generator/static_render.mbt` | ✅ |
+| manifest.json 生成 | `src/astra/generator/static_render.mbt` | ✅ |
+
+### Phase 5: SSR コンポーネント (Astra側) ✅ 完了
+
+| タスク | ファイル | 状態 |
+|--------|----------|------|
+| Component ContentType 追加 | `src/astra/types.mbt` | ✅ |
+| moon.pkg.json ディレクトリ検出 | `src/astra/routes/file_router.mbt` | ✅ |
+| page.json パース | `src/astra/routes/file_router.mbt` | ✅ |
+| Component ページ生成 | `src/astra/generator/static_render.mbt` | ✅ |
+
+### Phase 6: CFW デプロイ ✅ 完了
+
+| タスク | ファイル | 状態 |
+|--------|----------|------|
+| DeployTarget enum | `src/astra/types.mbt` | ✅ |
+| deploy 設定パース | `src/astra/config.mbt` | ✅ |
+| _routes.json 生成 | `src/astra/generator/cloudflare.mbt` | ✅ |
+| E2E テスト (Playwright) | `e2e/astra/deploy-target.test.ts` | ✅ (8件) |
+| Vitest ルーティングテスト | `tests/cloudflare/routes.test.ts` | ✅ (21件) |
+
+**Note:** `@cloudflare/vitest-pool-workers` は vitest 2.x-3.x 必須。
+vitest 4.x 環境では Worker ランタイムなしでルーティングロジックをテスト。
+`_worker.js` 生成時に wrangler dev --test または vitest 3.x 別環境を検討。
 
 ### 残りのフェーズ (未着手)
 
-- **Phase 5**: SSR コンポーネント
-- **Phase 6**: CFW デプロイ
 - **Phase 7**: 拡張ルーター (Hybrid/SPA)
 - **Phase 8**: Lint & DX
 
