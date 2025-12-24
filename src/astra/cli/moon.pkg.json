@@ -72,6 +72,10 @@
     {
       "path": "mizchi/luna/astra/builder_pool",
       "alias": "builder_pool"
+    },
+    {
+      "path": "mizchi/luna/astra/markdown",
+      "alias": "markdown"
     }
   ],
   "warn-list": "-27-20",

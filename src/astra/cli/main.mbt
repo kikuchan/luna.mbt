@@ -12,6 +12,7 @@ fn show_help() -> Unit {
     #|  new <name>     Create a new Astra project
     #|  build          Build static site from docs/
     #|  dev            Start development server with HMR
+    #|  lint           Check documentation for issues
     #|
     #|Options:
     #|  -h, --help     Show help
@@ -21,6 +22,7 @@ fn show_help() -> Unit {
     #|  astra new my-docs              Create a new project
     #|  astra dev                      Start dev server
     #|  astra build                    Build static site
+    #|  astra lint                     Check for dead links and missing metadata
   println(help)
 }
 
@@ -60,6 +62,7 @@ async fn main {
     "new" => run_new_command(command_args)
     "build" => run_build_command(command_args)
     "dev" => run_dev_command(command_args)
+    "lint" => run_lint_command(command_args)
     _ => {
       console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")
