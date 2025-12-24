@@ -1,0 +1,10 @@
+{
+  "$schema": "../../schemas/luna.config.schema.json",
+  "title": "Astra Demo",
+  "description": "Demo site for Unified Progressive Architecture",
+  "docs_dir": "docs",
+  "out_dir": "dist",
+  "base_url": "/",
+  "trailing_slash": true,
+  "deploy": "cloudflare"
+}
