@@ -7,7 +7,7 @@ layout: home
 
 A blazing-fast reactive UI framework written in MoonBit
 
-Fine-grained reactivity meets Island Architecture. Ship less JavaScript, load faster.
+Fine-grained reactivity meets Island Architecture. **So small that compile-time optimization is unnecessary.**
 
 [Get Started →](/introduction/) | [Luna](/luna/) | [Sol](/sol/) | [Astra](/astra/)
 
@@ -15,15 +15,31 @@ Fine-grained reactivity meets Island Architecture. Ship less JavaScript, load fa
 
 ## Why Luna?
 
+Existing solutions didn't meet our needs:
+
+- **React** - Too large for performance-critical applications
+- **Qwik / Solid** - Compile-time expansion gets in the way
+- **No WebComponents-first framework existed** - Until now
+
+Luna addresses these gaps with a minimal runtime and native browser standards.
+
 ### Minimal Runtime, Maximum Performance
 
 | Component | Size |
 |-----------|------|
 | Hydration Loader | **~1.6 KB** |
 | Island Runtime | **~3.2 KB** |
-| No Virtual DOM diffing overhead | |
+| **Total** | **~6.7 KB** (vs Preact ~20 KB) |
 
-Luna's Island Architecture means you only ship JavaScript for interactive components. Static content stays static.
+Luna is small enough that **compile-time optimization is unnecessary**. The framework overhead is negligible.
+
+### Runtime Performance
+
+| Scenario | Luna | React |
+|----------|------|-------|
+| 100×100 DOM shooting game | **60 FPS** | 12 FPS |
+
+Fine-grained reactivity without Virtual DOM diffing delivers real performance gains.
 
 ### Fine-Grained Reactivity
 
@@ -41,6 +57,14 @@ setCount(1);  // Logs: 1
 setCount(c => c + 1);  // Logs: 2
 ```
 
+### WebComponents First
+
+Luna is the **first framework to support WebComponents SSR + Hydration**.
+
+- Native browser standards over framework abstractions
+- Style encapsulation with Shadow DOM
+- Framework-agnostic islands that work anywhere
+
 ### Island Architecture
 
 Partial hydration with smart loading strategies:
@@ -54,9 +78,11 @@ Partial hydration with smart loading strategies:
 
 ```html
 <!-- Only this island ships JavaScript -->
-<div luna:id="counter" luna:client-trigger="visible">
-  <button>Count: 0</button>
-</div>
+<my-counter luna:client-trigger="visible">
+  <template shadowrootmode="open">
+    <button>Count: 0</button>
+  </template>
+</my-counter>
 <!-- Everything else is pure HTML -->
 ```
 

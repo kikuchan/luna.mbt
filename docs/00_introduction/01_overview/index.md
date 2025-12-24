@@ -8,7 +8,41 @@ Luna is a suite of tools for building modern web applications with MoonBit and J
 
 ## Why Luna?
 
-Luna is not just another JavaScript framework. It's a fundamentally different approach to building web UIs.
+Luna was born from frustration with existing solutions:
+
+- **React** - Too large for performance-critical applications
+- **Qwik / Solid** - Compile-time expansion gets in the way of debugging
+- **No WebComponents-first framework existed** - Until now
+
+## Design Philosophy
+
+### So Small That Compile-Time Optimization Is Unnecessary
+
+| Framework | Bundle Size |
+|-----------|-------------|
+| **Luna** | **~6.7 KB** |
+| Preact | ~20 KB |
+| Solid | ~7 KB |
+| Vue 3 | ~33 KB |
+| React | ~42 KB |
+
+Luna is intentionally minimal. The framework overhead is negligible, making compile-time optimizations unnecessary.
+
+### WebComponents First (World's First SSR + Hydration)
+
+Luna is the **first framework to support WebComponents SSR + Hydration**.
+
+- Native browser standards over framework abstractions
+- Shadow DOM for style encapsulation
+- Declarative Shadow DOM for server rendering
+
+### Runtime Performance
+
+| Scenario | Luna | React |
+|----------|------|-------|
+| 100×100 DOM shooting game | **60 FPS** | 12 FPS |
+
+Fine-grained reactivity delivers **5x better performance** in real-world scenarios.
 
 ### Written in MoonBit
 
@@ -37,16 +71,6 @@ Luna combines Islands Architecture with fine-grained reactivity:
 - **Partial hydration** - Only interactive parts load JavaScript
 - **Minimal runtime** - ~3KB loader
 - **Fast updates** - Direct DOM manipulation within islands
-
-### Tiny Runtime
-
-| Framework | Minimum Runtime |
-|-----------|----------------|
-| **Luna** | **~3 KB** |
-| Preact | ~4 KB |
-| Solid | ~7 KB |
-| Vue 3 | ~33 KB |
-| React | ~42 KB |
 
 ## Architecture
 
