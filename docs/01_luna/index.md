@@ -17,10 +17,10 @@ Luna is a reactive UI library with fine-grained reactivity and Islands Architect
 
 ## Sections
 
-- [Why Luna](./why-luna/) - Design philosophy and advantages
-- [API Reference](./api/) - Complete API documentation
-- [Tutorial](./tutorial/) - Step-by-step learning guides
-- [Deep Dive](./deep-dive/) - Advanced concepts and internals
+- [Why Luna](/luna/why-luna/) - Design philosophy and advantages
+- [API Reference](/luna/api/) - Complete API documentation
+- [Tutorial](/luna/tutorial/) - Step-by-step learning guides
+- [Deep Dive](/luna/deep-dive/) - Advanced concepts and internals
 
 ## Quick Start
 
