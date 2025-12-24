@@ -107,6 +107,13 @@ fn generate_site_internal(
   }
   println("Found \{pages.length()} pages")
 
+  // Step 1.5: Check for duplicate pages (e.g., index.md and index.html)
+  let duplicates = @routes.check_duplicate_pages(pages)
+  if not(duplicates.is_empty()) {
+    let errors = duplicates.map(@routes.format_duplicate_error)
+    return Err("Duplicate pages detected:\n" + errors.join("\n"))
+  }
+
   // Step 2: Generate sidebar
   let sidebar = match config.sidebar {
     @astra.SidebarConfig::Auto => @routes.generate_auto_sidebar(pages)

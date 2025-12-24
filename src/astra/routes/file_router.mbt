@@ -280,6 +280,54 @@ fn join_path_simple(base : String, name : String) -> String {
 }
 
 // =============================================================================
+// Duplicate Detection
+// =============================================================================
+
+///|
+/// Duplicate page entry for error reporting
+pub(all) struct DuplicatePage {
+  /// The URL path that has duplicates
+  url_path : String
+  /// List of source files that map to the same URL
+  sources : Array[String]
+}
+
+///|
+/// Check for duplicate pages (e.g., index.md and index.html in same directory)
+/// Returns list of conflicts where multiple source files map to the same URL path
+pub fn check_duplicate_pages(
+  pages : Array[@astra.PageMeta],
+) -> Array[DuplicatePage] {
+  let duplicates : Array[DuplicatePage] = []
+  let url_to_sources : Map[String, Array[String]] = {}
+
+  // Group pages by URL path
+  for page in pages {
+    match url_to_sources.get(page.url_path) {
+      Some(sources) => sources.push(page.source_path)
+      None => url_to_sources[page.url_path] = [page.source_path]
+    }
+  }
+
+  // Find URLs with multiple sources
+  for url in url_to_sources.keys() {
+    let sources = url_to_sources.get(url).unwrap()
+    if sources.length() > 1 {
+      duplicates.push(DuplicatePage::{ url_path: url, sources })
+    }
+  }
+
+  duplicates
+}
+
+///|
+/// Format duplicate page error message
+pub fn format_duplicate_error(dup : DuplicatePage) -> String {
+  let sources = dup.sources.join(", ")
+  "Duplicate content for URL '\{dup.url_path}': [\{sources}]"
+}
+
+// =============================================================================
 // Navigation Generation
 // =============================================================================
 

@@ -87,6 +87,18 @@ pub fn lint_docs(config : @astra.SsgConfig, cwd : String) -> LintResult {
     trailing_slash=config.trailing_slash,
   )
 
+  // Check for duplicate pages (e.g., index.md and index.html)
+  let duplicates = @routes.check_duplicate_pages(pages)
+  for dup in duplicates {
+    issues.push(LintIssue::{
+      severity: Error,
+      file: dup.sources[0],
+      line: None,
+      message: @routes.format_duplicate_error(dup),
+      rule: "duplicate-page",
+    })
+  }
+
   // Build URL set for dead link detection
   let valid_urls : Map[String, Bool] = {}
   for page in pages {
