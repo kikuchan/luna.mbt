@@ -296,6 +296,7 @@ fn count_vnode_nodes(node : @luna.Node[@js.Any]) -> Int {
   match node {
     @luna.Text(_) => 1
     @luna.DynamicText(_) => 1
+    @luna.RawHtml(_) => 1
     @luna.Fragment(children) => {
       let mut count = 0
       for child in children {
@@ -708,6 +709,7 @@ fn experimental_hydrate_node(
 ) -> Unit {
   match node {
     @luna.Text(content) => experimental_hydrate_text(parent, content, ctx)
+    @luna.RawHtml(_) => () // Raw HTML doesn't need hydration
     @luna.DynamicText(getter) => {
       let id = ctx.current_id
       ctx.current_id = id + 1

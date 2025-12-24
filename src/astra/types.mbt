@@ -39,6 +39,9 @@ pub(all) struct SsgConfig {
   head_snippets : Array[String]
   /// Custom HTML snippets to inject before </body>
   body_snippets : Array[String]
+  /// Sanitize HTML content from .html files (default: false)
+  /// When true, removes potentially dangerous tags like <script>
+  sanitize_html : Bool
 }
 
 // I18nConfig, LocaleConfig are defined in core/ssg
@@ -70,6 +73,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     ogp_text: None,
     head_snippets: [],
     body_snippets: [],
+    sanitize_html: false,
   }
 }
 
@@ -290,12 +294,23 @@ pub(all) struct NavLink {
 // =============================================================================
 
 ///|
+/// Content type for source files
+pub(all) enum ContentType {
+  /// Markdown file (.md)
+  Markdown
+  /// HTML fragment file (.html)
+  Html
+} derive(Eq, Show)
+
+///|
 /// Page metadata for routing and generation
 pub(all) struct PageMeta {
   /// Source file path (relative to docs_dir)
   source_path : String
   /// Output URL path (numeric prefixes stripped)
   url_path : String
+  /// Content type (Markdown or Html)
+  content_type : ContentType
   /// Parsed frontmatter
   frontmatter : Frontmatter
   /// Last modified timestamp (ISO 8601)
@@ -313,6 +328,7 @@ pub(all) struct PageMeta {
 pub fn PageMeta::new(
   source_path : String,
   url_path : String,
+  content_type? : ContentType = Markdown,
   locale? : String = "en",
   canonical_path? : String = "",
   sort_key? : String = "",
@@ -326,6 +342,7 @@ pub fn PageMeta::new(
   {
     source_path,
     url_path,
+    content_type,
     frontmatter: Frontmatter::default(),
     last_modified: None,
     locale,

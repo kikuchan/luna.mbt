@@ -132,6 +132,9 @@ fn hydrate_node(
     @luna.Text(_) =>
       // Static text doesn't need hydration
       ()
+    @luna.RawHtml(_) =>
+      // Raw HTML doesn't need hydration
+      ()
     @luna.DynamicText(getter) => {
       // Find the text marker comments and set up effect
       let id = ctx.current_id
@@ -514,6 +517,7 @@ fn hydrate_child_nodes(
   let _ = nodes // suppress unused warning
   match node {
     @luna.Text(_) => ()
+    @luna.RawHtml(_) => ()
     @luna.DynamicText(_) => ctx.current_id = ctx.current_id + 1
     @luna.Fragment(children) =>
       for child in children {

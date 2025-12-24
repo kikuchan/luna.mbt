@@ -103,6 +103,9 @@ pub enum Node[E] {
   /// - styles: CSS for Shadow DOM (WC only)
   /// - children: SSR content
   InternalRef(VInternalRef[E])
+  /// Raw HTML string - rendered without escaping
+  /// Use with caution: content is not sanitized
+  RawHtml(String)
 }
 
 ///|
@@ -195,6 +198,13 @@ pub fn[E, T : Show] text_of(sig : @signal.Signal[T]) -> Node[E] {
 /// Create a fragment VNode
 pub fn[E] fragment(children : Array[Node[E]]) -> Node[E] {
   Fragment(children)
+}
+
+///|
+/// Create a raw HTML VNode (content is not escaped)
+/// Use with caution: content should be trusted or sanitized
+pub fn[E] raw_html(content : String) -> Node[E] {
+  RawHtml(content)
 }
 
 ///|

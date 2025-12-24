@@ -9,6 +9,7 @@ pub fn render_to_json(node : @luna.Node[Unit]) -> JsonNode {
   match node {
     @luna.Text(content) => Text(content)
     @luna.DynamicText(getter) => Text(getter())
+    @luna.RawHtml(html) => Text(html) // Treat raw HTML as text in JSON
     @luna.Fragment(children) => {
       let json_children : Array[JsonNode] = []
       for child in children {

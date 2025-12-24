@@ -23,6 +23,7 @@ fn create_test_config() -> @astra.SsgConfig {
     ogp_text: None,
     head_snippets: [],
     body_snippets: [],
+    sanitize_html: false,
   }
 }
 
@@ -37,6 +38,7 @@ fn create_page_meta(
   @astra.PageMeta::{
     source_path,
     url_path,
+    content_type: @astra.Markdown,
     canonical_path: url_path,
     locale: "en",
     sort_key: source_path,

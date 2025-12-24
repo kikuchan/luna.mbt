@@ -80,6 +80,7 @@ pub fn manifest_to_page_metas(
         let page = @astra.PageMeta::{
           source_path: static_route.source,
           url_path: static_route.path,
+          content_type: @astra.Markdown, // Assume Markdown for manifest-imported routes
           frontmatter,
           last_modified: None,
           locale: static_route.locale,
@@ -138,6 +139,7 @@ pub fn static_route_to_page_meta(
   @astra.PageMeta::{
     source_path: route.source,
     url_path: route.path,
+    content_type: @astra.Markdown, // Assume Markdown for manifest-imported routes
     frontmatter,
     last_modified: None,
     locale: route.locale,

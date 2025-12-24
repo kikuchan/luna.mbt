@@ -147,7 +147,7 @@ fn generate_page_with_highlight(
   page : @astra.PageMeta,
   highlighter : @shiki.Highlighter?,
 ) -> Result[Unit, String] {
-  // Read markdown file
+  // Read source file
   let source_path = @path.join2(
     @path.join2(ctx.cwd, ctx.config.docs_dir),
     page.source_path,
@@ -156,37 +156,57 @@ fn generate_page_with_highlight(
     e => return Err("Failed to read \{source_path}: \{e}")
   }
 
-  // Parse markdown
-  let (parsed_frontmatter, nodes) = @markdown.parse_markdown(content)
+  // Process based on content type
+  let (frontmatter, content_vnode, toc) = match page.content_type {
+    @astra.Markdown => {
+      // Parse markdown
+      let (parsed_frontmatter, nodes) = @markdown.parse_markdown(content)
 
-  // Auto-generate description from first paragraph if not provided
-  let frontmatter = if parsed_frontmatter.description is None {
-    match @markdown.extract_description(nodes) {
-      Some(desc) => { ..parsed_frontmatter, description: Some(desc) }
-      None => parsed_frontmatter
+      // Auto-generate description from first paragraph if not provided
+      let fm = if parsed_frontmatter.description is None {
+        match @markdown.extract_description(nodes) {
+          Some(desc) => { ..parsed_frontmatter, description: Some(desc) }
+          None => parsed_frontmatter
+        }
+      } else {
+        parsed_frontmatter
+      }
+
+      // Get islands base path from config
+      let islands_base_path = match ctx.config.islands {
+        Some(islands_config) => islands_config.base_path
+        None => "/static/"
+      }
+
+      // Convert to VNode with link resolution
+      // Index pages use standard browser behavior, content pages use sibling behavior
+      let is_index = page.source_path.has_suffix("index.md")
+      let vnode = @markdown.md_nodes_to_vnode(
+        nodes,
+        islands_base_path~,
+        current_url_path=page.url_path,
+        is_index~,
+      )
+
+      // Extract TOC
+      let extracted_toc = @markdown.extract_toc(nodes)
+      (fm, vnode, extracted_toc)
     }
-  } else {
-    parsed_frontmatter
+    @astra.Html => {
+      // For HTML files, use the content as raw HTML
+      // Optionally sanitize if configured
+      let html_content = if ctx.config.sanitize_html {
+        sanitize_html(content)
+      } else {
+        content
+      }
+      // Wrap raw HTML in a fragment
+      let vnode = @luna.raw_html(html_content)
+      // Use page frontmatter (from file_router, which is default for HTML)
+      // No TOC for HTML files
+      (page.frontmatter, vnode, [])
+    }
   }
-
-  // Get islands base path from config
-  let islands_base_path = match ctx.config.islands {
-    Some(islands_config) => islands_config.base_path
-    None => "/static/"
-  }
-
-  // Convert to VNode with link resolution
-  // Index pages use standard browser behavior, content pages use sibling behavior
-  let is_index = page.source_path.has_suffix("index.md")
-  let content_vnode = @markdown.md_nodes_to_vnode(
-    nodes,
-    islands_base_path~,
-    current_url_path=page.url_path,
-    is_index~,
-  )
-
-  // Extract TOC
-  let toc = @markdown.extract_toc(nodes)
 
   // Build page HTML
   let html = build_page_html(ctx, page, frontmatter, content_vnode, toc)
@@ -1298,6 +1318,38 @@ fn get_navigation_script(
   let script_body = parts.join("\n")
   "<script>\n(function() {\n\{script_body}\n})();\n</script>"
 }
+
+// =============================================================================
+// HTML Sanitization
+// =============================================================================
+
+///|
+/// Sanitize HTML by removing potentially dangerous tags
+/// Removes: <script>, <iframe>, <object>, <embed>, <form>, on* event handlers
+fn sanitize_html(html : String) -> String {
+  sanitize_html_js(html)
+}
+
+///|
+/// JavaScript implementation of HTML sanitization
+extern "js" fn sanitize_html_js(html : String) -> String =
+  #| (html) => {
+  #|   // Remove script tags and their content
+  #|   let result = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  #|   // Remove iframe, object, embed tags
+  #|   result = result.replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '');
+  #|   result = result.replace(/<object\b[^>]*>.*?<\/object>/gi, '');
+  #|   result = result.replace(/<embed\b[^>]*\/?>/gi, '');
+  #|   // Remove form tags (keep content)
+  #|   result = result.replace(/<\/?form\b[^>]*>/gi, '');
+  #|   // Remove on* event handlers from all tags
+  #|   result = result.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+  #|   result = result.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '');
+  #|   // Remove javascript: URLs
+  #|   result = result.replace(/\bhref\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
+  #|   result = result.replace(/\bsrc\s*=\s*["']javascript:[^"']*["']/gi, 'src=""');
+  #|   return result;
+  #| }
 
 // =============================================================================
 // Utility Functions

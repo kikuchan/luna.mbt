@@ -208,9 +208,14 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
         filesystem, entry_path, entry_relative, docs_dir, cwd, i18n, exclude, pages,
         trailing_slash,
       )
-    } else if entry.has_suffix(".md") {
-      // Process markdown file
+    } else if entry.has_suffix(".md") || entry.has_suffix(".html") {
+      // Process markdown or HTML file
       let source_path = entry_relative
+      let content_type : @astra.ContentType = if entry.has_suffix(".html") {
+        @astra.Html
+      } else {
+        @astra.Markdown
+      }
 
       // Detect locale from path
       let (locale, canonical_path) = detect_locale_from_path(
@@ -223,16 +228,23 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
       // Build sort key for ordering (preserves numeric prefixes)
       let sort_key = @ssg.build_sort_key(source_path)
 
-      // Parse frontmatter to get title
-      let content : String = @env.FileSystem::read_file_sync(
-        filesystem, entry_path,
-      ) catch {
-        _ => continue
+      // Parse frontmatter for markdown, use default for HTML
+      let frontmatter = match content_type {
+        @astra.Markdown => {
+          let content : String = @env.FileSystem::read_file_sync(
+            filesystem, entry_path,
+          ) catch {
+            _ => continue
+          }
+          let (fm, _) = @markdown.parse_markdown(content)
+          fm
+        }
+        @astra.Html => @astra.Frontmatter::default()
       }
-      let (frontmatter, _) = @markdown.parse_markdown(content)
       let page = @astra.PageMeta::{
         source_path,
         url_path,
+        content_type,
         frontmatter,
         last_modified: None, // memfs doesn't provide consistent mtime
         locale,

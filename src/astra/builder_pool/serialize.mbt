@@ -467,6 +467,7 @@ fn parse_ssg_config_obj(obj : Map[String, Json]) -> @astra.SsgConfig? {
       ogp_text: None,
       head_snippets: [],
       body_snippets: [],
+      sanitize_html: false,
     },
   )
 }
@@ -902,6 +903,7 @@ fn parse_page_meta(json : Json) -> @astra.PageMeta? {
     @astra.PageMeta::{
       source_path,
       url_path,
+      content_type: @astra.Markdown,
       frontmatter,
       last_modified,
       locale,

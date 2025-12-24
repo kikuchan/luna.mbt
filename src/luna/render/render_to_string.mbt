@@ -121,6 +121,7 @@ fn[E] render_and_collect_urls(
   match node {
     Text(content) => escape_html_to(sb, content)
     DynamicText(getter) => escape_html_to(sb, getter())
+    RawHtml(html) => sb.write_string(html)
     Fragment(children) =>
       for child in children {
         render_and_collect_urls(sb, child, urls)
@@ -689,6 +690,7 @@ fn[E] render_to_sb(sb : StringBuilder, node : @luna.Node[E]) -> Unit {
   match node {
     Text(content) => escape_html_to(sb, content)
     DynamicText(getter) => escape_html_to(sb, getter())
+    RawHtml(html) => sb.write_string(html)
     Fragment(children) =>
       for child in children {
         render_to_sb(sb, child)
@@ -782,6 +784,7 @@ fn[E] render_with_id_to(
 ) -> Unit {
   match node {
     Text(content) => escape_html_to(sb, content)
+    RawHtml(html) => sb.write_string(html)
     DynamicText(getter) => {
       let id = id_counter.val
       id_counter.val = id + 1

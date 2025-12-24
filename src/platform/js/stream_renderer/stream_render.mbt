@@ -29,6 +29,7 @@ fn render_node_to_stream(
   match node {
     Text(content) => write(@render.escape_html(content))
     DynamicText(getter) => write(@render.escape_html(getter()))
+    RawHtml(html) => write(html)
     Fragment(children) =>
       for child in children {
         render_node_to_stream(child, writer)
@@ -338,6 +339,7 @@ fn render_node_collecting_async(
   match node {
     Text(content) => write(@render.escape_html(content))
     DynamicText(getter) => write(@render.escape_html(getter()))
+    RawHtml(html) => write(html)
     Fragment(children) =>
       for child in children {
         render_node_collecting_async(child, writer, boundaries, id_counter)
