@@ -12,6 +12,11 @@ export default defineConfig([
       'boot/index': './js/loader/src/boot/index.ts',
       'boot/loader': './js/loader/src/boot/loader.ts',
       'boot/router': './js/loader/src/boot/router.ts',
+      // Extended routers (Phase 7)
+      'router/index': './js/loader/src/router/index.ts',
+      'router/hybrid': './js/loader/src/router/hybrid.ts',
+      'router/spa': './js/loader/src/router/spa.ts',
+      'router/scroll': './js/loader/src/router/scroll.ts',
     },
     output: {
       dir: './js/loader/dist',

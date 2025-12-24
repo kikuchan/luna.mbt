@@ -93,9 +93,28 @@ counter/                      # moon.pkg.json ディレクトリ
 vitest 4.x 環境では Worker ランタイムなしでルーティングロジックをテスト。
 `_worker.js` 生成時に wrangler dev --test または vitest 3.x 別環境を検討。
 
+### Phase 7: 拡張ルーター ✅ 完了
+
+| タスク | ファイル | 状態 |
+|--------|----------|------|
+| HybridRouter (fetch+swap) | `js/loader/src/router/hybrid.ts` | ✅ |
+| SpaRouter (CSR) | `js/loader/src/router/spa.ts` | ✅ |
+| ScrollManager | `js/loader/src/router/scroll.ts` | ✅ |
+| Rolldown エントリ追加 | `rolldown.config.mjs` | ✅ |
+| package.json exports | `js/loader/package.json` | ✅ |
+
+**実装済み機能:**
+- `HybridRouter`: Turbo/HTMX スタイルの fetch + swap ナビゲーション
+- `SpaRouter`: クライアントサイドレンダリングルーター、動的ルート対応
+- `ScrollManager`: スクロール位置の保存・復元、sessionStorage 永続化
+
+**サイズ:**
+- `router/hybrid.js`: 4.1KB
+- `router/spa.js`: 3.8KB
+- `router/scroll.js`: 3.8KB
+
 ### 残りのフェーズ (未着手)
 
-- **Phase 7**: 拡張ルーター (Hybrid/SPA)
 - **Phase 8**: Lint & DX
 
 ---

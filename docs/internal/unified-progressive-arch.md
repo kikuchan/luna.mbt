@@ -1155,20 +1155,23 @@ export class MinimalRouter {
 
 ---
 
-### Phase 7: 拡張ルーター
+### Phase 7: 拡張ルーター ✅ 完了
 
 **目標:** Hybrid / SPA ナビゲーション
 
 | タスク | 対象ファイル | 状態 |
 |--------|-------------|------|
-| router-hybrid.js | `js/luna/src/router/hybrid.ts` | 未着手 |
-| router-spa.js | `js/luna/src/router/spa.ts` | 未着手 |
-| prefetch 実装 | `js/luna/src/boot/router.ts` | 未着手 |
-| scroll restoration | `js/luna/src/router/scroll.ts` | 未着手 |
+| HybridRouter | `js/loader/src/router/hybrid.ts` | ✅ |
+| SpaRouter | `js/loader/src/router/spa.ts` | ✅ |
+| prefetch 実装 | `js/loader/src/boot/router.ts` | ✅ (既存) |
+| ScrollManager | `js/loader/src/router/scroll.ts` | ✅ |
+| Rolldown エントリ | `rolldown.config.mjs` | ✅ |
+| package.json exports | `js/loader/package.json` | ✅ |
 
 **成果物:**
-- `router-hybrid.[hash].js` (< 1KB)
-- `router-spa.[hash].js` (< 2KB)
+- `router/hybrid.js` (4.1KB)
+- `router/spa.js` (3.8KB)
+- `router/scroll.js` (3.8KB)
 
 ---
 
