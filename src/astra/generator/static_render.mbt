@@ -504,16 +504,50 @@ async fn generate_site_internal_async(
 }
 
 ///|
+/// Parse dynamic source path to extract actual file path and params
+/// Format: "path/to/_slug_/index.md?slug=value" -> ("path/to/_slug_/index.md", {"slug": "value"})
+fn parse_dynamic_source_path(
+  source_path : String,
+) -> (String, Map[String, String]) {
+  let params : Map[String, String] = {}
+
+  // Check if path contains query params
+  match source_path.find("?") {
+    Some(idx) => {
+      // Split path and query string
+      let file_path = @ssg.extract_substring(source_path, 0, idx)
+      let query = @ssg.extract_substring(
+        source_path, idx + 1, source_path.length(),
+      )
+
+      // Parse query params (simple key=value format)
+      // Collect iterator to array for indexed access
+      let parts : Array[StringView] = query.split("=").collect()
+      if parts.length() == 2 {
+        let key = parts[0].to_string()
+        let value = parts[1].to_string()
+        params[key] = value
+      }
+      (file_path, params)
+    }
+    None => (source_path, params)
+  }
+}
+
+///|
 /// Generate single page with optional syntax highlighting
 fn generate_page_with_highlight(
   ctx : @astra.BuildContext,
   page : @astra.PageMeta,
   highlighter : @shiki.Highlighter?,
 ) -> Result[Unit, String] {
+  // Parse dynamic source path to get actual file path and params
+  let (actual_source, _params) = parse_dynamic_source_path(page.source_path)
+
   // Build full source path
   let source_path = @path.join2(
     @path.join2(ctx.cwd, ctx.config.docs_dir),
-    page.source_path,
+    actual_source,
   )
 
   // Process based on renderer type
@@ -647,10 +681,13 @@ async fn generate_page_with_highlight_async(
   page : @astra.PageMeta,
   highlighter : @shiki.Highlighter?,
 ) -> Result[Unit, String] {
+  // Parse dynamic source path to get actual file path and params
+  let (actual_source, _params) = parse_dynamic_source_path(page.source_path)
+
   // Build full source path
   let source_path = @path.join2(
     @path.join2(ctx.cwd, ctx.config.docs_dir),
-    page.source_path,
+    actual_source,
   )
 
   // Process based on renderer type

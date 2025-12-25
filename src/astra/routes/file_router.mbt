@@ -202,6 +202,20 @@ pub fn[FS : @env.FileSystem] scan_docs_dir_with_fs(
 }
 
 ///|
+/// Extract parameter name from directory name (for dynamic routes)
+/// _slug_ -> Some("slug")
+/// _id_ -> Some("id")
+/// regular -> None
+fn extract_param_name(dir_name : String) -> String? {
+  let len = dir_name.length()
+  if dir_name.has_prefix("_") && dir_name.has_suffix("_") && len > 2 {
+    Some(@ssg.extract_substring(dir_name, 1, len - 1))
+  } else {
+    None
+  }
+}
+
+///|
 /// Recursively scan directory with FileSystem trait
 fn[FS : @env.FileSystem] scan_recursive_with_fs(
   filesystem : FS,
@@ -230,6 +244,24 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
       // Skip excluded directories
       if is_excluded(entry, entry_relative, exclude) {
         continue
+      }
+
+      // Check if this is a dynamic parameter directory (_slug_, _id_, etc.)
+      match extract_param_name(entry) {
+        Some(param_name) => {
+          // This is a dynamic route directory
+          scan_dynamic_dir_with_fs(
+            filesystem,
+            entry_path,
+            entry_relative,
+            param_name,
+            i18n,
+            pages,
+            trailing_slash,
+          )
+          continue
+        }
+        None => ()
       }
 
       // Check if this is a component directory (contains moon.pkg.json)
@@ -312,6 +344,179 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
       }
       pages.push(page)
     }
+  }
+}
+
+///|
+/// Scan a dynamic parameter directory (_slug_, _id_, etc.)
+/// Reads page.json for staticParams and generates pages for each param value
+fn[FS : @env.FileSystem] scan_dynamic_dir_with_fs(
+  filesystem : FS,
+  dir_path : String,
+  relative_path : String,
+  param_name : String,
+  i18n : @astra.I18nConfig,
+  pages : Array[@astra.PageMeta],
+  trailing_slash : Bool,
+) -> Unit {
+  // Read page.json for static params configuration
+  let page_json_path = join_path_simple(dir_path, "page.json")
+  let page_config = if @env.FileSystem::exists_sync(filesystem, page_json_path) {
+    let content : String = @env.FileSystem::read_file_sync(
+      filesystem, page_json_path,
+    ) catch {
+      _ => ""
+    }
+    parse_page_json(content)
+  } else {
+    None
+  }
+
+  // Get static params from page.json
+  let static_params = match page_config {
+    Some(config) => config.static_params
+    None => []
+  }
+
+  // Find index.md as template
+  let index_md_path = join_path_simple(dir_path, "index.md")
+  if not(@env.FileSystem::exists_sync(filesystem, index_md_path)) {
+    return // No template file
+  }
+
+  // Read the template markdown
+  let template_content : String = @env.FileSystem::read_file_sync(
+    filesystem, index_md_path,
+  ) catch {
+    _ => return
+  }
+
+  // Parse frontmatter from template
+  let (base_frontmatter, _) = @markdown.parse_markdown(template_content)
+
+  // Get parent path (without the _slug_ part)
+  let parent_path = get_parent_dir(relative_path)
+
+  // Generate a page for each static param
+  for param_set in static_params {
+    // Get the param value (e.g., {"slug": "hello-world"} -> "hello-world")
+    let param_value = match param_set.get(param_name) {
+      Some(v) => v
+      None => continue // Skip if param not found
+    }
+
+    // Build the output path: parent/value/
+    let page_relative = if parent_path.is_empty() {
+      param_value
+    } else {
+      parent_path + "/" + param_value
+    }
+
+    // Detect locale and build URL
+    let (locale, canonical_path) = detect_locale_from_path(
+      page_relative, i18n, trailing_slash~,
+    )
+    let url_path = build_localized_url(canonical_path, locale, i18n)
+
+    // Ensure trailing slash
+    let url_path_normalized = if trailing_slash && not(url_path.has_suffix("/")) {
+      url_path + "/"
+    } else {
+      url_path
+    }
+
+    // Create frontmatter with param value available
+    // Title can use the param value if not specified
+    let title = match base_frontmatter.title {
+      Some(t) => Some(t)
+      None => Some(@ssg.capitalize_first(param_value.replace(old="-", new=" ")))
+    }
+    let frontmatter = @astra.Frontmatter::{ ..base_frontmatter, title }
+
+    let content_type = @astra.ContentType::Markdown
+    let renderer_type = determine_renderer_type(content_type, frontmatter)
+
+    // Store param info in source_path for later template processing
+    // Format: _slug_/index.md?slug=value
+    let source_with_param = relative_path +
+      "/index.md?" +
+      param_name +
+      "=" +
+      param_value
+
+    let page = @astra.PageMeta::{
+      source_path: source_with_param,
+      url_path: url_path_normalized,
+      content_type,
+      renderer_type,
+      frontmatter,
+      last_modified: None,
+      locale,
+      canonical_path,
+      sort_key: page_relative,
+    }
+    pages.push(page)
+  }
+}
+
+///|
+/// Parse page.json and extract configuration
+fn parse_page_json(content : String) -> DynamicPageConfig? {
+  if content.is_empty() {
+    return None
+  }
+  let json : Json = @json.parse(content.view()) catch {
+    _ => return None
+  }
+  guard json is Object(obj) else { return None }
+
+  // Extract staticParams array
+  let static_params : Array[Map[String, String]] = match obj.get("staticParams") {
+    Some(Array(arr)) => {
+      let result : Array[Map[String, String]] = []
+      for item in arr {
+        match item {
+          Object(param_obj) => {
+            let params : Map[String, String] = {}
+            for key in param_obj.keys() {
+              match param_obj.get(key) {
+                Some(String(v)) => params[key] = v
+                _ => ()
+              }
+            }
+            result.push(params)
+          }
+          _ => ()
+        }
+      }
+      result
+    }
+    _ => []
+  }
+
+  Some(DynamicPageConfig::{ static_params })
+}
+
+///|
+/// Configuration for dynamic page generation
+priv struct DynamicPageConfig {
+  static_params : Array[Map[String, String]]
+}
+
+///|
+/// Get parent directory path
+fn get_parent_dir(path : String) -> String {
+  let chars = path.to_array()
+  let mut last_slash = -1
+  for i = 0; i < chars.length(); i = i + 1 {
+    if chars[i] == '/' {
+      last_slash = i
+    }
+  }
+  if last_slash > 0 {
+    String::from_array(chars[0:last_slash])
+  } else {
+    ""
   }
 }
 

@@ -6,5 +6,9 @@
   "out_dir": "dist",
   "base_url": "/",
   "trailing_slash": true,
-  "deploy": "cloudflare"
+  "deploy": "cloudflare",
+  "islands": {
+    "dir": "docs/public/islands",
+    "basePath": "/islands/"
+  }
 }

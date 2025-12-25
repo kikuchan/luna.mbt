@@ -14,8 +14,14 @@ Astra is Luna's static site generator for documentation and content sites.
 - **Syntax Highlighting** - Code blocks highlighted with Shiki
 - **i18n Support** - Multi-language documentation
 - **Auto Sidebar** - Automatic navigation generation from directory structure
-- **Islands Ready** - Embed interactive Web Components
+- **Islands Architecture** - Embed interactive Luna/MoonBit components
+- **Dynamic Routes** - Generate pages from `_slug_` patterns with staticParams
 - **HMR** - Fast development with Hot Module Replacement
+
+## Guides
+
+- [Dynamic Routes](/astra/dynamic-routes/) - Generate static pages from parameters
+- [Islands](/astra/islands/) - Embed interactive components in static pages
 
 ## Quick Start
 

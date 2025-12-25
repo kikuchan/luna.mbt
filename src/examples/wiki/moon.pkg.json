@@ -1,0 +1,18 @@
+{
+  "is-main": true,
+  "supported-targets": ["js"],
+  "import": [
+    "mizchi/luna/luna/signal",
+    { "path": "mizchi/luna/luna/routes", "alias": "routes" },
+    { "path": "mizchi/luna/platform/dom/router", "alias": "router" },
+    { "path": "mizchi/luna/platform/dom/element", "alias": "dom" },
+    { "path": "mizchi/js/browser/dom", "alias": "js_dom" },
+    { "path": "mizchi/js/core", "alias": "js" }
+  ],
+  "link": {
+    "js": {
+      "format": "esm",
+      "exports": ["hydrate"]
+    }
+  }
+}
