@@ -32,13 +32,47 @@ pub fn parse_ssg_from_sol_config(json_str : String) -> SsgConfig? {
 }
 
 ///|
+/// Extract string with fallback key (supports both camelCase and snake_case)
+fn extract_string_with_fallback(
+  obj : Map[String, Json],
+  key : String,
+  fallback_key : String,
+  default : String,
+) -> String {
+  match @json_utils.extract_string_opt(obj, key) {
+    Some(v) => v
+    None => @json_utils.extract_string(obj, fallback_key, default)
+  }
+}
+
+///|
+/// Extract bool with fallback key (supports both camelCase and snake_case)
+fn extract_bool_with_fallback(
+  obj : Map[String, Json],
+  key : String,
+  fallback_key : String,
+  default : Bool,
+) -> Bool {
+  if obj.contains(key) {
+    @json_utils.extract_bool(obj, key, default)
+  } else {
+    @json_utils.extract_bool(obj, fallback_key, default)
+  }
+}
+
+///|
 /// Parse SSG object (shared by both config formats)
 fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
   // Parse ssg fields using json_utils helpers
-  let docs_dir = @json_utils.extract_string(ssg_obj, "docs", "docs")
-  let output_dir = @json_utils.extract_string(ssg_obj, "output", "dist")
+  // Support both camelCase and snake_case key names
+  let docs_dir = extract_string_with_fallback(
+    ssg_obj, "docs", "docs_dir", "docs",
+  )
+  let output_dir = extract_string_with_fallback(
+    ssg_obj, "output", "out_dir", "dist",
+  )
   let title = @json_utils.extract_string(ssg_obj, "title", "Documentation")
-  let base_url = @json_utils.extract_string(ssg_obj, "base", "/")
+  let base_url = extract_string_with_fallback(ssg_obj, "base", "base_url", "/")
 
   // Parse nav items
   let nav = parse_nav_items(ssg_obj)
@@ -62,7 +96,10 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
   let navigation = parse_navigation_config(ssg_obj)
 
   // Parse trailing slash config (default: true for SSG compatibility)
-  let trailing_slash = @json_utils.extract_bool(ssg_obj, "trailingSlash", true)
+  // Support both camelCase and snake_case
+  let trailing_slash = extract_bool_with_fallback(
+    ssg_obj, "trailingSlash", "trailing_slash", true,
+  )
 
   // Parse OGP config
   let ogp = parse_ogp_config(ssg_obj)

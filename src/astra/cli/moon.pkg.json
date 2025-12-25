@@ -80,6 +80,10 @@
     {
       "path": "mizchi/luna/astra/markdown",
       "alias": "markdown"
+    },
+    {
+      "path": "mizchi/jsonschema/exports",
+      "alias": "jsonschema"
     }
   ],
   "warn-list": "-27-20",

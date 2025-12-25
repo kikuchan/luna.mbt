@@ -42,20 +42,152 @@ pub fn run_lint_command(args : Array[String]) -> Unit {
 
   // Load config
   let cwd = @process.cwd()
-  let config = load_config(cwd)
   println(@colorette.cyan("Linting documentation..."))
   println("")
 
+  // Validate config file first
+  let config_issues = validate_config_file(cwd)
+
+  // Load config (even if validation fails, try to continue with defaults)
+  let config = load_config(cwd)
+
   // Run linter
   let result = lint_docs(config, cwd)
+
+  // Merge config validation issues
+  for issue in config_issues {
+    result.issues.push(issue)
+  }
 
   // Print results
   print_lint_results(result)
 
   // Exit with error if any errors found
-  if result.errors > 0 {
+  let total_errors = result.errors + config_issues.filter(fn(i) { i.severity is Error }).length()
+  if total_errors > 0 {
     @process.exit(1)
   }
+}
+
+// =============================================================================
+// Config File Validation
+// =============================================================================
+
+///|
+/// Validate config file against JSON schema
+fn validate_config_file(cwd : String) -> Array[LintIssue] {
+  let issues : Array[LintIssue] = []
+  let config_path = @path.join2(cwd, "astra.json")
+
+  // Check if config file exists
+  if not(@fs.existsSync(config_path)) {
+    issues.push(LintIssue::{
+      severity: Warning,
+      file: "astra.json",
+      line: None,
+      message: "Config file not found (using defaults)",
+      rule: "missing-config",
+    })
+    return issues
+  }
+
+  // Read config file
+  let config_content : String = @fs.readFileSync(config_path).to_string() catch {
+    err => {
+      issues.push(LintIssue::{
+        severity: Error,
+        file: "astra.json",
+        line: None,
+        message: "Failed to read config file: \{err}",
+        rule: "config-read-error",
+      })
+      return issues
+    }
+  }
+
+  // Parse config as JSON
+  let config_json = try {
+    @json.parse(config_content.view())
+  } catch {
+    _ => {
+      issues.push(LintIssue::{
+        severity: Error,
+        file: "astra.json",
+        line: None,
+        message: "Invalid JSON in config file",
+        rule: "config-parse-error",
+      })
+      return issues
+    }
+  }
+
+  // Load and validate against schema
+  let schema_path = find_schema_path(cwd)
+  match schema_path {
+    Some(path) => {
+      let schema_content : String = @fs.readFileSync(path).to_string() catch {
+        _ => {
+          // Schema file not found - skip validation
+          return issues
+        }
+      }
+      let schema_json = try {
+        @json.parse(schema_content.view())
+      } catch {
+        _ => {
+          issues.push(LintIssue::{
+            severity: Warning,
+            file: "astra.schema.json",
+            line: None,
+            message: "Invalid JSON in schema file",
+            rule: "schema-parse-error",
+          })
+          return issues
+        }
+      }
+
+      // Validate config against schema
+      match @jsonschema.validate(schema_json, config_json) {
+        Ok(_) => () // Validation passed
+        Err(errors) =>
+          for err in errors {
+            let path_str = err.json_path.to_string()
+            let msg = if path_str.is_empty() || path_str == "/" {
+              err.message
+            } else {
+              "\{path_str}: \{err.message}"
+            }
+            issues.push(LintIssue::{
+              severity: Error,
+              file: "astra.json",
+              line: None,
+              message: msg,
+              rule: "config-schema-error",
+            })
+          }
+      }
+    }
+    None => () // No schema file found, skip validation
+  }
+  issues
+}
+
+///|
+/// Find schema file path (check common locations)
+fn find_schema_path(cwd : String) -> String? {
+  // Check relative to cwd
+  let paths = [
+    @path.join2(cwd, "schemas/astra.schema.json"),
+    @path.join2(cwd, "astra.schema.json"),
+    @path.join2(cwd, "../schemas/astra.schema.json"),
+    @path.join2(cwd, "../../schemas/astra.schema.json"),
+  ]
+  for path in paths {
+    if @fs.existsSync(path) {
+      return Some(path)
+    }
+  }
+  None
 }
 
 ///|
