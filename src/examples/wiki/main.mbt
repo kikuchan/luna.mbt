@@ -9,6 +9,7 @@
 // - Dynamic :slug parameter
 // - Signal-based reactive updates
 
+///|
 using @dom {
   a,
   events,
@@ -40,11 +41,31 @@ struct WikiPage {
 ///|
 fn get_wiki_pages() -> Array[WikiPage] {
   [
-    { slug: "index", title: "Wiki Home", content: "Welcome to the wiki! Select a page from the sidebar." },
-    { slug: "getting-started", title: "Getting Started", content: "Install dependencies with `pnpm install`, then run `pnpm dev`." },
-    { slug: "configuration", title: "Configuration", content: "Edit luna.json to configure your project settings." },
-    { slug: "api-reference", title: "API Reference", content: "See the API documentation for available endpoints." },
-    { slug: "components", title: "Components", content: "Luna provides signal-based reactive components with SSR support." },
+    {
+      slug: "index",
+      title: "Wiki Home",
+      content: "Welcome to the wiki! Select a page from the sidebar.",
+    },
+    {
+      slug: "getting-started",
+      title: "Getting Started",
+      content: "Install dependencies with `pnpm install`, then run `pnpm dev`.",
+    },
+    {
+      slug: "configuration",
+      title: "Configuration",
+      content: "Edit luna.json to configure your project settings.",
+    },
+    {
+      slug: "api-reference",
+      title: "API Reference",
+      content: "See the API documentation for available endpoints.",
+    },
+    {
+      slug: "components",
+      title: "Components",
+      content: "Luna provides signal-based reactive components with SSR support.",
+    },
   ]
 }
 
@@ -81,7 +102,6 @@ fn create_routes() -> Array[@routes.Routes] {
 fn sidebar_component(router : @router.BrowserRouter) -> @dom.DomNode {
   let base = router.get_base()
   let pages = get_wiki_pages()
-
   fn nav_link(href : String, label : String) -> @dom.DomNode {
     a(
       href~,
@@ -95,30 +115,43 @@ fn sidebar_component(router : @router.BrowserRouter) -> @dom.DomNode {
     )
   }
 
-  aside(class="wiki-sidebar", style="min-width: 200px; border-right: 1px solid #e5e7eb; padding-right: 1rem;", [
-    h3(style="margin-top: 0;", [text("Wiki Pages")]),
-    ul(
-      style="list-style: none; padding: 0; margin: 0;",
-      pages.map(fn(page) {
-        let href = if page.slug == "index" { base } else { base + "/" + page.slug }
-        li([nav_link(href, page.title)])
-      }),
-    ),
-  ])
+  aside(
+    class="wiki-sidebar",
+    style="min-width: 200px; border-right: 1px solid #e5e7eb; padding-right: 1rem;",
+    [
+      h3(style="margin-top: 0;", [text("Wiki Pages")]),
+      ul(
+        style="list-style: none; padding: 0; margin: 0;",
+        pages.map(fn(page) {
+          let href = if page.slug == "index" {
+            base
+          } else {
+            base + "/" + page.slug
+          }
+          li([nav_link(href, page.title)])
+        }),
+      ),
+    ],
+  )
 }
 
 ///|
 fn wiki_index_component(_router : @router.BrowserRouter) -> @dom.DomNode {
   let pages = get_wiki_pages()
-
   article(class="wiki-page", [
     h1([text("Wiki Home")]),
-    p([text("Welcome to the wiki! Select a page from the sidebar or choose from the list below:")]),
+    p([
+      text(
+        "Welcome to the wiki! Select a page from the sidebar or choose from the list below:",
+      ),
+    ]),
     h2([text("Available Pages")]),
     ul(
-      pages.iter().filter(fn(p) { p.slug != "index" }).map(fn(page) {
-        li([text(page.title)])
-      }).collect(),
+      pages
+      .iter()
+      .filter(fn(p) { p.slug != "index" })
+      .map(fn(page) { li([text(page.title)]) })
+      .collect(),
     ),
   ])
 }
@@ -129,20 +162,17 @@ fn wiki_page_component(
   m : @routes.RoutesMatch,
 ) -> @dom.DomNode {
   let slug = m.get_param("slug").unwrap_or("index")
-
   match find_page(slug) {
-    Some(page) => {
+    Some(page) =>
       article(class="wiki-page", [
         h1([text(page.title)]),
         p([text(page.content)]),
       ])
-    }
-    None => {
+    None =>
       article(class="wiki-page wiki-not-found", [
         h1([text("Page Not Found")]),
         p([text("The page '" + slug + "' does not exist.")]),
       ])
-    }
   }
 }
 
@@ -209,14 +239,15 @@ fn render_wiki(
 
     // Build wiki layout
     let app = @signal.untracked(fn() {
-      div(class="wiki-container", style="display: flex; gap: 2rem; min-height: 400px;", [
-        sidebar,
-        main_(class="wiki-content", style="flex: 1;", [content]),
-      ])
+      div(
+        class="wiki-container",
+        style="display: flex; gap: 2rem; min-height: 400px;",
+        [sidebar, main_(class="wiki-content", style="flex: 1;", [content])],
+      )
     })
-
     @dom.mount(container, app)
   })
+
 }
 
 // =============================================================================
