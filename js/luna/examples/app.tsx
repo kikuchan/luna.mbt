@@ -1,4 +1,4 @@
-import { createSignal, createMemo, render } from '@mizchi/luna';
+import { createSignal, createMemo, render } from '@luna_ui/luna';
 
 function Counter() {
   const [count, setCount] = createSignal(0);
