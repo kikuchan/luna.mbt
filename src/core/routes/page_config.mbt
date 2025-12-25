@@ -129,7 +129,9 @@ fn parse_page_config_object(obj : Map[String, Json]) -> PageConfig? {
   let static_params = parse_static_params(obj)
   let fallback = @json_utils.extract_bool(obj, "fallback", false)
   let spa = @json_utils.extract_bool(obj, "spa", false)
-  let fallback_behavior = @json_utils.extract_string_opt(obj, "fallbackBehavior")
+  let fallback_behavior = @json_utils.extract_string_opt(
+    obj, "fallbackBehavior",
+  )
   let extends = @json_utils.extract_string_opt(obj, "extends")
   let handlers = parse_handlers(obj)
   let component = parse_component_config(obj)

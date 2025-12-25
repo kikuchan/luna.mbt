@@ -1,6 +1,6 @@
-/*! luna boot/router v1 - Minimal CSR router */
+/*! luna boot/router v2 - SPA-aware CSR router */
 
-import { getLoader } from './loader';
+import { getLoader, RouteMatch, SegmentRef } from './loader';
 
 export interface RouterOptions {
   /** Selector for interceptable links (default: "a[href]") */
@@ -11,18 +11,29 @@ export interface RouterOptions {
   prefetchOnHover?: boolean;
   /** Prefetch delay in ms (default: 50) */
   prefetchDelay?: number;
+  /** Enable SPA mode for specific segments */
+  spaSegments?: string[];
 }
 
-export type NavigateHandler = (path: string, isPopState: boolean) => void | Promise<void>;
+export interface NavigateEvent {
+  path: string;
+  params: Record<string, string>;
+  segment?: string;
+  isSpa?: boolean;
+  isPopState: boolean;
+}
+
+export type NavigateHandler = (event: NavigateEvent) => void | Promise<void>;
 
 /**
  * MinimalRouter handles link interception and navigation
- * Designed to be < 1KB gzipped
+ * Supports SPA fallback for hierarchical manifests
  */
 export class MinimalRouter {
   private options: Required<RouterOptions>;
   private handlers: Set<NavigateHandler> = new Set();
   private prefetchTimers = new Map<string, number>();
+  private currentMatch: RouteMatch | null = null;
 
   constructor(options: RouterOptions = {}) {
     this.options = {
@@ -30,6 +41,7 @@ export class MinimalRouter {
       linkAttribute: options.linkAttribute ?? '',
       prefetchOnHover: options.prefetchOnHover ?? true,
       prefetchDelay: options.prefetchDelay ?? 50,
+      spaSegments: options.spaSegments ?? [],
     };
   }
 
@@ -67,19 +79,37 @@ export class MinimalRouter {
    * Navigate to a path
    */
   async navigate(path: string, options: { replace?: boolean } = {}): Promise<void> {
-    // Load required chunks first
     const loader = getLoader();
-    await loader.loadForPath(path);
+
+    // Match path and load chunks
+    const match = await loader.matchPath(path);
+    if (!match) {
+      // No match - let browser handle it (404)
+      window.location.href = path;
+      return;
+    }
+
+    this.currentMatch = match;
+
+    // Load required chunks
+    const missing = match.chunks.filter(c => !loader.isLoaded(c));
+    await Promise.all(missing.map(c => loader.loadChunk(c)));
 
     // Update history
     if (options.replace) {
-      history.replaceState({ luna: true }, '', path);
+      history.replaceState({ luna: true, match }, '', path);
     } else {
-      history.pushState({ luna: true }, '', path);
+      history.pushState({ luna: true, match }, '', path);
     }
 
     // Notify handlers
-    await this.notifyHandlers(path, false);
+    await this.notifyHandlers({
+      path,
+      params: match.params,
+      segment: match.segment,
+      isSpa: match.isSpa,
+      isPopState: false,
+    });
   }
 
   /**
@@ -88,6 +118,53 @@ export class MinimalRouter {
   prefetch(path: string): void {
     const loader = getLoader();
     loader.prefetch(path);
+
+    // Also prefetch segment manifest if hierarchical
+    const segmentInfo = loader.getSegmentInfo(path);
+    if (segmentInfo) {
+      const segment = path.split('/').filter(Boolean)[0];
+      if (segment) {
+        loader.prefetchSegment(segment);
+      }
+    }
+  }
+
+  /**
+   * Get current route match info
+   */
+  getCurrentMatch(): RouteMatch | null {
+    return this.currentMatch;
+  }
+
+  /**
+   * Get current route params
+   */
+  getParams(): Record<string, string> {
+    return this.currentMatch?.params ?? {};
+  }
+
+  /**
+   * Check if current route is in SPA mode
+   */
+  isSpaRoute(): boolean {
+    return this.currentMatch?.isSpa ?? false;
+  }
+
+  /**
+   * Get segment info for current route
+   */
+  getSegmentInfo(path?: string): SegmentRef | null {
+    const loader = getLoader();
+    return loader.getSegmentInfo(path ?? window.location.pathname);
+  }
+
+  /**
+   * Check if a path should use SPA fallback
+   */
+  shouldUseSpaFallback(path: string): boolean {
+    const loader = getLoader();
+    const segmentInfo = loader.getSegmentInfo(path);
+    return segmentInfo?.spa ?? false;
   }
 
   private handleClick = (e: MouseEvent): void => {
@@ -111,6 +188,24 @@ export class MinimalRouter {
 
     // Skip if target specified
     if (link.getAttribute('target')) return;
+
+    // Check if this segment is SPA-enabled
+    const segmentInfo = this.getSegmentInfo(href);
+    const currentSegment = this.getSegmentInfo();
+
+    // If navigating within same SPA segment, use client-side routing
+    // If navigating to/from non-SPA segment, let browser handle it
+    const isSpaNavigation = segmentInfo?.spa ||
+      currentSegment?.spa ||
+      this.options.spaSegments.some(s => href.startsWith(`/${s}/`));
+
+    if (!isSpaNavigation && !getLoader().isHierarchical()) {
+      // Not a SPA navigation and not hierarchical - use traditional navigation
+      // Only intercept if we have matching routes
+      const loader = getLoader();
+      const chunks = loader.getChunksForPath(href);
+      if (chunks.length === 0) return;
+    }
 
     e.preventDefault();
     const replace = link.hasAttribute('data-replace');
@@ -160,17 +255,38 @@ export class MinimalRouter {
   };
 
   private handlePopState = async (e: PopStateEvent): Promise<void> => {
-    // Handle browser back/forward
     const path = window.location.pathname;
     const loader = getLoader();
-    await loader.loadForPath(path);
-    await this.notifyHandlers(path, true);
+
+    // Try to get match from state
+    let match = e.state?.match as RouteMatch | undefined;
+
+    // If no match in state, resolve it
+    if (!match) {
+      match = await loader.matchPath(path) ?? undefined;
+    }
+
+    if (match) {
+      this.currentMatch = match;
+      await loader.loadForPath(path);
+
+      await this.notifyHandlers({
+        path,
+        params: match.params,
+        segment: match.segment,
+        isSpa: match.isSpa,
+        isPopState: true,
+      });
+    } else {
+      // No match - reload the page
+      window.location.reload();
+    }
   };
 
-  private async notifyHandlers(path: string, isPopState: boolean): Promise<void> {
+  private async notifyHandlers(event: NavigateEvent): Promise<void> {
     const handlers = Array.from(this.handlers);
     for (let i = 0; i < handlers.length; i++) {
-      await handlers[i](path, isPopState);
+      await handlers[i](event);
     }
   }
 

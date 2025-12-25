@@ -2232,6 +2232,33 @@ pub fn generate_client_manifest(ctx : @astra.BuildContext) -> Unit {
   // Convert PageMeta to RouteManifest
   let route_manifest = @routes.page_metas_to_manifest(ctx.pages, ctx.config)
 
+  // Collect page configs for SPA detection
+  let page_configs = collect_page_configs(ctx)
+
+  // Check if we should use hierarchical manifest (v2)
+  let has_spa_segments = has_spa_config(page_configs)
+
+  // Output directory
+  let luna_dir = @path.join2(
+    @path.join2(ctx.cwd, ctx.config.output_dir),
+    "_luna",
+  )
+  ensure_dir(luna_dir)
+  if has_spa_segments {
+    // Generate v2 hierarchical manifest
+    generate_hierarchical_manifest(ctx, route_manifest, page_configs, luna_dir)
+  } else {
+    // Generate v1 flat manifest
+    generate_flat_manifest(route_manifest, luna_dir)
+  }
+}
+
+///|
+/// Generate v1 flat manifest (backward compatible)
+fn generate_flat_manifest(
+  route_manifest : @core_routes.RouteManifest,
+  luna_dir : String,
+) -> Unit {
   // Define chunk file mappings
   let chunk_files : Array[(String, String)] = [
     ("boot", "boot.js"),
@@ -2249,18 +2276,98 @@ pub fn generate_client_manifest(ctx : @astra.BuildContext) -> Unit {
 
   // Serialize to JSON
   let manifest_json = chunk_manifest.to_json()
-
-  // Write to output directory
-  let luna_dir = @path.join2(
-    @path.join2(ctx.cwd, ctx.config.output_dir),
-    "_luna",
-  )
-  ensure_dir(luna_dir)
   let manifest_path = @path.join2(luna_dir, "manifest.json")
   @fs.writeFileSync(manifest_path, @js.any(manifest_json)) catch {
     e => println("  Warning: Failed to generate manifest.json: \{e}")
   }
-  println("  Generated: /_luna/manifest.json")
+  println("  Generated: /_luna/manifest.json (v1)")
+}
+
+///|
+/// Generate v2 hierarchical manifest with segment splitting
+fn generate_hierarchical_manifest(
+  _ctx : @astra.BuildContext,
+  route_manifest : @core_routes.RouteManifest,
+  page_configs : Map[String, @core_routes.PageConfig],
+  luna_dir : String,
+) -> Unit {
+  // Split manifest by segments
+  let (hierarchical, segment_manifests) = @core_routes.split_manifest(
+    route_manifest, page_configs,
+  )
+
+  // Add chunk file mappings
+  let hierarchical_with_chunks = @core_routes.HierarchicalManifest::{
+    ..hierarchical,
+    chunks: {
+      "boot": "boot.js",
+      "hydrate": "boot/index.js",
+      "signal": "boot/loader.js",
+      "router": "boot/router.js",
+    },
+  }
+
+  // Write main manifest
+  let manifest_json = hierarchical_with_chunks.to_json()
+  let manifest_path = @path.join2(luna_dir, "manifest.json")
+  @fs.writeFileSync(manifest_path, @js.any(manifest_json)) catch {
+    e => println("  Warning: Failed to generate manifest.json: \{e}")
+  }
+  println("  Generated: /_luna/manifest.json (v2)")
+
+  // Write segment manifests
+  let routes_dir = @path.join2(luna_dir, "routes")
+  ensure_dir(routes_dir)
+  for segment, segment_manifest in segment_manifests {
+    let segment_json = segment_manifest.to_json()
+    let segment_path = @path.join2(routes_dir, segment + ".json")
+    @fs.writeFileSync(segment_path, @js.any(segment_json)) catch {
+      e => println("  Warning: Failed to generate \{segment}.json: \{e}")
+    }
+    println("  Generated: /_luna/routes/\{segment}.json")
+  }
+}
+
+///|
+/// Collect page configs from pages directory
+fn collect_page_configs(
+  ctx : @astra.BuildContext,
+) -> Map[String, @core_routes.PageConfig] {
+  let configs : Map[String, @core_routes.PageConfig] = {}
+  let pages_dir = @path.join2(ctx.cwd, ctx.config.docs_dir)
+
+  // Scan for page.json files in first-level directories
+  let entries : Array[String] = @fs.readdirSync(pages_dir) catch { _ => [] }
+  for entry in entries {
+    let entry_path = @path.join2(pages_dir, entry)
+    let is_dir : Bool = @fs.statSync(entry_path).isDirectory() catch {
+      _ => false
+    }
+    if is_dir {
+      let page_json_path = @path.join2(entry_path, "page.json")
+      if @fs.existsSync(page_json_path) {
+        let content : String = @fs.readFileSync(page_json_path).to_string() catch {
+          _ => continue
+        }
+        match @core_routes.parse_page_config(content) {
+          Some(cfg) => configs[entry] = cfg
+          None => ()
+        }
+      }
+    }
+  }
+  configs
+}
+
+///|
+/// Check if any segment has SPA config
+fn has_spa_config(configs : Map[String, @core_routes.PageConfig]) -> Bool {
+  for _, cfg in configs {
+    if cfg.spa {
+      return true
+    }
+  }
+  false
 }
 
 ///|

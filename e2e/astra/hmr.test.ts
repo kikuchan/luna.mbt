@@ -7,7 +7,7 @@ import WebSocket from "ws";
 const PROJECT_ROOT = join(import.meta.dirname, "../..");
 const DOCS_DIR = join(PROJECT_ROOT, "docs");
 const TEST_FILE = join(DOCS_DIR, "_hmr_test_temp.md");
-const DEV_SERVER_PORT = 3000;
+const DEV_SERVER_PORT = 3355;
 const HMR_PORT = 24679;
 
 let devServer: ChildProcess | null = null;

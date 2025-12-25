@@ -324,7 +324,6 @@ pub fn HierarchicalManifest::to_json(self : HierarchicalManifest) -> String {
     buf.write_string("\n")
   }
   buf.write_string("  }\n")
-
   buf.write_string("}")
   buf.to_string()
 }
@@ -397,7 +396,6 @@ pub fn SegmentManifest::to_json(self : SegmentManifest) -> String {
   buf.write_string("  \"fallback\": ")
   buf.write_string(json_string(self.fallback))
   buf.write_string("\n")
-
   buf.write_string("}")
   buf.to_string()
 }

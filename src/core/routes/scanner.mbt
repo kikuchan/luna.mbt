@@ -463,7 +463,7 @@ fn get_extension(filename : String) -> String {
 
 ///|
 /// Get parent directory path
-fn get_parent_path(path : String) -> String {
+pub fn get_parent_path(path : String) -> String {
   let slash_idx = find_last_char(path, '/')
   if slash_idx >= 0 {
     @ssg.extract_substring(path, 0, slash_idx)
@@ -474,7 +474,7 @@ fn get_parent_path(path : String) -> String {
 
 ///|
 /// Find last occurrence of character in string
-fn find_last_char(s : String, ch : Char) -> Int {
+pub fn find_last_char(s : String, ch : Char) -> Int {
   let mut idx = 0
   let mut last_idx = -1
   for c in s {

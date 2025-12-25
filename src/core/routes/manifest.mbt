@@ -396,7 +396,9 @@ pub fn HierarchicalManifest::empty() -> HierarchicalManifest {
 
 ///|
 /// Create a new hierarchical manifest
-pub fn HierarchicalManifest::new(base? : String = "/_luna/") -> HierarchicalManifest {
+pub fn HierarchicalManifest::new(
+  base? : String = "/_luna/",
+) -> HierarchicalManifest {
   { version: 2, base, segments: {}, chunks: {}, routes: {} }
 }
 

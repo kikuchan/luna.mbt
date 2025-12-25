@@ -1,6 +1,6 @@
 /*! luna router-spa v1 - Full Client-Side Rendering Router */
 
-import { getRouter } from '../boot/router';
+import { getRouter, NavigateEvent } from '../boot/router';
 
 export interface SpaRouteConfig {
   /** Route path pattern (e.g., "/app", "/app/*") */
@@ -88,7 +88,11 @@ export class SpaRouter {
     }
 
     // Handle initial route
-    this.handleNavigate(window.location.pathname, false);
+    this.handleNavigate({
+      path: window.location.pathname,
+      params: {},
+      isPopState: false,
+    });
   }
 
   /**
@@ -106,7 +110,8 @@ export class SpaRouter {
     return document.querySelector(this.options.containerSelector);
   }
 
-  private handleNavigate = async (path: string, isPopState: boolean): Promise<void> => {
+  private handleNavigate = async (event: NavigateEvent): Promise<void> => {
+    const { path, isPopState, params: eventParams } = event;
     // Save scroll position before navigation
     if (this.options.scrollRestoration && !isPopState && this.currentPath) {
       this.scrollPositions.set(this.currentPath, {

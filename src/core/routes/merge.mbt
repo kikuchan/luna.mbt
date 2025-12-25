@@ -169,7 +169,7 @@ pub fn find_static_route(
 
 ///|
 /// Extract path from any route entry
-fn get_route_path(route : RouteEntry) -> String {
+pub fn get_route_path(route : RouteEntry) -> String {
   match route {
     RouteEntry::Static(entry) => entry.path
     RouteEntry::Dynamic(entry) => entry.path

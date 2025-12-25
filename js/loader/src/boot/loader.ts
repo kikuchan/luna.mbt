@@ -1,32 +1,75 @@
-/*! luna boot/loader v1 - Chunk loading based on manifest */
+/*! luna boot/loader v2 - Hierarchical chunk loading */
 
 /**
- * Manifest structure for chunk dependencies
- * Maps route paths to required chunk names
+ * V1 Manifest structure (backward compatible)
  */
 export interface ChunkManifest {
-  /** Map of route paths to required chunks */
   routes: Record<string, string[]>;
-  /** Map of chunk names to their hashed file paths */
   chunks: Record<string, string>;
-  /** Base path for chunk loading (default: "/_luna/") */
   base?: string;
 }
 
 /**
+ * V2 Hierarchical manifest structure
+ */
+export interface HierarchicalManifest {
+  version: 2;
+  base: string;
+  segments: Record<string, SegmentRef>;
+  chunks: Record<string, string>;
+  routes: Record<string, string[]>;
+}
+
+export interface SegmentRef {
+  path: string;      // "routes/docs.json"
+  pattern: string;   // "/docs/*"
+  spa: boolean;
+  preload: boolean;
+}
+
+export interface SegmentManifest {
+  base: string;
+  routes: Record<string, string[]>;
+  dynamic: DynamicPattern[];
+  fallback: 'spa' | '404';
+}
+
+export interface DynamicPattern {
+  pattern: string;   // "/:slug"
+  regex: string;     // "^/([^/]+)$"
+  params: string[];
+  catch_all: boolean;
+}
+
+export interface RouteMatch {
+  chunks: string[];
+  params: Record<string, string>;
+  segment?: string;
+  isSpa?: boolean;
+}
+
+type Manifest = ChunkManifest | HierarchicalManifest;
+
+function isV2Manifest(m: Manifest): m is HierarchicalManifest {
+  return (m as HierarchicalManifest).version === 2;
+}
+
+/**
  * ChunkLoader manages dynamic chunk loading based on manifest
+ * Supports both v1 (flat) and v2 (hierarchical) manifests
  */
 export class ChunkLoader {
   private loaded = new Set<string>();
   private loading = new Map<string, Promise<unknown>>();
-  private manifest: ChunkManifest | null = null;
+  private manifest: Manifest | null = null;
   private base = '/_luna/';
+  private segments = new Map<string, SegmentManifest>();
+  private segmentLoading = new Map<string, Promise<SegmentManifest>>();
 
   /**
    * Initialize loader with manifest
-   * Can be called with inline manifest or fetch from URL
    */
-  async init(manifestOrUrl: ChunkManifest | string = '/_luna/manifest.json'): Promise<void> {
+  async init(manifestOrUrl: Manifest | string = '/_luna/manifest.json'): Promise<void> {
     if (typeof manifestOrUrl === 'string') {
       const res = await fetch(manifestOrUrl);
       this.manifest = await res.json();
@@ -40,39 +83,225 @@ export class ChunkLoader {
 
   /**
    * Get chunks required for a path
+   * Returns match info including params for dynamic routes
+   */
+  async matchPath(path: string): Promise<RouteMatch | null> {
+    if (!this.manifest) return null;
+
+    if (isV2Manifest(this.manifest)) {
+      return this.matchPathV2(path, this.manifest);
+    } else {
+      return this.matchPathV1(path, this.manifest);
+    }
+  }
+
+  /**
+   * V1 path matching (flat manifest)
+   */
+  private matchPathV1(path: string, manifest: ChunkManifest): RouteMatch | null {
+    // Exact match
+    if (manifest.routes[path]) {
+      return { chunks: manifest.routes[path], params: {} };
+    }
+
+    // Try wildcard match
+    for (const [pattern, chunks] of Object.entries(manifest.routes)) {
+      if (pattern.endsWith('/*')) {
+        const prefix = pattern.slice(0, -1);
+        if (path.startsWith(prefix)) {
+          return { chunks, params: {} };
+        }
+      }
+    }
+
+    // Fallback
+    if (manifest.routes['*']) {
+      return { chunks: manifest.routes['*'], params: {} };
+    }
+
+    return null;
+  }
+
+  /**
+   * V2 path matching (hierarchical manifest)
+   */
+  private async matchPathV2(path: string, manifest: HierarchicalManifest): Promise<RouteMatch | null> {
+    // Try inline routes first
+    if (manifest.routes[path]) {
+      return { chunks: manifest.routes[path], params: {} };
+    }
+
+    // Try with/without trailing slash
+    const normalized = path.endsWith('/') ? path : path + '/';
+    const withoutSlash = path.replace(/\/$/, '') || '/';
+
+    if (manifest.routes[normalized]) {
+      return { chunks: manifest.routes[normalized], params: {} };
+    }
+    if (manifest.routes[withoutSlash]) {
+      return { chunks: manifest.routes[withoutSlash], params: {} };
+    }
+
+    // Find matching segment
+    const segmentName = this.extractFirstSegment(path);
+    if (!segmentName) return null;
+
+    const segmentRef = manifest.segments[segmentName];
+    if (!segmentRef) return null;
+
+    // Load segment manifest
+    const segmentManifest = await this.loadSegment(segmentName, segmentRef.path);
+    if (!segmentManifest) return null;
+
+    // Match within segment
+    const relativePath = this.getRelativePath(path, segmentName);
+
+    // Try static routes in segment
+    if (segmentManifest.routes[relativePath]) {
+      return {
+        chunks: segmentManifest.routes[relativePath],
+        params: {},
+        segment: segmentName,
+        isSpa: segmentRef.spa,
+      };
+    }
+
+    // Try dynamic patterns
+    for (const pattern of segmentManifest.dynamic) {
+      const match = this.matchDynamicPattern(relativePath, pattern);
+      if (match) {
+        const chunks = segmentManifest.routes[pattern.pattern] ?? ['boot'];
+        return {
+          chunks,
+          params: match,
+          segment: segmentName,
+          isSpa: segmentRef.spa,
+        };
+      }
+    }
+
+    // SPA fallback
+    if (segmentRef.spa && segmentManifest.fallback === 'spa') {
+      return {
+        chunks: ['boot', 'router'],
+        params: {},
+        segment: segmentName,
+        isSpa: true,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Match path against dynamic pattern
+   */
+  private matchDynamicPattern(path: string, pattern: DynamicPattern): Record<string, string> | null {
+    try {
+      const regex = new RegExp(pattern.regex);
+      const match = path.match(regex);
+      if (!match) return null;
+
+      const params: Record<string, string> = {};
+      pattern.params.forEach((name, i) => {
+        params[name] = match[i + 1] || '';
+      });
+      return params;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Load segment manifest
+   */
+  private async loadSegment(name: string, path: string): Promise<SegmentManifest | null> {
+    // Check cache
+    const cached = this.segments.get(name);
+    if (cached) return cached;
+
+    // Check if loading
+    const pending = this.segmentLoading.get(name);
+    if (pending) return pending;
+
+    // Load
+    const url = `${this.base}${path}`;
+    const promise = fetch(url)
+      .then(res => res.json())
+      .then((manifest: SegmentManifest) => {
+        this.segments.set(name, manifest);
+        this.segmentLoading.delete(name);
+        return manifest;
+      })
+      .catch(() => {
+        this.segmentLoading.delete(name);
+        return null;
+      });
+
+    this.segmentLoading.set(name, promise as Promise<SegmentManifest>);
+    return promise;
+  }
+
+  /**
+   * Extract first segment from path
+   */
+  private extractFirstSegment(path: string): string {
+    const parts = path.split('/').filter(Boolean);
+    return parts[0] || '';
+  }
+
+  /**
+   * Get path relative to segment
+   */
+  private getRelativePath(path: string, segment: string): string {
+    const prefix = `/${segment}`;
+    if (path.startsWith(prefix)) {
+      const rest = path.slice(prefix.length);
+      return rest || '/';
+    }
+    return path;
+  }
+
+  /**
+   * Get chunks for a path (backward compatible)
    */
   getChunksForPath(path: string): string[] {
     if (!this.manifest) return [];
 
-    // Exact match
+    if (isV2Manifest(this.manifest)) {
+      // For sync access, only check inline routes
+      if (this.manifest.routes[path]) {
+        return this.manifest.routes[path];
+      }
+      return ['boot'];
+    }
+
+    // V1 logic
     if (this.manifest.routes[path]) {
       return this.manifest.routes[path];
     }
 
-    // Try wildcard match (e.g., "/app/*" matches "/app/settings")
     for (const [pattern, chunks] of Object.entries(this.manifest.routes)) {
       if (pattern.endsWith('/*')) {
-        const prefix = pattern.slice(0, -1); // Remove *
+        const prefix = pattern.slice(0, -1);
         if (path.startsWith(prefix)) {
           return chunks;
         }
       }
     }
 
-    // Fallback to default if exists
     return this.manifest.routes['*'] ?? [];
   }
 
   /**
    * Load chunks for a specific path
-   * Returns chunks that were newly loaded
    */
   async loadForPath(path: string): Promise<string[]> {
-    const chunks = this.getChunksForPath(path);
-    const missing = chunks.filter(c => !this.loaded.has(c));
+    const match = await this.matchPath(path);
+    if (!match) return [];
 
+    const missing = match.chunks.filter(c => !this.loaded.has(c));
     await Promise.all(missing.map(c => this.loadChunk(c)));
-
     return missing;
   }
 
@@ -80,28 +309,22 @@ export class ChunkLoader {
    * Load a specific chunk by name
    */
   async loadChunk(name: string): Promise<unknown> {
-    if (this.loaded.has(name)) {
-      return;
-    }
+    if (this.loaded.has(name)) return;
 
-    // Check if already loading
     const pending = this.loading.get(name);
-    if (pending) {
-      return pending;
-    }
+    if (pending) return pending;
 
-    // Resolve chunk URL
     const url = this.resolveChunkUrl(name);
-
-    // Start loading
-    const promise = import(/* @vite-ignore */ url).then(mod => {
-      this.loaded.add(name);
-      this.loading.delete(name);
-      return mod;
-    }).catch(err => {
-      this.loading.delete(name);
-      throw err;
-    });
+    const promise = import(/* @vite-ignore */ url)
+      .then(mod => {
+        this.loaded.add(name);
+        this.loading.delete(name);
+        return mod;
+      })
+      .catch(err => {
+        this.loading.delete(name);
+        throw err;
+      });
 
     this.loading.set(name, promise);
     return promise;
@@ -115,7 +338,11 @@ export class ChunkLoader {
       return `${this.base}${name}.js`;
     }
 
-    const hashedPath = this.manifest.chunks[name];
+    const chunks = isV2Manifest(this.manifest)
+      ? this.manifest.chunks
+      : this.manifest.chunks;
+
+    const hashedPath = chunks[name];
     if (hashedPath) {
       return hashedPath.startsWith('/') ? hashedPath : `${this.base}${hashedPath}`;
     }
@@ -124,7 +351,7 @@ export class ChunkLoader {
   }
 
   /**
-   * Prefetch chunks for a path (non-blocking)
+   * Prefetch chunks for a path
    */
   prefetch(path: string): void {
     const chunks = this.getChunksForPath(path);
@@ -132,7 +359,6 @@ export class ChunkLoader {
 
     for (const chunk of missing) {
       const url = this.resolveChunkUrl(chunk);
-      // Use link prefetch for better browser integration
       const link = document.createElement('link');
       link.rel = 'modulepreload';
       link.href = url;
@@ -141,34 +367,53 @@ export class ChunkLoader {
   }
 
   /**
-   * Check if a chunk is loaded
+   * Prefetch a segment manifest
    */
+  prefetchSegment(segment: string): void {
+    if (!this.manifest || !isV2Manifest(this.manifest)) return;
+
+    const segmentRef = this.manifest.segments[segment];
+    if (segmentRef && !this.segments.has(segment) && !this.segmentLoading.has(segment)) {
+      this.loadSegment(segment, segmentRef.path);
+    }
+  }
+
+  /**
+   * Check if manifest is v2 (hierarchical)
+   */
+  isHierarchical(): boolean {
+    return this.manifest !== null && isV2Manifest(this.manifest);
+  }
+
+  /**
+   * Get segment info for a path
+   */
+  getSegmentInfo(path: string): SegmentRef | null {
+    if (!this.manifest || !isV2Manifest(this.manifest)) return null;
+
+    const segmentName = this.extractFirstSegment(path);
+    return this.manifest.segments[segmentName] ?? null;
+  }
+
   isLoaded(name: string): boolean {
     return this.loaded.has(name);
   }
 
-  /**
-   * Get all loaded chunk names
-   */
   getLoaded(): string[] {
     return Array.from(this.loaded);
   }
 
-  /**
-   * Clear loaded state (for testing)
-   */
   clear(): void {
     this.loaded.clear();
     this.loading.clear();
+    this.segments.clear();
+    this.segmentLoading.clear();
   }
 }
 
-// Global singleton instance
+// Global singleton
 let globalLoader: ChunkLoader | null = null;
 
-/**
- * Get or create the global ChunkLoader instance
- */
 export function getLoader(): ChunkLoader {
   if (!globalLoader) {
     globalLoader = new ChunkLoader();
@@ -176,16 +421,12 @@ export function getLoader(): ChunkLoader {
   return globalLoader;
 }
 
-/**
- * Initialize the global loader
- */
-export async function initLoader(manifestOrUrl?: ChunkManifest | string): Promise<ChunkLoader> {
+export async function initLoader(manifestOrUrl?: Manifest | string): Promise<ChunkLoader> {
   const loader = getLoader();
   await loader.init(manifestOrUrl);
   return loader;
 }
 
-// Expose on window for debugging
 declare global {
   interface Window {
     __LUNA_LOADER__?: ChunkLoader;

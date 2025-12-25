@@ -1,6 +1,6 @@
 /*! luna router-hybrid v1 - Fetch + Swap Navigation */
 
-import { getRouter } from '../boot/router';
+import { getRouter, NavigateEvent } from '../boot/router';
 
 export interface HybridRouterOptions {
   /** Selector for the main content container (default: "#app") */
@@ -76,7 +76,8 @@ export class HybridRouter {
     this.cache.clear();
   }
 
-  private handleNavigate = async (path: string, isPopState: boolean): Promise<void> => {
+  private handleNavigate = async (event: NavigateEvent): Promise<void> => {
+    const { path, isPopState } = event;
     if (this.isNavigating) return;
     this.isNavigating = true;
 

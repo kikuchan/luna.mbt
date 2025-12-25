@@ -3,7 +3,7 @@ import { spawn, ChildProcess, execSync } from "node:child_process";
 import { join } from "node:path";
 
 const PROJECT_ROOT = join(import.meta.dirname, "../..");
-const DEV_SERVER_PORT = 3000;
+const DEV_SERVER_PORT = 3355;
 const HMR_PORT = 24679;
 
 let devServer: ChildProcess | null = null;
@@ -84,7 +84,7 @@ test.describe("Astra Dark Theme", () => {
   });
 
   test("theme toggle button exists and works", async ({ page }) => {
-    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api/js/islands/`);
+    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api-js/islands/`);
 
     // Check that theme toggle button exists
     const themeToggle = page.locator("button.theme-toggle");
@@ -122,7 +122,7 @@ test.describe("Astra Dark Theme", () => {
   });
 
   test("dark theme persists in localStorage", async ({ page }) => {
-    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api/js/islands/`);
+    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api-js/islands/`);
 
     // Clear localStorage
     await page.evaluate(() => localStorage.removeItem("theme"));
@@ -157,7 +157,7 @@ test.describe("Astra Dark Theme", () => {
   });
 
   test("code blocks change color in dark mode", async ({ page }) => {
-    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api/js/islands/`);
+    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api-js/islands/`);
 
     // Wait for code blocks to be visible
     const codeBlock = page.locator("pre.shiki").first();
@@ -202,7 +202,7 @@ test.describe("Astra Dark Theme", () => {
   });
 
   test("visual snapshot: light mode", async ({ page }) => {
-    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api/js/islands/`);
+    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api-js/islands/`);
 
     // Set to light mode
     await page.evaluate(() => localStorage.setItem("theme", "light"));
@@ -219,7 +219,7 @@ test.describe("Astra Dark Theme", () => {
   });
 
   test("visual snapshot: dark mode", async ({ page }) => {
-    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api/js/islands/`);
+    await page.goto(`http://localhost:${DEV_SERVER_PORT}/luna/api-js/islands/`);
 
     // Set to dark mode
     await page.evaluate(() => localStorage.setItem("theme", "dark"));

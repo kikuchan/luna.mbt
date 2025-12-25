@@ -247,7 +247,6 @@ pub fn lint_docs(config : @astra.SsgConfig, cwd : String) -> LintResult {
     if page.content_type is @astra.Html {
       continue
     }
-
     let source_path = @path.join2(
       @path.join2(cwd, config.docs_dir),
       page.source_path,
@@ -283,6 +282,9 @@ pub fn lint_docs(config : @astra.SsgConfig, cwd : String) -> LintResult {
   if config.i18n.locales.length() > 1 {
     check_missing_translations(pages, config.i18n, issues)
   }
+
+  // Check for route conflicts
+  check_route_conflicts(pages, issues)
 
   // Count by severity
   let mut errors = 0
@@ -823,6 +825,73 @@ fn check_missing_translations(
         })
       }
     }
+  }
+}
+
+// =============================================================================
+// Route Conflict Detection
+// =============================================================================
+
+///|
+/// Check for route conflicts (static vs dynamic, duplicate patterns, etc.)
+fn check_route_conflicts(
+  pages : Array[@astra.PageMeta],
+  issues : Array[LintIssue],
+) -> Unit {
+  // Build route manifest from pages
+  let routes : Array[@core_routes.RouteEntry] = []
+  for page in pages {
+    // Calculate output path from url_path
+    let output_path = @ssg.url_to_output_path(page.url_path)
+    let route = @core_routes.RouteEntry::Static(@core_routes.StaticRouteEntry::{
+      path: page.url_path,
+      source: page.source_path,
+      output: output_path,
+      layout: None,
+      title: page.frontmatter.title,
+      description: page.frontmatter.description,
+      islands: [],
+      locale: page.locale,
+      generated_params: [],
+    })
+    routes.push(route)
+  }
+  let manifest = @core_routes.RouteManifest::{
+    routes,
+    fallback: @core_routes.FallbackConfig::default(),
+  }
+
+  // Detect conflicts
+  let conflicts = @core_routes.detect_conflicts(manifest)
+  let sep = ", "
+  for conflict in conflicts {
+    let severity = if conflict.is_error() { Error } else { Warning }
+    let (file, message, rule) = match conflict {
+      @core_routes.ConflictType::DuplicatePath(path~, sources~) => {
+        let file = sources[0]
+        let sources_str = sources.join(sep)
+        let msg = "Duplicate route path '\{path}' defined by multiple sources: \{sources_str}"
+        (file, msg, "duplicate-route")
+      }
+      @core_routes.ConflictType::StaticShadowsDynamic(
+        static_path~,
+        dynamic_pattern~
+      ) => {
+        let msg = "Static path '\{static_path}' shadows dynamic pattern '\{dynamic_pattern}'"
+        (static_path, msg, "static-shadows-dynamic")
+      }
+      @core_routes.ConflictType::MultipleCatchAll(paths~) => {
+        let file = paths[0]
+        let paths_str = paths.join(sep)
+        let msg = "Multiple catch-all routes at same level: \{paths_str}"
+        (file, msg, "multiple-catch-all")
+      }
+      @core_routes.ConflictType::AmbiguousDynamic(pattern1~, pattern2~) => {
+        let msg = "Ambiguous dynamic patterns could match same paths: '\{pattern1}' and '\{pattern2}'"
+        (pattern1, msg, "ambiguous-dynamic")
+      }
+    }
+    issues.push(LintIssue::{ severity, file, line: None, message, rule })
   }
 }
 
