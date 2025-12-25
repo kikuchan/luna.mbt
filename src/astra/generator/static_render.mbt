@@ -1102,7 +1102,7 @@ fn build_language_switcher(
 
   // Build dropdown with details/summary
   let summary = h("summary", [attr("class", "lang-trigger")], [
-    @luna.text(current_label),
+    @luna.text("🌐 " + current_label),
   ])
   let menu = h("div", [attr("class", "lang-menu")], items)
   h("details", [attr("class", "lang-switcher")], [summary, menu])
