@@ -31,7 +31,6 @@ jobs:
           moon install
       - name: Build MoonBit
         run: |
-          # Skip astra which depends on mooncakes markdown (API incompatibility)
           # Core libraries
           moon build --target js src/luna
           moon build --target js src/core/parser
@@ -82,7 +81,6 @@ jobs:
           moon install
       - name: Build MoonBit
         run: |
-          # Skip astra which depends on mooncakes markdown (API incompatibility)
           # Core libraries
           moon build --target js src/luna
           moon build --target js src/core/parser

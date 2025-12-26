@@ -31,7 +31,6 @@ jobs:
           moon install
       - name: moon check
         run: |
-          # Skip astra which depends on mooncakes markdown (API incompatibility)
           moon check --target js src/luna
           moon check --target js src/core/parser
           moon check --target js src/core/routes
@@ -42,6 +41,7 @@ jobs:
           moon check --target js src/platform/js/stream_renderer
           moon check --target js src/sol
           moon check --target js src/stella
+          moon check --target js src/astra
       - name: Build workspace packages
         run: |
           cd js/wcr && pnpm build
@@ -93,12 +93,11 @@ jobs:
           moon test --target js src/platform/js/api
           # Sol (non-CLI)
           moon test --target js src/sol/router
-          # Astra (non-CLI)
-          # Temporarily skip: depends on mooncakes markdown which has API incompatibility
-          # moon test --target js src/astra/shiki
-          # moon test --target js src/astra/markdown
-          # moon test --target js src/astra/routes
-          # moon test --target js src/astra/tree
+          # Astra
+          moon test --target js src/astra/shiki
+          moon test --target js src/astra/markdown
+          moon test --target js src/astra/routes
+          moon test --target js src/astra/tree
           # Stella
           moon test --target js src/stella
 
@@ -147,21 +146,19 @@ jobs:
           moon test --target native src/core/ssg
 
   # Example projects
-  # Temporarily disabled: mooncakes markdown@0.3.1 is incompatible with current moonbit core
-  # TODO: Re-enable after markdown package is updated on mooncakes
-  # test-examples:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
-  #     - uses: illusory0x0/setup-moonbit@v0.1.0
-  #       with:
-  #         version: stable
-  #     - run: |
-  #         moon update
-  #         moon install
-  #     - name: Build examples
-  #       run: |
-  #         moon info
-  #         moon build -C examples/sol_app
+  test-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: illusory0x0/setup-moonbit@v0.1.0
+        with:
+          version: stable
+      - run: |
+          moon update
+          moon install
+      - name: Build examples
+        run: |
+          moon info
+          moon build --target js -C examples/sol_app
