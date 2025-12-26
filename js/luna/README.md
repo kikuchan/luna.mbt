@@ -7,25 +7,39 @@ A lightweight reactive UI library with SolidJS-Like API. Implemented in MoonBit.
 - [API Reference](https://luna.mizchi.workers.dev/luna/api/js/)
 - [Tutorial](https://luna.mizchi.workers.dev/luna/tutorial/js/)
 
-## Installation
+## Quick Start
+
+```bash
+# Create a new TSX project
+npx @luna_ui/luna new myapp
+cd myapp
+npm install
+npm run dev
+
+# Or create a MoonBit project
+npx @luna_ui/luna new myapp --mbt
+cd myapp
+moon update
+npm install
+npm run dev
+```
+
+## Manual Setup
+
+### Installation
 
 ```bash
 npm install @luna_ui/luna
 ```
 
-## Setup
-
 ### TypeScript + Vite
 
 **tsconfig.json:**
 
-Set `"jsxImportSource": "@luna_ui/luna"`
-
 ```json
 {
   "compilerOptions": {
-    //...
-    "jsxImportSource": "@luna_ui/luna",
+    "jsxImportSource": "@luna_ui/luna"
   }
 }
 ```
@@ -35,7 +49,12 @@ Set `"jsxImportSource": "@luna_ui/luna"`
 ```ts
 import { defineConfig } from 'vite';
 
-export default defineConfig({});
+export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: '@luna_ui/luna',
+  },
+});
 ```
 
 ## Basic Usage
