@@ -32,6 +32,7 @@ jobs:
       - name: Build MoonBit
         run: |
           # Skip astra which depends on mooncakes markdown (API incompatibility)
+          # Core libraries
           moon build --target js src/luna
           moon build --target js src/core/parser
           moon build --target js src/core/routes
@@ -42,6 +43,17 @@ jobs:
           moon build --target js src/platform/js/stream_renderer
           moon build --target js src/sol
           moon build --target js src/stella
+          # Test packages for browser tests
+          moon build --target js src/tests/counter_component
+          moon build --target js src/tests/counter_client
+          moon build --target js src/tests/browser_components
+          moon build --target js src/tests/router_csr
+          moon build --target js src/tests/e2e_server
+          # Examples for browser tests
+          moon build --target js src/examples/spa
+          moon build --target js src/examples/todomvc
+          moon build --target js src/examples/browser_router
+          moon build --target js src/examples/wc
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
       - name: Vitest browser tests
@@ -71,6 +83,7 @@ jobs:
       - name: Build MoonBit
         run: |
           # Skip astra which depends on mooncakes markdown (API incompatibility)
+          # Core libraries
           moon build --target js src/luna
           moon build --target js src/core/parser
           moon build --target js src/core/routes
@@ -81,6 +94,17 @@ jobs:
           moon build --target js src/platform/js/stream_renderer
           moon build --target js src/sol
           moon build --target js src/stella
+          # Test packages for e2e tests
+          moon build --target js src/tests/counter_component
+          moon build --target js src/tests/counter_client
+          moon build --target js src/tests/browser_components
+          moon build --target js src/tests/router_csr
+          moon build --target js src/tests/e2e_server
+          # Examples for e2e tests
+          moon build --target js src/examples/spa
+          moon build --target js src/examples/todomvc
+          moon build --target js src/examples/browser_router
+          moon build --target js src/examples/wc
       - name: Build Loader
         run: pnpm exec rolldown -c rolldown.config.mjs
       - name: Install Playwright Chromium
