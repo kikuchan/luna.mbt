@@ -31,6 +31,10 @@ jobs:
           moon install
       - name: moon check
         run: moon check --target js
+      - name: Build workspace packages
+        run: |
+          cd js/wcr && pnpm build
+          cd ../stella && pnpm build
       - name: TypeScript check
         run: pnpm tsc -p .
 
