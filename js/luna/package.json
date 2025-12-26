@@ -5,6 +5,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "@luna_ui/luna": "./dist/cli.mjs",
+    "luna": "./dist/cli.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -22,7 +26,7 @@
   "scripts": {
     "prepublishOnly": "pnpm build",
     "build": "tsdown",
-    "test": "vitest run",
+    "test": "vitest run --root ../..",
     "build:examples": "vite build examples"
   },
   "devDependencies": {

@@ -12,7 +12,7 @@ export default defineConfig({
     reporters: ["dot"],
     include: [
       "js/loader/**/*.test.ts",
-      "js/luna/tests/**/*.test.tsx", // TSX tests need jsdom (global-jsdom)
+      "js/luna/tests/**/*.test.{ts,tsx}",
       "e2e/sol/cli/**/*.test.ts",
       "scripts/**/*.test.ts",
       "tests/cloudflare/**/*.test.ts", // Cloudflare routing logic tests
