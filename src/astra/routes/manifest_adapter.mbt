@@ -73,6 +73,7 @@ pub fn manifest_to_page_metas(
           twitter_card: None,
           ssr: false,
           renderer: None,
+          noindex: false,
         }
         let content_type = @astra.ContentType::Markdown
         let renderer_type = determine_renderer_type(content_type, frontmatter)
@@ -136,6 +137,7 @@ pub fn static_route_to_page_meta(
     twitter_card: None,
     ssr: false,
     renderer: None,
+    noindex: false,
   }
   let content_type = @astra.ContentType::Markdown
   let renderer_type = determine_renderer_type(content_type, frontmatter)

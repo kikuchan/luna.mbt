@@ -16,6 +16,10 @@ pub fn detect_conflicts(RouteManifest) -> Array[ConflictType]
 
 pub fn extract_first_segment(String) -> String
 
+pub fn extract_param_from_filename(String) -> ParamInfo?
+
+pub fn extract_param_name(String) -> ParamInfo?
+
 pub fn filter_by_mode(RouteManifest, RenderMode) -> RouteManifest
 
 pub fn find_last_char(String, Char) -> Int

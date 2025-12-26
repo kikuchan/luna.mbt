@@ -35,5 +35,6 @@ pub fn from_cst(fm : @md_parser.Frontmatter) -> Frontmatter {
     twitter_card,
     ssr: @md_fm.get_bool(fm, "ssr").unwrap_or(false),
     renderer: None,
+    noindex: @md_fm.get_bool(fm, "noindex").unwrap_or(false),
   }
 }

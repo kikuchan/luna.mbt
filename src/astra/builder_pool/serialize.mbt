@@ -984,6 +984,10 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     Some(String(r)) => Some(r)
     _ => None
   }
+  let noindex : Bool = match obj.get("noindex") {
+    Some(True) => true
+    _ => false
+  }
   @astra.Frontmatter::{
     title,
     description,
@@ -998,6 +1002,7 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     twitter_card,
     ssr,
     renderer,
+    noindex,
   }
 }
 

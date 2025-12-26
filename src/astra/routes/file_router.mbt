@@ -820,6 +820,9 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
 
   // Parse renderer option ("luna" or "react")
   let renderer = @json_utils.extract_string_opt(obj, "renderer")
+
+  // Parse noindex flag
+  let noindex = @json_utils.extract_bool(obj, "noindex", false)
   @astra.Frontmatter::{
     title,
     description,
@@ -834,6 +837,7 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
     twitter_card: None,
     ssr,
     renderer,
+    noindex,
   }
 }
 

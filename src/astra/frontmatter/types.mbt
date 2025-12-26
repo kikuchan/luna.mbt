@@ -34,6 +34,8 @@ pub(all) struct Frontmatter {
   ssr : Bool
   /// Renderer for TSX components: "luna" (default) or "react"
   renderer : String?
+  /// Prevent search engines from indexing this page
+  noindex : Bool
 }
 
 ///|
@@ -53,6 +55,7 @@ pub fn Frontmatter::default() -> Frontmatter {
     twitter_card: None,
     ssr: false,
     renderer: None,
+    noindex: false,
   }
 }
 

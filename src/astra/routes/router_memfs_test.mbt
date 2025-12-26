@@ -364,3 +364,36 @@ test "scan_docs_dir_with_fs - mixed static and dynamic files" {
   assert_true(urls.contains("/posts/first-post/"))
   assert_true(urls.contains("/posts/second-post/"))
 }
+
+///|
+test "scan_docs_dir_with_fs - noindex frontmatter" {
+  let fs = @fs_adapter.MemFSAdapter::new()
+  fs.memfs().mkdirSync("/project/docs", recursive=true)
+  // Page with noindex: true
+  let noindex_content =
+    #|---
+    #|title: Hidden Page
+    #|noindex: true
+    #|---
+    #|This page should not be indexed
+    #|
+  // Page without noindex (default: false)
+  let indexed_content =
+    #|---
+    #|title: Public Page
+    #|---
+    #|This page should be indexed
+    #|
+  fs.memfs().writeFileSync("/project/docs/hidden.md", noindex_content)
+  fs.memfs().writeFileSync("/project/docs/public.md", indexed_content)
+  let pages = scan_docs_dir_with_fs(fs, "docs", "/project")
+  inspect(pages.length(), content="2")
+
+  // Find pages
+  let hidden_page = pages.iter().find_first(fn(p) { p.url_path == "/hidden/" })
+  let public_page = pages.iter().find_first(fn(p) { p.url_path == "/public/" })
+
+  // noindex should be parsed correctly
+  inspect(hidden_page.unwrap().frontmatter.noindex, content="true")
+  inspect(public_page.unwrap().frontmatter.noindex, content="false")
+}
