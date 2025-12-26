@@ -11,7 +11,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@mizchi/luna-wcr': resolve(__dirname, '../../../js/wcr/src/index.ts'),
+      '@luna_ui/wcr': resolve(__dirname, '../../../js/wcr/src/index.ts'),
     },
   },
 });

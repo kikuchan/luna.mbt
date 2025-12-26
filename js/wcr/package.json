@@ -1,5 +1,5 @@
 {
-  "name": "@mizchi/luna-wcr",
+  "name": "@luna_ui/wcr",
   "version": "0.0.1",
   "description": "Web Components Runtime for Luna UI",
   "type": "module",

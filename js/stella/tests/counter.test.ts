@@ -9,7 +9,7 @@ import {
   attrString,
   attrBool,
   Signal,
-} from '@mizchi/luna-wcr';
+} from '@luna_ui/wcr';
 
 // Define counter component for testing
 interface CounterProps {

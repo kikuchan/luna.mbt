@@ -1,5 +1,5 @@
 /**
- * @mizchi/stella - Web Components generator for Luna
+ * @luna_ui/stella - Web Components generator for Luna
  */
 
 export { defineComponent, register } from './define.js';

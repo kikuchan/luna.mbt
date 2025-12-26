@@ -1,5 +1,5 @@
 /**
- * @mizchi/luna-wcr - Web Components Runtime for Luna UI
+ * @luna_ui/wcr - Web Components Runtime for Luna UI
  */
 
 export { Signal, effect } from './signal.js';

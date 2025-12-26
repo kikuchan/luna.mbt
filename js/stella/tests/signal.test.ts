@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { Signal, effect } from '@mizchi/luna-wcr';
+import { Signal, effect } from '@luna_ui/wcr';
 
 describe('Signal', () => {
   it('should store and retrieve value', () => {

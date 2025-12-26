@@ -10,7 +10,7 @@ import {
   type AttrType,
   type Context,
   type SignalProps,
-} from '@mizchi/luna-wcr';
+} from '@luna_ui/wcr';
 
 export type { AttrDef, AttrType, Context, SignalProps };
 

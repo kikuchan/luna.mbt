@@ -1,5 +1,5 @@
 {
-  "name": "@mizchi/stella",
+  "name": "@luna_ui/stella",
   "version": "0.0.1",
   "description": "Stella CLI - Web Components generator for Luna",
   "type": "module",
@@ -21,7 +21,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@mizchi/luna-wcr": "workspace:*"
+    "@luna_ui/wcr": "workspace:*"
   },
   "devDependencies": {
     "happy-dom": "^17.4.4",
