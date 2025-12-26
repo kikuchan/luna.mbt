@@ -10,6 +10,8 @@ import(
 // Values
 pub fn copy_static_assets(@astra.BuildContext) -> Unit
 
+pub fn extract_dynamic_route_patterns(Array[@astra.PageMeta]) -> Array[String]
+
 pub fn generate_404_page(@astra.BuildContext) -> Unit
 
 pub fn generate_client_manifest(@astra.BuildContext) -> Unit
