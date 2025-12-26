@@ -67,6 +67,34 @@ just build-doc                # docs ビルド
 - astra: next.js の static build みたいなもので、 sol と可能な限りコードを統合する
 - stella: 実験的なコードは含むが、コア部分はクローズドにする
 
+## コミットメッセージ
+
+[Conventional Commits](https://www.conventionalcommits.org/) に従う。CHANGELOG.md は `git-cliff` で自動生成される。
+
+```
+<type>(<scope>): <description>
+```
+
+| type | 用途 |
+|------|------|
+| `feat` | 新機能 |
+| `fix` | バグ修正 |
+| `docs` | ドキュメント |
+| `refactor` | リファクタリング |
+| `perf` | パフォーマンス改善 |
+| `test` | テスト追加・修正 |
+| `chore` | ビルド・CI など |
+| `deps` | 依存関係の更新 |
+
+scope は `luna`, `sol`, `astra`, `stella`, `ci`, `docs` など。
+
+```bash
+# 例
+feat(astra): add dynamic route support
+fix(luna): resolve hydration mismatch
+docs: update README
+```
+
 ## テストポリシー
 
 テストピラミッドに基づき、可能な限り低レイヤーでテストする。

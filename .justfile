@@ -407,3 +407,19 @@ metrics:
 # メトリクス表示
 metrics-show:
     node scripts/metrics.ts show
+
+# =============================================================================
+# リリース
+# =============================================================================
+
+# CHANGELOG 生成（未リリース分）
+changelog:
+    git-cliff --unreleased --prepend CHANGELOG.md 2>/dev/null
+
+# CHANGELOG 全体再生成
+changelog-all:
+    git-cliff -o CHANGELOG.md 2>/dev/null
+
+# CHANGELOG プレビュー（未リリース分）
+changelog-preview:
+    git-cliff --unreleased 2>/dev/null
