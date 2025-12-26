@@ -363,123 +363,25 @@ fn create_component_vnode(
 }
 
 // =============================================================================
-// Description Extraction (for meta description)
+// Re-exports from @toc
 // =============================================================================
 
 ///|
+pub type TocItem = @toc.TocItem
+
+///|
+/// Extract table of contents from MdNode array
+/// Re-exported from @toc
+pub fn extract_toc(nodes : Array[@astra.MdNode]) -> Array[@toc.TocItem] {
+  @toc.extract_toc(nodes)
+}
+
+///|
 /// Extract description from markdown nodes
-/// Returns the first paragraph's text, truncated to max_length
+/// Re-exported from @toc
 pub fn extract_description(
   nodes : Array[@astra.MdNode],
   max_length? : Int = 160,
 ) -> String? {
-  // Find the first paragraph
-  for node in nodes {
-    match node {
-      @astra.MdNode::Paragraph(children~) => {
-        let text = extract_text_from_nodes(children)
-        if not(text.is_empty()) {
-          return Some(truncate_text(text, max_length))
-        }
-      }
-      _ => continue
-    }
-  }
-  None
-}
-
-///|
-/// Truncate text to max_length, adding ellipsis if needed
-fn truncate_text(text : String, max_length : Int) -> String {
-  let chars = text.to_array()
-  if chars.length() <= max_length {
-    return text
-  }
-  // Find last space before max_length to avoid cutting words
-  let mut cut_point = max_length
-  for i = max_length - 1; i >= max_length - 30 && i >= 0; i = i - 1 {
-    if chars[i] == ' ' {
-      cut_point = i
-      break
-    }
-  }
-  // Build truncated string
-  let result : Array[Char] = []
-  for i = 0; i < cut_point; i = i + 1 {
-    result.push(chars[i])
-  }
-  String::from_array(result) + "..."
-}
-
-// =============================================================================
-// Table of Contents Extraction
-// =============================================================================
-
-///|
-/// Table of contents item
-pub(all) struct TocItem {
-  level : Int
-  text : String
-  id : String
-}
-
-///|
-/// Extract table of contents from MdNode array
-pub fn extract_toc(nodes : Array[@astra.MdNode]) -> Array[TocItem] {
-  let toc : Array[TocItem] = []
-  extract_toc_recursive(nodes, toc)
-  toc
-}
-
-///|
-/// Extract headings recursively
-fn extract_toc_recursive(
-  nodes : Array[@astra.MdNode],
-  toc : Array[TocItem],
-) -> Unit {
-  for node in nodes {
-    match node {
-      @astra.MdNode::Heading(level~, children~, id~) =>
-        // Only include h2-h4 in TOC
-        if level >= 2 && level <= 4 {
-          let text = extract_text_from_nodes(children)
-          toc.push(TocItem::{ level, text, id })
-        }
-      @astra.MdNode::Blockquote(children~) =>
-        extract_toc_recursive(children, toc)
-      @astra.MdNode::List(items~, ..) =>
-        for item in items {
-          extract_toc_recursive(item, toc)
-        }
-      _ => ()
-    }
-  }
-}
-
-///|
-/// Extract plain text from MdNode array
-fn extract_text_from_nodes(nodes : Array[@astra.MdNode]) -> String {
-  let buf = StringBuilder::new()
-  for node in nodes {
-    extract_text_recursive(node, buf)
-  }
-  buf.to_string()
-}
-
-///|
-/// Extract text recursively
-fn extract_text_recursive(node : @astra.MdNode, buf : StringBuilder) -> Unit {
-  match node {
-    @astra.MdNode::Text(text) => buf.write_string(text)
-    @astra.MdNode::Bold(children~) | @astra.MdNode::Italic(children~) =>
-      for child in children {
-        extract_text_recursive(child, buf)
-      }
-    @astra.MdNode::Code(code) => buf.write_string(code)
-    @astra.MdNode::Link(children~, ..) =>
-      for child in children {
-        extract_text_recursive(child, buf)
-      }
-    _ => ()
-  }
+  @toc.extract_description(nodes, max_length~)
 }

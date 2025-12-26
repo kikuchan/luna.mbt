@@ -2,6 +2,7 @@
 package "mizchi/luna/astra"
 
 import(
+  "mizchi/luna/astra/frontmatter"
   "mizchi/luna/core/ssg"
   "mizchi/luna/luna"
   "moonbitlang/core/json"
@@ -71,23 +72,6 @@ pub(all) struct FooterLink {
 pub impl ToJson for FooterLink
 pub impl @json.FromJson for FooterLink
 
-pub(all) struct Frontmatter {
-  title : String?
-  description : String?
-  layout : String?
-  sidebar : Bool
-  outline : OutlineConfig?
-  islands : Array[String]
-  prev : NavLink?
-  next : NavLink?
-  image : String?
-  og_type : String?
-  twitter_card : String?
-  ssr : Bool
-  renderer : String?
-}
-pub fn Frontmatter::default() -> Self
-
 pub(all) struct IslandEmbed {
   name : String
   props : String
@@ -131,13 +115,6 @@ pub fn NavItem::new(String, String) -> Self
 pub impl ToJson for NavItem
 pub impl @json.FromJson for NavItem
 
-pub(all) struct NavLink {
-  text : String
-  link : String
-}
-pub impl ToJson for NavLink
-pub impl @json.FromJson for NavLink
-
 pub(all) struct OgpConfig {
   site_url : String?
   image : String?
@@ -146,26 +123,19 @@ pub(all) struct OgpConfig {
 }
 pub fn OgpConfig::default() -> Self
 
-pub(all) struct OutlineConfig {
-  level_min : Int
-  level_max : Int
-}
-pub impl ToJson for OutlineConfig
-pub impl @json.FromJson for OutlineConfig
-
 pub(all) struct PageMeta {
   source_path : String
   url_path : String
   content_type : ContentType
   renderer_type : @ssg.RendererType
-  frontmatter : Frontmatter
+  frontmatter : @frontmatter.Frontmatter
   last_modified : String?
   locale : String
   canonical_path : String
   sort_key : String
 }
 pub fn PageMeta::new(String, String, content_type? : ContentType, renderer_type? : @ssg.RendererType, locale? : String, canonical_path? : String, sort_key? : String) -> Self
-pub fn PageMeta::with_frontmatter(Self, Frontmatter) -> Self
+pub fn PageMeta::with_frontmatter(Self, @frontmatter.Frontmatter) -> Self
 
 pub(all) enum SidebarConfig {
   Auto
@@ -226,11 +196,17 @@ pub(all) struct ThemeConfig {
 pub fn ThemeConfig::default() -> Self
 
 // Type aliases
+pub using @frontmatter {type Frontmatter}
+
 pub using @ssg {type I18nConfig}
 
 pub using @ssg {type LocaleConfig}
 
+pub using @frontmatter {type NavLink}
+
 pub using @ssg {type NavigationConfig}
+
+pub using @frontmatter {type OutlineConfig}
 
 // Traits
 
