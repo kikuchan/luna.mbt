@@ -36,9 +36,9 @@ pub fn generate_routes_json(pages : Array[@astra.PageMeta]) -> String {
     }
   }
 
-  // Include patterns - for dynamic routes (Server Actions, API routes)
-  // In pure SSG mode, we include nothing (empty array)
-  let include_patterns : Array[String] = []
+  // Include patterns - for dynamic routes that need Worker fallback
+  // Dynamic routes are detected by source_path containing "?" (param marker)
+  let include_patterns = extract_dynamic_route_patterns(pages)
 
   // Build JSON manually (minimal implementation)
   let exclude_items = exclude.map(fn(s) { "\"" + escape_json_string(s) + "\"" })
@@ -52,6 +52,71 @@ pub fn generate_routes_json(pages : Array[@astra.PageMeta]) -> String {
   "],\n  \"exclude\": [" +
   exclude_json +
   "]\n}\n"
+}
+
+///|
+/// Extract dynamic route patterns from pages
+/// Pages from dynamic routes have source_path like "posts/_id_.md?id=value"
+/// Returns patterns like "/posts/*" for Worker fallback
+pub fn extract_dynamic_route_patterns(
+  pages : Array[@astra.PageMeta],
+) -> Array[String] {
+  let patterns : Map[String, Bool] = {} // Use map for deduplication
+  for page in pages {
+    // Check if this page is from a dynamic route (has ? in source_path)
+    guard page.source_path.find("?") is Some(query_idx) else { continue }
+
+    // Extract the dynamic file path before the query string
+    // e.g., "posts/_id_.md?id=hello" -> "posts/_id_.md"
+    let dynamic_source = extract_substring_before(page.source_path, query_idx)
+
+    // Get the parent directory of the dynamic file
+    // e.g., "posts/_id_.md" -> "posts"
+    let parent_path = get_parent_dir(dynamic_source)
+
+    // Build the pattern: /parent/* for catchable routes
+    let pattern = if parent_path.is_empty() {
+      "/*"
+    } else {
+      "/" + parent_path + "/*"
+    }
+
+    // Add to patterns (deduplication via map)
+    patterns[pattern] = true
+  }
+
+  // Convert map keys to array
+  patterns.keys().collect()
+}
+
+///|
+/// Get parent directory from path
+fn get_parent_dir(path : String) -> String {
+  let chars = path.to_array()
+  let mut last_slash = -1
+  for i = 0; i < chars.length(); i = i + 1 {
+    if chars[i] == '/' {
+      last_slash = i
+    }
+  }
+  if last_slash > 0 {
+    String::from_array(chars[0:last_slash])
+  } else {
+    ""
+  }
+}
+
+///|
+/// Extract substring before given index
+fn extract_substring_before(s : String, idx : Int) -> String {
+  let chars = s.to_array()
+  if idx <= 0 {
+    ""
+  } else if idx >= chars.length() {
+    s
+  } else {
+    String::from_array(chars[0:idx])
+  }
 }
 
 ///|
