@@ -230,11 +230,11 @@ function getMbtTemplates(projectName: string): Template[] {
     {
       path: "vite.config.ts",
       content: `import { defineConfig } from "vite";
-import { moonbit } from "vite-plugin-moonbit";
+import { moonbitPlugin } from "vite-plugin-moonbit";
 
 export default defineConfig({
   plugins: [
-    moonbit({
+    moonbitPlugin({
       watch: true,
       showLogs: true,
     }),
@@ -272,16 +272,21 @@ import "mbt:internal/${projectName}";
           "is-main": true,
           "supported-targets": ["js"],
           import: [
-            "mizchi/luna",
+            "mizchi/luna/luna/signal",
             {
               path: "mizchi/luna/platform/dom/element",
-              alias: "element",
+              alias: "dom",
             },
             {
               path: "mizchi/js/browser/dom",
-              alias: "dom",
+              alias: "js_dom",
             },
           ],
+          link: {
+            js: {
+              format: "esm",
+            },
+          },
         },
         null,
         2
@@ -292,39 +297,39 @@ import "mbt:internal/${projectName}";
       content: `// Luna Counter App
 
 fn main {
-  let count = @luna.signal(0)
-  let doubled = @luna.memo(fn() { count.get() * 2 })
+  let count = @signal.signal(0)
+  let doubled = @signal.memo(fn() { count.get() * 2 })
 
-  @luna.render(
-    @element.div([
-      @element.h1_([
-        @luna.text("Luna Counter (MoonBit)"),
-      ]),
-      @element.p([
-        @luna.text("Count: "),
-        @luna.text_dyn(fn() { count.get().to_string() }),
-      ]),
-      @element.p([
-        @luna.text("Doubled: "),
-        @luna.text_dyn(fn() { doubled().to_string() }),
-      ]),
-      @element.div([
-        @element.button(
-          @luna.events().on_click(fn(_e) { count.update(fn(n) { n + 1 }) }),
-          [@luna.text("+1")],
-        ),
-        @element.button(
-          @luna.events().on_click(fn(_e) { count.update(fn(n) { n - 1 }) }),
-          [@luna.text("-1")],
-        ),
-        @element.button(
-          @luna.events().on_click(fn(_e) { count.set(0) }),
-          [@luna.text("Reset")],
-        ),
-      ]),
-    ]),
-    @dom.query_selector!("#app"),
-  )
+  let doc = @js_dom.document()
+  match doc.getElementById("app") {
+    Some(el) => {
+      let app = @dom.div([
+        @dom.h1([@dom.text("Luna Counter (MoonBit)")]),
+        @dom.p([
+          @dom.text_dyn(fn() { "Count: " + count.get().to_string() }),
+        ]),
+        @dom.p([
+          @dom.text_dyn(fn() { "Doubled: " + doubled().to_string() }),
+        ]),
+        @dom.div(class="buttons", [
+          @dom.button(
+            on=@dom.events().click(_ => count.update(fn(n) { n + 1 })),
+            [@dom.text("+1")],
+          ),
+          @dom.button(
+            on=@dom.events().click(_ => count.update(fn(n) { n - 1 })),
+            [@dom.text("-1")],
+          ),
+          @dom.button(
+            on=@dom.events().click(_ => count.set(0)),
+            [@dom.text("Reset")],
+          ),
+        ]),
+      ])
+      @dom.render(el |> @dom.DomElement::from_jsdom, app)
+    }
+    None => ()
+  }
 }
 `,
     },
