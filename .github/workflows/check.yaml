@@ -135,19 +135,21 @@ jobs:
           moon test --target native src/core/ssg
 
   # Example projects
-  test-examples:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - uses: illusory0x0/setup-moonbit@v0.1.0
-        with:
-          version: stable
-      - run: |
-          moon update
-          moon install
-      - name: Build examples
-        run: |
-          moon info
-          moon build -C examples/sol_app
+  # Temporarily disabled: mooncakes markdown@0.3.1 is incompatible with current moonbit core
+  # TODO: Re-enable after markdown package is updated on mooncakes
+  # test-examples:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 1
+  #     - uses: illusory0x0/setup-moonbit@v0.1.0
+  #       with:
+  #         version: stable
+  #     - run: |
+  #         moon update
+  #         moon install
+  #     - name: Build examples
+  #       run: |
+  #         moon info
+  #         moon build -C examples/sol_app
