@@ -9,12 +9,19 @@ Stella is a Web Components build system for Luna. It compiles MoonBit components
 ## Features
 
 - **MoonBit to Web Components** - Compile MoonBit UI code to standard Custom Elements
-- **Signal-based Reactivity** - Fine-grained reactivity via `@wcr` runtime
+- **Signal-based Reactivity** - Fine-grained reactivity via `@luna_ui/wcr` runtime
 - **Multiple Distribution Variants** - Auto-register, ESM export, loader-compatible
 - **Loader Script** - Auto-detect and load components dynamically
 - **iframe Embed** - Sandboxed embedding with postMessage communication
-- **SSR/Hydration Ready** - Works with declarative shadow DOM
+- **SSR/Hydration Ready** - Works with Declarative Shadow DOM
 - **TypeScript/React Types** - Generated type definitions for consumers
+
+## npm Packages
+
+| Package | Description |
+|---------|-------------|
+| `@luna_ui/stella` | CLI for generating Web Component wrappers |
+| `@luna_ui/wcr` | Web Components runtime (Signal, effect) |
 
 ## Quick Start
 
@@ -22,10 +29,16 @@ Stella is a Web Components build system for Luna. It compiles MoonBit components
 
 ```moonbit
 // src/counter.mbt
+
+// Import stella/component as @wc
+// moon.pkg.json: { "import": [{ "path": "mizchi/luna/stella/component", "alias": "wc" }] }
+
+/// Generate initial HTML template
 pub fn template(props_js : @js.Any) -> String {
-  let initial = @wc.get_prop_int(props_js, "initial")
-  let label = @wc.get_prop_string(props_js, "label")
-  let mut html = @wc.HtmlBuilder::new(0)
+  let initial = get_prop_int(props_js, "initial")
+  let label = get_prop_string(props_js, "label")
+
+  let html = StringBuilder::new()
   html.write_string("<div class=\"counter\">")
   html.write_string("<span class=\"label\">")
   html.write_string(label)
@@ -35,9 +48,10 @@ pub fn template(props_js : @js.Any) -> String {
   html.write_string("</span>")
   html.write_string("<button class=\"inc\">+</button>")
   html.write_string("</div>")
-  html.val
+  html.to_string()
 }
 
+/// Setup reactivity and event handlers
 pub fn setup(ctx_js : @js.Any) -> @js.Any {
   let ctx = @wc.WcContext::from_js(ctx_js)
   let initial = ctx.prop_int("initial")
@@ -45,36 +59,48 @@ pub fn setup(ctx_js : @js.Any) -> @js.Any {
   let disabled = ctx.prop_bool("disabled")
 
   // Local state
-  let count = @wc.JsSignalInt::new(initial.get())
+  let count = { val: initial.get() }
 
   // Sync on initial change
   let unsub_initial = initial.subscribe(fn() {
-    count.set(initial.get())
-    ctx.set_text(".value", count.get().to_string())
+    count.val = initial.get()
   })
 
   // Bind label
   let unsub_label = ctx.bind(".label", fn() { label.get() + ":" })
 
   // Bind disabled attribute
-  let unsub_dec = ctx.bind_attr(".dec", "disabled", disabled.to_any())
-  let unsub_inc = ctx.bind_attr(".inc", "disabled", disabled.to_any())
+  let unsub_inc = ctx.bind_attr(".inc", "disabled", disabled.raw())
 
   // Event handlers
   let unsub_click = ctx.on(".inc", "click", fn() {
-    count.set(count.get() + 1)
-    ctx.set_text(".value", count.get().to_string())
-    ctx.emit("change", count.get())
+    count.val = count.val + 1
+    trigger_update(ctx_js, ".value", count.val.to_string())
   })
 
-  @wc.wrap_cleanup(fn() {
+  wrap_cleanup(fn() {
     unsub_initial()
     unsub_label()
-    unsub_dec()
     unsub_inc()
     unsub_click()
   })
 }
+
+// FFI helpers
+extern "js" fn get_prop_int(props : @js.Any, name : String) -> Int =
+  #| (props, name) => props[name] ?? 0
+
+extern "js" fn get_prop_string(props : @js.Any, name : String) -> String =
+  #| (props, name) => props[name] ?? ''
+
+extern "js" fn wrap_cleanup(cleanup : () -> Unit) -> @js.Any =
+  #| (cleanup) => cleanup
+
+extern "js" fn trigger_update(ctx : @js.Any, selector : String, value : String) -> Unit =
+  #| (ctx, selector, value) => {
+  #|   const el = ctx.shadow.querySelector(selector);
+  #|   if (el) el.textContent = value;
+  #| }
 ```
 
 ### 2. Create Component Config
@@ -101,9 +127,7 @@ pub fn setup(ctx_js : @js.Any) -> @js.Any {
 moon build --target js
 
 # Generate wrapper
-stella build counter.wc.json -o dist/.tmp/x-counter-wrapper.js
-
-# Bundle with esbuild (see bundle.js example)
+npx @luna_ui/stella build counter.wc.json -o dist/x-counter.js
 ```
 
 ### 4. Use in HTML
@@ -113,34 +137,39 @@ stella build counter.wc.json -o dist/.tmp/x-counter-wrapper.js
 <script type="module" src="./x-counter.js"></script>
 ```
 
+## MoonBit Package Setup
+
+```json
+// moon.pkg.json
+{
+  "import": [
+    { "path": "mizchi/luna/stella/component", "alias": "wc" },
+    { "path": "mizchi/js", "alias": "js" }
+  ],
+  "link": {
+    "js": {
+      "exports": ["setup", "template"],
+      "format": "esm"
+    }
+  }
+}
+```
+
 ## Configuration
 
-### stella.config.json
-
-Main configuration for component distribution:
+### Component Config (*.wc.json)
 
 ```json
 {
   "tag": "x-counter",
-  "publicPath": "https://cdn.example.com/components",
+  "module": "./counter.mbt.js",
   "attributes": [
     { "name": "initial", "type": "int", "default": 0 },
     { "name": "label", "type": "string", "default": "Count" },
     { "name": "disabled", "type": "bool", "default": false }
   ],
-  "events": [
-    { "name": "change", "detail": { "value": "number" } }
-  ],
-  "slot": false,
-  "ssr": { "enabled": false },
-  "loader": { "enabled": true },
-  "iframe": { "enabled": true, "resizable": true },
-  "demo": {
-    "enabled": true,
-    "title": "x-counter Demo",
-    "description": "A counter Web Component"
-  },
-  "cors": { "allowedOrigins": ["*"] }
+  "shadow": "open",
+  "styles": ":host { display: block; }"
 }
 ```
 
@@ -153,11 +182,49 @@ Main configuration for component distribution:
 | `float` | `Double` | `ratio="0.5"` |
 | `bool` | `Bool` | `disabled` (presence = true) |
 
+## MoonBit Context API
+
+### WcContext Methods
+
+| Method | Description |
+|--------|-------------|
+| `WcContext::from_js(ctx)` | Create context from JS object |
+| `ctx.prop_int(name)` | Get Int prop as JsSignalInt |
+| `ctx.prop_string(name)` | Get String prop as JsSignalString |
+| `ctx.prop_bool(name)` | Get Bool prop as JsSignalBool |
+| `ctx.bind(selector, getter)` | Bind text content to getter |
+| `ctx.bind_attr(selector, attr, signal)` | Bind attribute to Signal |
+| `ctx.on(selector, event, handler)` | Add event listener |
+| `ctx.on_cleanup(fn)` | Register cleanup function |
+
+### JsSignal API
+
+```moonbit
+let count = ctx.prop_int("count")
+
+// Get value
+let current = count.get()
+
+// Set value
+count.set(10)
+
+// Update
+count.update(fn(n) { n + 1 })
+
+// Subscribe to changes
+let unsub = count.subscribe(fn() {
+  println("count changed!")
+})
+
+// Get raw signal for bind_attr
+let raw = count.raw()
+```
+
 ## Output Variants
 
-Stella generates three JavaScript variants:
+Stella generates JavaScript with different loading patterns:
 
-### 1. Auto-Register (`x-counter.js`)
+### Auto-Register (Default)
 
 Automatically registers the custom element on load.
 
@@ -166,7 +233,7 @@ Automatically registers the custom element on load.
 <x-counter initial="10"></x-counter>
 ```
 
-### 2. ESM Export (`x-counter-define.js`)
+### ESM Export
 
 Exports the class for manual registration.
 
@@ -183,7 +250,7 @@ register('my-counter');
 customElements.define('custom-counter', XCounter);
 ```
 
-### 3. Loadable (`x-counter-loadable.js`)
+### Loadable
 
 For loader and SSR hydration patterns.
 
@@ -230,99 +297,36 @@ Stella.load('x-counter');
 console.log(Stella.components());
 ```
 
-### Local Testing
+## SSR / Hydration
 
-For local development, set the base URL:
-
-```html
-<script>window.STELLA_BASE_URL = 'http://localhost:3600';</script>
-<script src="http://localhost:3600/loader.js"></script>
-```
-
-## iframe Embed
-
-For sandboxed embedding with cross-origin isolation.
-
-### Setup (Host Page)
+Stella supports Declarative Shadow DOM for SSR:
 
 ```html
-<script src="https://cdn.example.com/components/x-counter-iframe.js"></script>
+<x-counter initial="5" label="Score">
+  <template shadowrootmode="open">
+    <style>/* component styles */</style>
+    <div class="counter">
+      <span class="label">Score:</span>
+      <span class="value">5</span>
+      <button class="inc">+</button>
+    </div>
+  </template>
+</x-counter>
+<script type="module" src="./x-counter.js"></script>
 ```
 
-### Declarative Usage
+The component detects existing shadow DOM and hydrates instead of replacing.
 
-```html
-<div data-stella-iframe="x-counter" data-initial="10" data-label="Score"></div>
-```
+## CLI Reference
 
-### Programmatic Usage
+```bash
+# Generate Web Component wrapper
+npx @luna_ui/stella build <config.json> [options]
+  -o, --output <path>  Output file path
+  -h, --help           Show help
 
-```javascript
-const counter = createStellaIframe('#container', {
-  initial: 10,
-  label: 'Score'
-});
-
-// Listen for events
-counter.on('change', (detail) => {
-  console.log('Value:', detail.value);
-});
-
-// Update attributes
-counter.setAttr('label', 'New Label');
-
-// Wait for ready
-counter.on('ready', () => {
-  console.log('Component loaded');
-});
-```
-
-### Local Testing
-
-```javascript
-const counter = createStellaIframe('#container', {
-  initial: 0,
-  baseUrl: 'http://localhost:3600'  // Override for local dev
-});
-```
-
-## MoonBit Context API
-
-### WcContext Methods
-
-| Method | Description |
-|--------|-------------|
-| `ctx.prop_int(name)` | Get Int prop as Signal |
-| `ctx.prop_string(name)` | Get String prop as Signal |
-| `ctx.prop_bool(name)` | Get Bool prop as Signal |
-| `ctx.bind(selector, getter)` | Bind text content to getter |
-| `ctx.bind_attr(selector, attr, signal)` | Bind attribute to Signal |
-| `ctx.set_text(selector, text)` | Set text content directly |
-| `ctx.on(selector, event, handler)` | Add event listener |
-| `ctx.emit(event, value)` | Dispatch custom event |
-| `ctx.on_cleanup(fn)` | Register cleanup function |
-
-### JsSignal API
-
-```moonbit
-let count = ctx.prop_int("count")
-
-// Get value
-let current = count.get()
-
-// Set value
-count.set(10)
-
-// Update
-count.update(fn(n) { n + 1 })
-
-// Subscribe to changes
-let unsub = count.subscribe(fn() {
-  println("count changed!")
-})
-
-// Convert to Any (for bind_attr)
-let any_signal = count.to_any()
+# Examples
+npx @luna_ui/stella build counter.wc.json -o dist/x-counter.js
 ```
 
 ## Generated Files
@@ -334,12 +338,6 @@ let any_signal = count.to_any()
 | `x-counter-loadable.js` | Loadable/hydration variant |
 | `x-counter.d.ts` | TypeScript declarations |
 | `x-counter.react.d.ts` | React JSX types |
-| `loader.js` | Component loader script |
-| `x-counter-iframe.html` | iframe embed page |
-| `x-counter-iframe.js` | iframe helper for host pages |
-| `_headers` | CORS headers (Cloudflare/Netlify) |
-| `index.html` | Demo page |
-| `embed.html` | Embedding documentation |
 
 ## TypeScript Usage
 
@@ -377,58 +375,19 @@ function App() {
 }
 ```
 
-## SSR / Hydration
-
-Stella supports declarative shadow DOM for SSR:
-
-```html
-<x-counter initial="5" label="Score">
-  <template shadowrootmode="open">
-    <style>/* component styles */</style>
-    <div class="counter">
-      <span class="label">Score:</span>
-      <span class="value">5</span>
-      <button class="inc">+</button>
-    </div>
-  </template>
-</x-counter>
-<script type="module" src="./x-counter.js"></script>
-```
-
-The component detects existing shadow DOM and hydrates instead of replacing.
-
-## CLI Reference
-
-```bash
-# Generate Web Component wrapper
-stella build <config.json> [options]
-  -o, --output <path>  Output file path
-  -h, --help           Show help
-
-# Create new component template
-stella init <component-name>
-  Creates <name>.wc.json with basic structure
-
-# Examples
-stella build counter.wc.json -o dist/x-counter.js
-stella init my-widget
-```
-
 ## Example Project
 
-See `examples/stella-component/` for a complete example with:
-
-- MoonBit counter component
-- Full build pipeline
-- Playwright E2E tests (20 tests)
-- Demo pages
+See `src/examples/wc_counter/` in the luna.mbt repository for a complete example.
 
 ```bash
-cd examples/stella-component
-npm install
-npm run build
-npm run dev    # Preview at localhost:3600
-npm test       # Run Playwright tests
+cd src/examples/wc_counter
+
+# Build MoonBit
+moon build --target js
+
+# Start dev server
+npx vite --config vite.config.ts
+# → http://localhost:3500/
 ```
 
 ## See Also

@@ -80,6 +80,10 @@ fn is_excluded(
   relative_path : String,
   exclude : Array[String],
 ) -> Bool {
+  // Always exclude "public" directory (reserved for static assets)
+  if name == "public" || relative_path.has_prefix("public/") {
+    return true
+  }
   for pattern in exclude {
     // Match by directory name (e.g., "internal" matches "docs/internal")
     if name == pattern {

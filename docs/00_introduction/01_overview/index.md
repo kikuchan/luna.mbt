@@ -6,6 +6,32 @@ title: Overview
 
 Luna is a suite of tools for building modern web applications with MoonBit and JavaScript. This documentation covers four interconnected projects.
 
+## Which Should I Use?
+
+| I want to... | Use | Language |
+|--------------|-----|----------|
+| Build a documentation site | **Astra** | Markdown + Islands |
+| Build a full-stack web app | **Sol** | MoonBit |
+| Create distributable Web Components | **Stella** | MoonBit |
+| Add reactivity to existing pages | **Luna UI** | JavaScript/TypeScript |
+| Learn fine-grained reactivity | **Luna UI Tutorial** | JS or MoonBit |
+
+### Decision Tree
+
+```
+Need a website?
+├── Static content (docs, blog) → Astra
+└── Dynamic app (user auth, API) → Sol
+
+Need a component?
+├── Standalone, distributable → Stella (Web Components)
+└── Within Luna app → Luna UI Islands
+
+Just learning?
+├── Know JavaScript → JS Tutorial
+└── Know MoonBit → MoonBit Tutorial
+```
+
 ## Why Luna?
 
 Luna was born from frustration with existing solutions:
@@ -84,13 +110,16 @@ Luna combines Islands Architecture with fine-grained reactivity:
 │                       Luna UI                                 │
 │           Signals, Islands, Hydration, Components            │
 ├─────────────────────────────────────────────────────────────┤
+│  Stella (Web Components)                                     │
+│  Standalone distributable components                         │
+├─────────────────────────────────────────────────────────────┤
 │                      MoonBit / JavaScript                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Projects
 
-### Luna UI
+### [Luna UI](/luna/) - Reactive UI Library
 
 The foundation of everything. Luna provides:
 
@@ -116,17 +145,81 @@ This documentation site is built with Astra.
 Server-side rendering framework with Hono integration:
 
 - Island Architecture for SSR + partial hydration
-- File-based routing
-- Edge-ready deployment
-- State serialization and resumption
+- Declarative routing with middleware
+- Server Actions with CSRF protection
+- Nested layouts
+- Streaming SSR
 
-### [Stella](/stella/) - Dev Tools
+### [Stella](/stella/) - Web Components Builder
 
-Development utilities and experimental features:
+Build standalone, distributable Web Components from MoonBit:
 
-- Development server with hot reload
-- Build tools integration
-- Testing utilities
+- Compile MoonBit to standard Custom Elements
+- Signal-based fine-grained reactivity
+- SSR/Hydration with Declarative Shadow DOM
+- TypeScript and React type definitions
+- Loader script for auto-detection
+
+## npm Packages
+
+| Package | Description |
+|---------|-------------|
+| `@luna_ui/luna` | Core UI library + CLI for scaffolding |
+| `@luna_ui/astra` | Static site generator CLI |
+| `@luna_ui/stella` | Web Components generator CLI |
+| `@luna_ui/wcr` | Web Components runtime (used by Stella) |
+
+## Quick Start
+
+### Luna UI (JavaScript)
+
+```bash
+npx @luna_ui/luna new myapp
+cd myapp && npm install && npm run dev
+```
+
+### Luna UI (MoonBit)
+
+```bash
+npx @luna_ui/luna new myapp --mbt
+cd myapp && moon update && npm install && npm run dev
+```
+
+### Astra (Documentation Site)
+
+```bash
+npx @luna_ui/astra new my-docs
+cd my-docs && npm install && npm run dev
+```
+
+### Stella (Web Component)
+
+See [Stella documentation](/stella/) for Web Component development.
+
+## Code Examples
+
+### JavaScript
+
+```typescript
+import { createSignal, createEffect } from '@luna_ui/luna';
+
+const [count, setCount] = createSignal(0);
+createEffect(() => console.log(count()));
+setCount(1);  // Logs: 1
+```
+
+### MoonBit
+
+```moonbit
+let count = @signal.signal(0)
+let doubled = @signal.memo(fn() { count.get() * 2 })
+
+@signal.effect(fn() {
+  println(count.get().to_string())
+})
+
+count.set(1)  // Prints: 1
+```
 
 ## Learning Paths
 
@@ -142,45 +235,20 @@ Development utilities and experimental features:
 2. Explore [MoonBit API Reference](/luna/api-moonbit/)
 3. Build server-side components with Sol
 
-## Quick Start
+## Feature Comparison
 
-### JavaScript
-
-```typescript
-import { createSignal, createEffect } from '@luna_ui/luna';
-
-const [count, setCount] = createSignal(0);
-createEffect(() => console.log(count()));
-setCount(1);  // Logs: 1
-```
-
-### MoonBit
-
-```moonbit
-using @luna { signal, effect }
-
-let count = signal(0)
-effect(fn() { println(count.get().to_string()) })
-count.set(1)  // Prints: 1
-```
-
-## Quick Comparison
-
-| Feature | Astra | Sol |
-|---------|-------|-----|
-| Use Case | Documentation, blogs | Web applications |
-| Rendering | Static (build-time) | Dynamic (request-time) |
-| Routing | File-based | File-based + API routes |
-| Islands | Markdown embedded | Component-based |
-| Deployment | Static hosting | Edge runtime / Node.js |
-
-## Getting Started
-
-Choose based on your needs:
-
-- **Learning Luna?** → [JavaScript Tutorial](/luna/tutorial-js/) or [MoonBit Tutorial](/luna/tutorial-moonbit/)
-- **Building docs?** → [Astra Quick Start](/astra/)
-- **Building an app?** → [Sol Quick Start](/sol/)
+| Feature | Luna UI | Astra | Sol | Stella |
+|---------|---------|-------|-----|--------|
+| Signals | ✅ | ✅ | ✅ | ✅ |
+| Islands | ✅ | ✅ | ✅ | ✅ |
+| SSR | - | Build-time | Runtime | Optional |
+| Routing | - | File-based | File-based + API | - |
+| Markdown | - | ✅ | - | - |
+| i18n | - | ✅ | - | - |
+| Middleware | - | - | ✅ | - |
+| Server Actions | - | - | ✅ | - |
+| Web Components | ✅ | ✅ | ✅ | ✅ (Primary) |
+| Distributable | - | - | - | ✅ |
 
 ## Status
 

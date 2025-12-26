@@ -19,7 +19,7 @@ Fine-Grained ReactivityとIsland Architectureの融合。より少ないJavaScri
 |--------------|--------|
 | Hydration Loader | **~1.6 KB** |
 | Island Runtime | **~3.2 KB** |
-| Virtual DOM差分計算なし | |
+| 合計 | **~6.7 KB** |
 
 LunaのIsland Architectureは、インタラクティブなコンポーネントだけにJavaScriptを配信。静的コンテンツは静的なまま。
 
@@ -50,74 +50,45 @@ setCount(c => c + 1);  // Logs: 2
 | `visible` | ビューポートに入った時 |
 | `media` | メディアクエリにマッチした時 |
 
-```html
-<!-- このIslandだけがJavaScriptを配信 -->
-<div luna:id="counter" luna:client-trigger="visible">
-  <button>Count: 0</button>
-</div>
-<!-- それ以外は純粋なHTML -->
-```
-
-### SSR パフォーマンス
-
-Shadow DOM SSRのオーバーヘッドはほぼゼロ：
-
-| 操作 | オーバーヘッド |
-|-----|--------------|
-| Shadow DOM テンプレート構文 | Plain HTMLと**ほぼ同等** |
-| Hydration更新 | **~12%** 遅い程度 |
-| Adoptable Stylesheets | **8.4倍速** |
-
-ボトルネックは属性のエスケープ処理であり、テンプレート形式ではない。
-
----
-
-## マルチターゲットアーキテクチャ
-
-一度書けば、どこでも動く：
-
-| ターゲット | Signal | Render | DOM |
-|-----------|:------:|:------:|:---:|
-| JavaScript | ✅ | ✅ | ✅ |
-| Native | ✅ | ✅ | - |
-| Wasm | ✅ | ✅ | - |
-| Wasm-GC | ✅ | ✅ | - |
-
-コアのリアクティビティは全MoonBitターゲットで動作。SSRにはNative、ブラウザにはJavaScript。
-
 ---
 
 ## クイックスタート
 
-### インストール
+### JavaScript/TypeScript
 
 ```bash
-npm install @luna_ui/luna
+npx @luna_ui/luna new myapp
+cd myapp && npm install && npm run dev
 ```
 
-### コンポーネントを作成
+### MoonBit
 
-```tsx
-import { createSignal } from '@luna_ui/luna';
-
-function Counter() {
-  const [count, setCount] = createSignal(0);
-
-  return (
-    <button onClick={() => setCount(c => c + 1)}>
-      Count: {count()}
-    </button>
-  );
-}
+```bash
+npx @luna_ui/luna new myapp --mbt
+cd myapp && moon update && npm install && npm run dev
 ```
 
-### MoonBitで使用
+---
+
+## コード例
+
+### JavaScript
+
+```typescript
+import { createSignal, createEffect } from '@luna_ui/luna';
+
+const [count, setCount] = createSignal(0);
+createEffect(() => console.log(count()));
+setCount(1);  // Logs: 1
+```
+
+### MoonBit
 
 ```moonbit
-let count = @luna.signal(0)
-let doubled = @luna.memo(fn() { count.get() * 2 })
+let count = @signal.signal(0)
+let doubled = @signal.memo(fn() { count.get() * 2 })
 
-@luna.effect(fn() {
+@signal.effect(fn() {
   println("Count: \{count.get()}, Doubled: \{doubled()}")
 })
 
@@ -126,21 +97,14 @@ count.set(5)  // 出力: Count: 5, Doubled: 10
 
 ---
 
-## 設計哲学
+## エコシステム
 
-1. **より少ないJavaScript** - 静的コンテンツにランタイムコストは不要
-2. **Fine-Grained更新** - 変更された部分だけをDOM単位で更新
-3. **プログレッシブエンハンスメント** - JavaScriptなしでも動作、あればより良く
-4. **型安全性** - MoonBitの型システムでコンパイル時にエラーを検出
-
----
-
-## さらに詳しく
-
-- [はじめに](/introduction/getting-started/) - インストールと最初のステップ
-- [Signalsガイド](/ja/luna/signals/) - リアクティブプリミティブの詳細
-- [Island Architecture](/ja/luna/islands/) - 部分的ハイドレーションのパターン
-- [Luna ドキュメント](/ja/luna/) - 完全なドキュメント
+| プロジェクト | 説明 |
+|------------|------|
+| [Luna UI](/ja/luna/) | コアUIライブラリ - Signals、Islands、Hydration |
+| [Astra](/ja/astra/) | 静的サイトジェネレーター (SSG) |
+| [Stella](/ja/stella/) | Web Componentsビルドシステム |
+| [Sol](/ja/sol/) | フルスタックSSRフレームワーク |
 
 ---
 
@@ -150,4 +114,4 @@ count.set(5)  // 出力: Count: 5, Doubled: 10
 
 [MoonBit](https://www.moonbitlang.com/)で構築 - クラウドとエッジコンピューティング向けに設計された高速で安全な言語。
 
-[GitHub](https://github.com/mizchi/luna) | [npm](https://www.npmjs.com/package/@luna_ui/luna)
+[GitHub](https://github.com/mizchi/luna.mbt) | [npm](https://www.npmjs.com/package/@luna_ui/luna)

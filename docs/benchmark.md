@@ -4,16 +4,16 @@ title: Benchmark Report
 
 # Luna Benchmark Report
 
-Luna vs React vs Preact の比較ベンチマーク結果。
+Comparison benchmark results: Luna vs React vs Preact.
 
-## TL;DR - Luna の強み
+## TL;DR - Luna's Strengths
 
-| 指標 | Luna | 備考 |
-|------|------|------|
-| **バンドルサイズ** | 9.4 KB (gzip) | React の 1/6 |
-| **SSR 性能** | 12,800 pages/sec | 1000アイテムリスト |
-| **Signal 更新** | 11M ops/sec | Fine-Grained Reactivity |
-| **部分更新** | 4.5M ops/sec | DOM 操作なしで更新 |
+| Metric | Luna | Note |
+|--------|------|------|
+| **Bundle Size** | 9.4 KB (gzip) | 1/6 of React |
+| **SSR Performance** | 12,800 pages/sec | 1000-item list |
+| **Signal Update** | 11M ops/sec | Fine-Grained Reactivity |
+| **Partial Update** | 4.5M ops/sec | Direct DOM update |
 
 ## Bundle Size Comparison
 
@@ -23,11 +23,11 @@ Luna vs React vs Preact の比較ベンチマーク結果。
 | **Luna** | **33 KB** | **9.4 KB** | **6x smaller** |
 | Preact 10 + hooks | 13 KB | 5.4 KB | 15x smaller |
 
-**Luna は React の 1/6 のサイズ**。Preact より大きいが、Signal, SSR, Island Architecture を含むフルスタックフレームワーク。
+**Luna is 1/6 the size of React**. Larger than Preact, but includes Signal, SSR, and Island Architecture as a full-stack framework.
 
 ## Runtime Performance
 
-jsdom 環境でのベンチマーク結果 (vitest bench)。
+Benchmark results in jsdom environment (vitest bench).
 
 ### Initial Mount (2,500 cells)
 
@@ -53,7 +53,7 @@ jsdom 環境でのベンチマーク結果 (vitest bench)。
 | React | 119 | 105x slower |
 | Luna | 111 | 113x slower |
 
-> Note: Preact の Update が極端に速いのは、状態変更のバッチ処理による可能性あり。
+> Note: Preact's extremely fast update may be due to state change batching.
 
 ### Large Grid (5,000 cells)
 
@@ -75,15 +75,15 @@ jsdom 環境でのベンチマーク結果 (vitest bench)。
 
 ### Current Status
 
-Luna は現時点で**速度面では React/Preact に劣っています**。これは以下の要因による：
+Luna is currently **slower than React/Preact in raw speed**. This is due to:
 
-1. **MoonBit → JS コンパイル**: 生成された JS コードは手書きより最適化の余地がある
-2. **Fine-Grained Reactivity のオーバーヘッド**: 各要素ごとの依存追跡コスト
-3. **開発初期段階**: まだ最適化が進んでいない
+1. **MoonBit → JS compilation**: Generated JS code has room for optimization compared to hand-written code
+2. **Fine-Grained Reactivity overhead**: Dependency tracking cost per element
+3. **Early development stage**: Optimization work is still in progress
 
-### Luna の価値提案
+### Luna's Value Proposition
 
-速度だけが全てではありません。Luna は以下の価値を提供します：
+Speed isn't everything. Luna provides these values:
 
 | Feature | Luna | React | Preact |
 |---------|------|-------|--------|
@@ -96,9 +96,9 @@ Luna は現時点で**速度面では React/Preact に劣っています**。こ
 
 ### Future Optimization Opportunities
 
-1. **wasm-gc target**: MoonBit は wasm-gc にコンパイル可能。将来的に JS より高速になる可能性
-2. **コンパイラ最適化**: MoonBit コンパイラの改善による自動的な高速化
-3. **DOM 操作の最適化**: 現在の実装にはまだ改善の余地がある
+1. **wasm-gc target**: MoonBit can compile to wasm-gc, potentially faster than JS in the future
+2. **Compiler optimization**: Automatic speedup through MoonBit compiler improvements
+3. **DOM operation optimization**: Current implementation has room for improvement
 
 ## Benchmark Environment
 
@@ -113,14 +113,14 @@ cd luna.mbt
 npx vitest bench js/luna/benches/grid.bench.ts --run
 ```
 
-## Luna の強み - MoonBit ベンチマーク
+## Luna's Strengths - MoonBit Benchmarks
 
-Luna 内部の MoonBit ベンチマーク結果。これらは Luna の設計上の強みを示しています。
+Internal MoonBit benchmark results for Luna. These demonstrate Luna's architectural strengths.
 
 ### SSR (Server-Side Rendering)
 
-| テスト | 時間 | ops/sec |
-|--------|------|---------|
+| Test | Time | ops/sec |
+|------|------|---------|
 | Simple element | 0.13 µs | 7.7M |
 | 10 item list | 0.83 µs | 1.2M |
 | 100 item list | 8.12 µs | 123K |
@@ -129,12 +129,12 @@ Luna 内部の MoonBit ベンチマーク結果。これらは Luna の設計上
 | 50 card page | 28.5 µs | 35K |
 | 100 card page | 58.4 µs | 17K |
 
-**SSR 性能は非常に高速** - 1000要素のリストを 78µs で生成可能。
+**SSR performance is extremely fast** - Can generate a 1000-element list in 78µs.
 
 ### Signal (Fine-Grained Reactivity)
 
-| 操作 | 時間 | ops/sec |
-|------|------|---------|
+| Operation | Time | ops/sec |
+|-----------|------|---------|
 | Signal::new | ~0.36 µs/100 | 280K |
 | Signal::get | 0.28 µs/1000 | 3.6M |
 | **Signal::set** | **0.09 µs** | **11M** |
@@ -143,57 +143,57 @@ Luna 内部の MoonBit ベンチマーク結果。これらは Luna の設計上
 | Effect rerun | ~1 µs | 1M |
 | Batch 100 updates | 5 µs | 200K |
 
-**Signal 更新は 11M ops/sec** - React の setState より桁違いに高速。
+**Signal updates at 11M ops/sec** - Orders of magnitude faster than React's setState.
 
-### DOM 更新 (Fine-Grained)
+### DOM Updates (Fine-Grained)
 
-| 操作 | 時間 | ops/sec |
-|------|------|---------|
+| Operation | Time | ops/sec |
+|-----------|------|---------|
 | **Text update** | **0.22 µs** | **4.5M** |
 | Attr update | 0.39 µs | 2.6M |
 | Show toggle | 2.56 µs | 390K |
 | Deep update (5 levels) | 0.37 µs | 2.7M |
 
-**部分更新は 4.5M ops/sec** - VDOM diff なしで直接 DOM 更新。
+**Partial updates at 4.5M ops/sec** - Direct DOM updates without VDOM diffing.
 
-### なぜ Luna は VDOM ベンチで遅いのか
+### Why Luna is Slower in VDOM Benchmarks
 
-Grid ベンチマーク（2,500セル全更新）では Luna は Preact より遅いが、これは：
+Luna is slower than Preact in grid benchmarks (updating all 2,500 cells), because:
 
-1. **全要素更新は Luna の想定外ユースケース**
-   - Fine-Grained Reactivity は「一部だけ更新」が前提
-   - 2,500セル全部を毎回更新するのは VDOM 向き
+1. **Full element updates are not Luna's target use case**
+   - Fine-Grained Reactivity assumes "update only parts"
+   - Updating all 2,500 cells every time suits VDOM
 
-2. **Luna の設計思想**
-   - 変更された Signal だけが DOM を更新
-   - 1セルの更新 = 0.22µs（VDOM diff 不要）
+2. **Luna's design philosophy**
+   - Only changed Signals update the DOM
+   - 1 cell update = 0.22µs (no VDOM diff needed)
 
-3. **実際のアプリでは Luna が有利なケース**
-   - ほとんどの UI は部分更新
-   - Island Architecture で初期化コストを分散
+3. **In real apps, Luna excels when**
+   - Most UIs involve partial updates
+   - Island Architecture distributes initialization cost
 
 ## Conclusion
 
-### Luna が向いているケース
+### When Luna is a Good Fit
 
-- ✅ **SSR + 選択的ハイドレーション** が必要
-- ✅ **Island Architecture** で部分ハイドレーションしたい
-- ✅ **部分更新が多い** UI（リアクティブなダッシュボード等）
-- ✅ **小さなバンドルサイズ** が重要（React の 1/6）
-- ✅ MoonBit で型安全な UI を書きたい
-- ✅ 将来的な wasm-gc 対応を見据えている
+- ✅ Need **SSR + selective hydration**
+- ✅ Want **Island Architecture** for partial hydration
+- ✅ **Frequent partial updates** (reactive dashboards, etc.)
+- ✅ **Small bundle size** matters (1/6 of React)
+- ✅ Want type-safe UI with MoonBit
+- ✅ Looking ahead to wasm-gc support
 
-### Luna が向いていないケース
+### When Luna is Not a Good Fit
 
-- ❌ **大量要素の全更新**（ゲームのフレーム更新等）
-- ❌ React/Preact エコシステム（既存ライブラリ）が必要
+- ❌ **Mass element updates** (game frame updates, etc.)
+- ❌ Need React/Preact ecosystem (existing libraries)
 
-### 比較まとめ
+### Comparison Summary
 
-| 特性 | Luna | Preact | React |
-|------|------|--------|-------|
-| バンドルサイズ | ⭐⭐⭐ 9KB | ⭐⭐⭐⭐ 5KB | ⭐ 60KB |
-| 全要素更新 | ⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| 部分更新 | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Aspect | Luna | Preact | React |
+|--------|------|--------|-------|
+| Bundle Size | ⭐⭐⭐ 9KB | ⭐⭐⭐⭐ 5KB | ⭐ 60KB |
+| Full Update | ⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| Partial Update | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 | SSR | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 | Island Architecture | ⭐⭐⭐⭐ Built-in | ❌ | ❌ |

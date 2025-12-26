@@ -1,40 +1,102 @@
 ---
-title: Luna
+title: Luna UI
 ---
 
-# Luna
+# Luna UI
 
-Luna は MoonBit と JavaScript のためのリアクティブ UI ライブラリです。細粒度リアクティビティと Island Architecture を特徴としています。
+Luna はMoonBitとJavaScriptのためのリアクティブUIライブラリです。Fine-grained reactivityとIsland Architectureを特徴としています。
+
+## クイックスタート
+
+### JavaScript/TypeScript
+
+```bash
+npx @luna_ui/luna new myapp
+cd myapp && npm install && npm run dev
+```
+
+### MoonBit
+
+```bash
+npx @luna_ui/luna new myapp --mbt
+cd myapp && moon update && npm install && npm run dev
+```
 
 ## コア概念
 
-### [なぜ Luna?](/ja/luna/why-luna/)
+### Signals
 
-Luna の設計思想、パフォーマンス特性、他のフレームワークとの比較について学びます。
+Signalsはlunaのリアクティビティシステムの基盤です。
 
-- 最小限のランタイム（ローダー ~1.6KB）
-- Virtual DOM を使わない細粒度リアクティビティ
-- 最適なパフォーマンスのための Island Architecture
+```typescript
+import { createSignal, createEffect } from '@luna_ui/luna';
 
-### [Signals](/ja/luna/signals/)
+const [count, setCount] = createSignal(0);
 
-Signals は Luna のリアクティビティシステムの基盤です。リアクティブプリミティブの作成と使用方法を学びます。
+createEffect(() => {
+  console.log('Count is:', count());
+});
 
-- `createSignal` - リアクティブな値を作成
-- `createEffect` - Signal の変更に反応
-- `createMemo` - 派生値を計算
+setCount(1);      // Logs: Count is: 1
+setCount(c => c + 1);  // Logs: Count is: 2
+```
 
-### [Islands](/ja/luna/islands/)
+MoonBitでは：
 
-Island Architecture は部分的なハイドレーションを可能にし、必要な場所にのみ JavaScript を配信します。
+```moonbit
+let count = @signal.signal(0)
+
+@signal.effect(fn() {
+  println("Count is: " + count.get().to_string())
+})
+
+count.set(1)  // 出力: Count is: 1
+count.update(fn(n) { n + 1 })  // 出力: Count is: 2
+```
+
+### Islands
+
+Island Architectureにより、部分的なハイドレーションが可能になり、必要な場所にのみJavaScriptを配信します。
 
 - 静的コンテンツは静的なまま
 - インタラクティブなコンポーネントは独立してハイドレーション
 - 複数のトリガー戦略（load, idle, visible, media）
 
-## クイックリンク
+```html
+<div luna:id="counter" luna:client-trigger="visible">
+  <button>Count: 0</button>
+</div>
+```
 
-- [チュートリアル (MoonBit)](/ja/luna/tutorial-moonbit/) - MoonBit で Luna を学ぶ
-- [チュートリアル (JavaScript)](/ja/luna/tutorial-js/) - JavaScript で Luna を学ぶ
-- [Astra SSG](/ja/astra/) - 静的サイトジェネレーター
-- [Sol Framework](/ja/sol/) - フルスタック SSR フレームワーク
+### Fine-Grained Reactivity
+
+Virtual DOMなし、差分計算なし。Signal単位でDOMを直接更新：
+
+```
+Virtual DOM: State → Create Tree → Diff → Patch (O(n))
+Luna:        Signal → Direct DOM Update (O(1))
+```
+
+## npmパッケージ
+
+```bash
+npm install @luna_ui/luna
+```
+
+## 機能
+
+| 機能 | 説明 |
+|------|------|
+| **Signals** | リアクティブプリミティブ (signal, memo, effect) |
+| **Islands** | 部分的ハイドレーション |
+| **Web Components** | Shadow DOMサポート |
+| **SSR** | Declarative Shadow DOMによるサーバーレンダリング |
+| **TypeScript** | 完全な型サポート |
+
+## 関連リンク
+
+- [JavaScript チュートリアル](/luna/tutorial-js/) - JavaScript で Luna を学ぶ
+- [MoonBit チュートリアル](/luna/tutorial-moonbit/) - MoonBit で Luna を学ぶ
+- [API リファレンス (JavaScript)](/luna/api-js/) - JavaScript API
+- [API リファレンス (MoonBit)](/luna/api-moonbit/) - MoonBit API
+- [Deep Dive](/luna/deep-dive/) - 内部アーキテクチャとパフォーマンス最適化
