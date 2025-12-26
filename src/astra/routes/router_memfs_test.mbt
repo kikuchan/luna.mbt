@@ -235,3 +235,132 @@ test "format_duplicate_error" {
     content="Duplicate content for URL '/guide/': [guide/index.md, guide/index.html]",
   )
 }
+
+// =============================================================================
+// Dynamic File Route Tests
+// =============================================================================
+
+///|
+test "scan_docs_dir_with_fs - dynamic file with staticParams" {
+  let fs = @fs_adapter.MemFSAdapter::new()
+  fs.memfs().mkdirSync("/project/docs/posts", recursive=true)
+
+  // Create dynamic file template
+  let template_content =
+    #|---
+    #|title: Post Template
+    #|---
+    #|# Post content
+    #|
+  fs.memfs().writeFileSync("/project/docs/posts/_id_.md", template_content)
+
+  // Create page.json with staticParams
+  let page_json =
+    #|{
+    #|  "staticParams": [
+    #|    { "id": "hello-world" },
+    #|    { "id": "getting-started" },
+    #|    { "id": "advanced" }
+    #|  ]
+    #|}
+  fs.memfs().writeFileSync("/project/docs/posts/page.json", page_json)
+  let pages = scan_docs_dir_with_fs(fs, "docs", "/project")
+  inspect(pages.length(), content="3")
+
+  // Check URLs are generated correctly
+  let urls = pages.map(fn(p) { p.url_path })
+  assert_true(urls.contains("/posts/hello-world/"))
+  assert_true(urls.contains("/posts/getting-started/"))
+  assert_true(urls.contains("/posts/advanced/"))
+}
+
+///|
+test "scan_docs_dir_with_fs - dynamic file without page.json" {
+  let fs = @fs_adapter.MemFSAdapter::new()
+  fs.memfs().mkdirSync("/project/docs/posts", recursive=true)
+
+  // Create dynamic file template without page.json
+  let template_content =
+    #|---
+    #|title: Post Template
+    #|---
+    #|# Post content
+    #|
+  fs.memfs().writeFileSync("/project/docs/posts/_id_.md", template_content)
+
+  // No page.json - should skip this file
+  let pages = scan_docs_dir_with_fs(fs, "docs", "/project")
+  inspect(pages.length(), content="0")
+}
+
+///|
+test "scan_docs_dir_with_fs - catch-all dynamic file" {
+  let fs = @fs_adapter.MemFSAdapter::new()
+  fs.memfs().mkdirSync("/project/docs", recursive=true)
+
+  // Create catch-all dynamic file template
+  let template_content =
+    #|---
+    #|title: Catch All
+    #|---
+    #|# Content
+    #|
+  fs.memfs().writeFileSync("/project/docs/___path___.md", template_content)
+
+  // Create page.json with staticParams
+  let page_json =
+    #|{
+    #|  "staticParams": [
+    #|    { "path": "guide/intro" },
+    #|    { "path": "api/reference" }
+    #|  ]
+    #|}
+  fs.memfs().writeFileSync("/project/docs/page.json", page_json)
+  let pages = scan_docs_dir_with_fs(fs, "docs", "/project")
+  inspect(pages.length(), content="2")
+  let urls = pages.map(fn(p) { p.url_path })
+  assert_true(urls.contains("/guide/intro/"))
+  assert_true(urls.contains("/api/reference/"))
+}
+
+///|
+test "scan_docs_dir_with_fs - mixed static and dynamic files" {
+  let fs = @fs_adapter.MemFSAdapter::new()
+  fs.memfs().mkdirSync("/project/docs/posts", recursive=true)
+
+  // Create static index file
+  let index_content =
+    #|---
+    #|title: Posts Index
+    #|---
+    #|# All Posts
+    #|
+  fs.memfs().writeFileSync("/project/docs/posts/index.md", index_content)
+
+  // Create dynamic file template
+  let template_content =
+    #|---
+    #|title: Post Template
+    #|---
+    #|# Post content
+    #|
+  fs.memfs().writeFileSync("/project/docs/posts/_slug_.md", template_content)
+
+  // Create page.json with staticParams
+  let page_json =
+    #|{
+    #|  "staticParams": [
+    #|    { "slug": "first-post" },
+    #|    { "slug": "second-post" }
+    #|  ]
+    #|}
+  fs.memfs().writeFileSync("/project/docs/posts/page.json", page_json)
+  let pages = scan_docs_dir_with_fs(fs, "docs", "/project")
+  inspect(pages.length(), content="3")
+
+  // Check both static and dynamic pages exist
+  let urls = pages.map(fn(p) { p.url_path })
+  assert_true(urls.contains("/posts/"))
+  assert_true(urls.contains("/posts/first-post/"))
+  assert_true(urls.contains("/posts/second-post/"))
+}

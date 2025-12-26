@@ -204,3 +204,67 @@ test "build_static_paths - multiple params" {
   // Keys are sorted alphabetically: category, id
   inspect(result[0].output, content="shop/books/123/index.html")
 }
+
+// =============================================================================
+// Dynamic File Pattern Tests
+// =============================================================================
+
+///|
+test "extract_param_name - single underscore pattern" {
+  let result = extract_param_name("_id_")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="id")
+  inspect(info.catch_all, content="false")
+}
+
+///|
+test "extract_param_name - triple underscore pattern (catch-all)" {
+  let result = extract_param_name("___all___")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="all")
+  inspect(info.catch_all, content="true")
+}
+
+///|
+test "extract_param_name - legacy catch-all pattern" {
+  let result = extract_param_name("_...slug_")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="slug")
+  inspect(info.catch_all, content="true")
+}
+
+///|
+test "extract_param_name - regular directory" {
+  let result = extract_param_name("posts")
+  assert_true(result is None)
+}
+
+///|
+test "extract_param_from_filename - single param md" {
+  let result = extract_param_from_filename("_id_.md")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="id")
+  inspect(info.catch_all, content="false")
+}
+
+///|
+test "extract_param_from_filename - catch-all tsx" {
+  let result = extract_param_from_filename("___path___.tsx")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="path")
+  inspect(info.catch_all, content="true")
+}
+
+///|
+test "extract_param_from_filename - regular file" {
+  let result = extract_param_from_filename("index.md")
+  assert_true(result is None)
+}
+
+///|
+test "extract_param_from_filename - mbt file" {
+  let result = extract_param_from_filename("_slug_.mbt")
+  guard result is Some(info) else { fail("Expected Some") }
+  inspect(info.name, content="slug")
+  inspect(info.catch_all, content="false")
+}

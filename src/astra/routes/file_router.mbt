@@ -302,7 +302,20 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
         trailing_slash,
       )
     } else if entry.has_suffix(".md") || entry.has_suffix(".html") {
-      // Process markdown or HTML file
+      // Check if this is a dynamic file pattern (_id_.md, ___all___.md)
+      match @core_routes.extract_param_from_filename(entry) {
+        Some(param_info) => {
+          // This is a dynamic file - process with static params
+          scan_dynamic_file_with_fs(
+            filesystem, dir_path, entry_path, entry_relative, entry, param_info,
+            i18n, pages, trailing_slash,
+          )
+          continue
+        }
+        None => ()
+      }
+
+      // Process regular markdown or HTML file
       let source_path = entry_relative
       let content_type : @astra.ContentType = if entry.has_suffix(".html") {
         @astra.Html
@@ -349,6 +362,130 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
       }
       pages.push(page)
     }
+  }
+}
+
+///|
+/// Scan a dynamic parameter file (_id_.md, ___all___.md, etc.)
+/// Reads page.json from same directory for staticParams and generates pages for each param value
+fn[FS : @env.FileSystem] scan_dynamic_file_with_fs(
+  filesystem : FS,
+  dir_path : String,
+  file_path : String,
+  relative_path : String,
+  filename : String,
+  param_info : @core_routes.ParamInfo,
+  i18n : @astra.I18nConfig,
+  pages : Array[@astra.PageMeta],
+  trailing_slash : Bool,
+) -> Unit {
+  let param_name = param_info.name
+  let _is_catch_all = param_info.catch_all // TODO: Handle catch-all routes
+
+  // Read page.json from the same directory for static params configuration
+  let page_json_path = join_path_simple(dir_path, "page.json")
+  let page_config = if @env.FileSystem::exists_sync(filesystem, page_json_path) {
+    let content : String = @env.FileSystem::read_file_sync(
+      filesystem, page_json_path,
+    ) catch {
+      _ => ""
+    }
+    parse_page_json(content)
+  } else {
+    None
+  }
+
+  // Get static params from page.json
+  let static_params = match page_config {
+    Some(config) => config.static_params
+    None => []
+  }
+
+  // If no static params defined, skip this file
+  if static_params.is_empty() {
+    return
+  }
+
+  // Read the template file content
+  let template_content : String = @env.FileSystem::read_file_sync(
+    filesystem, file_path,
+  ) catch {
+    _ => return
+  }
+
+  // Determine content type
+  let content_type : @astra.ContentType = if filename.has_suffix(".html") {
+    @astra.Html
+  } else {
+    @astra.Markdown
+  }
+
+  // Parse frontmatter from template
+  let base_frontmatter = match content_type {
+    @astra.Markdown => {
+      let (fm, _) = @markdown.parse_markdown(template_content)
+      fm
+    }
+    _ => @astra.Frontmatter::default()
+  }
+
+  // Get parent path (directory containing the dynamic file)
+  let parent_path = get_parent_dir(relative_path)
+
+  // Generate a page for each static param
+  for param_set in static_params {
+    // Get the param value (e.g., {"id": "hello-world"} -> "hello-world")
+    let param_value = match param_set.get(param_name) {
+      Some(v) => v
+      None => continue // Skip if param not found
+    }
+
+    // Build the output path: parent/value/
+    let page_relative = if parent_path.is_empty() {
+      param_value
+    } else {
+      parent_path + "/" + param_value
+    }
+
+    // Detect locale and build URL
+    let (locale, canonical_path) = detect_locale_from_path(
+      page_relative,
+      i18n,
+      trailing_slash~,
+    )
+    let url_path = build_localized_url(canonical_path, locale, i18n)
+
+    // Ensure trailing slash
+    let url_path_normalized = if trailing_slash && not(url_path.has_suffix("/")) {
+      url_path + "/"
+    } else {
+      url_path
+    }
+
+    // Create frontmatter with param value available
+    // Title can use the param value if not specified
+    let title = match base_frontmatter.title {
+      Some(t) => Some(t)
+      None => Some(@ssg.capitalize_first(param_value.replace(old="-", new=" ")))
+    }
+    let frontmatter = @astra.Frontmatter::{ ..base_frontmatter, title, }
+    let renderer_type = determine_renderer_type(content_type, frontmatter)
+
+    // Store param info in source_path for later template processing
+    // Format: path/to/_id_.md?id=value
+    let source_with_param = relative_path + "?" + param_name + "=" + param_value
+    let page = @astra.PageMeta::{
+      source_path: source_with_param,
+      url_path: url_path_normalized,
+      content_type,
+      renderer_type,
+      frontmatter,
+      last_modified: None,
+      locale,
+      canonical_path,
+      sort_key: page_relative,
+    }
+    pages.push(page)
   }
 }
 

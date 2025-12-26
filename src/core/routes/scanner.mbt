@@ -82,10 +82,19 @@ fn[FS : @env.FileSystem] scan_recursive(
         }
       }
     } else {
-      // Regular file
-      process_page_file(
-        fs, entry_path, pages_dir, entry_rel, entry, config, routes,
-      )
+      // Check if it's a dynamic file pattern (_id_.mbt, ___all___.mbt, etc.)
+      match extract_param_from_filename(entry) {
+        Some(param_info) =>
+          // Dynamic file - process as dynamic route
+          process_dynamic_page_file(
+            fs, entry_path, pages_dir, entry_rel, entry, param_info, config, routes,
+          )
+        None =>
+          // Regular file
+          process_page_file(
+            fs, entry_path, pages_dir, entry_rel, entry, config, routes,
+          )
+      }
     }
   }
 }
@@ -296,6 +305,89 @@ fn[FS : @env.FileSystem] scan_dynamic_dir(
 }
 
 ///|
+/// Process a dynamic page file (_id_.mbt, ___all___.mbt, etc.)
+/// Creates a dynamic route entry for runtime matching
+fn[FS : @env.FileSystem] process_dynamic_page_file(
+  _fs : FS,
+  _abs_path : String,
+  _pages_dir : String,
+  rel_path : String,
+  filename : String,
+  param_info : ParamInfo,
+  config : PageConfig,
+  routes : Array[RouteEntry],
+) -> Unit {
+  let file_type = FileType::from_extension(get_extension(filename))
+  if not(file_type.is_page()) {
+    return
+  }
+  let param_name = param_info.name
+  let is_catch_all = param_info.catch_all
+
+  // Build URL pattern for dynamic route
+  let url_pattern = build_dynamic_url_pattern_for_file(
+    rel_path, param_name, is_catch_all,
+  )
+  let regex_pattern = build_regex_pattern(url_pattern)
+  let catch_all_info = if is_catch_all {
+    Some(CatchAllInfo::{ name: param_name, optional: false })
+  } else {
+    None
+  }
+
+  // For Sol (SSR), create a dynamic route entry
+  // Static generation with staticParams is handled separately if configured
+  if config.is_static() && config.generate_params {
+    // Static generation mode - will be filled during build
+    let entry = RouteEntry::Static(StaticRouteEntry::{
+      path: url_pattern,
+      source: rel_path,
+      output: "", // Filled during generation
+      layout: config.layout,
+      title: config.title,
+      description: config.description,
+      islands: config.islands,
+      locale: "en",
+      generated_params: [], // Filled by getStaticParams
+    })
+    routes.push(entry)
+  } else {
+    // Dynamic route for runtime handling
+    let entry = RouteEntry::Dynamic(DynamicRouteEntry::{
+      path: url_pattern,
+      pattern: regex_pattern,
+      param_names: [param_name],
+      source: rel_path,
+      mode: config.to_render_mode(),
+      layout: config.layout,
+      catch_all: catch_all_info,
+      title: config.title,
+      islands: config.islands,
+    })
+    routes.push(entry)
+  }
+}
+
+///|
+/// Build URL pattern for dynamic file route
+/// e.g., "posts/_id_.mbt" -> "/posts/:id"
+/// e.g., "docs/___path___.md" -> "/docs/*path"
+fn build_dynamic_url_pattern_for_file(
+  rel_path : String,
+  param_name : String,
+  is_catch_all : Bool,
+) -> String {
+  // Get parent directory path (without the dynamic filename)
+  let parent_path = get_parent_path(rel_path)
+  let base = if parent_path.is_empty() { "/" } else { "/" + parent_path + "/" }
+  if is_catch_all {
+    base + "*" + param_name
+  } else {
+    base + ":" + param_name
+  }
+}
+
+///|
 /// Process a regular page file
 fn[FS : @env.FileSystem] process_page_file(
   _fs : FS,
@@ -386,13 +478,20 @@ pub(all) struct ParamInfo {
 /// Extract parameter name from directory name
 /// _slug_ -> Some(ParamInfo { name: "slug", catch_all: false })
 /// _...slug_ -> Some(ParamInfo { name: "slug", catch_all: true })
+/// ___slug___ -> Some(ParamInfo { name: "slug", catch_all: true })
 /// regular -> None
-fn extract_param_name(dir_name : String) -> ParamInfo? {
+pub fn extract_param_name(dir_name : String) -> ParamInfo? {
   let len = dir_name.length()
+  // Check for catch-all pattern with triple underscores: ___name___
+  if dir_name.has_prefix("___") && dir_name.has_suffix("___") && len > 6 {
+    let inner = @utils.extract_substring(dir_name, 3, len - 3)
+    return Some(ParamInfo::{ name: inner, catch_all: true })
+  }
+  // Check for single param pattern: _name_
   if dir_name.has_prefix("_") && dir_name.has_suffix("_") && len > 2 {
     // Extract content between underscores
     let inner = @utils.extract_substring(dir_name, 1, len - 1)
-    // Check for catch-all pattern _...name_
+    // Check for catch-all pattern _...name_ (legacy)
     if inner.has_prefix("...") && inner.length() > 3 {
       let name = @utils.extract_substring(inner, 3, inner.length())
       Some(ParamInfo::{ name, catch_all: true })
@@ -401,6 +500,31 @@ fn extract_param_name(dir_name : String) -> ParamInfo? {
     }
   } else {
     None
+  }
+}
+
+///|
+/// Extract parameter name from filename (with extension)
+/// _id_.md -> Some(ParamInfo { name: "id", catch_all: false })
+/// ___all___.tsx -> Some(ParamInfo { name: "all", catch_all: true })
+/// regular.md -> None
+pub fn extract_param_from_filename(filename : String) -> ParamInfo? {
+  // Remove extension first
+  let basename = strip_extension(filename)
+  // Then apply the same pattern detection as directory names
+  extract_param_name(basename)
+}
+
+///|
+/// Strip file extension from filename
+/// "file.md" -> "file"
+/// "file.test.mbt" -> "file.test"
+fn strip_extension(filename : String) -> String {
+  let dot_idx = find_last_char(filename, '.')
+  if dot_idx > 0 {
+    @utils.extract_substring(filename, 0, dot_idx)
+  } else {
+    filename
   }
 }
 
