@@ -24,11 +24,11 @@
       "alias": "action"
     },
     {
-      "path": "mizchi/luna/platform/server_dom",
+      "path": "mizchi/luna/luna/static_dom",
       "alias": "server_dom"
     },
     {
-      "path": "mizchi/luna/platform/server_dom/element",
+      "path": "mizchi/luna/luna/static_dom/element",
       "alias": "element"
     },
     {

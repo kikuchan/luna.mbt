@@ -297,7 +297,7 @@ pub fn template_layout_moon_pkg_json() -> String {
     #|  "supported-targets": ["js"],
     #|  "import": [
     #|    { "path": "mizchi/luna/core", "alias": "luna" },
-    #|    { "path": "mizchi/luna/platform/server_dom/element", "alias": "element" }
+    #|    { "path": "mizchi/luna/luna/static_dom/element", "alias": "element" }
     #|  ]
     #|}
   )
@@ -424,7 +424,7 @@ pub fn template_routes_moon_pkg_json(package_name : String) -> String {
     #|    { "path": "mizchi/luna/core/signal", "alias": "signal" },
     #|    { "path": "mizchi/luna/sol", "alias": "sol" },
     #|    { "path": "mizchi/luna/sol/router", "alias": "router" },
-    #|    { "path": "mizchi/luna/platform/server_dom/element", "alias": "element" },
+    #|    { "path": "mizchi/luna/luna/static_dom/element", "alias": "element" },
     #|    { "path": "mizchi/js/core", "alias": "core" },
     #|    { "path": "{{PACKAGE_NAME}}/layout", "alias": "layout" },
     #|    { "path": "{{PACKAGE_NAME}}/client/counter", "alias": "counter" }
@@ -495,7 +495,7 @@ pub fn template_client_counter_moon_pkg_json() -> String {
     #|{
     #|  "supported-targets": ["js"],
     #|  "import": [
-    #|    { "path": "mizchi/luna/platform/dom/element", "alias": "element" },
+    #|    { "path": "mizchi/luna/luna/dom/element", "alias": "element" },
     #|    { "path": "mizchi/luna/core/signal", "alias": "signal" }
     #|  ]
     #|}

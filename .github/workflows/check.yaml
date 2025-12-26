@@ -70,15 +70,16 @@ jobs:
           moon test --target js src/luna/routes
           moon test --target js src/luna/render
           moon test --target js src/luna/serialize
+          # Luna DOM
+          moon test --target js src/luna/dom/client
+          moon test --target js src/luna/static_dom
           # Core
           moon test --target js src/core/parser
           # Platform (specific packages with tests)
-          moon test --target js src/platform/server_dom
           moon test --target js src/platform/js/fs_adapter
           moon test --target js src/platform/js/cache
           moon test --target js src/platform/js/stream_renderer
           moon test --target js src/platform/js/api
-          moon test --target js src/platform/dom/client
           # Sol (non-CLI)
           moon test --target js src/sol/router
           # Astra (non-CLI)
