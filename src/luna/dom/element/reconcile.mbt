@@ -82,7 +82,7 @@ pub fn[T] reconcile_items(
   // Handle empty case - just remove all old entries
   if n == 0 {
     for entry in old_entries {
-      parent.removeChild(entry.dom) |> ignore
+      safe_remove_child(parent, entry.dom)
     }
     return []
   }
@@ -125,11 +125,30 @@ pub fn[T] reconcile_items(
   // Remove unused DOM nodes
   for i, entry in old_entries {
     if not(used_indices[i]) {
-      parent.removeChild(entry.dom) |> ignore
+      safe_remove_child(parent, entry.dom)
     }
   }
   new_entries
 }
+
+///|
+/// Safely remove a child node, handling cases where the node may have been
+/// moved to a different parent (e.g., during moveBefore fallback to insertBefore)
+extern "js" fn safe_remove_child(parent : @js_dom.Node, child : @js_dom.Node) =
+  #| (parent, child) => {
+  #|   try {
+  #|     // Check if the child is actually a child of this parent
+  #|     if (child.parentNode === parent) {
+  #|       parent.removeChild(child);
+  #|     } else if (child.parentNode) {
+  #|       // Node was moved to a different parent, remove from there
+  #|       child.parentNode.removeChild(child);
+  #|     }
+  #|     // If child.parentNode is null, node is already detached
+  #|   } catch (e) {
+  #|     // Ignore errors - node may already be removed or in invalid state
+  #|   }
+  #| }
 
 ///|
 /// Simplified reconciliation for render.mbt's for_each

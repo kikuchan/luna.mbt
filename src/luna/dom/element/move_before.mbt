@@ -46,8 +46,14 @@ extern "js" fn move_before_impl(
 ) -> @js_dom.Node =
   #| (parent, node, refNode) => {
   #|   if (typeof parent.moveBefore === 'function') {
-  #|     parent.moveBefore(node, refNode);
-  #|     return node;
+  #|     try {
+  #|       parent.moveBefore(node, refNode);
+  #|       return node;
+  #|     } catch (e) {
+  #|       // moveBefore may fail on SVG elements or in certain DOM hierarchies
+  #|       // Fall back to insertBefore
+  #|       return parent.insertBefore(node, refNode);
+  #|     }
   #|   } else {
   #|     return parent.insertBefore(node, refNode);
   #|   }
@@ -60,8 +66,14 @@ extern "js" fn move_before_impl_null(
 ) -> @js_dom.Node =
   #| (parent, node) => {
   #|   if (typeof parent.moveBefore === 'function') {
-  #|     parent.moveBefore(node, null);
-  #|     return node;
+  #|     try {
+  #|       parent.moveBefore(node, null);
+  #|       return node;
+  #|     } catch (e) {
+  #|       // moveBefore may fail on SVG elements or in certain DOM hierarchies
+  #|       // Fall back to insertBefore
+  #|       return parent.insertBefore(node, null);
+  #|     }
   #|   } else {
   #|     return parent.insertBefore(node, null);
   #|   }
