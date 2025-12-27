@@ -197,7 +197,7 @@ const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$951 = "wiki-pa
 const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$952 = "wiki-page wiki-not-found";
 const mizchi$luna$examples$wiki$$not_found_component$46$constr$47$959 = "wiki-page wiki-not-found";
 const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$966 = "wiki-container";
-const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$967 = "min-height: 300px;";
+const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$967 = "min-height: 300px; max-width: 100%; overflow: hidden;";
 function moonbitlang$core$abort$$abort$2$(msg) {
   return $panic();
 }
