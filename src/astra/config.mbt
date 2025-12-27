@@ -117,6 +117,10 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
 
   // Parse SPA routes for client-side routing fallback
   let spa_routes = @json_utils.extract_string_array(ssg_obj, "spaRoutes")
+
+  // Parse custom components directory
+  let components_dir = @json_utils.extract_string_opt(ssg_obj, "componentsDir")
+
   Some(SsgConfig::{
     docs_dir,
     output_dir,
@@ -137,6 +141,7 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
     sanitize_html,
     deploy_target,
     spa_routes,
+    components_dir,
   })
 }
 

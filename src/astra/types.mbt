@@ -76,6 +76,9 @@ pub(all) struct SsgConfig {
   /// SPA routes for client-side routing fallback (e.g., ["/wiki/"])
   /// Requests to /wiki/* will fallback to /wiki/index.html
   spa_routes : Array[String]
+  /// Custom components directory (default: "components" in docs_dir)
+  /// Convention: header.mbt, footer.mbt, toc.mbt, breadcrumb.mbt, prev_next.mbt
+  components_dir : String?
 }
 
 // I18nConfig, LocaleConfig are defined in core/ssg
@@ -110,6 +113,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     sanitize_html: false,
     deploy_target: DeployTarget::default(),
     spa_routes: [],
+    components_dir: None,
   }
 }
 

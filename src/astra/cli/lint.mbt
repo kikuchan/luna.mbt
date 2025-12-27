@@ -59,6 +59,10 @@ pub fn run_lint_command(args : Array[String]) -> Unit {
     result.issues.push(issue)
   }
 
+  // Check custom components directory
+  let component_discovery = @components.discover_components(config, cwd)
+  print_component_discovery(component_discovery)
+
   // Print results
   print_lint_results(result)
 
@@ -893,6 +897,33 @@ fn check_route_conflicts(
     }
     issues.push(LintIssue::{ severity, file, line: None, message, rule })
   }
+}
+
+///|
+/// Print component discovery results
+fn print_component_discovery(discovery : @components.DiscoveryResult) -> Unit {
+  println(@colorette.cyan("Component Registry:"))
+  println("  Directory: \{discovery.scanned_dir}")
+  println("")
+
+  if discovery.found.length() > 0 {
+    println(@colorette.bold("  Custom components:"))
+    for ct in discovery.found {
+      let filename = ct.filename()
+      let marker = @colorette.green("+")
+      println("    \{marker} \{filename}")
+    }
+  }
+
+  if discovery.missing.length() > 0 {
+    println(@colorette.bold("  Default components:"))
+    for ct in discovery.missing {
+      let filename = ct.filename()
+      let marker = @colorette.gray("-")
+      println("    \{marker} \{filename} (builtin)")
+    }
+  }
+  println("")
 }
 
 ///|

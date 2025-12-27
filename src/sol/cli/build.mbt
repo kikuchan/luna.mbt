@@ -213,6 +213,7 @@ fn build_static_dirs(static_dirs : Array[StaticDirEntry], cwd : String) -> Unit 
       sanitize_html: false,
       deploy_target: @astra.DeployTarget::default(),
       spa_routes: [],
+      components_dir: None,
     }
 
     // Generate static site
