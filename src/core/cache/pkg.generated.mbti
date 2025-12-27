@@ -1,0 +1,70 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/luna/core/cache"
+
+import(
+  "mizchi/luna/core/env"
+)
+
+// Values
+pub let cache_format_version : Int
+
+pub fn fnv1a(String) -> String
+
+pub fn fnv1a_64(String) -> String
+
+pub fn hash_content(String, String) -> String
+
+pub fn hash_strings(Array[String]) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct CacheEntry {
+  key : String
+  value : String
+  cached_at : String
+  ttl : Int
+}
+pub fn CacheEntry::new(key~ : String, value~ : String, cached_at? : String, ttl? : Int) -> Self
+
+pub(all) struct CacheMeta {
+  version : Int
+  config_hash : String
+  entries : Map[String, EntryMeta]
+}
+pub fn CacheMeta::new(config_hash? : String) -> Self
+
+pub(all) enum CacheStatus {
+  Hit(String)
+  Miss
+  Stale(String)
+  Invalid
+}
+pub fn CacheStatus::is_hit(Self) -> Bool
+pub fn CacheStatus::value(Self) -> String?
+
+pub(all) struct DiskCache[F] {
+  fs : F
+  cache_dir : String
+  meta : CacheMeta
+  enabled : Bool
+}
+pub fn[F : @env.FileSystem] DiskCache::clear(Self[F]) -> Unit
+pub fn[F : @env.FileSystem] DiskCache::get(Self[F], String) -> CacheStatus
+pub fn[F : @env.FileSystem] DiskCache::get_with_hash(Self[F], String, String) -> CacheStatus
+pub fn[F : @env.FileSystem] DiskCache::new(F, cache_dir~ : String, config_hash? : String, enabled? : Bool) -> Self[F]
+pub fn[F : @env.FileSystem] DiskCache::remove(Self[F], String) -> Unit
+pub fn[F : @env.FileSystem] DiskCache::save(Self[F]) -> Unit
+pub fn[F : @env.FileSystem] DiskCache::set(Self[F], String, String, String, ttl? : Int) -> Unit
+pub fn[F : @env.FileSystem] DiskCache::stats(Self[F]) -> (Int, Int)
+
+pub(all) struct EntryMeta {
+  content_hash : String
+  cached_at : String
+  ttl : Int
+}
+
+// Type aliases
+
+// Traits
+

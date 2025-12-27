@@ -36,15 +36,15 @@ fn create_handler(
 ///|
 test "ISRManifest::empty creates empty manifest" {
   let manifest = ISRManifest::empty()
-  assert_eq!(manifest.version, 1)
-  assert_true!(manifest.pages.is_empty())
+  assert_eq(manifest.version, 1)
+  assert_true(manifest.pages.is_empty())
 }
 
 ///|
 test "ISRManifest::is_isr_page returns false for empty manifest" {
   let manifest = ISRManifest::empty()
-  assert_false!(manifest.is_isr_page("/"))
-  assert_false!(manifest.is_isr_page("/blog/"))
+  assert_false(manifest.is_isr_page("/"))
+  assert_false(manifest.is_isr_page("/blog/"))
 }
 
 ///|
@@ -52,8 +52,8 @@ test "ISRManifest::is_isr_page returns true for registered page" {
   let pages : Map[String, ISRPageMeta] = {}
   pages["/blog/post-1/"] = create_page_meta(60, source="blog/post-1.md")
   let manifest = create_manifest(pages)
-  assert_true!(manifest.is_isr_page("/blog/post-1/"))
-  assert_false!(manifest.is_isr_page("/blog/post-2/"))
+  assert_true(manifest.is_isr_page("/blog/post-1/"))
+  assert_false(manifest.is_isr_page("/blog/post-2/"))
 }
 
 ///|
@@ -63,18 +63,18 @@ test "ISRManifest::get_page returns page meta" {
   let manifest = create_manifest(pages)
   match manifest.get_page("/api/data/") {
     Some(meta) => {
-      assert_eq!(meta.revalidate, 10)
-      assert_eq!(meta.renderer, "dynamic")
-      assert_eq!(meta.source, "api/data.ts")
+      assert_eq(meta.revalidate, 10)
+      assert_eq(meta.renderer, "dynamic")
+      assert_eq(meta.source, "api/data.ts")
     }
-    None => fail!("Expected Some(meta)")
+    None => fail("Expected Some(meta)")
   }
 }
 
 ///|
 test "ISRManifest::get_page returns None for non-ISR page" {
   let manifest = ISRManifest::empty()
-  assert_true!(manifest.get_page("/static-page/") is None)
+  assert_true(manifest.get_page("/static-page/") is None)
 }
 
 // =============================================================================
@@ -88,8 +88,8 @@ test "ISRHandler::handle returns (None, false) for non-ISR page" {
   let handler = create_handler(cache, manifest, "/tmp/dist")
 
   let (html, needs_revalidation) = handler.handle("/static-page/")
-  assert_true!(html is None)
-  assert_false!(needs_revalidation)
+  assert_true(html is None)
+  assert_false(needs_revalidation)
 }
 
 ///|
@@ -278,14 +278,14 @@ test "Fresh -> Stale after TTL expires" {
   let status1 = check_status(ISRCache::get(cache, key), created_at + 30000L) // 30s later
   match status1 {
     Fresh => ()
-    _ => fail!("Expected Fresh at 30s")
+    _ => fail("Expected Fresh at 30s")
   }
 
   // After TTL: Stale
   let status2 = check_status(ISRCache::get(cache, key), created_at + 61000L) // 61s later
   match status2 {
     Stale => ()
-    _ => fail!("Expected Stale after TTL")
+    _ => fail("Expected Stale after TTL")
   }
 }
 
@@ -304,7 +304,7 @@ test "Stale -> Fresh after revalidation" {
   let status1 = check_status(ISRCache::get(cache, key), now)
   match status1 {
     Stale => ()
-    _ => fail!("Expected Stale before revalidation")
+    _ => fail("Expected Stale before revalidation")
   }
 
   // Revalidate: update cache with new entry
@@ -315,13 +315,13 @@ test "Stale -> Fresh after revalidation" {
   let status2 = check_status(ISRCache::get(cache, key), now + 1000L) // 1s after revalidation
   match status2 {
     Fresh => ()
-    _ => fail!("Expected Fresh after revalidation")
+    _ => fail("Expected Fresh after revalidation")
   }
 
   // Verify content was updated
   match ISRCache::get(cache, key) {
-    Some(e) => assert_eq!(e.html, "<html>fresh</html>")
-    None => fail!("Expected entry")
+    Some(e) => assert_eq(e.html, "<html>fresh</html>")
+    None => fail("Expected entry")
   }
 }
 
@@ -349,11 +349,11 @@ test "Different TTLs have different expiry times" {
 
   match short_status {
     Stale => ()
-    _ => fail!("Short TTL should be stale at 15s")
+    _ => fail("Short TTL should be stale at 15s")
   }
   match long_status {
     Fresh => ()
-    _ => fail!("Long TTL should still be fresh at 15s")
+    _ => fail("Long TTL should still be fresh at 15s")
   }
 }
 
@@ -370,7 +370,7 @@ test "Zero TTL means always stale after creation" {
   let status = check_status(ISRCache::get(cache, "isr:/instant/"), created_at + 1L)
   match status {
     Stale => ()
-    _ => fail!("Zero TTL should be stale immediately")
+    _ => fail("Zero TTL should be stale immediately")
   }
 }
 
@@ -386,7 +386,7 @@ test "Boundary: exactly at TTL expiry is Stale" {
   let status = check_status(ISRCache::get(cache, "isr:/boundary/"), 60000L)
   match status {
     Stale => ()
-    _ => fail!("Exactly at TTL boundary should be Stale")
+    _ => fail("Exactly at TTL boundary should be Stale")
   }
 }
 
@@ -402,7 +402,7 @@ test "Boundary: 1ms before TTL expiry is Fresh" {
   let status = check_status(ISRCache::get(cache, "isr:/boundary/"), 59999L)
   match status {
     Fresh => ()
-    _ => fail!("1ms before TTL should be Fresh")
+    _ => fail("1ms before TTL should be Fresh")
   }
 }
 
@@ -466,14 +466,14 @@ test "parse_manifest handles valid JSON" {
     #|  }
     #|}
   let manifest = parse_manifest(json)
-  assert_eq!(manifest.version, 1)
-  assert_true!(manifest.is_isr_page("/blog/"))
+  assert_eq(manifest.version, 1)
+  assert_true(manifest.is_isr_page("/blog/"))
   match manifest.get_page("/blog/") {
     Some(meta) => {
-      assert_eq!(meta.revalidate, 60)
-      assert_eq!(meta.renderer, "markdown")
+      assert_eq(meta.revalidate, 60)
+      assert_eq(meta.renderer, "markdown")
     }
-    None => fail!("Expected page meta")
+    None => fail("Expected page meta")
   }
 }
 
@@ -481,28 +481,28 @@ test "parse_manifest handles valid JSON" {
 test "parse_manifest handles empty pages" {
   let json = #|{"version": 1, "pages": {}}
   let manifest = parse_manifest(json)
-  assert_eq!(manifest.version, 1)
-  assert_true!(manifest.pages.is_empty())
+  assert_eq(manifest.version, 1)
+  assert_true(manifest.pages.is_empty())
 }
 
 ///|
 test "parse_manifest handles invalid JSON" {
   let manifest = parse_manifest("not valid json")
-  assert_eq!(manifest.version, 1)
-  assert_true!(manifest.pages.is_empty())
+  assert_eq(manifest.version, 1)
+  assert_true(manifest.pages.is_empty())
 }
 
 ///|
 test "parse_manifest handles missing fields" {
   let json = #|{"pages": {"/test/": {"revalidate": 30}}}
   let manifest = parse_manifest(json)
-  assert_eq!(manifest.version, 1) // Default version
+  assert_eq(manifest.version, 1) // Default version
   match manifest.get_page("/test/") {
     Some(meta) => {
-      assert_eq!(meta.revalidate, 30)
-      assert_eq!(meta.renderer, "markdown") // Default renderer
-      assert_eq!(meta.source, "") // Default source
+      assert_eq(meta.revalidate, 30)
+      assert_eq(meta.renderer, "markdown") // Default renderer
+      assert_eq(meta.source, "") // Default source
     }
-    None => fail!("Expected page meta")
+    None => fail("Expected page meta")
   }
 }

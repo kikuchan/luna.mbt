@@ -14,11 +14,15 @@ pub fn detect_component_type(Bool, Bool) -> ComponentType
 
 pub fn detect_conflicts(RouteManifest) -> Array[ConflictType]
 
+pub fn extract_catch_all(String) -> CatchAllInfo?
+
 pub fn extract_first_segment(String) -> String
 
 pub fn extract_param_from_filename(String) -> ParamInfo?
 
 pub fn extract_param_name(String) -> ParamInfo?
+
+pub fn extract_url_pattern(String) -> (String, Array[String])
 
 pub fn filter_by_mode(RouteManifest, RenderMode) -> RouteManifest
 
@@ -42,11 +46,17 @@ pub fn get_route_path(RouteEntry) -> String
 
 pub fn get_static_routes(RouteManifest) -> Array[StaticRouteEntry]
 
+pub fn is_param_char(Char) -> Bool
+
 pub fn match_dynamic_pattern(SegmentManifest, String) -> (DynamicPattern, Map[String, String])?
 
 pub fn merge_all_manifests(Array[RouteManifest]) -> RouteManifest
 
 pub fn merge_manifests(RouteManifest, RouteManifest) -> RouteManifest
+
+pub fn normalize_url_path(String) -> String
+
+pub fn parse_bracket_param(String, Int) -> (Int, String, Bool)
 
 pub fn parse_page_config(String) -> PageConfig?
 
@@ -55,6 +65,10 @@ pub fn path_matches_segment(String, String) -> Bool
 pub fn resolve_chunks_inline(HierarchicalManifest, String) -> Array[String]?
 
 pub fn route_manifest_to_chunk_manifest(RouteManifest, chunk_hashes? : Map[String, String]) -> ChunkManifest
+
+pub fn safe_char_at(String, Int) -> Char
+
+pub fn safe_substring(String, Int, Int) -> String
 
 pub fn[FS : @env.FileSystem] scan_pages_dir(FS, String, String) -> RouteManifest
 

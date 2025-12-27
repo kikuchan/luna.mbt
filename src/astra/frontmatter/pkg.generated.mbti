@@ -28,6 +28,10 @@ pub(all) struct Frontmatter {
   renderer : String?
   noindex : Bool
   revalidate : Int?
+  date : String?
+  author : String?
+  tags : Array[String]
+  draft : Bool
 }
 pub fn Frontmatter::default() -> Self
 

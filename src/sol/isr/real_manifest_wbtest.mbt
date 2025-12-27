@@ -85,7 +85,7 @@ test "real manifest: verify TTL tiers" {
 test "real manifest: handler cache lifecycle" {
   let cache = MemoryCache::new()
   let manifest = create_real_manifest()
-  let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist-docs" }
+  let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist-docs" }
   let base_time = 1000000000L
 
   // Simulate initial cache population (as if CDN warmed)

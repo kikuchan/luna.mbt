@@ -110,7 +110,6 @@ test "micro-bench: handler.handle() latency" {
 
 ///|
 test "micro-bench: 50k entries scalability" {
-  let cache = MemoryCache::new()
   let sizes = [1000, 5000, 10000, 25000, 50000]
 
   println("")

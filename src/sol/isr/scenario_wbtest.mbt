@@ -25,7 +25,7 @@ test "Large blog scenario: hot pages stay fresh, cold pages go stale" {
     pages[path] = ISRPageMeta::{ revalidate: ttl, renderer: "markdown", source: "" }
   }
   let manifest = ISRManifest::{ version: 1, pages }
-  let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
+  let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
   // Base time for simulation
   let base_time = 1000000000L // ~Jan 1970 + 11 days
@@ -74,7 +74,7 @@ test "Stale page serves content while signaling revalidation need" {
   let pages : Map[String, ISRPageMeta] = {}
   pages["/blog/old-post/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
   let manifest = ISRManifest::{ version: 1, pages }
-  let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
+  let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
   // Cache an entry that's definitely stale (generated long ago)
   let very_old_time = 1000L // Very old
@@ -168,7 +168,7 @@ test "Hot page access pattern keeps cache fresh" {
   let pages : Map[String, ISRPageMeta] = {}
   pages["/blog/popular/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
   let manifest = ISRManifest::{ version: 1, pages }
-  let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
+  let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
   let base_time = 1000000000L
 

@@ -3,6 +3,8 @@ package "mizchi/luna/astra/cache"
 
 import(
   "mizchi/luna/astra"
+  "mizchi/luna/core/env"
+  "mizchi/luna/platform/js/fs_adapter"
 )
 
 // Values
@@ -16,10 +18,7 @@ pub fn fnv1a(String) -> String
 
 // Types and methods
 pub(all) struct CacheManager {
-  cache_dir : String
-  pages_dir : String
-  meta : CacheMeta
-  config_hash : String
+  cache : @mizchi/luna/core/cache.DiskCache[@fs_adapter.NodeFsAdapter]
   enabled : Bool
 }
 pub fn CacheManager::clear(Self) -> Unit
@@ -28,17 +27,7 @@ pub fn CacheManager::new(String, @astra.SsgConfig, enabled? : Bool) -> Self
 pub fn CacheManager::save(Self) -> Unit
 pub fn CacheManager::set(Self, String, String, String) -> Unit
 pub fn CacheManager::stats(Self) -> (Int, Int)
-
-pub(all) struct CacheMeta {
-  version : Int
-  config_hash : String
-  pages : Map[String, PageCacheEntry]
-}
-
-pub(all) struct PageCacheEntry {
-  source_hash : String
-  cached_at : String
-}
+pub fn[F : @env.FileSystem] CacheManager::with_fs(F, String, String, enabled? : Bool) -> @mizchi/luna/core/cache.DiskCache[F]
 
 // Type aliases
 

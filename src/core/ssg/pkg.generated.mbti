@@ -10,6 +10,8 @@ pub fn build_localized_url(String, String, I18nConfig) -> String
 
 pub fn build_sort_key(String) -> String
 
+pub fn build_tree_from_entries(SiteConfig, Array[PageEntry]) -> DocumentTree
+
 pub fn capitalize_first(String) -> String
 
 pub fn compare_strings_lex(String, String) -> Int
@@ -17,6 +19,12 @@ pub fn compare_strings_lex(String, String) -> Int
 pub fn detect_locale_from_path(String, I18nConfig, trailing_slash? : Bool) -> (String, String)
 
 pub fn file_to_url_path(String, trailing_slash? : Bool) -> String
+
+pub fn generate_llms_txt(DocumentTree) -> String
+
+pub fn generate_rss(DocumentTree, limit? : Int) -> String
+
+pub fn generate_sitemap(DocumentTree) -> String
 
 pub fn get_dir_name(String) -> String
 
@@ -39,6 +47,8 @@ pub fn strip_locale_from_url(String, I18nConfig) -> (String, String)
 pub fn strip_numeric_prefixes(String) -> String
 
 pub fn url_to_output_path(String) -> String
+
+pub fn url_to_page_id(String) -> String
 
 // Errors
 
@@ -84,6 +94,16 @@ pub fn NavigationConfig::default() -> Self
 pub impl ToJson for NavigationConfig
 pub impl @json.FromJson for NavigationConfig
 
+pub(all) struct PageEntry {
+  id : String
+  url_path : String
+  title : String
+  description : String
+  locale : String
+  updated_at : String
+  sort_key : String
+}
+
 pub(all) struct PageInfo {
   id : String
   url_path : String
@@ -110,6 +130,13 @@ pub(all) enum RendererType {
 pub fn RendererType::default() -> Self
 pub impl Eq for RendererType
 pub impl Show for RendererType
+
+pub(all) struct SiteConfig {
+  title : String
+  description : String
+  base_url : String
+  language : String
+}
 
 pub(all) struct SiteInfo {
   title : String
