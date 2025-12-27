@@ -21,7 +21,11 @@ test "cache_key: path with single query param" {
 ///|
 test "cache_key: path with multiple query params sorted" {
   // Query params should be sorted alphabetically
-  let key = cache_key("/search/", [("z", "last"), ("a", "first"), ("m", "middle")])
+  let key = cache_key("/search/", [
+    ("z", "last"),
+    ("a", "first"),
+    ("m", "middle"),
+  ])
   assert_eq(key, "isr:/search/?a=first&m=middle&z=last")
 }
 
@@ -251,9 +255,12 @@ test "manifest: empty pages map" {
 ///|
 test "manifest: path not found" {
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/exists/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/exists/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
-
   assert_true(manifest.is_isr_page("/exists/"))
   assert_false(manifest.is_isr_page("/not-exists/"))
 }
@@ -261,7 +268,11 @@ test "manifest: path not found" {
 ///|
 test "manifest: trailing slash matters" {
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/blog/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/blog/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
 
   // With trailing slash - found
@@ -274,9 +285,12 @@ test "manifest: trailing slash matters" {
 ///|
 test "manifest: case sensitive paths" {
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/Blog/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/Blog/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
-
   assert_true(manifest.is_isr_page("/Blog/"))
   assert_false(manifest.is_isr_page("/blog/"))
   assert_false(manifest.is_isr_page("/BLOG/"))
@@ -290,10 +304,13 @@ test "manifest: case sensitive paths" {
 test "handler: non-ISR page returns None" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/isr-page/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/isr-page/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/nonexistent" }
-
   let (html, needs_revalidation) = handler.handle("/static-page/")
   assert_true(html is None)
   assert_false(needs_revalidation)
@@ -303,7 +320,11 @@ test "handler: non-ISR page returns None" {
 test "handler: update_cache preserves TTL from manifest" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/test/"] = ISRPageMeta::{ revalidate: 120, renderer: "markdown", source: "" }
+  pages["/test/"] = ISRPageMeta::{
+    revalidate: 120,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/nonexistent" }
 
@@ -344,7 +365,11 @@ test "concurrent: multiple reads don't interfere" {
   // Create 100 entries
   for i = 0; i < 100; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", base_time, 60)
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      base_time,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -354,7 +379,10 @@ test "concurrent: multiple reads don't interfere" {
       let key = "isr:/page/" + i.to_string() + "/"
       match ISRCache::get(cache, key) {
         Some(e) => assert_eq(e.html, "<html>" + i.to_string() + "</html>")
-        None => fail("Entry " + i.to_string() + " missing on round " + round.to_string())
+        None =>
+          fail(
+            "Entry " + i.to_string() + " missing on round " + round.to_string(),
+          )
       }
     }
   }
@@ -370,7 +398,11 @@ test "concurrent: interleaved reads and writes" {
     let key = "isr:/interleaved/"
 
     // Write
-    let entry = CacheEntry::new("<html>v" + i.to_string() + "</html>", base_time + i.to_int64() * 1000L, 60)
+    let entry = CacheEntry::new(
+      "<html>v" + i.to_string() + "</html>",
+      base_time + i.to_int64() * 1000L,
+      60,
+    )
     ISRCache::put(cache, key, entry)
 
     // Read and verify
@@ -393,8 +425,12 @@ test "scale: 1000 entries with varied TTLs" {
   // Create entries with varied TTLs
   for i = 0; i < 1000; i = i + 1 {
     let key = "isr:/varied/" + i.to_string() + "/"
-    let ttl = 60 + (i % 240) // TTL 60-299s
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", base_time, ttl)
+    let ttl = 60 + i % 240 // TTL 60-299s
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      base_time,
+      ttl,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -402,7 +438,6 @@ test "scale: 1000 entries with varied TTLs" {
   let check_time = base_time + 120000L
   let mut fresh_count = 0
   let mut stale_count = 0
-
   for i = 0; i < 1000; i = i + 1 {
     let key = "isr:/varied/" + i.to_string() + "/"
     let status = check_status(ISRCache::get(cache, key), check_time)
@@ -431,7 +466,11 @@ test "scale: rapid updates to same key" {
 
   // 1000 rapid updates
   for i = 0; i < 1000; i = i + 1 {
-    let entry = CacheEntry::new("<html>v" + i.to_string() + "</html>", base_time + i.to_int64(), 60)
+    let entry = CacheEntry::new(
+      "<html>v" + i.to_string() + "</html>",
+      base_time + i.to_int64(),
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 

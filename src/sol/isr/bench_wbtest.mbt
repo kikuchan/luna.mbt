@@ -36,7 +36,11 @@ test "bench: 10000 cache lookups" {
   // Populate cache
   for i = 0; i < num_entries; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", 1000000000L, 60)
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      1000000000L,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -57,7 +61,9 @@ test "bench: 10000 cache lookups" {
 
   // Should complete quickly (< 100ms for 10k lookups)
   // In practice, Map lookup is O(1) so this is very fast
-  println("10000 lookups: \{elapsed}ms (\{ops_per_sec(num_entries, elapsed).to_int()} ops/sec)")
+  println(
+    "10000 lookups: \{elapsed}ms (\{ops_per_sec(num_entries, elapsed).to_int()} ops/sec)",
+  )
 }
 
 ///|
@@ -70,7 +76,11 @@ test "bench: 10000 status checks" {
   for i = 0; i < num_entries; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
     let ttl = 60 + i % 300 // TTL varies 60-359 seconds
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", base_time, ttl)
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      base_time,
+      ttl,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -97,8 +107,9 @@ test "bench: 10000 status checks" {
   // Fresh: 10000 - 2074 = 7926
   assert_eq(stale, 2074)
   assert_eq(fresh, 7926)
-
-  println("10000 status checks: \{elapsed}ms (\{ops_per_sec(num_entries, elapsed).to_int()} ops/sec)")
+  println(
+    "10000 status checks: \{elapsed}ms (\{ops_per_sec(num_entries, elapsed).to_int()} ops/sec)",
+  )
 }
 
 ///|
@@ -110,15 +121,20 @@ test "bench: 50000 entries populate and random access" {
   let start_populate = bench_now()
   for i = 0; i < num_entries; i = i + 1 {
     let key = "isr:/blog/post-" + i.to_string() + "/"
-    let entry = CacheEntry::new("<html>Post " + i.to_string() + "</html>", 1000000000L, 60)
+    let entry = CacheEntry::new(
+      "<html>Post " + i.to_string() + "</html>",
+      1000000000L,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
   let elapsed_populate = bench_now() - start_populate
 
   // Benchmark: random access pattern (simulate real traffic)
-  let access_pattern = [0, 1, 2, 0, 3, 1, 4, 0, 5, 2, 100, 500, 1000, 0, 1, 49999, 25000]
+  let access_pattern = [
+    0, 1, 2, 0, 3, 1, 4, 0, 5, 2, 100, 500, 1000, 0, 1, 49999, 25000,
+  ]
   let num_accesses = 10000
-
   let start_access = bench_now()
   let mut hits = 0
   for j = 0; j < num_accesses; j = j + 1 {
@@ -130,11 +146,11 @@ test "bench: 50000 entries populate and random access" {
     }
   }
   let elapsed_access = bench_now() - start_access
-
   assert_eq(hits, num_accesses)
-
   println("50000 entries populate: \{elapsed_populate}ms")
-  println("10000 random accesses: \{elapsed_access}ms (\{ops_per_sec(num_accesses, elapsed_access).to_int()} ops/sec)")
+  println(
+    "10000 random accesses: \{elapsed_access}ms (\{ops_per_sec(num_accesses, elapsed_access).to_int()} ops/sec)",
+  )
 }
 
 ///|
@@ -146,9 +162,12 @@ test "bench: handler.handle() full path" {
   let num_pages = 1000
   for i = 0; i < num_pages; i = i + 1 {
     let path = "/page/" + i.to_string() + "/"
-    pages[path] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 60,
+      renderer: "markdown",
+      source: "",
+    }
   }
-
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
@@ -157,7 +176,11 @@ test "bench: handler.handle() full path" {
   for i = 0; i < num_pages; i = i + 1 {
     let path = "/page/" + i.to_string() + "/"
     let key = cache_key(path, [])
-    let entry = CacheEntry::new("<html>Page " + i.to_string() + "</html>", base_time, 60)
+    let entry = CacheEntry::new(
+      "<html>Page " + i.to_string() + "</html>",
+      base_time,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -175,11 +198,11 @@ test "bench: handler.handle() full path" {
     }
   }
   let elapsed = bench_now() - start
-
   assert_eq(served, num_requests)
-
   let throughput = ops_per_sec(num_requests, elapsed)
-  println("5000 handler.handle(): \{elapsed}ms (\{throughput.to_int()} req/sec)")
+  println(
+    "5000 handler.handle(): \{elapsed}ms (\{throughput.to_int()} req/sec)",
+  )
 
   // If elapsed is 0ms, operations are faster than timer resolution
   // which means extremely fast (> 5M ops/sec at 1ms resolution)
@@ -199,9 +222,12 @@ test "bench: cache update (revalidation) throughput" {
   let num_pages = 100
   for i = 0; i < num_pages; i = i + 1 {
     let path = "/hot/" + i.to_string() + "/"
-    pages[path] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 60,
+      renderer: "markdown",
+      source: "",
+    }
   }
-
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
@@ -222,21 +248,24 @@ test "bench: cache update (revalidation) throughput" {
     handler.update_cache(path, "<html>v" + j.to_string() + "</html>")
   }
   let elapsed = bench_now() - start
-
-  println("1000 cache updates: \{elapsed}ms (\{ops_per_sec(num_updates, elapsed).to_int()} ops/sec)")
+  println(
+    "1000 cache updates: \{elapsed}ms (\{ops_per_sec(num_updates, elapsed).to_int()} ops/sec)",
+  )
 }
 
 ///|
 test "bench: mixed workload (80% read, 20% write)" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-
   let num_pages = 500
   for i = 0; i < num_pages; i = i + 1 {
     let path = "/mixed/" + i.to_string() + "/"
-    pages[path] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 60,
+      renderer: "markdown",
+      source: "",
+    }
   }
-
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
@@ -254,11 +283,9 @@ test "bench: mixed workload (80% read, 20% write)" {
   let start = bench_now()
   let mut reads = 0
   let mut writes = 0
-
   for j = 0; j < total_ops; j = j + 1 {
     let idx = j % num_pages
     let path = "/mixed/" + idx.to_string() + "/"
-
     if j % 5 == 0 {
       // 20% writes
       handler.update_cache(path, "<html>Updated</html>")
@@ -270,9 +297,7 @@ test "bench: mixed workload (80% read, 20% write)" {
     }
   }
   let elapsed = bench_now() - start
-
   assert_eq(reads + writes, total_ops)
-
   println("Mixed workload (5000 ops, 80/20): \{elapsed}ms")
   println("  Reads: \{reads}, Writes: \{writes}")
   println("  Throughput: \{ops_per_sec(total_ops, elapsed).to_int()} ops/sec")

@@ -98,6 +98,7 @@ pub fn file_to_url_path(
 ) -> String {
   let stripped = strip_numeric_prefixes(file_path)
   let path = stripped
+    .replace(old=".mdx", new="")
     .replace(old=".md", new="")
     .replace(old=".html", new="")
     .replace(old="\\", new="/")

@@ -61,7 +61,6 @@ pub fn[F : @env.FileSystem] DiskCache::get(
   let content : String = self.fs.read_file_sync(cache_file) catch {
     _ => return Miss
   }
-
   Hit(content)
 }
 
@@ -92,7 +91,6 @@ pub fn[F : @env.FileSystem] DiskCache::get_with_hash(
   let content : String = self.fs.read_file_sync(cache_file) catch {
     _ => return Miss
   }
-
   Hit(content)
 }
 
@@ -120,11 +118,7 @@ pub fn[F : @env.FileSystem] DiskCache::set(
 
   // Update metadata
   let now = "" // TODO: get current timestamp
-  self.meta.entries[key] = EntryMeta::{
-    content_hash,
-    cached_at: now,
-    ttl,
-  }
+  self.meta.entries[key] = EntryMeta::{ content_hash, cached_at: now, ttl }
 }
 
 ///|
@@ -175,13 +169,11 @@ pub fn[F : @env.FileSystem] DiskCache::save(self : DiskCache[F]) -> Unit {
   if not(self.enabled) {
     return
   }
-
   ensure_cache_dir(self.fs, self.cache_dir)
 
   // Build JSON
   let json = serialize_cache_meta(self.meta)
   let meta_path = self.cache_dir + "/meta.json"
-
   self.fs.write_file_sync(meta_path, json) catch {
     _ => ()
   }
@@ -189,9 +181,7 @@ pub fn[F : @env.FileSystem] DiskCache::save(self : DiskCache[F]) -> Unit {
 
 ///|
 /// Get cache statistics
-pub fn[F : @env.FileSystem] DiskCache::stats(
-  self : DiskCache[F],
-) -> (Int, Int) {
+pub fn[F : @env.FileSystem] DiskCache::stats(self : DiskCache[F]) -> (Int, Int) {
   let _ = self.fs // Suppress unused warning
   (self.meta.entries.length(), 0)
 }
@@ -255,7 +245,6 @@ fn[F : @env.FileSystem] load_cache_meta(
       }
     _ => ()
   }
-
   CacheMeta::{
     version: cache_format_version,
     config_hash: current_config_hash,
@@ -270,22 +259,18 @@ fn parse_entry_meta(json : Json) -> EntryMeta? {
     Object(o) => o
     _ => return None
   }
-
   let content_hash = match obj.get("contentHash") {
     Some(String(s)) => s
     _ => return None
   }
-
   let cached_at = match obj.get("cachedAt") {
     Some(String(s)) => s
     _ => ""
   }
-
   let ttl = match obj.get("ttl") {
     Some(Number(n, ..)) => n.to_int()
     _ => 0
   }
-
   Some(EntryMeta::{ content_hash, cached_at, ttl })
 }
 
@@ -311,7 +296,6 @@ fn serialize_cache_meta(meta : CacheMeta) -> String {
     entries_json.write_string("}")
   }
   entries_json.write_string("\n  }")
-
   "{\n  \"version\": " +
   meta.version.to_string() +
   ",\n  \"configHash\": \"" +

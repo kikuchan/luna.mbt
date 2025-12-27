@@ -306,6 +306,11 @@ pub fn md_node_to_vnode(
     @astra.MdNode::Component(embed) =>
       // Convert to Web Component with luna:wc-* attributes
       create_component_vnode(embed, islands_base_path)
+    @astra.MdNode::JsxComponent(embed) => {
+      // Convert JSX component to Web Component
+      let component = jsx_to_component_embed(embed, islands_base_path)
+      create_component_vnode(component, islands_base_path)
+    }
     @astra.MdNode::ThematicBreak => h("hr", [], [])
     @astra.MdNode::LineBreak => h("br", [], [])
   }
@@ -360,6 +365,98 @@ fn create_component_vnode(
     [@luna.text(embed.content)]
   }
   h(embed.tag, attrs, children)
+}
+
+///|
+/// Convert JSX component name to WebComponent tag
+/// "Button" -> "luna-button"
+/// "MyCounter" -> "luna-my-counter"
+/// "my-counter" -> "my-counter" (already a WebComponent, no prefix added)
+fn jsx_to_wc_tag(name : String) -> String {
+  // If name already contains hyphen, it's already a WebComponent tag
+  if name.contains("-") {
+    return name
+  }
+  "luna-" + camel_to_kebab(name)
+}
+
+///|
+/// Convert camelCase to kebab-case
+/// "MyCounter" -> "my-counter"
+/// "Button" -> "button"
+fn camel_to_kebab(s : String) -> String {
+  let result : Array[Char] = []
+  let chars = s.to_array()
+  for i, c in chars {
+    if c >= 'A' && c <= 'Z' {
+      // Uppercase letter
+      if i > 0 {
+        result.push('-')
+      }
+      // Convert to lowercase
+      result.push(Int::unsafe_to_char(c.to_int() + 32))
+    } else {
+      result.push(c)
+    }
+  }
+  String::from_array(result)
+}
+
+///|
+/// Convert MdxAttrValue to string
+fn mdx_attr_to_string(value : @astra.MdxAttrValue) -> String {
+  match value {
+    @astra.MdxAttrValue::StringLiteral(s) => s
+    @astra.MdxAttrValue::Expression(expr) => expr
+    @astra.MdxAttrValue::Boolean => "true"
+  }
+}
+
+///|
+/// Convert JsxComponentEmbed to ComponentEmbed (WebComponent)
+fn jsx_to_component_embed(
+  jsx : @astra.JsxComponentEmbed,
+  _base_path : String,
+) -> @astra.ComponentEmbed {
+  // Convert JSX tag to WebComponent tag
+  let tag = jsx_to_wc_tag(jsx.tag)
+
+  // Convert attributes
+  let attrs : Array[(String, String)] = []
+  for pair in jsx.attrs {
+    let (key, value) = pair
+    // Handle CLS hints as style
+    if key == "cls:width" || key == "cls:height" {
+      // Skip CLS hints - they're handled separately
+      continue
+    }
+    attrs.push((key, mdx_attr_to_string(value)))
+  }
+
+  // Add CLS hints as style attribute if present
+  match jsx.cls_hints {
+    Some(hints) => {
+      let mut style = ""
+      match hints.width {
+        Some(w) => style = style + "min-width:\{w};"
+        None => ()
+      }
+      match hints.height {
+        Some(h) => style = style + "min-height:\{h};"
+        None => ()
+      }
+      if not(style.is_empty()) {
+        attrs.push(("style", style))
+      }
+    }
+    None => ()
+  }
+  @astra.ComponentEmbed::{
+    tag,
+    attrs,
+    content: jsx.children,
+    trigger: @luna.Load,
+  }
 }
 
 // =============================================================================

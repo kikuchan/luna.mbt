@@ -13,7 +13,6 @@
 /// Create a manifest for a large blog
 fn create_blog_manifest(num_posts : Int) -> ISRManifest {
   let pages : Map[String, ISRPageMeta] = {}
-
   for i = 0; i < num_posts; i = i + 1 {
     let path = "/blog/post-" + i.to_string() + "/"
 
@@ -25,10 +24,12 @@ fn create_blog_manifest(num_posts : Int) -> ISRManifest {
     } else {
       60 // Cold posts: 1 minute
     }
-
-    pages[path] = ISRPageMeta::{ revalidate: ttl, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: ttl,
+      renderer: "markdown",
+      source: "",
+    }
   }
-
   ISRManifest::{ version: 1, pages }
 }
 
@@ -43,7 +44,9 @@ fn populate_blog_cache(
     let path = "/blog/post-" + i.to_string() + "/"
     let key = cache_key(path, [])
     let ttl = if i < 100 { 300 } else if i < 1000 { 120 } else { 60 }
-    let html = "<html><h1>Post " + i.to_string() + "</h1><p>Content...</p></html>"
+    let html = "<html><h1>Post " +
+      i.to_string() +
+      "</h1><p>Content...</p></html>"
     let entry = CacheEntry::new(html, generated_at, ttl)
     ISRCache::put(cache, key, entry)
   }
@@ -59,7 +62,6 @@ fn count_cache_status(
   let mut fresh = 0
   let mut stale = 0
   let mut miss = 0
-
   for i = 0; i < num_posts; i = i + 1 {
     let path = "/blog/post-" + i.to_string() + "/"
     let key = cache_key(path, [])
@@ -71,7 +73,6 @@ fn count_cache_status(
       Miss => miss = miss + 1
     }
   }
-
   (fresh, stale, miss)
 }
 
@@ -85,12 +86,14 @@ test "50k blog: initial state - all fresh" {
   let num_posts = 1000
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // Immediately after generation: all should be Fresh
-  let (fresh, stale, miss) = count_cache_status(cache, num_posts, base_time + 1000L)
-
+  let (fresh, stale, miss) = count_cache_status(
+    cache,
+    num_posts,
+    base_time + 1000L,
+  )
   assert_eq(fresh, num_posts)
   assert_eq(stale, 0)
   assert_eq(miss, 0)
@@ -101,7 +104,6 @@ test "50k blog: after 90 seconds - cold posts stale, hot still fresh" {
   let num_posts = 1000
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // 90 seconds later:
@@ -129,7 +131,6 @@ test "50k blog: after 150 seconds - warm posts become stale" {
   let num_posts = 1000
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // 150 seconds later:
@@ -149,7 +150,6 @@ test "50k blog: after 10 minutes - only hot posts remain fresh" {
   let num_posts = 1000
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // 10 minutes (600 seconds) later:
@@ -169,7 +169,6 @@ test "50k blog: hot page revalidation keeps it fresh" {
   let cache = MemoryCache::new()
   let manifest = create_blog_manifest(num_posts)
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
-
   let base_time = 1000000000L
   populate_blog_cache(cache, num_posts, base_time)
 
@@ -197,10 +196,8 @@ test "50k blog: hot page revalidation keeps it fresh" {
 
   // Verify it's Fresh again (with new timestamp)
   match ISRCache::get(cache, hot_page_key) {
-    Some(e) => {
-      assert_eq(e.html, "<html>Updated hot content</html>")
-      // New entry should be Fresh relative to current time
-    }
+    Some(e) => assert_eq(e.html, "<html>Updated hot content</html>")
+    // New entry should be Fresh relative to current time
     None => fail("Expected updated entry")
   }
 }
@@ -232,7 +229,9 @@ test "50k blog: cold page lifecycle (accessed after long time)" {
   }
 
   // Background revalidation happens...
-  let refreshed_entry = CacheEntry::new("<html>Updated 2024 content</html>", access_time, 60)
+  let refreshed_entry = CacheEntry::new(
+    "<html>Updated 2024 content</html>", access_time, 60,
+  )
   ISRCache::put(cache, cold_key, refreshed_entry)
 
   // Next access gets fresh content
@@ -249,14 +248,15 @@ test "50k blog: traffic distribution simulation (80/20 rule)" {
   let num_posts = 1000
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // Simulate 3 minutes of operation
   let current_time = base_time + 180000L
 
   // Count initial status
-  let (initial_fresh, initial_stale, _) = count_cache_status(cache, num_posts, current_time)
+  let (initial_fresh, initial_stale, _) = count_cache_status(
+    cache, num_posts, current_time,
+  )
 
   // At 3 minutes:
   // Hot (TTL=300s): Fresh (100 posts)
@@ -271,13 +271,19 @@ test "50k blog: traffic distribution simulation (80/20 rule)" {
     let path = "/blog/post-" + i.to_string() + "/"
     let key = cache_key(path, [])
     let ttl = if i < 100 { 300 } else { 120 }
-    let new_entry = CacheEntry::new("<html>Refreshed " + i.to_string() + "</html>", current_time, ttl)
+    let new_entry = CacheEntry::new(
+      "<html>Refreshed " + i.to_string() + "</html>",
+      current_time,
+      ttl,
+    )
     ISRCache::put(cache, key, new_entry)
   }
 
   // After revalidation
   let check_after = current_time + 1000L
-  let (after_fresh, after_stale, _) = count_cache_status(cache, num_posts, check_after)
+  let (after_fresh, after_stale, _) = count_cache_status(
+    cache, num_posts, check_after,
+  )
 
   // Top 200 should now be Fresh
   // Remaining 800 still Stale (weren't accessed)
@@ -292,7 +298,6 @@ test "50k blog: memory efficiency - entries are reusable" {
   // Simulate 50,000 entries (actually 5000 for test speed)
   let num_posts = 5000
   let base_time = 1000000000L
-
   populate_blog_cache(cache, num_posts, base_time)
 
   // Verify random access works efficiently

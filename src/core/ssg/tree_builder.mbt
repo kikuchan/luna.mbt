@@ -50,20 +50,21 @@ pub fn build_tree_from_entries(
   // Convert entries to PageInfo
   let pages : Array[PageInfo] = []
   let mut latest_update = ""
-
   for entry in entries {
     if entry.updated_at > latest_update {
       latest_update = entry.updated_at
     }
-    pages.push(PageInfo::new(
-      id=entry.id,
-      url_path=entry.url_path,
-      title=entry.title,
-      description=entry.description,
-      locale=entry.locale,
-      updated_at=entry.updated_at,
-      sort_key=entry.sort_key,
-    ))
+    pages.push(
+      PageInfo::new(
+        id=entry.id,
+        url_path=entry.url_path,
+        title=entry.title,
+        description=entry.description,
+        locale=entry.locale,
+        updated_at=entry.updated_at,
+        sort_key=entry.sort_key,
+      ),
+    )
   }
 
   // Build SiteInfo
@@ -77,7 +78,6 @@ pub fn build_tree_from_entries(
 
   // Build tree structure
   let root = build_tree_node_from_pages(pages, site.language)
-
   DocumentTree::new(site=site_info, pages~, root~)
 }
 
@@ -111,7 +111,6 @@ fn build_tree_children_from_pages(
 ) -> Array[TreeNode] {
   let children : Array[TreeNode] = []
   let seen_dirs : Map[String, Bool] = {}
-
   for page in pages {
     let rel_path = if parent_path == "" {
       page.url_path
@@ -125,27 +124,30 @@ fn build_tree_children_from_pages(
 
     // Remove leading slash
     let rel_path = if rel_path.has_prefix("/") {
-      rel_path[1:].to_string() catch { _ => rel_path }
+      rel_path[1:].to_string() catch {
+        _ => rel_path
+      }
     } else {
       rel_path
     }
 
     // Remove trailing slash
     let rel_path = if rel_path.has_suffix("/") {
-      rel_path[:rel_path.length() - 1].to_string() catch { _ => rel_path }
+      rel_path[:rel_path.length() - 1].to_string() catch {
+        _ => rel_path
+      }
     } else {
       rel_path
     }
-
     if rel_path == "" {
       // Index page
       children.push(
-        TreeNode::Page(page_id=page.id, renderer=page.renderer_type)
+        TreeNode::Page(page_id=page.id, renderer=page.renderer_type),
       )
     } else if not(rel_path.contains("/")) {
       // Direct child
       children.push(
-        TreeNode::Page(page_id=page.id, renderer=page.renderer_type)
+        TreeNode::Page(page_id=page.id, renderer=page.renderer_type),
       )
     } else {
       // Subdirectory
@@ -160,12 +162,11 @@ fn build_tree_children_from_pages(
             name=first_segment,
             path=sub_path + "/",
             children=sub_children,
-          )
+          ),
         )
       }
     }
   }
-
   children
 }
 
@@ -178,12 +179,16 @@ fn build_tree_children_from_pages(
 /// "/guide/intro/" -> "guide-intro"
 pub fn url_to_page_id(url_path : String) -> String {
   let path = if url_path.has_prefix("/") {
-    url_path[1:].to_string() catch { _ => url_path }
+    url_path[1:].to_string() catch {
+      _ => url_path
+    }
   } else {
     url_path
   }
   let path = if path.has_suffix("/") {
-    path[:path.length() - 1].to_string() catch { _ => path }
+    path[:path.length() - 1].to_string() catch {
+      _ => path
+    }
   } else {
     path
   }

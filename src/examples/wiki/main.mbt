@@ -16,14 +16,12 @@ using @luna_dom {
   div,
   h1,
   h2,
-  h3,
   text,
   p,
   ul,
   li,
   article,
-  aside,
-  main_,
+  nav,
   text_dyn,
 }
 
@@ -99,14 +97,14 @@ fn create_routes() -> Array[@routes.Routes] {
 // =============================================================================
 
 ///|
-fn sidebar_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn header_nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
   let base = router.get_base()
   let pages = get_wiki_pages()
   fn nav_link(href : String, label : String) -> @luna_dom.DomNode {
     a(
       href~,
-      class="wiki-link",
-      style="display: block; padding: 0.5rem; text-decoration: none; color: inherit;",
+      class="wiki-nav-link",
+      style="padding: 0.5rem 1rem; text-decoration: none; color: var(--text-color, #333); border-radius: 4px; transition: background 0.2s;",
       on=events().click(fn(e) {
         e.preventDefault()
         router.navigate(href)
@@ -115,23 +113,17 @@ fn sidebar_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
     )
   }
 
-  aside(
-    class="wiki-sidebar",
-    style="min-width: 200px; border-right: 1px solid #e5e7eb; padding-right: 1rem;",
-    [
-      h3(style="margin-top: 0;", [text("Wiki Pages")]),
-      ul(
-        style="list-style: none; padding: 0; margin: 0;",
-        pages.map(fn(page) {
-          let href = if page.slug == "index" {
-            base
-          } else {
-            base + "/" + page.slug
-          }
-          li([nav_link(href, page.title)])
-        }),
-      ),
-    ],
+  nav(
+    class="wiki-header-nav",
+    style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color, #e5e7eb); margin-bottom: 1.5rem;",
+    pages
+      .iter()
+      .filter(fn(page) { page.slug != "index" })
+      .map(fn(page) {
+        let href = base + "/" + page.slug
+        nav_link(href, page.title)
+      })
+      .collect(),
   )
 }
 
@@ -142,7 +134,7 @@ fn wiki_index_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
     h1([text("Wiki Home")]),
     p([
       text(
-        "Welcome to the wiki! Select a page from the sidebar or choose from the list below:",
+        "Welcome to the wiki! Select a page from the navigation above.",
       ),
     ]),
     h2([text("Available Pages")]),
@@ -228,21 +220,21 @@ fn render_wiki(
     @luna_dom.clear(container)
 
     // Create components untracked
-    let (sidebar, content) = @signal.untracked(fn() {
-      let sidebar = sidebar_component(router)
+    let (header, content) = @signal.untracked(fn() {
+      let header = header_nav_component(router)
       let content = match match_result {
         Some(m) => resolve_component(router, m)
         None => not_found_component(router)
       }
-      (sidebar, content)
+      (header, content)
     })
 
-    // Build wiki layout
+    // Build wiki layout with header nav
     let app = @signal.untracked(fn() {
       div(
         class="wiki-container",
-        style="display: flex; gap: 2rem; min-height: 400px;",
-        [sidebar, main_(class="wiki-content", style="flex: 1;", [content])],
+        style="min-height: 300px; max-width: 100%; overflow: hidden;",
+        [header, content],
       )
     })
     @luna_dom.mount(container, app)
@@ -266,6 +258,10 @@ pub fn hydrate(el : @dom.Element, _state : @js.Any) -> Unit {
   // Start rendering
   let dom_container = el |> @luna_dom.DomElement::from_dom
   render_wiki(router, dom_container)
+
+  // Remove cloak after hydration - show the content
+  el.removeAttribute("data-spa-cloak")
+  el.setAttribute("data-hydrated", "true")
 }
 
 // =============================================================================
@@ -275,12 +271,9 @@ pub fn hydrate(el : @dom.Element, _state : @js.Any) -> Unit {
 ///|
 fn main {
   let doc = @dom.document()
-  // Try wiki-app first (for island), fallback to app
-  let container = match doc.getElementById("wiki-app") {
-    Some(el) => Some(el)
-    None => doc.getElementById("app")
-  }
-  match container {
+  // Only run standalone if wiki-app exists (not as island)
+  // When used as island, hydrate() is called directly
+  match doc.getElementById("wiki-app") {
     Some(el) => {
       // Router with base path /wiki
       let base = "/wiki"

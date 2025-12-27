@@ -16,10 +16,3 @@ This page demonstrates Luna's BrowserRouter for client-side dynamic routing.
 1. **BrowserRouter**: Handles client-side navigation using History API
 2. **Dynamic Parameters**: Routes like `/wiki/:slug` extract the slug parameter
 3. **Signal-based Updates**: Reactive UI updates when route changes
-
-### URL Patterns
-
-- `/wiki/` - Wiki Home
-- `/wiki/getting-started` - Getting Started page
-- `/wiki/configuration` - Configuration page
-- `/wiki/api-reference` - API Reference page

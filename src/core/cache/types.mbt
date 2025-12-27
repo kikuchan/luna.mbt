@@ -63,12 +63,8 @@ pub let cache_format_version : Int = 1
 
 ///|
 /// Create empty cache metadata
-pub fn CacheMeta::new(config_hash~ : String = "") -> CacheMeta {
-  {
-    version: cache_format_version,
-    config_hash,
-    entries: {},
-  }
+pub fn CacheMeta::new(config_hash? : String = "") -> CacheMeta {
+  { version: cache_format_version, config_hash, entries: {} }
 }
 
 // =============================================================================

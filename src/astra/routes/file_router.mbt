@@ -16,6 +16,7 @@ pub fn determine_renderer_type(
   match content_type {
     @astra.Markdown => @ssg.MarkdownRenderer
     @astra.Html => @ssg.HtmlRenderer
+    @astra.Mdx => @ssg.MdxRenderer
     @astra.Component =>
       if frontmatter.ssr {
         @ssg.LunaRenderer
@@ -301,7 +302,9 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
         filesystem, entry_path, entry_relative, docs_dir, cwd, i18n, exclude, pages,
         trailing_slash,
       )
-    } else if entry.has_suffix(".md") || entry.has_suffix(".html") {
+    } else if entry.has_suffix(".md") ||
+      entry.has_suffix(".mdx") ||
+      entry.has_suffix(".html") {
       // Check if this is a dynamic file pattern (_id_.md, ___all___.md)
       match @core_routes.extract_param_from_filename(entry) {
         Some(param_info) => {
@@ -315,10 +318,12 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
         None => ()
       }
 
-      // Process regular markdown or HTML file
+      // Process regular markdown, mdx, or HTML file
       let source_path = entry_relative
       let content_type : @astra.ContentType = if entry.has_suffix(".html") {
         @astra.Html
+      } else if entry.has_suffix(".mdx") {
+        @astra.Mdx
       } else {
         @astra.Markdown
       }
@@ -334,9 +339,9 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
       // Build sort key for ordering (preserves numeric prefixes)
       let sort_key = @ssg.build_sort_key(source_path)
 
-      // Parse frontmatter for markdown, use default for HTML
+      // Parse frontmatter for markdown/mdx, use default for HTML
       let frontmatter = match content_type {
-        @astra.Markdown => {
+        @astra.Markdown | @astra.Mdx => {
           let content : String = @env.FileSystem::read_file_sync(
             filesystem, entry_path,
           ) catch {
@@ -826,7 +831,6 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
 
   // Parse revalidate (ISR TTL in seconds)
   let revalidate = @json_utils.extract_int_opt(obj, "revalidate")
-
   @astra.Frontmatter::{
     title,
     description,

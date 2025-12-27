@@ -174,8 +174,9 @@ async fn run_dev_command(args : Array[String]) -> Unit {
 
   // Start HTTP server
   let output_dir = @path.join2(cwd, config.output_dir)
+  let spa_routes = config.spa_routes
   let server = @http.createServer(requestListener=fn(req, res) {
-    serve_file_with_hmr(req, res, output_dir, hmr_port)
+    serve_file_with_hmr(req, res, output_dir, hmr_port, spa_routes)
   })
   let _ = server.listen(port, callback=fn() {
     println("")
@@ -212,7 +213,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
     event_type,
     filename,
   ) {
-    if filename.ends_with(".md") {
+    if filename.ends_with(".md") || filename.ends_with(".mdx") {
       let source_path = filename
       let full_path = @path.join2(docs_dir, filename)
       let file_exists = @fs.existsSync(full_path)
@@ -377,6 +378,7 @@ fn serve_file_with_hmr(
   res : @http.ServerResponse,
   output_dir : String,
   hmr_port : Int,
+  spa_routes : Array[String],
 ) -> Unit {
   let url = req.url.or("/")
   // Parse URL path (strip query string)
@@ -419,6 +421,21 @@ fn serve_file_with_hmr(
   if @fs.existsSync(base_path) {
     serve_with_hmr_injection(res, base_path, hmr_port)
     return
+  }
+
+  // 5. SPA fallback - check if path matches any SPA route prefix
+  for spa_route in spa_routes {
+    if path_part.starts_with(spa_route) {
+      // Fallback to the SPA route's index.html
+      let spa_index = @path.join2(
+        @path.join2(output_dir, spa_route),
+        "index.html",
+      )
+      if @fs.existsSync(spa_index) {
+        serve_with_hmr_injection(res, spa_index, hmr_port)
+        return
+      }
+    }
   }
   res.writeHead(404) |> ignore
   res.end(data="Not Found: \{path_part}")

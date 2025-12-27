@@ -22,8 +22,13 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
             @ssg.LunaRenderer => "luna"
             @ssg.ReactRenderer => "react"
             @ssg.ClientOnlyRenderer => "client"
+            @ssg.MdxRenderer => "mdx"
           }
-          let entry : @core_isr.ISRPageEntry = { revalidate, renderer, source: page.source_path }
+          let entry : @core_isr.ISRPageEntry = {
+            revalidate,
+            renderer,
+            source: page.source_path,
+          }
           manifest.add(page.url_path, entry)
         }
       None => ()
@@ -34,7 +39,10 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
 
 ///|
 /// Write ISR manifest to file
-pub fn write_manifest(manifest : @core_isr.ISRManifest, output_dir : String) -> Unit {
+pub fn write_manifest(
+  manifest : @core_isr.ISRManifest,
+  output_dir : String,
+) -> Unit {
   // Only write if there are ISR pages
   if manifest.is_empty() {
     return

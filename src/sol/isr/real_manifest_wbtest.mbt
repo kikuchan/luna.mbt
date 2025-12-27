@@ -33,7 +33,6 @@ fn create_real_manifest() -> ISRManifest {
     renderer: "markdown",
     source: "04_sol/isr-demo/cold.md",
   }
-
   ISRManifest::{ version: 1, pages }
 }
 
@@ -44,7 +43,6 @@ fn create_real_manifest() -> ISRManifest {
 ///|
 test "real manifest: verify page count and paths" {
   let manifest = create_real_manifest()
-
   assert_eq(manifest.pages.length(), 4)
   assert_true(manifest.is_isr_page("/sol/isr-demo/"))
   assert_true(manifest.is_isr_page("/sol/isr-demo/hot/"))
@@ -119,7 +117,6 @@ test "real manifest: handler cache lifecycle" {
     Stale => ()
     _ => fail("Cold page should be Stale at 90s")
   }
-
   let hot_status = check_status(
     ISRCache::get(cache, cache_key("/sol/isr-demo/hot/", [])),
     t90,
@@ -139,7 +136,6 @@ test "real manifest: handler cache lifecycle" {
     Stale => ()
     _ => fail("Warm page should be Stale at 150s")
   }
-
   let hot_status2 = check_status(
     ISRCache::get(cache, cache_key("/sol/isr-demo/hot/", [])),
     t150,
@@ -207,7 +203,6 @@ test "real manifest: source path tracking" {
     Some(meta) => assert_eq(meta.source, "04_sol/isr-demo/index.md")
     None => fail("Expected page meta")
   }
-
   match manifest.get_page("/sol/isr-demo/cold/") {
     Some(meta) => assert_eq(meta.source, "04_sol/isr-demo/cold.md")
     None => fail("Expected page meta")

@@ -74,6 +74,9 @@ pub fn ISRManifest::is_isr_page(self : ISRManifest, path : String) -> Bool {
 
 ///|
 /// Get ISR config for a path
-pub fn ISRManifest::get_page(self : ISRManifest, path : String) -> ISRPageEntry? {
+pub fn ISRManifest::get_page(
+  self : ISRManifest,
+  path : String,
+) -> ISRPageEntry? {
   self.pages.get(path)
 }

@@ -126,6 +126,7 @@ pub(all) enum RendererType {
   LunaRenderer
   ReactRenderer
   ClientOnlyRenderer
+  MdxRenderer
 }
 pub fn RendererType::default() -> Self
 pub impl Eq for RendererType

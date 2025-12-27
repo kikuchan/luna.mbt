@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/luna/astra/mdx"
+
+import(
+  "mizchi/luna/astra"
+  "mizchi/luna/astra/frontmatter"
+)
+
+// Values
+pub fn parse_mdx(String) -> (@frontmatter.Frontmatter, Array[@astra.MdNode])
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

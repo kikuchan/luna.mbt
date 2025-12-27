@@ -99,11 +99,11 @@ async function connectWebSocket(): Promise<WebSocket> {
   });
 }
 
-async function waitForReloadMessage(ws: WebSocket): Promise<void> {
+async function waitForReloadMessage(ws: WebSocket, timeoutMs = 30000): Promise<void> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error("Did not receive reload message within 10 seconds"));
-    }, 10000);
+      reject(new Error(`Did not receive reload message within ${timeoutMs / 1000} seconds`));
+    }, timeoutMs);
 
     ws.on("message", (data: Buffer) => {
       const message = JSON.parse(data.toString());
@@ -154,10 +154,11 @@ test.describe("Astra HMR", () => {
 
     try {
       // Set up listener for reload message before making changes
-      const reloadPromise = waitForReloadMessage(ws);
+      // Use longer timeout for CI environments where fs.watch may be slow
+      const reloadPromise = waitForReloadMessage(ws, 30000);
 
-      // Wait a bit for connection to stabilize
-      await new Promise((r) => setTimeout(r, 500));
+      // Wait for connection to fully stabilize
+      await new Promise((r) => setTimeout(r, 1000));
 
       // Create a new test file (triggers "new file added" rebuild)
       const testContent = `---

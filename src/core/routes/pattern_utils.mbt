@@ -189,8 +189,16 @@ pub fn is_param_char(ch : Char) -> Bool {
 ///|
 /// Check if character is a regex special character that needs escaping
 fn is_regex_special(ch : Char) -> Bool {
-  ch == '.' || ch == '+' || ch == '?' || ch == '(' || ch == ')' ||
-  ch == '{' || ch == '}' || ch == '^' || ch == '$' || ch == '|'
+  ch == '.' ||
+  ch == '+' ||
+  ch == '?' ||
+  ch == '(' ||
+  ch == ')' ||
+  ch == '{' ||
+  ch == '}' ||
+  ch == '^' ||
+  ch == '$' ||
+  ch == '|'
 }
 
 ///|

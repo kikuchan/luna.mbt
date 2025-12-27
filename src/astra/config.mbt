@@ -114,6 +114,9 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
 
   // Parse deploy target (default: static)
   let deploy_target = parse_deploy_target(ssg_obj)
+
+  // Parse SPA routes for client-side routing fallback
+  let spa_routes = @json_utils.extract_string_array(ssg_obj, "spaRoutes")
   Some(SsgConfig::{
     docs_dir,
     output_dir,
@@ -133,6 +136,7 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
     body_snippets,
     sanitize_html,
     deploy_target,
+    spa_routes,
   })
 }
 

@@ -22,7 +22,11 @@ test "Large blog scenario: hot pages stay fresh, cold pages go stale" {
     let path = "/blog/post-" + i.to_string() + "/"
     // Vary TTL: popular posts get longer TTL
     let ttl = if i < 10 { 300 } else { 60 } // Top 10 get 5min, rest get 1min
-    pages[path] = ISRPageMeta::{ revalidate: ttl, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: ttl,
+      renderer: "markdown",
+      source: "",
+    }
   }
   let manifest = ISRManifest::{ version: 1, pages }
   let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
@@ -35,7 +39,11 @@ test "Large blog scenario: hot pages stay fresh, cold pages go stale" {
     let path = "/blog/post-" + i.to_string() + "/"
     let key = cache_key(path, [])
     let ttl = if i < 10 { 300 } else { 60 }
-    let entry = CacheEntry::new("<html>Post " + i.to_string() + "</html>", base_time, ttl)
+    let entry = CacheEntry::new(
+      "<html>Post " + i.to_string() + "</html>",
+      base_time,
+      ttl,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -72,7 +80,11 @@ test "Large blog scenario: hot pages stay fresh, cold pages go stale" {
 test "Stale page serves content while signaling revalidation need" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/blog/old-post/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/blog/old-post/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
   let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
@@ -108,7 +120,11 @@ test "Cache handles many entries efficiently" {
   let num_entries = 10000
   for i = 0; i < num_entries; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", 1000000L, 60)
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      1000000L,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -117,7 +133,6 @@ test "Cache handles many entries efficiently" {
     Some(e) => assert_eq(e.html, "<html>5000</html>")
     None => fail("Entry 5000 not found")
   }
-
   match ISRCache::get(cache, "isr:/page/9999/") {
     Some(e) => assert_eq(e.html, "<html>9999</html>")
     None => fail("Entry 9999 not found")
@@ -132,13 +147,21 @@ test "Cache handles many entries efficiently" {
 test "Revalidation updates stale entry to fresh" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/blog/updated/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/blog/updated/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
 
   // Initial stale entry
   let old_time = 1000000L
-  ISRCache::put(cache, "isr:/blog/updated/", CacheEntry::new("<html>v1</html>", old_time, 60))
+  ISRCache::put(
+    cache,
+    "isr:/blog/updated/",
+    CacheEntry::new("<html>v1</html>", old_time, 60),
+  )
 
   // Verify it's stale at current time
   let now = old_time + 120000L // 2 minutes later
@@ -166,14 +189,21 @@ test "Revalidation updates stale entry to fresh" {
 test "Hot page access pattern keeps cache fresh" {
   let cache = MemoryCache::new()
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/blog/popular/"] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+  pages["/blog/popular/"] = ISRPageMeta::{
+    revalidate: 60,
+    renderer: "markdown",
+    source: "",
+  }
   let manifest = ISRManifest::{ version: 1, pages }
   let _handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
-
   let base_time = 1000000000L
 
   // Initial cache population
-  ISRCache::put(cache, "isr:/blog/popular/", CacheEntry::new("<html>v1</html>", base_time, 60))
+  ISRCache::put(
+    cache,
+    "isr:/blog/popular/",
+    CacheEntry::new("<html>v1</html>", base_time, 60),
+  )
 
   // Simulate 5 accesses, each 30 seconds apart, with revalidation
   for access = 0; access < 5; access = access + 1 {
@@ -203,7 +233,6 @@ test "Hot page access pattern keeps cache fresh" {
 /// Test cold page: accessed once, becomes stale, accessed again
 test "Cold page lifecycle: fresh -> stale -> revalidated" {
   let cache = MemoryCache::new()
-
   let base_time = 1000000000L
   let key = "isr:/blog/cold-post/"
 
@@ -254,7 +283,11 @@ test "Mixed workload: 80/20 rule simulation" {
   let num_pages = 100
   for i = 0; i < num_pages; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
-    let entry = CacheEntry::new("<html>" + i.to_string() + "</html>", base_time, 60)
+    let entry = CacheEntry::new(
+      "<html>" + i.to_string() + "</html>",
+      base_time,
+      60,
+    )
     ISRCache::put(cache, key, entry)
   }
 
@@ -264,7 +297,6 @@ test "Mixed workload: 80/20 rule simulation" {
   // Count Fresh vs Stale
   let mut fresh_count = 0
   let mut stale_count = 0
-
   for i = 0; i < num_pages; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
     let entry = ISRCache::get(cache, key)
@@ -283,7 +315,11 @@ test "Mixed workload: 80/20 rule simulation" {
   // Simulate: top 20 pages get accessed and revalidated (80/20 rule)
   for i = 0; i < 20; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
-    let new_entry = CacheEntry::new("<html>refreshed-" + i.to_string() + "</html>", check_time, 60)
+    let new_entry = CacheEntry::new(
+      "<html>refreshed-" + i.to_string() + "</html>",
+      check_time,
+      60,
+    )
     ISRCache::put(cache, key, new_entry)
   }
 
@@ -291,7 +327,6 @@ test "Mixed workload: 80/20 rule simulation" {
   fresh_count = 0
   stale_count = 0
   let recheck_time = check_time + 1000L // 1 second after revalidation
-
   for i = 0; i < num_pages; i = i + 1 {
     let key = "isr:/page/" + i.to_string() + "/"
     let entry = ISRCache::get(cache, key)

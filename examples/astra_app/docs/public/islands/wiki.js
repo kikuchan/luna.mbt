@@ -181,27 +181,23 @@ const mizchi$luna$luna$routes$$extract_catch_all$46$42$bind$124$205 = "[[...";
 const mizchi$luna$luna$routes$$extract_catch_all$46$42$bind$124$206 = "]]";
 const mizchi$luna$luna$routes$$extract_catch_all$46$42$bind$124$210 = "[...";
 const mizchi$luna$luna$routes$$extract_catch_all$46$42$bind$124$211 = "]";
-const mizchi$luna$examples$wiki$$hydrate$46$base$124$11 = "/wiki";
-const mizchi$luna$examples$wiki$$_init$42$46$base$124$5 = "/wiki";
-const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$961 = { slug: "index", title: "Wiki Home", content: "Welcome to the wiki! Select a page from the sidebar." };
-const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$962 = { slug: "getting-started", title: "Getting Started", content: "Install dependencies with `pnpm install`, then run `pnpm dev`." };
-const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$963 = { slug: "configuration", title: "Configuration", content: "Edit luna.json to configure your project settings." };
-const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$964 = { slug: "api-reference", title: "API Reference", content: "See the API documentation for available endpoints." };
-const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$965 = { slug: "components", title: "Components", content: "Luna provides signal-based reactive components with SSR support." };
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$972 = "wiki-sidebar";
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$973 = "min-width: 200px; border-right: 1px solid #e5e7eb; padding-right: 1rem;";
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$974 = "margin-top: 0;";
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$975 = "list-style: none; padding: 0; margin: 0;";
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$976 = "wiki-link";
-const mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$977 = "display: block; padding: 0.5rem; text-decoration: none; color: inherit;";
-const mizchi$luna$examples$wiki$$wiki_index_component$46$constr$47$985 = "wiki-page";
-const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$991 = "wiki-page";
-const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$992 = "wiki-page wiki-not-found";
-const mizchi$luna$examples$wiki$$not_found_component$46$constr$47$999 = "wiki-page wiki-not-found";
-const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1006 = "wiki-container";
-const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1007 = "display: flex; gap: 2rem; min-height: 400px;";
-const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1008 = "wiki-content";
-const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1009 = "flex: 1;";
+const mizchi$luna$examples$wiki$$hydrate$46$base$124$9 = "/wiki";
+const mizchi$luna$examples$wiki$$_init$42$46$base$124$3 = "/wiki";
+const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$921 = { slug: "index", title: "Wiki Home", content: "Welcome to the wiki! Select a page from the sidebar." };
+const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$922 = { slug: "getting-started", title: "Getting Started", content: "Install dependencies with `pnpm install`, then run `pnpm dev`." };
+const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$923 = { slug: "configuration", title: "Configuration", content: "Edit luna.json to configure your project settings." };
+const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$924 = { slug: "api-reference", title: "API Reference", content: "See the API documentation for available endpoints." };
+const mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$925 = { slug: "components", title: "Components", content: "Luna provides signal-based reactive components with SSR support." };
+const mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$932 = "wiki-header-nav";
+const mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$933 = "display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color, #e5e7eb); margin-bottom: 1.5rem;";
+const mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$934 = "wiki-nav-link";
+const mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$935 = "padding: 0.5rem 1rem; text-decoration: none; color: var(--text-color, #333); border-radius: 4px; transition: background 0.2s;";
+const mizchi$luna$examples$wiki$$wiki_index_component$46$constr$47$945 = "wiki-page";
+const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$951 = "wiki-page";
+const mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$952 = "wiki-page wiki-not-found";
+const mizchi$luna$examples$wiki$$not_found_component$46$constr$47$959 = "wiki-page wiki-not-found";
+const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$966 = "wiki-container";
+const mizchi$luna$examples$wiki$$render_wiki$46$constr$47$967 = "min-height: 300px;";
 function moonbitlang$core$abort$$abort$2$(msg) {
   return $panic();
 }
@@ -966,10 +962,10 @@ function moonbitlang$core$array$$Array$push$19$(self, value) {
 function moonbitlang$core$array$$Array$push$9$(self, value) {
   moonbitlang$core$builtin$$JSArray$push(self, value);
 }
-function moonbitlang$core$array$$Array$push$10$(self, value) {
+function moonbitlang$core$array$$Array$push$20$(self, value) {
   moonbitlang$core$builtin$$JSArray$push(self, value);
 }
-function moonbitlang$core$array$$Array$push$20$(self, value) {
+function moonbitlang$core$array$$Array$push$10$(self, value) {
   moonbitlang$core$builtin$$JSArray$push(self, value);
 }
 function moonbitlang$core$array$$Array$push$21$(self, value) {
@@ -1705,7 +1701,7 @@ function mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, o
   }
   return result;
 }
-function mizchi$luna$luna$dom$element$$main_(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
+function mizchi$luna$luna$dom$element$$nav(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
   const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
   if (dyn_class === undefined) {
   } else {
@@ -1719,7 +1715,7 @@ function mizchi$luna$luna$dom$element$$main_(id, class_, style, dyn_class, dyn_s
     const _getter = _Some;
     moonbitlang$core$array$$Array$push$17$(props, { _0: "style", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
   }
-  return mizchi$luna$luna$dom$element$$create_element("main", props, children);
+  return mizchi$luna$luna$dom$element$$create_element("nav", props, children);
 }
 function mizchi$luna$luna$dom$element$$article(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
   const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
@@ -1736,22 +1732,6 @@ function mizchi$luna$luna$dom$element$$article(id, class_, style, dyn_class, dyn
     moonbitlang$core$array$$Array$push$17$(props, { _0: "style", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
   }
   return mizchi$luna$luna$dom$element$$create_element("article", props, children);
-}
-function mizchi$luna$luna$dom$element$$aside(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
-  const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
-  if (dyn_class === undefined) {
-  } else {
-    const _Some = dyn_class;
-    const _getter = _Some;
-    moonbitlang$core$array$$Array$push$17$(props, { _0: "className", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
-  }
-  if (dyn_style === undefined) {
-  } else {
-    const _Some = dyn_style;
-    const _getter = _Some;
-    moonbitlang$core$array$$Array$push$17$(props, { _0: "style", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
-  }
-  return mizchi$luna$luna$dom$element$$create_element("aside", props, children);
 }
 function mizchi$luna$luna$dom$element$$div(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
   const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
@@ -1844,22 +1824,6 @@ function mizchi$luna$luna$dom$element$$h2(id, class_, style, dyn_class, dyn_styl
     moonbitlang$core$array$$Array$push$17$(props, { _0: "style", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
   }
   return mizchi$luna$luna$dom$element$$create_element("h2", props, children);
-}
-function mizchi$luna$luna$dom$element$$h3(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
-  const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
-  if (dyn_class === undefined) {
-  } else {
-    const _Some = dyn_class;
-    const _getter = _Some;
-    moonbitlang$core$array$$Array$push$17$(props, { _0: "className", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
-  }
-  if (dyn_style === undefined) {
-  } else {
-    const _Some = dyn_style;
-    const _getter = _Some;
-    moonbitlang$core$array$$Array$push$17$(props, { _0: "style", _1: new $64$mizchi$47$luna$47$luna$47$dom$47$element$46$AttrValue$Dynamic(_getter) });
-  }
-  return mizchi$luna$luna$dom$element$$create_element("h3", props, children);
 }
 function mizchi$luna$luna$dom$element$$ul(id, class_, style, dyn_class, dyn_style, on, ref_, attrs, dyn_attrs, children) {
   const props = mizchi$luna$luna$dom$element$$build_props$46$inner(id, class_, style, on, ref_, attrs, dyn_attrs);
@@ -2428,7 +2392,7 @@ function mizchi$luna$luna$dom$router$$BrowserRouter$get_path(self) {
   return mizchi$luna$luna$signal$$Signal$get$8$(self.current_path);
 }
 function mizchi$luna$examples$wiki$$find_page(slug) {
-  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$961, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$962, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$963, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$964, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$965];
+  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$921, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$922, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$923, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$924, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$925];
   const _len = pages.length;
   let _tmp = 0;
   while (true) {
@@ -2446,38 +2410,32 @@ function mizchi$luna$examples$wiki$$find_page(slug) {
   }
   return undefined;
 }
-function mizchi$luna$examples$wiki$$sidebar_component(router) {
+function mizchi$luna$examples$wiki$$header_nav_component(router) {
   const base = router.base;
-  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$961, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$962, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$963, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$964, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$965];
-  const _tmp = mizchi$luna$luna$dom$element$$h3(undefined, undefined, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$974, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Wiki Pages")]);
-  const _p = new Array(pages.length);
-  const _p$2 = pages.length;
-  let _tmp$2 = 0;
-  while (true) {
-    const _p$3 = _tmp$2;
-    if (_p$3 < _p$2) {
-      const _p$4 = pages[_p$3];
-      const _p$5 = _p$4.slug === "index" ? base : `${base}/${_p$4.slug}`;
-      const _p$6 = _p$4.title;
-      _p[_p$3] = mizchi$luna$luna$dom$element$$li(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$a(_p$5, undefined, undefined, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$976, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$977, undefined, undefined, new Option$Some$6$(mizchi$luna$luna$dom$element$$HandlerMap$click(mizchi$luna$luna$dom$element$$events(), (_p$7) => {
-        mizchi$js$browser$dom$$MouseEvent$preventDefault(_p$7);
-        mizchi$luna$luna$dom$router$$BrowserRouter$navigate(router, _p$5);
-      })), undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(_p$6)])]);
-      _tmp$2 = _p$3 + 1 | 0;
-      continue;
+  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$921, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$922, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$923, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$924, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$925];
+  const _bind = moonbitlang$core$array$$Array$iter$16$(pages);
+  return mizchi$luna$luna$dom$element$$nav(undefined, mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$932, mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$933, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, moonbitlang$core$builtin$$Iter$collect$20$((_p) => _bind((_p$2) => {
+    const _p$3 = _p$2.slug;
+    const _p$4 = "index";
+    if (!(_p$3 === _p$4)) {
+      const href = `${base}/${_p$2.slug}`;
+      const label = _p$2.title;
+      return _p(mizchi$luna$luna$dom$element$$a(href, undefined, undefined, mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$934, mizchi$luna$examples$wiki$$header_nav_component$46$constr$47$935, undefined, undefined, new Option$Some$6$(mizchi$luna$luna$dom$element$$HandlerMap$click(mizchi$luna$luna$dom$element$$events(), (e) => {
+        mizchi$js$browser$dom$$MouseEvent$preventDefault(e);
+        mizchi$luna$luna$dom$router$$BrowserRouter$navigate(router, href);
+      })), undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(label)]));
     } else {
-      break;
+      return 1;
     }
-  }
-  return mizchi$luna$luna$dom$element$$aside(undefined, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$972, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$973, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_tmp, mizchi$luna$luna$dom$element$$ul(undefined, undefined, mizchi$luna$examples$wiki$$sidebar_component$46$constr$47$975, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, _p)]);
+  })));
 }
 function mizchi$luna$examples$wiki$$wiki_index_component(_router) {
-  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$961, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$962, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$963, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$964, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$965];
+  const pages = [mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$921, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$922, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$923, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$924, mizchi$luna$examples$wiki$$get_wiki_pages$46$record$47$925];
   const _tmp = mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Wiki Home")]);
-  const _tmp$2 = mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Welcome to the wiki! Select a page from the sidebar or choose from the list below:")]);
+  const _tmp$2 = mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Welcome to the wiki! Select a page from the navigation above.")]);
   const _tmp$3 = mizchi$luna$luna$dom$element$$h2(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Available Pages")]);
   const _bind = moonbitlang$core$array$$Array$iter$16$(pages);
-  return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_index_component$46$constr$47$985, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_tmp, _tmp$2, _tmp$3, mizchi$luna$luna$dom$element$$ul(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, moonbitlang$core$builtin$$Iter$collect$20$((_p) => _bind((_p$2) => {
+  return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_index_component$46$constr$47$945, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_tmp, _tmp$2, _tmp$3, mizchi$luna$luna$dom$element$$ul(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, moonbitlang$core$builtin$$Iter$collect$20$((_p) => _bind((_p$2) => {
     const _p$3 = _p$2.slug;
     const _p$4 = "index";
     if (!(_p$3 === _p$4)) {
@@ -2499,16 +2457,16 @@ function mizchi$luna$examples$wiki$$wiki_page_component(_router, m) {
   }
   const _bind = mizchi$luna$examples$wiki$$find_page(slug);
   if (_bind === undefined) {
-    return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$992, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Page Not Found")]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(`The page '${slug}' does not exist.`)])]);
+    return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$952, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Page Not Found")]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(`The page '${slug}' does not exist.`)])]);
   } else {
     const _Some = _bind;
     const _page = _Some;
-    return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$991, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(_page.title)]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(_page.content)])]);
+    return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$wiki_page_component$46$constr$47$951, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(_page.title)]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text(_page.content)])]);
   }
 }
 function mizchi$luna$examples$wiki$$not_found_component(router) {
   const base = router.base;
-  return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$not_found_component$46$constr$47$999, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("404 - Not Found")]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Page not found: "), mizchi$luna$luna$dom$element$$text_dyn(() => mizchi$luna$luna$dom$router$$BrowserRouter$get_path(router))]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$a(base, undefined, undefined, undefined, undefined, undefined, undefined, new Option$Some$6$(mizchi$luna$luna$dom$element$$HandlerMap$click(mizchi$luna$luna$dom$element$$events(), (e) => {
+  return mizchi$luna$luna$dom$element$$article(undefined, mizchi$luna$examples$wiki$$not_found_component$46$constr$47$959, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$h1(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("404 - Not Found")]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("Page not found: "), mizchi$luna$luna$dom$element$$text_dyn(() => mizchi$luna$luna$dom$router$$BrowserRouter$get_path(router))]), mizchi$luna$luna$dom$element$$p(undefined, undefined, undefined, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$a(base, undefined, undefined, undefined, undefined, undefined, undefined, new Option$Some$6$(mizchi$luna$luna$dom$element$$HandlerMap$click(mizchi$luna$luna$dom$element$$events(), (e) => {
     mizchi$js$browser$dom$$MouseEvent$preventDefault(e);
     mizchi$luna$luna$dom$router$$BrowserRouter$navigate(router, base);
   })), undefined, Option$None$7$, Option$None$8$, [mizchi$luna$luna$dom$element$$text("← Back to Wiki Home")])])]);
@@ -2532,7 +2490,7 @@ function mizchi$luna$examples$wiki$$render_wiki(router, container) {
     const match_result = mizchi$luna$luna$signal$$Signal$get$25$(router.current_match);
     mizchi$luna$luna$dom$element$$clear(container);
     const _bind = mizchi$luna$luna$signal$$untracked$26$(() => {
-      const sidebar = mizchi$luna$examples$wiki$$sidebar_component(router);
+      const header = mizchi$luna$examples$wiki$$header_nav_component(router);
       let content;
       if (match_result === undefined) {
         content = mizchi$luna$examples$wiki$$not_found_component(router);
@@ -2541,36 +2499,30 @@ function mizchi$luna$examples$wiki$$render_wiki(router, container) {
         const _m = _Some;
         content = mizchi$luna$examples$wiki$$resolve_component(router, _m);
       }
-      return { _0: sidebar, _1: content };
+      return { _0: header, _1: content };
     });
-    const _sidebar = _bind._0;
+    const _header = _bind._0;
     const _content = _bind._1;
-    const app = mizchi$luna$luna$signal$$untracked$20$(() => mizchi$luna$luna$dom$element$$div(undefined, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1006, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1007, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_sidebar, mizchi$luna$luna$dom$element$$main_(undefined, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1008, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$1009, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_content])]));
+    const app = mizchi$luna$luna$signal$$untracked$20$(() => mizchi$luna$luna$dom$element$$div(undefined, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$966, mizchi$luna$examples$wiki$$render_wiki$46$constr$47$967, undefined, undefined, Option$None$6$, undefined, Option$None$7$, Option$None$8$, [_header, _content]));
     mizchi$luna$luna$dom$element$$mount(container, app);
   });
 }
 function mizchi$luna$examples$wiki$$hydrate(el, _state) {
   const routes = [new $64$mizchi$47$luna$47$luna$47$routes$46$Routes$Page("", "wiki_index", "Wiki Home", []), new $64$mizchi$47$luna$47$luna$47$routes$46$Routes$Page("/:slug", "wiki_page", "Wiki Page", [])];
-  const router = mizchi$luna$luna$dom$router$$BrowserRouter$new$46$inner(routes, mizchi$luna$examples$wiki$$hydrate$46$base$124$11);
+  const router = mizchi$luna$luna$dom$router$$BrowserRouter$new$46$inner(routes, mizchi$luna$examples$wiki$$hydrate$46$base$124$9);
   const dom_container = mizchi$luna$luna$dom$element$$DomElement$from_dom(el);
   mizchi$luna$examples$wiki$$render_wiki(router, dom_container);
+  mizchi$js$browser$dom$$Element$removeAttribute(el, "data-spa-cloak");
+  mizchi$js$browser$dom$$Element$setAttribute(el, "data-hydrated", "true");
 }
 (() => {
   const doc = mizchi$js$browser$dom$$document();
   const _bind = mizchi$js$browser$dom$$Document$getElementById(doc, "wiki-app");
-  let container;
   if (_bind.$tag === 1) {
     const _Some = _bind;
     const _el = _Some._0;
-    container = new Option$Some$4$(_el);
-  } else {
-    container = mizchi$js$browser$dom$$Document$getElementById(doc, "app");
-  }
-  if (container.$tag === 1) {
-    const _Some = container;
-    const _el = _Some._0;
     const routes = [new $64$mizchi$47$luna$47$luna$47$routes$46$Routes$Page("", "wiki_index", "Wiki Home", []), new $64$mizchi$47$luna$47$luna$47$routes$46$Routes$Page("/:slug", "wiki_page", "Wiki Page", [])];
-    const router = mizchi$luna$luna$dom$router$$BrowserRouter$new$46$inner(routes, mizchi$luna$examples$wiki$$_init$42$46$base$124$5);
+    const router = mizchi$luna$luna$dom$router$$BrowserRouter$new$46$inner(routes, mizchi$luna$examples$wiki$$_init$42$46$base$124$3);
     const dom_container = mizchi$luna$luna$dom$element$$DomElement$from_dom(_el);
     mizchi$luna$examples$wiki$$render_wiki(router, dom_container);
     return;

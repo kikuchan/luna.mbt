@@ -24,6 +24,14 @@ pub(all) struct BuildContext {
 }
 pub fn BuildContext::new(SsgConfig, String) -> Self
 
+pub(all) struct ClsHints {
+  width : String?
+  height : String?
+}
+pub fn ClsHints::new() -> Self
+pub impl Eq for ClsHints
+pub impl Show for ClsHints
+
 pub(all) struct ComponentEmbed {
   tag : String
   attrs : Array[(String, String)]
@@ -37,6 +45,7 @@ pub(all) enum ContentType {
   Html
   Component
   TsxComponent
+  Mdx
 }
 pub impl Eq for ContentType
 pub impl Show for ContentType
@@ -90,6 +99,15 @@ pub(all) struct IslandsConfig {
 }
 pub fn IslandsConfig::default() -> Self
 
+pub(all) struct JsxComponentEmbed {
+  tag : String
+  attrs : Array[(String, MdxAttrValue)]
+  children : String
+  self_closing : Bool
+  cls_hints : ClsHints?
+}
+pub fn JsxComponentEmbed::new(String) -> Self
+
 pub(all) enum MdNode {
   Heading(level~ : Int, children~ : Array[MdNode], id~ : String)
   Paragraph(children~ : Array[MdNode])
@@ -106,9 +124,18 @@ pub(all) enum MdNode {
   Html(String)
   Island(IslandEmbed)
   Component(ComponentEmbed)
+  JsxComponent(JsxComponentEmbed)
   ThematicBreak
   LineBreak
 }
+
+pub(all) enum MdxAttrValue {
+  StringLiteral(String)
+  Expression(String)
+  Boolean
+}
+pub impl Eq for MdxAttrValue
+pub impl Show for MdxAttrValue
 
 pub(all) struct NavItem {
   text : String

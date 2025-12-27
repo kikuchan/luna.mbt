@@ -59,7 +59,11 @@ test "ISRManifest::is_isr_page returns true for registered page" {
 ///|
 test "ISRManifest::get_page returns page meta" {
   let pages : Map[String, ISRPageMeta] = {}
-  pages["/api/data/"] = create_page_meta(10, renderer="dynamic", source="api/data.ts")
+  pages["/api/data/"] = create_page_meta(
+    10,
+    renderer="dynamic",
+    source="api/data.ts",
+  )
   let manifest = create_manifest(pages)
   match manifest.get_page("/api/data/") {
     Some(meta) => {
@@ -86,7 +90,6 @@ test "ISRHandler::handle returns (None, false) for non-ISR page" {
   let cache = MemoryCache::new()
   let manifest = ISRManifest::empty()
   let handler = create_handler(cache, manifest, "/tmp/dist")
-
   let (html, needs_revalidation) = handler.handle("/static-page/")
   assert_true(html is None)
   assert_false(needs_revalidation)
@@ -169,7 +172,10 @@ test "ISRHandler handle flow debug" {
   // Step 4: Check cache get using dot notation (how handler does it)
   match handler.cache.get(key) {
     Some(e) => assert_eq(e.html, "<html>cached</html>")
-    None => fail("Cache get via handler.cache.get() failed - this is how handler does it!")
+    None =>
+      fail(
+        "Cache get via handler.cache.get() failed - this is how handler does it!",
+      )
   }
 
   // Step 5: Check status - use fixed time for predictable result
@@ -211,7 +217,10 @@ test "ISRHandler with fresh cache returns cached content" {
     (Some(_), false) => () // Expected for Fresh
     (Some(_), true) => fail("Got Stale (Some, true) - cache is stale?")
     (None, false) => fail("Got (None, false) - not an ISR page?")
-    (None, true) => fail("Got Miss (None, true) - cache entry not found or static file missing")
+    (None, true) =>
+      fail(
+        "Got Miss (None, true) - cache entry not found or static file missing",
+      )
   }
 }
 
@@ -344,9 +353,11 @@ test "Different TTLs have different expiry times" {
 
   // At 15 seconds: short is stale, long is fresh
   let check_time = base_time + 15000L
-  let short_status = check_status(ISRCache::get(cache, "isr:/short/"), check_time)
+  let short_status = check_status(
+    ISRCache::get(cache, "isr:/short/"),
+    check_time,
+  )
   let long_status = check_status(ISRCache::get(cache, "isr:/long/"), check_time)
-
   match short_status {
     Stale => ()
     _ => fail("Short TTL should be stale at 15s")
@@ -367,7 +378,10 @@ test "Zero TTL means always stale after creation" {
   ISRCache::put(cache, "isr:/instant/", entry)
 
   // Immediately stale (even 1ms later)
-  let status = check_status(ISRCache::get(cache, "isr:/instant/"), created_at + 1L)
+  let status = check_status(
+    ISRCache::get(cache, "isr:/instant/"),
+    created_at + 1L,
+  )
   match status {
     Stale => ()
     _ => fail("Zero TTL should be stale immediately")
@@ -378,7 +392,6 @@ test "Zero TTL means always stale after creation" {
 test "Boundary: exactly at TTL expiry is Stale" {
   let cache = MemoryCache::new()
   let created_at = 0L
-
   let entry = CacheEntry::new("boundary", created_at, 60)
   ISRCache::put(cache, "isr:/boundary/", entry)
 
@@ -394,7 +407,6 @@ test "Boundary: exactly at TTL expiry is Stale" {
 test "Boundary: 1ms before TTL expiry is Fresh" {
   let cache = MemoryCache::new()
   let created_at = 0L
-
   let entry = CacheEntry::new("boundary", created_at, 60)
   ISRCache::put(cache, "isr:/boundary/", entry)
 
@@ -423,7 +435,11 @@ test "update_cache refreshes entry with new timestamp" {
 
   // Initial old entry (shared via Ref)
   let old_time = before_update - 1000000L // 1000 seconds before now
-  ISRCache::put(cache, "isr:/page/", CacheEntry::new("<html>old</html>", old_time, 60))
+  ISRCache::put(
+    cache,
+    "isr:/page/",
+    CacheEntry::new("<html>old</html>", old_time, 60),
+  )
 
   // Update cache - this should set a new timestamp using now_ms()
   handler.update_cache("/page/", "<html>new</html>")
@@ -459,7 +475,8 @@ test "update_cache does nothing for non-ISR page" {
 
 ///|
 test "parse_manifest handles valid JSON" {
-  let json = #|{
+  let json =
+    #|{
     #|  "version": 1,
     #|  "pages": {
     #|    "/blog/": {"revalidate": 60, "renderer": "markdown", "source": "blog/index.md"}
@@ -479,7 +496,8 @@ test "parse_manifest handles valid JSON" {
 
 ///|
 test "parse_manifest handles empty pages" {
-  let json = #|{"version": 1, "pages": {}}
+  let json =
+    #|{"version": 1, "pages": {}}
   let manifest = parse_manifest(json)
   assert_eq(manifest.version, 1)
   assert_true(manifest.pages.is_empty())
@@ -494,7 +512,8 @@ test "parse_manifest handles invalid JSON" {
 
 ///|
 test "parse_manifest handles missing fields" {
-  let json = #|{"pages": {"/test/": {"revalidate": 30}}}
+  let json =
+    #|{"pages": {"/test/": {"revalidate": 30}}}
   let manifest = parse_manifest(json)
   assert_eq(manifest.version, 1) // Default version
   match manifest.get_page("/test/") {

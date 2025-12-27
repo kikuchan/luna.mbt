@@ -51,7 +51,6 @@ test "CacheManager::with_fs - save and reload" {
   // Should still find cached entries
   let status1 = cache2.get_with_hash("/page1/", "hash-a")
   assert_true(status1.is_hit())
-
   let status2 = cache2.get_with_hash("/page2/", "hash-b")
   assert_true(status2.is_hit())
 }
@@ -77,7 +76,6 @@ test "CacheManager::with_fs - config hash change invalidates cache" {
 test "CacheManager::with_fs - clear removes all" {
   let fs = @fs_adapter.MemFSAdapter::new()
   let cache = CacheManager::with_fs(fs, "/cache", "config-hash")
-
   cache.set("/page1/", "hash-1", "content1")
   cache.set("/page2/", "hash-2", "content2")
 

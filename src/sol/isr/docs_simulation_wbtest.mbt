@@ -20,26 +20,31 @@ fn create_docs_manifest() -> ISRManifest {
     "/", "/introduction/", "/luna/", "/astra/", "/stella/", "/sol/",
   ]
   for path in main_pages {
-    pages[path] = ISRPageMeta::{ revalidate: 300, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 300,
+      renderer: "markdown",
+      source: "",
+    }
   }
 
   // Overview and getting started - hot (TTL: 300s)
   let overview_pages = [
-    "/introduction/overview/",
-    "/introduction/getting-started/",
-    "/introduction/faq/",
-    "/luna/quick-start/",
-    "/luna/why-luna/",
+    "/introduction/overview/", "/introduction/getting-started/", "/introduction/faq/",
+    "/luna/quick-start/", "/luna/why-luna/",
   ]
   for path in overview_pages {
-    pages[path] = ISRPageMeta::{ revalidate: 300, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 300,
+      renderer: "markdown",
+      source: "",
+    }
   }
 
   // Tutorial pages - warm (TTL: 120s)
   let tutorial_topics = [
-    "signals", "effects", "memos", "batch", "untrack", "nested",
-    "show", "for", "switch", "onmount", "oncleanup", "islands_basics",
-    "islands_state", "islands_triggers", "webcomponents",
+    "signals", "effects", "memos", "batch", "untrack", "nested", "show", "for", "switch",
+    "onmount", "oncleanup", "islands_basics", "islands_state", "islands_triggers",
+    "webcomponents",
   ]
   for topic in tutorial_topics {
     // JS tutorials
@@ -58,39 +63,39 @@ fn create_docs_manifest() -> ISRManifest {
 
   // API reference - moderate traffic (TTL: 180s)
   let api_pages = [
-    "/luna/api-js/signals/",
-    "/luna/api-js/islands/",
-    "/luna/api-moonbit/signals/",
-    "/luna/api-moonbit/islands/",
-    "/luna/api-moonbit/render/",
+    "/luna/api-js/signals/", "/luna/api-js/islands/", "/luna/api-moonbit/signals/",
+    "/luna/api-moonbit/islands/", "/luna/api-moonbit/render/",
   ]
   for path in api_pages {
-    pages[path] = ISRPageMeta::{ revalidate: 180, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 180,
+      renderer: "markdown",
+      source: "",
+    }
   }
 
   // Internal docs - cold (TTL: 60s, rarely accessed)
   let internal_pages = [
-    "/internal/coding-guidelines/",
-    "/internal/architecture/",
-    "/internal/hydration-problem/",
-    "/internal/markdown/",
-    "/internal/render-bench/",
+    "/internal/coding-guidelines/", "/internal/architecture/", "/internal/hydration-problem/",
+    "/internal/markdown/", "/internal/render-bench/",
   ]
   for path in internal_pages {
-    pages[path] = ISRPageMeta::{ revalidate: 60, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 60,
+      renderer: "markdown",
+      source: "",
+    }
   }
 
   // i18n pages (Japanese) - moderate (TTL: 180s)
-  let ja_pages = [
-    "/ja/",
-    "/ja/introduction/",
-    "/ja/luna/",
-    "/ja/astra/",
-  ]
+  let ja_pages = ["/ja/", "/ja/introduction/", "/ja/luna/", "/ja/astra/"]
   for path in ja_pages {
-    pages[path] = ISRPageMeta::{ revalidate: 180, renderer: "markdown", source: "" }
+    pages[path] = ISRPageMeta::{
+      revalidate: 180,
+      renderer: "markdown",
+      source: "",
+    }
   }
-
   ISRManifest::{ version: 1, pages }
 }
 
@@ -118,7 +123,6 @@ test "docs: initial state - all pages cached and fresh" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // Check all pages are Fresh
@@ -140,7 +144,6 @@ test "docs: after 90 seconds - internal pages stale, main pages fresh" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // After 90 seconds:
@@ -152,7 +155,10 @@ test "docs: after 90 seconds - internal pages stale, main pages fresh" {
 
   // Check internal page is Stale
   let internal_key = cache_key("/internal/coding-guidelines/", [])
-  let internal_status = check_status(ISRCache::get(cache, internal_key), check_time)
+  let internal_status = check_status(
+    ISRCache::get(cache, internal_key),
+    check_time,
+  )
   match internal_status {
     Stale => ()
     _ => fail("Internal page should be Stale at 90s")
@@ -168,7 +174,10 @@ test "docs: after 90 seconds - internal pages stale, main pages fresh" {
 
   // Check tutorial page is Fresh
   let tutorial_key = cache_key("/luna/tutorial-js/signals/", [])
-  let tutorial_status = check_status(ISRCache::get(cache, tutorial_key), check_time)
+  let tutorial_status = check_status(
+    ISRCache::get(cache, tutorial_key),
+    check_time,
+  )
   match tutorial_status {
     Fresh => ()
     _ => fail("Tutorial page should be Fresh at 90s")
@@ -180,7 +189,6 @@ test "docs: after 150 seconds - tutorials stale, main still fresh" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // After 150 seconds:
@@ -192,7 +200,10 @@ test "docs: after 150 seconds - tutorials stale, main still fresh" {
 
   // Tutorial should be Stale
   let tutorial_key = cache_key("/luna/tutorial-moonbit/effects/", [])
-  let tutorial_status = check_status(ISRCache::get(cache, tutorial_key), check_time)
+  let tutorial_status = check_status(
+    ISRCache::get(cache, tutorial_key),
+    check_time,
+  )
   match tutorial_status {
     Stale => ()
     _ => fail("Tutorial should be Stale at 150s")
@@ -220,7 +231,6 @@ test "docs: after 200 seconds - only main pages remain fresh" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // After 200 seconds:
@@ -252,12 +262,10 @@ test "docs: after 10 minutes - all pages stale" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // After 10 minutes (600 seconds): all should be Stale
   let check_time = base_time + 600000L
-
   let mut all_stale = true
   for path, _ in manifest.pages {
     let key = cache_key(path, [])
@@ -276,15 +284,15 @@ test "docs: popular pages revalidation simulation" {
   let cache = MemoryCache::new()
   let handler = ISRHandler::{ cache, manifest, dist_dir: "/tmp/dist" }
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // Simulate 5 minutes of operation
   let current_time = base_time + 300000L
 
   // Popular pages accessed and revalidated:
-  let popular_pages = ["/", "/luna/", "/luna/quick-start/", "/introduction/getting-started/"]
-
+  let popular_pages = [
+    "/", "/luna/", "/luna/quick-start/", "/introduction/getting-started/",
+  ]
   for path in popular_pages {
     handler.update_cache(path, "<html>Fresh content for " + path + "</html>")
   }
@@ -315,7 +323,6 @@ test "docs: i18n pages follow same pattern" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // Japanese pages have TTL=180s
@@ -341,11 +348,9 @@ test "docs: i18n pages follow same pattern" {
 ///|
 test "docs: count pages by TTL tier" {
   let manifest = create_docs_manifest()
-
   let mut hot = 0 // TTL >= 300
   let mut warm = 0 // 120 <= TTL < 300
   let mut cold = 0 // TTL < 120
-
   for _, meta in manifest.pages {
     if meta.revalidate >= 300 {
       hot = hot + 1
@@ -370,18 +375,13 @@ test "docs: cache eviction simulation" {
   let manifest = create_docs_manifest()
   let cache = MemoryCache::new()
   let base_time = 1000000000L
-
   populate_docs_cache(cache, manifest, base_time)
 
   // Simulate evicting cold pages (rarely accessed, save memory)
   let cold_pages = [
-    "/internal/coding-guidelines/",
-    "/internal/architecture/",
-    "/internal/hydration-problem/",
-    "/internal/markdown/",
-    "/internal/render-bench/",
+    "/internal/coding-guidelines/", "/internal/architecture/", "/internal/hydration-problem/",
+    "/internal/markdown/", "/internal/render-bench/",
   ]
-
   for path in cold_pages {
     let key = cache_key(path, [])
     ISRCache::delete(cache, key)

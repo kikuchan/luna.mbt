@@ -73,6 +73,9 @@ pub(all) struct SsgConfig {
   sanitize_html : Bool
   /// Deploy target (static, cloudflare, node)
   deploy_target : DeployTarget
+  /// SPA routes for client-side routing fallback (e.g., ["/wiki/"])
+  /// Requests to /wiki/* will fallback to /wiki/index.html
+  spa_routes : Array[String]
 }
 
 // I18nConfig, LocaleConfig are defined in core/ssg
@@ -106,6 +109,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     body_snippets: [],
     sanitize_html: false,
     deploy_target: DeployTarget::default(),
+    spa_routes: [],
   }
 }
 
@@ -282,6 +286,8 @@ pub(all) enum ContentType {
   Component
   /// TSX component file (.tsx)
   TsxComponent
+  /// MDX file (.mdx) - Markdown with JSX components
+  Mdx
 } derive(Eq, Show)
 
 ///|
@@ -383,6 +389,8 @@ pub(all) enum MdNode {
   Island(IslandEmbed)
   /// Web Component custom element
   Component(ComponentEmbed)
+  /// JSX component from MDX (before conversion to WebComponent)
+  JsxComponent(JsxComponentEmbed)
   /// Horizontal rule
   ThematicBreak
   /// Line break
@@ -426,6 +434,59 @@ pub(all) struct ComponentEmbed {
 /// Default Component embed
 pub fn ComponentEmbed::new(tag : String) -> ComponentEmbed {
   { tag, attrs: [], content: "", trigger: @luna.Load }
+}
+
+// =============================================================================
+// MDX Types
+// =============================================================================
+
+///|
+/// JSX component embedding in MDX
+/// Before rendering, converted to ComponentEmbed (WebComponent)
+pub(all) struct JsxComponentEmbed {
+  /// JSX component tag name (e.g., "Button", "Counter")
+  tag : String
+  /// Attributes with typed values
+  attrs : Array[(String, MdxAttrValue)]
+  /// Inner content (raw string, may contain nested elements)
+  children : String
+  /// Whether self-closing (<Component />)
+  self_closing : Bool
+  /// CLS optimization hints
+  cls_hints : ClsHints?
+}
+
+///|
+/// Default JSX component embed
+pub fn JsxComponentEmbed::new(tag : String) -> JsxComponentEmbed {
+  { tag, attrs: [], children: "", self_closing: false, cls_hints: None }
+}
+
+///|
+/// MDX attribute value types
+pub(all) enum MdxAttrValue {
+  /// String literal: prop="value" or prop='value'
+  StringLiteral(String)
+  /// Expression: prop={expression}
+  Expression(String)
+  /// Boolean: prop (true when present)
+  Boolean
+} derive(Eq, Show)
+
+///|
+/// CLS (Cumulative Layout Shift) optimization hints
+/// Used to prevent layout shifts when components load
+pub(all) struct ClsHints {
+  /// Expected width (CSS value, e.g., "200px", "100%")
+  width : String?
+  /// Expected height (CSS value, e.g., "100px", "auto")
+  height : String?
+} derive(Eq, Show)
+
+///|
+/// Default CLS hints (no hints)
+pub fn ClsHints::new() -> ClsHints {
+  { width: None, height: None }
 }
 
 // =============================================================================

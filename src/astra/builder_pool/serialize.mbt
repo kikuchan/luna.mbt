@@ -483,6 +483,7 @@ fn parse_ssg_config_obj(obj : Map[String, Json]) -> @astra.SsgConfig? {
     body_snippets: [],
     sanitize_html: false,
     deploy_target: @astra.DeployTarget::default(),
+    spa_routes: [],
   })
 }
 

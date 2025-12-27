@@ -25,6 +25,7 @@ fn create_test_config() -> @astra.SsgConfig {
     body_snippets: [],
     sanitize_html: false,
     deploy_target: @astra.DeployTarget::default(),
+    spa_routes: [],
   }
 }
 

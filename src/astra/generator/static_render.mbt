@@ -699,6 +699,43 @@ fn generate_page_with_highlight(
       }
       (page.frontmatter, vnode, [])
     }
+    @ssg.MdxRenderer => {
+      // MDX renderer - parse MDX with JSX support
+      let content : String = @fs.readFileSync(source_path).to_string() catch {
+        e => return Err("Failed to read \{source_path}: \{e}")
+      }
+      // Parse using MDX parser (handles import/export/JSX)
+      let (parsed_frontmatter, nodes) = @mdx.parse_mdx(content)
+
+      // Auto-generate description from first paragraph if not provided
+      let fm = if parsed_frontmatter.description is None {
+        match @markdown.extract_description(nodes) {
+          Some(desc) => { ..parsed_frontmatter, description: Some(desc) }
+          None => parsed_frontmatter
+        }
+      } else {
+        parsed_frontmatter
+      }
+
+      // Get islands base path from config
+      let islands_base_path = match ctx.config.islands {
+        Some(islands_config) => islands_config.base_path
+        None => "/static/"
+      }
+
+      // Convert to VNode (JsxComponent nodes are handled in transformer)
+      let is_index = page.source_path.has_suffix("index.mdx")
+      let vnode = @markdown.md_nodes_to_vnode(
+        nodes,
+        islands_base_path~,
+        current_url_path=page.url_path,
+        is_index~,
+      )
+
+      // Extract TOC
+      let extracted_toc = @markdown.extract_toc(nodes)
+      (fm, vnode, extracted_toc)
+    }
   }
 
   // Build page HTML
@@ -881,6 +918,43 @@ async fn generate_page_with_highlight_async(
           )
       }
       (page.frontmatter, vnode, [])
+    }
+    @ssg.MdxRenderer => {
+      // MDX renderer (async) - parse MDX with JSX support
+      let content : String = @fs.readFileSync(source_path).to_string() catch {
+        e => return Err("Failed to read \{source_path}: \{e}")
+      }
+      // Parse using MDX parser (handles import/export/JSX)
+      let (parsed_frontmatter, nodes) = @mdx.parse_mdx(content)
+
+      // Auto-generate description from first paragraph if not provided
+      let fm = if parsed_frontmatter.description is None {
+        match @markdown.extract_description(nodes) {
+          Some(desc) => { ..parsed_frontmatter, description: Some(desc) }
+          None => parsed_frontmatter
+        }
+      } else {
+        parsed_frontmatter
+      }
+
+      // Get islands base path from config
+      let islands_base_path = match ctx.config.islands {
+        Some(islands_config) => islands_config.base_path
+        None => "/static/"
+      }
+
+      // Convert to VNode (JsxComponent nodes are handled in transformer)
+      let is_index = page.source_path.has_suffix("index.mdx")
+      let vnode = @markdown.md_nodes_to_vnode(
+        nodes,
+        islands_base_path~,
+        current_url_path=page.url_path,
+        is_index~,
+      )
+
+      // Extract TOC
+      let extracted_toc = @markdown.extract_toc(nodes)
+      (fm, vnode, extracted_toc)
     }
   }
 
@@ -1623,7 +1697,7 @@ fn build_html_document(
   } else {
     ""
   }
-  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\{desc_tag}\{robots_tag}\{ogp_tags}\{ogp_text}\n  <link rel=\"preload\" href=\"\{base}assets/loader.js\" as=\"script\">\n  <script>\{theme_script}</script>\n  <style>\{combined_css}:root{--primary-color:\{primary};}</style>\n  \{preloads}\{prefetch_tags}\{head_snippets}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" async src=\"\{base}assets/loader.js\"></script>\n  \{wc_loader_script}\n  \{nav_script}\n  \{sidebar_script}\n  \{toc_script}\{body_snippets}\n</body>\n</html>"
+  "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>\{page_title}</title>\{desc_tag}\{robots_tag}\{ogp_tags}\{ogp_text}\n  <link rel=\"modulepreload\" href=\"\{base}assets/loader.js\">\n  <script>\{theme_script}</script>\n  <style>\{combined_css}:root{--primary-color:\{primary};}</style>\n  \{preloads}\{prefetch_tags}\{head_snippets}\n</head>\n<body>\n  <div id=\"app\">\{render_result.html}</div>\n  <script type=\"module\" async src=\"\{base}assets/loader.js\"></script>\n  \{wc_loader_script}\n  \{nav_script}\n  \{sidebar_script}\n  \{toc_script}\{body_snippets}\n</body>\n</html>"
 }
 
 ///|

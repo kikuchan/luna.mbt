@@ -15,6 +15,8 @@ pub(all) enum RendererType {
   ReactRenderer
   /// Client-only renderer - placeholder for client-side hydration
   ClientOnlyRenderer
+  /// MDX renderer - Markdown with JSX components
+  MdxRenderer
 } derive(Eq, Show)
 
 ///|
