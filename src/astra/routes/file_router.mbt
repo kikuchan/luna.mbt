@@ -843,6 +843,10 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
     renderer,
     noindex,
     revalidate,
+    date: None,
+    author: None,
+    tags: [],
+    draft: false,
   }
 }
 

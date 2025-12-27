@@ -2,8 +2,6 @@
 
 完了したタスクは `docs/internal/done/` に移動済み。
 
-ブログサイトとしテンプレートがホしい
-
 ## TODO
 
 ### Luna UI
@@ -30,6 +28,8 @@
 - [ ] プラグインシステム (mermaid, math等)
 
 **低優先**
+- [x] ブログテンプレート → `examples/astra_blog/`
+  - Frontmatterにブログ用フィールド追加 (date, author, tags, draft)
 - [x] ディスクキャッシュ (永続ビルドキャッシュ) → `src/core/cache/`, `.astra-cache/`
 - [x] アセットハッシング (キャッシュバスティング) → rolldown対応済み
 - [x] デプロイアダプタ → [設計書](docs/internal/deploy-adapters-design.md)

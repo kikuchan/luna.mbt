@@ -61,6 +61,10 @@ fn create_page_meta(
       renderer: None,
       noindex: false,
       revalidate: None,
+      date: None,
+      author: None,
+      tags: [],
+      draft: false,
     },
   }
 }

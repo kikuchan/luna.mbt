@@ -12,7 +12,7 @@ pub(all) struct Frontmatter {
   title : String?
   /// Page description (for meta tag)
   description : String?
-  /// Layout type (default, doc, home)
+  /// Layout type (default, doc, home, blog, blog-post)
   layout : String?
   /// Show sidebar
   sidebar : Bool
@@ -38,6 +38,15 @@ pub(all) struct Frontmatter {
   noindex : Bool
   /// ISR revalidation interval in seconds (0 or None = static)
   revalidate : Int?
+  // Blog-specific fields
+  /// Publication date (YYYY-MM-DD format)
+  date : String?
+  /// Author name
+  author : String?
+  /// Tags for categorization
+  tags : Array[String]
+  /// Draft flag (hide from listings)
+  draft : Bool
 }
 
 ///|
@@ -59,6 +68,10 @@ pub fn Frontmatter::default() -> Frontmatter {
     renderer: None,
     noindex: false,
     revalidate: None,
+    date: None,
+    author: None,
+    tags: [],
+    draft: false,
   }
 }
 

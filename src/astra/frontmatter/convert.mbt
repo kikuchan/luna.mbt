@@ -37,5 +37,9 @@ pub fn from_cst(fm : @md_parser.Frontmatter) -> Frontmatter {
     renderer: None,
     noindex: @md_fm.get_bool(fm, "noindex").unwrap_or(false),
     revalidate: @md_fm.get_int(fm, "revalidate"),
+    date: @md_fm.get_string(fm, "date"),
+    author: @md_fm.get_string(fm, "author"),
+    tags: @md_fm.get_list(fm, "tags"),
+    draft: @md_fm.get_bool(fm, "draft").unwrap_or(false),
   }
 }

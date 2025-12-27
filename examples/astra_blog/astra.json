@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/astra.schema.json",
+  "title": "My Blog",
+  "description": "A sample blog built with Astra",
+  "docs_dir": "docs",
+  "out_dir": "dist",
+  "base_url": "/",
+  "trailing_slash": true,
+  "deploy": "cloudflare",
+  "sidebar": [
+    {
+      "text": "Blog",
+      "link": "/blog/",
+      "items": []
+    }
+  ],
+  "theme": {
+    "footer": {
+      "message": "Built with Astra",
+      "copyright": "2024 My Blog"
+    }
+  }
+}

@@ -870,6 +870,30 @@ fn write_frontmatter(fm : @astra.Frontmatter, buf : StringBuilder) -> Unit {
   if fm.ssr {
     buf.write_string(",\"ssr\":true")
   }
+  // Blog-specific fields
+  match fm.date {
+    Some(d) => {
+      buf.write_string(",\"date\":\"")
+      write_escaped_string(d, buf)
+      buf.write_string("\"")
+    }
+    None => ()
+  }
+  match fm.author {
+    Some(a) => {
+      buf.write_string(",\"author\":\"")
+      write_escaped_string(a, buf)
+      buf.write_string("\"")
+    }
+    None => ()
+  }
+  if fm.tags.length() > 0 {
+    buf.write_string(",\"tags\":")
+    write_string_array(fm.tags, buf)
+  }
+  if fm.draft {
+    buf.write_string(",\"draft\":true")
+  }
   buf.write_string("}")
 }
 
@@ -992,6 +1016,31 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     Some(Number(n, ..)) => Some(n.to_int())
     _ => None
   }
+  // Parse blog-specific fields
+  let date : String? = match obj.get("date") {
+    Some(String(d)) => Some(d)
+    _ => None
+  }
+  let author : String? = match obj.get("author") {
+    Some(String(a)) => Some(a)
+    _ => None
+  }
+  let tags = match obj.get("tags") {
+    Some(Array(arr)) => {
+      let result : Array[String] = []
+      for item in arr {
+        if item is String(s) {
+          result.push(s)
+        }
+      }
+      result
+    }
+    _ => []
+  }
+  let draft : Bool = match obj.get("draft") {
+    Some(True) => true
+    _ => false
+  }
   @astra.Frontmatter::{
     title,
     description,
@@ -1008,6 +1057,10 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     renderer,
     noindex,
     revalidate,
+    date,
+    author,
+    tags,
+    draft,
   }
 }
 
