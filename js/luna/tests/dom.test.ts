@@ -686,4 +686,187 @@ describe("DOM API", () => {
       expect(svgEl?.namespaceURI).toBe("http://www.w3.org/2000/svg");
     });
   });
+
+  describe("forEach with SVG elements", () => {
+    test("forEach renders SVG elements", () => {
+      const [items, setItems] = createSignal([
+        { id: "1", x: 10, y: 10 },
+        { id: "2", x: 50, y: 50 },
+      ]);
+
+      const forEachNode = forEach(
+        items,
+        (item) =>
+          createElementNs(
+            svgNs(),
+            "rect",
+            [
+              attr("data-id", AttrValue.Static(item.id)),
+              attr("x", AttrValue.Static(String(item.x))),
+              attr("y", AttrValue.Static(String(item.y))),
+              attr("width", AttrValue.Static("20")),
+              attr("height", AttrValue.Static("20")),
+            ],
+            []
+          )
+      );
+
+      const svg = createElementNs(
+        svgNs(),
+        "svg",
+        [
+          attr("width", AttrValue.Static("200")),
+          attr("height", AttrValue.Static("200")),
+        ],
+        [forEachNode]
+      );
+
+      render(container, svg);
+
+      const rects = container.querySelectorAll("rect");
+      expect(rects.length).toBe(2);
+      expect(rects[0].getAttribute("data-id")).toBe("1");
+      expect(rects[1].getAttribute("data-id")).toBe("2");
+    });
+
+    test("forEach updates SVG elements when signal changes", () => {
+      const [items, setItems] = createSignal([{ id: "1", x: 10 }]);
+
+      const forEachNode = forEach(
+        items,
+        (item) =>
+          createElementNs(
+            svgNs(),
+            "circle",
+            [
+              attr("data-id", AttrValue.Static(item.id)),
+              attr("cx", AttrValue.Static(String(item.x))),
+              attr("cy", AttrValue.Static("50")),
+              attr("r", AttrValue.Static("10")),
+            ],
+            []
+          )
+      );
+
+      const svg = createElementNs(svgNs(), "svg", [], [forEachNode]);
+      render(container, svg);
+
+      expect(container.querySelectorAll("circle").length).toBe(1);
+
+      // Add item
+      setItems([
+        { id: "1", x: 10 },
+        { id: "2", x: 50 },
+      ]);
+      expect(container.querySelectorAll("circle").length).toBe(2);
+
+      // Remove item
+      setItems([{ id: "2", x: 50 }]);
+      expect(container.querySelectorAll("circle").length).toBe(1);
+      expect(container.querySelector("circle")?.getAttribute("data-id")).toBe("2");
+    });
+
+    test("forEach handles reordering in SVG", () => {
+      const item1 = { id: "a", x: 10 };
+      const item2 = { id: "b", x: 20 };
+      const item3 = { id: "c", x: 30 };
+
+      const [items, setItems] = createSignal([item1, item2, item3]);
+
+      const forEachNode = forEach(
+        items,
+        (item) =>
+          createElementNs(
+            svgNs(),
+            "rect",
+            [attr("data-id", AttrValue.Static(item.id))],
+            []
+          )
+      );
+
+      const svg = createElementNs(svgNs(), "svg", [], [forEachNode]);
+      render(container, svg);
+
+      const getIds = () =>
+        Array.from(container.querySelectorAll("rect")).map((r) =>
+          r.getAttribute("data-id")
+        );
+
+      expect(getIds()).toEqual(["a", "b", "c"]);
+
+      // Reorder
+      setItems([item3, item1, item2]);
+      expect(getIds()).toEqual(["c", "a", "b"]);
+
+      // Reverse
+      setItems([item2, item1, item3]);
+      expect(getIds()).toEqual(["b", "a", "c"]);
+    });
+
+    test("forEach with nested SVG groups", () => {
+      const [groups, setGroups] = createSignal([
+        { id: "g1", items: ["a", "b"] },
+        { id: "g2", items: ["c", "d"] },
+      ]);
+
+      const forEachNode = forEach(
+        groups,
+        (group) =>
+          createElementNs(
+            svgNs(),
+            "g",
+            [attr("data-group", AttrValue.Static(group.id))],
+            group.items.map((item) =>
+              createElementNs(
+                svgNs(),
+                "rect",
+                [attr("data-item", AttrValue.Static(item))],
+                []
+              )
+            )
+          )
+      );
+
+      const svg = createElementNs(svgNs(), "svg", [], [forEachNode]);
+      render(container, svg);
+
+      const g1 = container.querySelector('[data-group="g1"]');
+      const g2 = container.querySelector('[data-group="g2"]');
+      expect(g1?.querySelectorAll("rect").length).toBe(2);
+      expect(g2?.querySelectorAll("rect").length).toBe(2);
+
+      // Update groups
+      setGroups([{ id: "g1", items: ["a", "b", "c"] }]);
+      expect(container.querySelectorAll("g").length).toBe(1);
+      expect(container.querySelectorAll("rect").length).toBe(3);
+    });
+
+    test("forEach handles empty to non-empty transition in SVG", () => {
+      const [items, setItems] = createSignal<{ id: string }[]>([]);
+
+      const forEachNode = forEach(
+        items,
+        (item) =>
+          createElementNs(
+            svgNs(),
+            "circle",
+            [attr("data-id", AttrValue.Static(item.id))],
+            []
+          )
+      );
+
+      const svg = createElementNs(svgNs(), "svg", [], [forEachNode]);
+      render(container, svg);
+
+      expect(container.querySelectorAll("circle").length).toBe(0);
+
+      // Add items
+      setItems([{ id: "1" }, { id: "2" }]);
+      expect(container.querySelectorAll("circle").length).toBe(2);
+
+      // Clear again
+      setItems([]);
+      expect(container.querySelectorAll("circle").length).toBe(0);
+    });
+  });
 });
