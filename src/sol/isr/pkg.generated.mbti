@@ -1,12 +1,29 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "mizchi/luna/sol/isr"
 
+import(
+  "mizchi/js/core"
+  "mizchi/npm_typed/hono"
+)
+
 // Values
 pub fn cache_key(String, Array[(String, String)]) -> String
 
 pub fn check_status(CacheEntry?, Int64) -> CacheStatus
 
+pub fn create_isr_middleware(String) -> (@hono.Context[Unit, Unit]) -> @core.Promise[Unit]?
+
+pub fn get_isr_handler() -> ISRHandler[MemoryCache]?
+
+pub fn handle_isr_request(String) -> (String?, Bool)
+
+pub fn init_isr(String) -> ISRHandler[MemoryCache]
+
+pub fn load_manifest(String) -> ISRManifest
+
 pub fn now_ms() -> Int64
+
+pub fn schedule_revalidation(String) -> Unit
 
 // Errors
 
@@ -30,8 +47,37 @@ pub struct ISRConfig {
 }
 pub fn ISRConfig::default() -> Self
 
+pub struct ISRHandler[Cache] {
+  cache : Cache
+  manifest : ISRManifest
+  dist_dir : String
+}
+pub fn[Cache : ISRCache] ISRHandler::handle(Self[Cache], String) -> (String?, Bool)
+pub fn[Cache] ISRHandler::new(Cache, ISRManifest, String) -> Self[Cache]
+pub fn[Cache : ISRCache] ISRHandler::update_cache(Self[Cache], String, String) -> Unit
+
+pub struct ISRManifest {
+  version : Int
+  pages : Map[String, ISRPageMeta]
+}
+pub fn ISRManifest::empty() -> Self
+pub fn ISRManifest::get_page(Self, String) -> ISRPageMeta?
+pub fn ISRManifest::is_isr_page(Self, String) -> Bool
+
+pub struct ISRMiddlewareConfig {
+  dist_dir : String
+  enabled : Bool
+}
+pub fn ISRMiddlewareConfig::default() -> Self
+
+pub struct ISRPageMeta {
+  revalidate : Int
+  renderer : String
+  source : String
+}
+
 pub struct MemoryCache {
-  store : Map[String, CacheEntry]
+  store : Ref[Map[String, CacheEntry]]
 }
 pub fn MemoryCache::new() -> Self
 pub impl ISRCache for MemoryCache

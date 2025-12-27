@@ -10,29 +10,30 @@
 ///|
 /// In-memory ISR cache implementation
 /// Suitable for development and single-instance deployments
+/// Uses Ref to ensure shared state when handler is copied
 pub struct MemoryCache {
-  store : Map[String, CacheEntry]
+  store : Ref[Map[String, CacheEntry]]
 }
 
 ///|
 /// Create a new empty MemoryCache
 pub fn MemoryCache::new() -> MemoryCache {
-  { store: {} }
+  { store: Ref::new({}) }
 }
 
 ///|
 pub impl ISRCache for MemoryCache with get(self, key) {
-  self.store.get(key)
+  self.store.val.get(key)
 }
 
 ///|
 pub impl ISRCache for MemoryCache with put(self, key, entry) {
-  self.store[key] = entry
+  self.store.val[key] = entry
 }
 
 ///|
 pub impl ISRCache for MemoryCache with delete(self, key) {
-  self.store.remove(key) |> ignore
+  self.store.val.remove(key) |> ignore
 }
 
 ///|

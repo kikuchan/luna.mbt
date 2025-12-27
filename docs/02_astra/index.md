@@ -16,12 +16,14 @@ Astra is Luna's static site generator for documentation and content sites.
 - **Auto Sidebar** - Automatic navigation generation from directory structure
 - **Islands Architecture** - Embed interactive Luna/MoonBit components
 - **Dynamic Routes** - Generate pages from `_slug_` patterns with staticParams
+- **ISR** - Incremental Static Regeneration with Stale-While-Revalidate
 - **HMR** - Fast development with Hot Module Replacement
 
 ## Guides
 
 - [Dynamic Routes](/astra/dynamic-routes/) - Generate static pages from parameters
 - [Islands](/astra/islands/) - Embed interactive components in static pages
+- [ISR](/astra/isr/) - Incremental Static Regeneration for dynamic content
 
 ## Quick Start
 
@@ -248,6 +250,7 @@ sidebar: true
 | `layout` | string | `"doc"` | Layout type: `doc`, `home` |
 | `sidebar` | boolean | `true` | Show sidebar |
 | `image` | string | - | OGP image (overrides site default) |
+| `revalidate` | int | - | ISR TTL in seconds ([details](/astra/isr/)) |
 
 ### Code Blocks
 

@@ -36,5 +36,6 @@ pub fn from_cst(fm : @md_parser.Frontmatter) -> Frontmatter {
     ssr: @md_fm.get_bool(fm, "ssr").unwrap_or(false),
     renderer: None,
     noindex: @md_fm.get_bool(fm, "noindex").unwrap_or(false),
+    revalidate: @md_fm.get_int(fm, "revalidate"),
   }
 }

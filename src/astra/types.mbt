@@ -11,6 +11,14 @@ pub(all) enum DeployTarget {
   Static
   /// Cloudflare Workers/Pages (generates _routes.json)
   Cloudflare
+  /// GitHub Pages (generates .nojekyll, CNAME)
+  GithubPages
+  /// Vercel (generates vercel.json)
+  Vercel
+  /// Netlify (generates _headers, _redirects)
+  Netlify
+  /// Deno Deploy (optional main.ts for SSR)
+  Deno
   /// Node.js server
   Node
 } derive(Eq, Show)

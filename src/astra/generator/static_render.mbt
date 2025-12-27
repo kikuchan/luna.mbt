@@ -434,8 +434,12 @@ fn generate_site_internal(
   // Step 9: Generate client manifest for chunk loading
   generate_client_manifest(ctx)
 
-  // Step 10: Generate Cloudflare _routes.json (if deploy target is Cloudflare)
-  write_routes_json(ctx)
+  // Step 10: Generate ISR manifest (if any pages have revalidate)
+  let isr_manifest = @isr.build_manifest(pages)
+  @isr.write_manifest(isr_manifest, @path.join2(cwd, config.output_dir))
+
+  // Step 11: Run deploy adapter (generates platform-specific files)
+  @adapters.run_adapter(ctx)
   Ok(())
 }
 
@@ -481,13 +485,51 @@ async fn generate_site_internal_async(
   let output_dir = @path.join2(cwd, config.output_dir)
   ensure_dir(output_dir)
 
-  // Step 5: Generate each page (async for component SSR)
+  // Step 4.5: Initialize cache manager
+  let cache_manager = @cache.CacheManager::new(cwd, config)
+  let mut cache_hits = 0
+  let mut cache_misses = 0
+
+  // Step 5: Generate each page (async for component SSR) with caching
   for page in pages {
-    match generate_page_with_highlight_async(ctx, page, highlighter) {
-      Ok(_) => println("  Generated: \{page.url_path}")
-      Err(e) => println("  Error generating \{page.url_path}: \{e}")
+    // Compute source hash for cache key
+    let source_hash = compute_page_source_hash(ctx, page)
+
+    // Check cache
+    match cache_manager.get(page.url_path, source_hash) {
+      Some(cached_html) => {
+        // Cache hit - write cached HTML directly
+        let output_path = @path.join2(
+          @path.join2(ctx.cwd, ctx.config.output_dir),
+          @routes.url_to_output_path(page.url_path),
+        )
+        let parent_dir = @path.dirname(output_path)
+        ensure_dir(parent_dir)
+        @fs.writeFileSync(output_path, @js.any(cached_html)) catch {
+          e => {
+            println("  Error writing cached \{page.url_path}: \{e}")
+            continue
+          }
+        }
+        cache_hits = cache_hits + 1
+        println("  Cached: \{page.url_path}")
+      }
+      None =>
+        // Cache miss - generate and cache
+        match generate_page_with_highlight_async(ctx, page, highlighter) {
+          Ok(html) => {
+            cache_manager.set(page.url_path, source_hash, html)
+            cache_misses = cache_misses + 1
+            println("  Generated: \{page.url_path}")
+          }
+          Err(e) => println("  Error generating \{page.url_path}: \{e}")
+        }
     }
   }
+
+  // Step 5.5: Save cache metadata
+  cache_manager.save()
+  println("  Cache: \{cache_hits} hits, \{cache_misses} misses")
 
   // Step 6: Copy static assets (if any)
   copy_static_assets(ctx)
@@ -502,8 +544,12 @@ async fn generate_site_internal_async(
   // Step 9: Generate client manifest for chunk loading
   generate_client_manifest(ctx)
 
-  // Step 10: Generate Cloudflare _routes.json (if deploy target is Cloudflare)
-  write_routes_json(ctx)
+  // Step 10: Generate ISR manifest (if any pages have revalidate)
+  let isr_manifest = @isr.build_manifest(pages)
+  @isr.write_manifest(isr_manifest, @path.join2(cwd, config.output_dir))
+
+  // Step 11: Run deploy adapter (generates platform-specific files)
+  @adapters.run_adapter(ctx)
   Ok(())
 }
 
@@ -682,12 +728,47 @@ fn generate_page_with_highlight(
 }
 
 ///|
+/// Compute source hash for a page (used for cache key)
+fn compute_page_source_hash(
+  ctx : @astra.BuildContext,
+  page : @astra.PageMeta,
+) -> String {
+  // Parse dynamic source path to get actual file path
+  let (actual_source, _params) = parse_dynamic_source_path(page.source_path)
+
+  // Build full source path
+  let source_path = @path.join2(
+    @path.join2(ctx.cwd, ctx.config.docs_dir),
+    actual_source,
+  )
+
+  // Read source content
+  let content : String = @fs.readFileSync(source_path).to_string() catch {
+    _ => ""
+  }
+
+  // Serialize frontmatter to JSON for hash
+  let fm = page.frontmatter
+  let title = fm.title.unwrap_or("")
+  let layout = fm.layout.unwrap_or("")
+  let noindex = if fm.noindex { "true" } else { "false" }
+  let fm_json = title + "|" + layout + "|" + noindex
+
+  // Get config hash
+  let config_hash = @cache.compute_config_hash(ctx.config)
+
+  // Compute combined hash
+  @cache.compute_page_hash(content, fm_json, config_hash)
+}
+
+///|
 /// Generate single page with async SSR component support
+/// Returns the generated HTML on success
 async fn generate_page_with_highlight_async(
   ctx : @astra.BuildContext,
   page : @astra.PageMeta,
   highlighter : @shiki.Highlighter?,
-) -> Result[Unit, String] {
+) -> Result[String, String] {
   // Parse dynamic source path to get actual file path and params
   let (actual_source, _params) = parse_dynamic_source_path(page.source_path)
 
@@ -823,7 +904,7 @@ async fn generate_page_with_highlight_async(
   ensure_dir(parent_dir)
   try {
     @fs.writeFileSync(output_path, @js.any(final_html))
-    Ok(())
+    Ok(final_html)
   } catch {
     e => Err("Failed to write \{output_path}: \{e}")
   }
@@ -1505,7 +1586,10 @@ fn build_html_document(
   let page_order = get_page_order(ctx.pages, page.locale)
 
   // Navigation script for SPA/View Transitions
-  let nav_script = @assets.build_navigation_script(page_order, ctx.config.navigation)
+  let nav_script = @assets.build_navigation_script(
+    page_order,
+    ctx.config.navigation,
+  )
 
   // Theme initialization script (runs early to prevent flash)
   let theme_script = @assets.get_theme_script()

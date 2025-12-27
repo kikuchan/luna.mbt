@@ -36,6 +36,8 @@ pub(all) struct Frontmatter {
   renderer : String?
   /// Prevent search engines from indexing this page
   noindex : Bool
+  /// ISR revalidation interval in seconds (0 or None = static)
+  revalidate : Int?
 }
 
 ///|
@@ -56,6 +58,7 @@ pub fn Frontmatter::default() -> Frontmatter {
     ssr: false,
     renderer: None,
     noindex: false,
+    revalidate: None,
   }
 }
 

@@ -54,6 +54,10 @@
       "alias": "astra_gen"
     },
     {
+      "path": "mizchi/luna/astra/adapters",
+      "alias": "adapters"
+    },
+    {
       "path": "mizchi/luna/astra/routes",
       "alias": "routes"
     },

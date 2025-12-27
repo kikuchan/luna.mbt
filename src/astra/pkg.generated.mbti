@@ -44,6 +44,10 @@ pub impl Show for ContentType
 pub(all) enum DeployTarget {
   Static
   Cloudflare
+  GithubPages
+  Vercel
+  Netlify
+  Deno
   Node
 }
 pub fn DeployTarget::default() -> Self

@@ -246,8 +246,8 @@ async fn run_parallel_build_internal(
   // Step 10: Generate client manifest for chunk loading
   @astra_gen.generate_client_manifest(ctx)
 
-  // Step 11: Generate Cloudflare _routes.json (if deploy target is Cloudflare)
-  @astra_gen.write_routes_json(ctx)
+  // Step 11: Run deploy adapter (generates platform-specific files)
+  @adapters.run_adapter(ctx)
   Ok(())
 }
 

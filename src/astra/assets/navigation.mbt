@@ -276,7 +276,6 @@ pub fn build_navigation_script(
   if config.keyboard {
     parts.push(get_keyboard_script())
   }
-
   let script_body = parts.join("\n")
   "<script>\n(function() {\n\{script_body}\n})();\n</script>"
 }

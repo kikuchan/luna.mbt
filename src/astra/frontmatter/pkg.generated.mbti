@@ -26,6 +26,8 @@ pub(all) struct Frontmatter {
   twitter_card : String?
   ssr : Bool
   renderer : String?
+  noindex : Bool
+  revalidate : Int?
 }
 pub fn Frontmatter::default() -> Self
 

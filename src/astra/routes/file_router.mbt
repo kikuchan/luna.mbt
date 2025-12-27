@@ -823,6 +823,10 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
 
   // Parse noindex flag
   let noindex = @json_utils.extract_bool(obj, "noindex", false)
+
+  // Parse revalidate (ISR TTL in seconds)
+  let revalidate = @json_utils.extract_int_opt(obj, "revalidate")
+
   @astra.Frontmatter::{
     title,
     description,
@@ -838,6 +842,7 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
     ssr,
     renderer,
     noindex,
+    revalidate,
   }
 }
 

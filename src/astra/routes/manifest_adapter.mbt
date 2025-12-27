@@ -74,6 +74,7 @@ pub fn manifest_to_page_metas(
           ssr: false,
           renderer: None,
           noindex: false,
+          revalidate: None,
         }
         let content_type = @astra.ContentType::Markdown
         let renderer_type = determine_renderer_type(content_type, frontmatter)
@@ -138,6 +139,7 @@ pub fn static_route_to_page_meta(
     ssr: false,
     renderer: None,
     noindex: false,
+    revalidate: None,
   }
   let content_type = @astra.ContentType::Markdown
   let renderer_type = determine_renderer_type(content_type, frontmatter)

@@ -143,6 +143,14 @@ fn parse_deploy_target(obj : Map[String, Json]) -> DeployTarget {
     Some(String(s)) =>
       if s == "cloudflare" {
         Cloudflare
+      } else if s == "github-pages" || s == "github" {
+        GithubPages
+      } else if s == "vercel" {
+        Vercel
+      } else if s == "netlify" {
+        Netlify
+      } else if s == "deno" {
+        Deno
       } else if s == "node" {
         Node
       } else {

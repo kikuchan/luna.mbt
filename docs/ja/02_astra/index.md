@@ -15,8 +15,15 @@ AstraはLunaの静的サイトジェネレーターです。Markdownからドキ
 - **i18nサポート** - 多言語ドキュメント対応
 - **自動サイドバー** - ディレクトリ構造からナビゲーション自動生成
 - **Islands対応** - インタラクティブなWeb Componentsを埋め込み可能
+- **ISR** - Stale-While-RevalidateによるIncremental Static Regeneration
 - **HMR** - Hot Module Replacementによる高速開発
 - **SPAナビゲーション** - View Transitionsによるスムーズな遷移
+
+## ガイド
+
+- [動的ルート](/ja/astra/dynamic-routes/) - パラメータから静的ページを生成
+- [Islands](/ja/astra/islands/) - 静的ページにインタラクティブコンポーネントを埋め込む
+- [ISR](/ja/astra/isr/) - 動的コンテンツのためのIncremental Static Regeneration
 
 ## クイックスタート
 

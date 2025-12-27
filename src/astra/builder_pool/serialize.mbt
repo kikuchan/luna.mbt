@@ -988,6 +988,10 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     Some(True) => true
     _ => false
   }
+  let revalidate : Int? = match obj.get("revalidate") {
+    Some(Number(n, ..)) => Some(n.to_int())
+    _ => None
+  }
   @astra.Frontmatter::{
     title,
     description,
@@ -1003,6 +1007,7 @@ fn parse_frontmatter(obj : Map[String, Json]) -> @astra.Frontmatter {
     ssr,
     renderer,
     noindex,
+    revalidate,
   }
 }
 

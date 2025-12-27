@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/luna/astra/isr"
+
+import(
+  "mizchi/luna/astra"
+)
+
+// Values
+pub fn build_manifest(Array[@astra.PageMeta]) -> ISRManifest
+
+pub fn write_manifest(ISRManifest, String) -> Unit
+
+// Errors
+
+// Types and methods
+pub(all) struct ISRManifest {
+  version : Int
+  pages : Map[String, ISRPageEntry]
+}
+pub fn ISRManifest::add(Self, String, ISRPageEntry) -> Unit
+pub fn ISRManifest::is_empty(Self) -> Bool
+pub fn ISRManifest::len(Self) -> Int
+pub fn ISRManifest::new() -> Self
+pub fn ISRManifest::to_json(Self) -> String
+
+pub(all) struct ISRPageEntry {
+  revalidate : Int
+  renderer : String
+  source : String
+}
+
+// Type aliases
+
+// Traits
+
