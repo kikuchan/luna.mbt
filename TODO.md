@@ -2,9 +2,15 @@
 
 完了したタスクは `docs/internal/done/` に移動済み。
 
-- Astra で全体的にサブカラーを使い分けるようにする。
 - SSR 対応のコンポーネントライブラリ、という概念を作りたい。qwik を参照する。
 - CSS Mangling をどう実装するか考える
+- ブラウザで動く playground を作る
+- 画像最適化パイプライン
+  - NextImage みたいなやつ
+- WebFont最適化パイプライン
+  - Next font みたいなやつ
+- 最小限の CSS Reset 導入
+- PageFind https://pagefind.app/
 
 ## TODO
 
@@ -21,7 +27,7 @@
 **高優先**
 - [x] 動的ルート (`_id_.md`, `___all___.md`) - MoonBitモジュールパス互換
 - [x] Robots/Noindex (ページ単位制御)
-- [ ] astra/components - Luna再利用可能コンポーネント集
+- [x] astra/components - Luna再利用可能コンポーネント集
   - 現在のドキュメントサイト前提から、ブログ・LP等の複数レイアウト対応へ
   - Header, Footer, Sidebar, Card, Hero, CTA 等の汎用コンポーネント
   - テーマ切り替え可能な設計 (CSS変数ベース)
@@ -29,7 +35,7 @@
 **中優先**
 - [ ] static_render.mbt リファクタ (インラインスクリプト分離)
 - [x] MDX サポート (mizchi/markdown の mdx 機能を利用)
-- [ ] スケルトン生成ヘルパ (一回レンダリングして width/height を抽出、CLS対策)
+- [ ] スケルトンスクリーン生成ヘルパ (一回レンダリングして width/height を抽出、CLS対策)
 - [ ] 画像最適化 (リサイズ、WebP変換)
 - [ ] 検索インデックス生成 (クライアント側全文検索)
 - [ ] JSON-LD (Schema.org 構造化データ)
@@ -47,6 +53,7 @@
   - [x] Vercel (`vercel.json`)
   - [x] Netlify (`_headers`, `_redirects`)
   - [x] Deno Deploy (静的サイトは設定不要)
+- [x] Astra で全体的にサブカラーを使い分けるようにする。
 
 ### Sol (フルスタック)
 
@@ -57,6 +64,7 @@
   - [x] SQLite例: `examples/sol_sqlite/`
 - [ ] データキャッシング (メモ化、SWR)
 - [ ] リクエスト検証 (スキーマバリデーション)
+
 
 **低優先**
 - [ ] WebSocket (リアルタイム通信)
@@ -115,6 +123,10 @@
 
 優先度低め、または検討中のタスク。
 
+- [ ] BuildStateProvider拡張 (DB `updated_at` サポート)
+  - 現在: `LocalFileProvider` がファイルハッシュで変更検出
+  - 目標: Sol が DB の `MAX(updated_at)` で再生成判定可能に
+  - 参照: `src/core/cache/provider.mbt`, `src/astra/cache/provider.mbt`
 - [ ] shiki設定のカスタマイズ (theme, langs 選択)
 - [ ] headless ui library
 - [ ] shadcn
