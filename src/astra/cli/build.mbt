@@ -232,12 +232,14 @@ async fn run_parallel_build_internal(
     }
   }
 
-  // Step 7: Copy static assets
-  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd }
+  // Step 7: Build DocumentTree for navigation
+  let doc_tree = @tree.build_document_tree(config, pages, cwd)
+
+  // Step 8: Copy static assets
+  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd, doc_tree: Some(doc_tree) }
   @astra_gen.copy_static_assets(ctx)
 
-  // Step 8: Build DocumentTree and generate meta files
-  let doc_tree = @tree.build_document_tree(config, pages, cwd)
+  // Step 9: Generate meta files
   @astra_gen.generate_meta_files(ctx, doc_tree)
 
   // Step 9: Generate 404 page

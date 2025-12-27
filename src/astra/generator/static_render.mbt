@@ -406,10 +406,13 @@ fn generate_site_internal(
     @astra.SidebarConfig::Manual(groups) => groups
   }
 
-  // Step 3: Create build context
-  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd }
+  // Step 3: Build document tree for navigation
+  let doc_tree = Some(@tree.build_document_tree(config, pages, cwd))
 
-  // Step 4: Create output directory
+  // Step 4: Create build context
+  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd, doc_tree }
+
+  // Step 5: Create output directory
   let output_dir = @path.join2(cwd, config.output_dir)
   ensure_dir(output_dir)
 
@@ -478,10 +481,13 @@ async fn generate_site_internal_async(
     @astra.SidebarConfig::Manual(groups) => groups
   }
 
-  // Step 3: Create build context
-  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd }
+  // Step 3: Build document tree for navigation
+  let doc_tree = Some(@tree.build_document_tree(config, pages, cwd))
 
-  // Step 4: Create output directory
+  // Step 4: Create build context
+  let ctx = @astra.BuildContext::{ config, pages, sidebar, cwd, doc_tree }
+
+  // Step 5: Create output directory
   let output_dir = @path.join2(cwd, config.output_dir)
   ensure_dir(output_dir)
 

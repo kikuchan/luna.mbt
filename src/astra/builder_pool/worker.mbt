@@ -137,6 +137,7 @@ fn handle_job(page_index : Int) -> Unit {
     pages: ctx.pages,
     sidebar: ctx.sidebar,
     cwd: ctx.cwd,
+    doc_tree: None, // Built lazily if needed
   }
 
   // Generate the page

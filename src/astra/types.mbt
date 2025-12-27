@@ -508,10 +508,12 @@ pub(all) struct BuildContext {
   sidebar : Array[SidebarGroup]
   /// Current working directory
   cwd : String
+  /// Document tree for navigation (built lazily)
+  doc_tree : @ssg.DocumentTree?
 }
 
 ///|
 /// Create new build context
 pub fn BuildContext::new(config : SsgConfig, cwd : String) -> BuildContext {
-  { config, pages: [], sidebar: [], cwd }
+  { config, pages: [], sidebar: [], cwd, doc_tree: None }
 }
