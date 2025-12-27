@@ -1,6 +1,7 @@
 // Astra ISR Metadata Generator
 //
 // Generates ISR manifest at build time.
+// Uses shared types from src/core/isr/.
 
 // =============================================================================
 // Manifest Generation
@@ -8,8 +9,8 @@
 
 ///|
 /// Build ISR manifest from pages
-pub fn build_manifest(pages : Array[@astra.PageMeta]) -> ISRManifest {
-  let manifest = ISRManifest::new()
+pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
+  let manifest = @core_isr.ISRManifest::new()
   for page in pages {
     // Only include pages with revalidate set
     match page.frontmatter.revalidate {
@@ -22,11 +23,7 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> ISRManifest {
             @ssg.ReactRenderer => "react"
             @ssg.ClientOnlyRenderer => "client"
           }
-          let entry = ISRPageEntry::{
-            revalidate,
-            renderer,
-            source: page.source_path,
-          }
+          let entry : @core_isr.ISRPageEntry = { revalidate, renderer, source: page.source_path }
           manifest.add(page.url_path, entry)
         }
       None => ()
@@ -36,56 +33,8 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> ISRManifest {
 }
 
 ///|
-/// Serialize manifest to JSON string
-pub fn ISRManifest::to_json(self : ISRManifest) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("{\n")
-  buf.write_string("  \"version\": \{self.version},\n")
-  buf.write_string("  \"pages\": {")
-  let mut first = true
-  for url_path, entry in self.pages {
-    if not(first) {
-      buf.write_string(",")
-    }
-    first = false
-    buf.write_string("\n    \"")
-    buf.write_string(escape_json(url_path))
-    buf.write_string("\": {")
-    buf.write_string("\"revalidate\": \{entry.revalidate}, ")
-    buf.write_string("\"renderer\": \"")
-    buf.write_string(entry.renderer)
-    buf.write_string("\", \"source\": \"")
-    buf.write_string(escape_json(entry.source))
-    buf.write_string("\"}")
-  }
-  if not(self.pages.is_empty()) {
-    buf.write_string("\n  ")
-  }
-  buf.write_string("}\n}")
-  buf.to_string()
-}
-
-///|
-/// Escape special characters for JSON string
-fn escape_json(s : String) -> String {
-  let buf = StringBuilder::new()
-  for c in s {
-    if c == '\\' {
-      buf.write_string("\\\\")
-    } else if c == '"' {
-      buf.write_string("\\\"")
-    } else if c == '\n' {
-      buf.write_string("\\n")
-    } else {
-      buf.write_char(c)
-    }
-  }
-  buf.to_string()
-}
-
-///|
 /// Write ISR manifest to file
-pub fn write_manifest(manifest : ISRManifest, output_dir : String) -> Unit {
+pub fn write_manifest(manifest : @core_isr.ISRManifest, output_dir : String) -> Unit {
   // Only write if there are ISR pages
   if manifest.is_empty() {
     return
