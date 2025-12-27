@@ -32,6 +32,8 @@ pub(all) struct Frontmatter {
   author : String?
   tags : Array[String]
   draft : Bool
+  featured : Bool
+  cover_image : String?
 }
 pub fn Frontmatter::default() -> Self
 

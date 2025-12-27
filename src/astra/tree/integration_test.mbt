@@ -67,6 +67,8 @@ fn create_page_meta(
       author: None,
       tags: [],
       draft: false,
+      featured: false,
+      cover_image: None,
     },
   }
 }

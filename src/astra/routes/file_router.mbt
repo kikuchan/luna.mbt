@@ -851,6 +851,8 @@ fn parse_page_json_to_frontmatter(content : String) -> @astra.Frontmatter {
     author: None,
     tags: [],
     draft: false,
+    featured: false,
+    cover_image: None,
   }
 }
 

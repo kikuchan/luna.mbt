@@ -21,6 +21,7 @@ pub(all) struct BuildContext {
   pages : Array[PageMeta]
   sidebar : Array[SidebarGroup]
   cwd : String
+  doc_tree : @ssg.DocumentTree?
 }
 pub fn BuildContext::new(SsgConfig, String) -> Self
 
@@ -74,9 +75,23 @@ pub(all) struct FooterConfig {
   message : String?
   copyright : String?
   links : Array[FooterColumn]
+  top : Array[FooterElement]
+  bottom : Array[FooterElement]
 }
 pub impl ToJson for FooterConfig
 pub impl @json.FromJson for FooterConfig
+
+pub(all) enum FooterElement {
+  Columns
+  Message
+  Copyright
+  SocialLinks
+  Custom(String)
+}
+pub impl Eq for FooterElement
+pub impl Show for FooterElement
+pub impl ToJson for FooterElement
+pub impl @json.FromJson for FooterElement
 
 pub(all) struct FooterLink {
   label : String
@@ -84,6 +99,31 @@ pub(all) struct FooterLink {
 }
 pub impl ToJson for FooterLink
 pub impl @json.FromJson for FooterLink
+
+pub(all) struct HeaderConfig {
+  left : Array[HeaderElement]
+  center : Array[HeaderElement]
+  right : Array[HeaderElement]
+  sticky : Bool
+}
+pub fn HeaderConfig::default() -> Self
+pub impl ToJson for HeaderConfig
+pub impl @json.FromJson for HeaderConfig
+
+pub(all) enum HeaderElement {
+  Logo
+  NavLinks
+  Search
+  ThemeToggle
+  SocialLinks
+  LangSwitcher
+  Spacer
+  Custom(String)
+}
+pub impl Eq for HeaderElement
+pub impl Show for HeaderElement
+pub impl ToJson for HeaderElement
+pub impl @json.FromJson for HeaderElement
 
 pub(all) struct IslandEmbed {
   name : String
@@ -215,12 +255,15 @@ pub(all) struct SsgConfig {
   body_snippets : Array[String]
   sanitize_html : Bool
   deploy_target : DeployTarget
+  spa_routes : Array[String]
+  components_dir : String?
 }
 pub fn SsgConfig::default() -> Self
 
 pub(all) struct ThemeConfig {
   primary_color : String?
   logo : String?
+  header : HeaderConfig?
   footer : FooterConfig?
   social_links : Array[SocialLink]
 }
