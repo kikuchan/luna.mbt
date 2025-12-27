@@ -23,3 +23,5 @@ luna-mbt-example
 luna-ts-example
 dist-docs
 .test-output
+.astra-cache/
+*.db
