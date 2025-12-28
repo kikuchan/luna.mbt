@@ -3,7 +3,9 @@
 完了したタスクは `docs/internal/done/` に移動済み。
 
 - SSR 対応のコンポーネントライブラリ、という概念を作りたい。qwik を参照する。
-- CSS Mangling をどう実装するか考える
+- [ ] CSS DCE in WC
+- [x] CSS Mangling をどう実装するか考える
+- [ ] CSS Mangling の実行テスト
 - ブラウザで動く playground を作る
 - 画像最適化パイプライン
   - NextImage みたいなやつ
@@ -17,6 +19,7 @@
   - OGP画像
   - AI用にluna doc コマンドを提供する
 - playground の作成
+- mermaid
 
 ## TODO
 

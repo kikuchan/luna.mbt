@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- **luna**: Add cross-platform support for queue_microtask
+
+### Documentation
+
+- Translate code comments and READMEs to English
+
+### Features
+
+- **luna**: Align effect semantics with Solid.js
+
+### Miscellaneous
+
+- V0.2.7
+- Format code and update CHANGELOG
+- Doc
+
+## [Unreleased]
+
 ### Documentation
 
 - Translate code comments and READMEs to English
