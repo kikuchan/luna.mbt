@@ -84,8 +84,11 @@ astra/isr の変更:
 
 ### 優先度: 高
 - ~~`astra/routes` のファイルスキャン機能を sol に移動~~ ✅ 完了
-- ルート定義への注入メカニズムを設計
-  - sol/router が routes 定義にハンドラをアタッチできるように
+- ~~ルート定義への注入メカニズムを設計~~ ✅ 完了
+  - `manifest_to_sol_routes()` で RouteManifest → SolRoutes 変換
+  - `PageHandlerFactory`, `ApiHandlerFactory` でハンドラ注入
+  - `combine_page_factories()`, `combine_api_factories()` でファクトリ合成
+  - 詳細は `spec/internal/route-handler-injection.md` 参照
 
 ### 優先度: 中
 - `core/routes` の整理
