@@ -131,7 +131,7 @@ test-unit: test-moonbit test-xplat test-ts
 test-integration: test-vitest test-browser
 
 # --- Layer 3: E2E Tests (最遅・最少) ---
-test-e2e: build-moon
+test-e2e:
     pnpm playwright test --config e2e/playwright.config.mts
 
 # =============================================================================
@@ -160,11 +160,11 @@ test-ts:
     pnpm tsc -p .
 
 # Vitest テスト
-test-vitest: build-moon
+test-vitest:
     pnpm vitest run
 
 # ブラウザテスト (Vitest)
-test-browser: build-moon
+test-browser:
     pnpm vitest run --config vitest.browser.config.ts
 
 # E2E UI モード

@@ -4,15 +4,15 @@
   "type": "module",
   "description": "MoonBit Island Architecture UI Framework - Workspace Root",
   "scripts": {
-    "build:moon": "moon build --target js && rm -f target/js/release/build/package.json",
-    "build:loader": "rolldown -c rolldown.config.mjs",
+    "build:moon": "just build-moon",
+    "build:loader": "just build-loader",
     "build": "turbo run build",
     "test": "turbo run test",
-    "test:moonbit": "mkdir -p target/js/debug/test && echo '{\"type\": \"commonjs\"}' > target/js/debug/test/package.json && moon test --target js",
-    "test:ts": "tsc -p .",
-    "test:vitest": "vitest run",
-    "test:browser": "vitest run --config vitest.browser.config.ts",
-    "test:e2e": "playwright test --config e2e/playwright.config.mts",
+    "test:moonbit": "just test-moonbit",
+    "test:ts": "just test-ts",
+    "test:vitest": "just test-vitest",
+    "test:browser": "just test-browser",
+    "test:e2e": "just test-e2e",
     "doc:dev": "just dev-doc"
   },
   "devDependencies": {
