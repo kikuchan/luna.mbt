@@ -33,6 +33,32 @@ astra/isr の変更:
 - `@core_isr` → `@sol_isr` に変更
 - `ISRPageEntry` → `ISRPageMeta` に変更
 
+### 3. ファイルスキャン機能を sol/routes に抽出
+
+```
+新規作成: src/sol/routes/scanner.mbt
+新規作成: src/sol/routes/moon.pkg.json
+変更: src/astra/routes/file_router.mbt
+変更: src/astra/routes/moon.pkg.json
+```
+
+変更内容:
+- 汎用的なファイルスキャンインフラを `sol/routes` に抽出
+- `ScanOptions`, `FileEntry` 構造体を `sol/routes` で定義
+- ユーティリティ関数を `sol/routes` に移動:
+  - `is_excluded()` - 除外パターンマッチング
+  - `join_path()` - パス結合
+  - `get_basename()` - ファイル名取得
+  - `get_parent_dir()` - 親ディレクトリ取得
+  - `get_extension()` - 拡張子取得
+  - `is_content_file()` - コンテンツファイル判定
+  - `scan_directory()` - ディレクトリスキャン（FileSystem trait使用）
+- `astra/routes` は `@sol_routes` をインポートして利用
+
+依存関係:
+- `sol/routes` → `core/env` (FileSystem trait)
+- `astra/routes` → `sol/routes`, `core/routes` (ParamInfo, extract_param_name)
+
 ## 決定事項
 
 ### 1. Routes モジュール
@@ -57,10 +83,9 @@ astra/isr の変更:
 ## 今後の作業
 
 ### 優先度: 高
-- `astra/routes` のファイルスキャン機能を sol に移動
-  - ファイルスキャン: sol へ
-  - markdown パーサー: astra のまま
-  - ルート定義への注入メカニズムを設計
+- ~~`astra/routes` のファイルスキャン機能を sol に移動~~ ✅ 完了
+- ルート定義への注入メカニズムを設計
+  - sol/router が routes 定義にハンドラをアタッチできるように
 
 ### 優先度: 中
 - `core/routes` の整理

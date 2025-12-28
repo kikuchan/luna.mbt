@@ -1,6 +1,7 @@
 {
   "supported-targets": ["js"],
   "import": [
+    { "path": "mizchi/luna/sol/routes", "alias": "sol_routes" },
     { "path": "mizchi/luna/astra", "alias": "astra" },
     { "path": "mizchi/luna/astra/markdown", "alias": "markdown" },
     { "path": "mizchi/luna/luna", "alias": "luna" },
