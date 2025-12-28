@@ -4,8 +4,14 @@
 #   test-unit        → 最速・最多 (MoonBit, TypeScript)
 #   test-integration → 中間 (Vitest, Browser)
 #   test-e2e         → 最遅・最少 (Playwright)
+#
+# デフォルト: インクリメンタルテスト（turbo キャッシュ有効）
 
-default: check
+default: test-incremental
+
+# インクリメンタルテスト（キャッシュ済みはスキップ）
+test-incremental:
+    pnpm turbo run test:moonbit test:ts test:vitest test:browser
 
 # =============================================================================
 # 日常開発
