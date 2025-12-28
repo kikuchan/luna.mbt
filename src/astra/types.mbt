@@ -79,6 +79,8 @@ pub(all) struct SsgConfig {
   /// Custom components directory (default: "components" in docs_dir)
   /// Convention: header.mbt, footer.mbt, toc.mbt, breadcrumb.mbt, prev_next.mbt
   components_dir : String?
+  /// CSS utility extraction configuration
+  css_utilities : CssUtilitiesConfig?
 }
 
 // I18nConfig, LocaleConfig are defined in core/ssg
@@ -114,6 +116,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     deploy_target: DeployTarget::default(),
     spa_routes: [],
     components_dir: None,
+    css_utilities: None,
   }
 }
 
@@ -323,6 +326,29 @@ pub(all) struct OgpConfig {
 /// Default OGP configuration
 pub fn OgpConfig::default() -> OgpConfig {
   { site_url: None, image: None, twitter_handle: None, twitter_card: None }
+}
+
+///|
+/// CSS utilities configuration for static extraction and optimization
+pub(all) struct CssUtilitiesConfig {
+  /// Enable CSS utility extraction from source files (default: true)
+  enabled : Bool
+  /// Enable per-page CSS splitting (default: false)
+  /// When true, extracts CSS per directory/page
+  split : Bool
+  /// Inline CSS threshold in bytes (default: 4096)
+  /// CSS below this size will be inlined in <style> tags
+  /// Set to 0 to always use external files
+  inline_threshold : Int
+  /// Source directories to scan for CSS utilities
+  /// Relative to project root (default: ["src"])
+  source_dirs : Array[String]
+}
+
+///|
+/// Default CSS utilities configuration
+pub fn CssUtilitiesConfig::default() -> CssUtilitiesConfig {
+  { enabled: true, split: false, inline_threshold: 4096, source_dirs: ["src"] }
 }
 
 ///|

@@ -16,6 +16,8 @@
  *   --warn, -w      Warn about non-literal arguments (default: true)
  *   --no-warn       Disable warnings
  *   --strict        Exit with error if warnings found
+ *   --split         Output per-file CSS (JSON manifest)
+ *   --split-dir     Output per-directory CSS (JSON manifest)
  */
 
 import fs from 'fs';
@@ -442,6 +444,162 @@ function generateCSS(styles, options = {}) {
 }
 
 // =============================================================================
+// Per-File/Directory CSS Splitting
+// =============================================================================
+
+/**
+ * Extract and generate CSS per file
+ * @param {string[]} files - List of .mbt files
+ * @param {Object} options
+ * @returns {{perFile: Object, combined: ExtractedStyles}}
+ */
+function extractPerFile(files, options = {}) {
+  const perFile = {};
+  const combined = {
+    base: new Set(),
+    pseudo: [],
+    media: [],
+  };
+
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    const extracted = extractFromContent(content);
+
+    // Store per-file results
+    perFile[file] = {
+      base: [...extracted.base],
+      pseudo: extracted.pseudo,
+      media: extracted.media,
+    };
+
+    // Also combine for global deduplication reference
+    for (const decl of extracted.base) {
+      combined.base.add(decl);
+    }
+    combined.pseudo.push(...extracted.pseudo);
+    combined.media.push(...extracted.media);
+  }
+
+  return { perFile, combined };
+}
+
+/**
+ * Group files by directory and extract CSS per directory
+ * @param {string[]} files - List of .mbt files
+ * @param {string} baseDir - Base directory for relative paths
+ * @returns {{perDir: Object, combined: ExtractedStyles}}
+ */
+function extractPerDirectory(files, baseDir) {
+  const perDir = {};
+  const combined = {
+    base: new Set(),
+    pseudo: [],
+    media: [],
+  };
+
+  for (const file of files) {
+    const relPath = path.relative(baseDir, file);
+    const dirName = path.dirname(relPath);
+
+    if (!perDir[dirName]) {
+      perDir[dirName] = {
+        base: new Set(),
+        pseudo: [],
+        media: [],
+        files: [],
+      };
+    }
+
+    const content = fs.readFileSync(file, 'utf-8');
+    const extracted = extractFromContent(content);
+
+    perDir[dirName].files.push(file);
+
+    for (const decl of extracted.base) {
+      perDir[dirName].base.add(decl);
+      combined.base.add(decl);
+    }
+    perDir[dirName].pseudo.push(...extracted.pseudo);
+    perDir[dirName].media.push(...extracted.media);
+    combined.pseudo.push(...extracted.pseudo);
+    combined.media.push(...extracted.media);
+  }
+
+  // Convert Sets to Arrays for JSON serialization
+  for (const dir of Object.keys(perDir)) {
+    perDir[dir].base = [...perDir[dir].base];
+  }
+
+  return { perDir, combined };
+}
+
+/**
+ * Generate split CSS manifest
+ * @param {Object} splitData - Per-file or per-directory data
+ * @param {Object} options
+ * @returns {Object} - Manifest with CSS per entry
+ */
+function generateSplitManifest(splitData, options = {}) {
+  const { pretty = false } = options;
+  const manifest = {
+    entries: {},
+    shared: { base: [], pseudo: [], media: [] },
+  };
+
+  // Track declaration frequency for shared CSS detection
+  const declFreq = new Map();
+
+  for (const [key, data] of Object.entries(splitData)) {
+    for (const decl of data.base) {
+      declFreq.set(decl, (declFreq.get(decl) || 0) + 1);
+    }
+  }
+
+  // Declarations used in 3+ files are considered "shared"
+  const sharedDecls = new Set();
+  for (const [decl, count] of declFreq) {
+    if (count >= 3) {
+      sharedDecls.add(decl);
+      manifest.shared.base.push(decl);
+    }
+  }
+
+  // Generate CSS for each entry
+  for (const [key, data] of Object.entries(splitData)) {
+    const entryStyles = {
+      base: new Set(data.base.filter(d => !sharedDecls.has(d))),
+      pseudo: data.pseudo,
+      media: data.media,
+    };
+
+    const { css } = generateCSS(entryStyles, { pretty });
+
+    manifest.entries[key] = {
+      css,
+      stats: {
+        base: entryStyles.base.size,
+        pseudo: data.pseudo.length,
+        media: data.media.length,
+      },
+      files: data.files || [key],
+    };
+  }
+
+  // Generate shared CSS
+  if (manifest.shared.base.length > 0) {
+    const sharedStyles = {
+      base: new Set(manifest.shared.base),
+      pseudo: [],
+      media: [],
+    };
+    const { css: sharedCSS } = generateCSS(sharedStyles, { pretty });
+    manifest.sharedCSS = sharedCSS;
+  }
+
+  return manifest;
+}
+
+// =============================================================================
 // CLI
 // =============================================================================
 
@@ -454,6 +612,7 @@ function main() {
   let verbose = false;
   let warn = true;
   let strict = false;
+  let splitMode = null; // 'file' | 'dir' | null
 
   // Parse arguments
   for (let i = 0; i < args.length; i++) {
@@ -473,6 +632,10 @@ function main() {
     } else if (arg === '--strict') {
       strict = true;
       warn = true; // strict implies warn
+    } else if (arg === '--split') {
+      splitMode = 'file';
+    } else if (arg === '--split-dir') {
+      splitMode = 'dir';
     } else if (!arg.startsWith('-')) {
       dir = arg;
     }
@@ -484,7 +647,54 @@ function main() {
     console.error(`Found ${files.length} .mbt files`);
   }
 
-  // Extract from all files
+  // Handle split mode
+  if (splitMode) {
+    let splitData;
+    if (splitMode === 'dir') {
+      const { perDir } = extractPerDirectory(files, dir);
+      splitData = perDir;
+    } else {
+      const { perFile } = extractPerFile(files);
+      // Convert to expected format with files array
+      for (const key of Object.keys(perFile)) {
+        perFile[key].files = [key];
+      }
+      splitData = perFile;
+    }
+
+    const manifest = generateSplitManifest(splitData, { pretty });
+
+    // Collect warnings
+    const allWarnings = [];
+    if (warn) {
+      for (const file of files) {
+        const content = fs.readFileSync(file, 'utf-8');
+        const warnings = detectWarnings(content, file);
+        allWarnings.push(...warnings);
+      }
+      manifest.warnings = allWarnings;
+    }
+
+    if (verbose) {
+      console.error(`Split mode: ${splitMode}`);
+      console.error(`  - ${Object.keys(manifest.entries).length} entries`);
+      console.error(`  - ${manifest.shared.base.length} shared declarations`);
+    }
+
+    const output = JSON.stringify(manifest, null, pretty ? 2 : 0);
+
+    if (outputFile) {
+      fs.writeFileSync(outputFile, output);
+      if (verbose) {
+        console.error(`Written to ${outputFile}`);
+      }
+    } else {
+      console.log(output);
+    }
+    return;
+  }
+
+  // Extract from all files (normal mode)
   const combined = {
     base: new Set(),
     pseudo: [],

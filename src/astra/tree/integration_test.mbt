@@ -27,6 +27,7 @@ fn create_test_config() -> @astra.SsgConfig {
     deploy_target: @astra.DeployTarget::default(),
     spa_routes: [],
     components_dir: None,
+    css_utilities: None,
   }
 }
 

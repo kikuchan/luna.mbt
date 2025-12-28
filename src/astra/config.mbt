@@ -120,6 +120,9 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
 
   // Parse custom components directory
   let components_dir = @json_utils.extract_string_opt(ssg_obj, "componentsDir")
+
+  // Parse CSS utilities configuration
+  let css_utilities = parse_css_utilities_config(ssg_obj)
   Some(SsgConfig::{
     docs_dir,
     output_dir,
@@ -141,6 +144,7 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
     deploy_target,
     spa_routes,
     components_dir,
+    css_utilities,
   })
 }
 
@@ -166,6 +170,17 @@ fn parse_deploy_target(obj : Map[String, Json]) -> DeployTarget {
       }
     _ => Static
   }
+}
+
+///|
+/// Parse CSS utilities configuration
+fn parse_css_utilities_config(obj : Map[String, Json]) -> CssUtilitiesConfig? {
+  guard obj.get("cssUtilities") is Some(Object(css_obj)) else { return None }
+  let enabled = @json_utils.extract_bool(css_obj, "enabled", true)
+  let split = @json_utils.extract_bool(css_obj, "split", false)
+  let inline_threshold = @json_utils.extract_int(css_obj, "inlineThreshold", 4096)
+  let source_dirs = @json_utils.extract_string_array(css_obj, "sourceDirs")
+  Some(CssUtilitiesConfig::{ enabled, split, inline_threshold, source_dirs })
 }
 
 ///|

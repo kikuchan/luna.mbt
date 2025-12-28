@@ -1154,6 +1154,103 @@ extern "js" fn ffi_extract_css_utilities(
   #|   }
   #| }
 
+///|
+/// CSS manifest entry from split extraction
+pub(all) struct CssManifestEntry {
+  css : String
+  size : Int
+} derive(FromJson, ToJson)
+
+///|
+/// CSS split manifest result
+pub(all) struct CssSplitManifest {
+  entries : Map[String, CssManifestEntry]
+  shared_css : String
+  shared_size : Int
+} derive(FromJson, ToJson)
+
+///|
+/// Extract CSS utilities in split mode (per-directory)
+/// Returns a manifest with CSS per directory
+async fn extract_css_utilities_split(
+  cwd : String,
+  source_dirs : Array[String],
+) -> CssSplitManifest {
+  ffi_extract_css_utilities_split(cwd, source_dirs).wait()
+}
+
+///|
+/// FFI to run CSS extraction in split mode
+extern "js" fn ffi_extract_css_utilities_split(
+  cwd : String,
+  source_dirs : Array[String],
+) -> @js.Promise[CssSplitManifest] =
+  #| async (cwd, sourceDirs) => {
+  #|   try {
+  #|     const cp = await import('child_process');
+  #|     const path = await import('path');
+  #|     const fs = await import('fs');
+  #|
+  #|     // Find extract.js script
+  #|     const possiblePaths = [
+  #|       path.join(cwd, 'src/luna/css/extract.js'),
+  #|       path.join(cwd, 'node_modules/@luna_ui/astra/css/extract.js'),
+  #|       path.join(cwd, '../src/luna/css/extract.js'),
+  #|       path.join(cwd, '../../src/luna/css/extract.js'),
+  #|     ];
+  #|
+  #|     let extractScript = null;
+  #|     for (const p of possiblePaths) {
+  #|       if (fs.existsSync(p)) {
+  #|         extractScript = p;
+  #|         break;
+  #|       }
+  #|     }
+  #|
+  #|     const emptyResult = { entries: {}, shared_css: '', shared_size: 0 };
+  #|     if (!extractScript) return emptyResult;
+  #|
+  #|     // Combine all directories into one extraction
+  #|     const dirs = sourceDirs.filter(d => fs.existsSync(path.join(cwd, d)));
+  #|     if (dirs.length === 0) return emptyResult;
+  #|
+  #|     const allEntries = {};
+  #|     let allSharedCss = '';
+  #|
+  #|     for (const dir of dirs) {
+  #|       try {
+  #|         const fullDir = path.join(cwd, dir);
+  #|         const result = cp.execSync(
+  #|           `node "${extractScript}" "${fullDir}" --split-dir --no-warn`,
+  #|           { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
+  #|         );
+  #|         if (!result || !result.trim()) continue;
+  #|
+  #|         const manifest = JSON.parse(result);
+  #|         for (const [key, entry] of Object.entries(manifest.entries || {})) {
+  #|           const fullKey = path.join(dir, key);
+  #|           allEntries[fullKey] = {
+  #|             css: entry.css || '',
+  #|             size: (entry.css || '').length,
+  #|           };
+  #|         }
+  #|         if (manifest.sharedCSS) {
+  #|           allSharedCss += manifest.sharedCSS + '\n';
+  #|         }
+  #|       } catch (e) { /* ignore */ }
+  #|     }
+  #|
+  #|     return {
+  #|       entries: allEntries,
+  #|       shared_css: allSharedCss.trim(),
+  #|       shared_size: allSharedCss.trim().length,
+  #|     };
+  #|   } catch (e) {
+  #|     console.error('CSS split extraction failed:', e.message);
+  #|     return { entries: {}, shared_css: '', shared_size: 0 };
+  #|   }
+  #| }
+
 // =============================================================================
 // HTML Building
 // =============================================================================
@@ -1736,12 +1833,45 @@ pub fn copy_static_assets(ctx : @astra.BuildContext) -> Unit {
 ///|
 /// Copy static assets to output directory (async version with CSS extraction)
 pub async fn copy_static_assets_async(ctx : @astra.BuildContext) -> Unit {
-  // Extract CSS utilities from source files
-  let utility_css = extract_css_utilities(
-    ctx.cwd,
-    ["src/astra", "src/luna", ctx.config.docs_dir],
+  // Get CSS utilities config
+  let css_config = ctx.config.css_utilities.unwrap_or(
+    @astra.CssUtilitiesConfig::default(),
   )
-  copy_static_assets_internal(ctx, utility_css)
+
+  // Get source directories to scan
+  let source_dirs = if css_config.source_dirs.is_empty() {
+    ["src/astra", "src/luna", ctx.config.docs_dir]
+  } else {
+    css_config.source_dirs
+  }
+
+  // Extract CSS utilities from source files
+  let utility_css = if css_config.enabled {
+    extract_css_utilities(ctx.cwd, source_dirs)
+  } else {
+    ""
+  }
+
+  // Determine if CSS should be inlined based on threshold
+  let css_size = utility_css.length()
+  let should_inline = css_size <= css_config.inline_threshold
+
+  if should_inline {
+    copy_static_assets_internal(ctx, utility_css)
+  } else {
+    // Write CSS to separate file and reference it
+    let output_assets = @path.join2(
+      @path.join2(ctx.cwd, ctx.config.output_dir),
+      "assets",
+    )
+    ensure_dir(output_assets)
+    let utility_css_path = @path.join2(output_assets, "utilities.css")
+    @fs.writeFileSync(utility_css_path, @js.any(utility_css)) catch {
+      _ => ()
+    }
+    println("  Extracted CSS utilities: \{css_size} bytes (external file)")
+    copy_static_assets_internal(ctx, "")
+  }
 }
 
 ///|
