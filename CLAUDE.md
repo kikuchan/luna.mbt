@@ -6,9 +6,9 @@ MoonBitで実装されたIsland ArchitectureベースのUIライブラリ。
 
 | モジュール | 責務 | ドキュメント |
 |-----------|------|-------------|
-| **Luna** | コアUIライブラリ。Signal、VNode、DOM操作、Hydration | [src/luna/](src/luna/README.md), [src/platform/](src/platform/README.md) |
+| **Luna** | コアUIライブラリ。Signal、VNode、DOM操作、CSS Utilities、Hydration | [src/luna/](src/luna/README.md), [src/platform/](src/platform/README.md) |
 | **Sol** | SSRフレームワーク。Hono統合、Middleware、Server Actions | [src/sol/](src/sol/README.md) |
-| **Astra** | SSG（静的サイトジェネレーター）。Markdown → HTML | [src/astra/](src/astra/README.md) |
+| **Astra** | SSG（静的サイトジェネレーター）。Markdown/MDX → HTML、Web Components | [src/astra/](src/astra/README.md) |
 | **Stella** | Island埋め込み用Shard生成 | [src/stella/](src/stella/README.md) |
 
 ## ディレクトリ構成
@@ -25,12 +25,13 @@ src/
 └── _bench/         # ベンチマーク
 js/                 # NPMパッケージ (@luna_ui/luna)
 e2e/                # Playwrightテスト
-docs/               # ドキュメント（Astraで生成）
+docs/               # 公開ドキュメント（Astraで生成）
+spec/               # 仕様・設計ドキュメント
 examples/           # サンプルプロジェクト
 ```
 
-docs/ は astra のパターンに沿って生成される。
-docs/internal は内部の開発ログが設置される。
+- `docs/` は Astra でビルドされる公開ドキュメント
+- `spec/` は内部仕様・設計書（開発者向け）
 
 ## 開発コマンド
 
@@ -104,3 +105,43 @@ docs: update README
 | MoonBit Unit | `src/**/*_test.mbt` | 純粋ロジック（DOM非依存） |
 | Browser | `js/luna/tests/*.test.ts` | DOM操作、Hydration |
 | E2E | `e2e/**/*.test.ts` | SSR統合 |
+
+## Astra 設定オプション
+
+`astra.json` または `sol.config.json` の `ssg` セクションで設定可能。
+
+### メタファイル生成 (`metaFiles`)
+
+```json
+{
+  "metaFiles": {
+    "sitemap": true,   // sitemap.xml (デフォルト: true)
+    "feed": false,     // feed.xml RSS 2.0 (デフォルト: false)
+    "llmsTxt": false   // llms.txt (デフォルト: false)
+  }
+}
+```
+
+### CSS Utilities (`cssUtilities`)
+
+```json
+{
+  "cssUtilities": {
+    "enabled": true,        // CSS utility 抽出 (デフォルト: true)
+    "split": false,         // ページ別CSS分割 (デフォルト: false)
+    "inlineThreshold": 4096 // インライン化閾値 (バイト)
+  }
+}
+```
+
+## 仕様ドキュメント
+
+`spec/` に仕様・設計ドキュメントを配置。
+
+```
+spec/
+├── internal/           # 内部開発ログ・進行中の設計
+│   ├── done/          # 実装完了済みの記録
+│   └── deprecated/    # 廃止された設計
+└── (確定仕様をここに追加)
+```
