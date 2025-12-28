@@ -409,17 +409,31 @@ pub fn generate_full_css() -> String {
 // }
 
 // ============================================================================
-// Shadow DOM Support (Adoptable Stylesheets)
+// Shadow DOM Support - Configurable Style Mode
 // ============================================================================
 
-// Shadow DOM creates isolated style scopes.
-// Styles from the document don't penetrate into shadow roots.
-//
-// Solution: Use Adoptable Stylesheets to share styles across shadow roots.
-//
-// Usage flow:
-// 1. At app init: create global CSSStyleSheet with all utility styles
-// 2. At hydration: adopt the sheet into each shadow root
+/// Style injection mode for Shadow DOM
+pub enum StyleMode {
+  /// Keep SSR-injected <style> elements (simple, default)
+  Inline
+  /// Use Adoptable Stylesheets for sharing (efficient for many components)
+  Adoptable
+}
+
+/// Style system configuration
+pub struct StyleConfig {
+  mode : StyleMode
+  /// For Adoptable mode: preload global sheet at init
+  preload_sheet : Bool
+}
+
+/// Default configuration: Inline mode (simplest)
+pub let default_style_config : StyleConfig = {
+  mode: Inline,
+  preload_sheet: false,
+}
+
+// FFI for Adoptable Stylesheets
 //
 // extern "js" fn create_adoptable_sheet(css : String) -> @js.Any =
 //   #| (css) => {
@@ -436,13 +450,44 @@ pub fn generate_full_css() -> String {
 //   #|   }
 //   #| }
 //
-// pub fn init_styles() -> Unit {
-//   let css = generate_full_css()
-//   let _ = create_adoptable_sheet(css)
+// extern "js" fn remove_utility_styles(shadow_root : @js.Any) -> Unit =
+//   #| (root) => {
+//   #|   root.querySelectorAll('style[data-luna-utility]').forEach(s => s.remove());
+//   #| }
+
+/// Initialize style system with configuration
+// pub fn init_styles(config : StyleConfig) -> Unit {
+//   match config.mode {
+//     Inline => ()  // No-op: styles already in SSR output
+//     Adoptable => {
+//       if config.preload_sheet {
+//         let css = generate_full_css()
+//         let _ = create_adoptable_sheet(css)
+//       }
+//     }
+//   }
 // }
-//
-// pub fn hydrate_with_styles(element : @js_dom.Element) -> Unit {
-//   let shadow = get_shadow_root(element)
-//   adopt_styles(shadow)
-//   // ... rest of hydration
+
+/// Hydrate styles for a shadow root based on configuration
+// pub fn hydrate_styles(shadow : @js.Any, config : StyleConfig) -> Unit {
+//   match config.mode {
+//     Inline => ()  // Keep SSR styles as-is
+//     Adoptable => {
+//       // Remove SSR utility styles, adopt shared sheet
+//       remove_utility_styles(shadow)
+//       adopt_styles(shadow)
+//     }
+//   }
+// }
+
+// ============================================================================
+// SSR Output Helpers
+// ============================================================================
+
+/// Generate <style> tag for SSR (mode-aware)
+// pub fn render_utility_styles(css : String, config : StyleConfig) -> String {
+//   match config.mode {
+//     Inline => "<style>" + css + "</style>"
+//     Adoptable => "<style data-luna-utility>" + css + "</style>"
+//   }
 // }

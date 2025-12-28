@@ -437,6 +437,86 @@ Hydration後:
 - コンポーネント数が少ない → 案3（シンプル）
 - コンポーネント数が多い → 案2（Adoptable Stylesheets）
 
+#### 実装時の選択オプション
+
+```moonbit
+/// スタイル注入モード
+pub enum StyleMode {
+  /// SSRで注入した<style>をそのまま使用（デフォルト）
+  Inline
+  /// Adoptable Stylesheetsで共有（Hydration時に切り替え）
+  Adoptable
+}
+
+/// アプリケーション設定
+pub struct StyleConfig {
+  mode : StyleMode
+  /// Adoptableモード時: グローバルシートを事前登録
+  preload_sheet : Bool
+}
+
+let default_config : StyleConfig = {
+  mode: Inline,
+  preload_sheet: false,
+}
+```
+
+**Inlineモード** (デフォルト):
+```moonbit
+// SSR: 各Shadow Rootに<style>を埋め込み
+fn render_wc_styles(island : VWcIsland) -> String {
+  "<style>" + island.utility_css + "</style>"
+}
+
+// Hydration: 何もしない（SSRのスタイルをそのまま使用）
+fn hydrate_styles(shadow : @js.Any, config : StyleConfig) -> Unit {
+  match config.mode {
+    Inline => ()  // no-op
+    Adoptable => ...
+  }
+}
+```
+
+**Adoptableモード**:
+```moonbit
+// SSR: マーカー付きで埋め込み
+fn render_wc_styles(island : VWcIsland) -> String {
+  "<style data-luna-utility>" + island.utility_css + "</style>"
+}
+
+// Hydration: 置換
+fn hydrate_styles(shadow : @js.Any, config : StyleConfig) -> Unit {
+  match config.mode {
+    Inline => ()
+    Adoptable => {
+      remove_utility_styles(shadow)
+      adopt_global_styles(shadow)
+    }
+  }
+}
+```
+
+**使用例**:
+```moonbit
+// main.mbt - アプリ初期化時に選択
+fn main() {
+  // 開発時: シンプルなInlineモード
+  @css.init(mode=Inline)
+
+  // 本番/大規模: Adoptableモード
+  // @css.init(mode=Adoptable, preload_sheet=true)
+}
+```
+
+**ビルド時フラグ**:
+```bash
+# 開発
+moon build --define CSS_MODE=inline
+
+# 本番
+moon build --define CSS_MODE=adoptable
+```
+
 #### 案4: ハイドレーション単位でのスタイル分割
 
 ビルド時にハイドレーション境界を検出し、スタイルを分割:
