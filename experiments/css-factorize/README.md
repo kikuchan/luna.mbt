@@ -550,10 +550,10 @@ build output:
 - [x] ベンチマーク検証
 - [x] API設計案
 
-### Phase 2: Luna統合
-- [ ] `css()` / `styles()` 関数実装
-- [ ] StyleRegistry (使用スタイル追跡)
-- [ ] ビルド時CSS生成
+### Phase 2: Luna統合 ✅
+- [x] `css()` / `styles()` 関数実装
+- [x] StyleRegistry (使用スタイル追跡)
+- [x] ビルド時CSS生成 (`generate_full_css()`)
 
 ### Phase 3: 高度な機能
 - [x] 疑似クラス対応 (`on()`, `hover()`, `focus()`, `active()`)
@@ -771,19 +771,42 @@ fn interactive_card() -> @luna.Node {
 @media(min-width:1024px){._m3{flex-direction:row}}
 ```
 
-### 次のステップ
+### 実装状況
 
-1. **Phase 2: Luna統合**
-   - `@luna.css()` 関数の実装
-   - StyleRegistryのビルド時統合
-   - SSR時のCSS出力
+#### ✅ Phase 2: Luna統合 (完了)
 
-2. **Phase 3: 高度な機能**
-   - CSS変数連携
-   - 動的スタイルの自動判別
-   - Shadow DOM対応（StyleMode実装）
+実装済み: `src/luna/css/`
 
-3. **Phase 4: 最適化**
-   - gzip効率のための宣言順最適化
-   - クリティカルCSS抽出
-   - Tree-shaking（未使用スタイル警告）
+```moonbit
+// 基本API
+css("display", "flex")           // → "_a"
+styles([("display", "flex")])    // → "_a"
+
+// 擬似クラス
+hover("background", "#2563eb")   // → "_h0"
+focus("outline", "2px solid")    // → "_f0"
+
+// メディアクエリ
+at_md("padding", "2rem")         // → "_m0"
+dark("background", "#1a1a1a")    // → "_m1"
+
+// CSS生成
+generate_full_css()              // SSR時に呼び出し
+```
+
+static_dom/element からも利用可能:
+```moonbit
+div(class=ucss("display", "flex"), [...])
+```
+
+詳細: [src/luna/css/README.md](../../src/luna/css/README.md)
+
+#### 🔲 Phase 3: 高度な機能
+- [ ] CSS変数連携
+- [ ] 動的スタイルの自動判別
+- [ ] Shadow DOM対応（StyleMode実装）
+
+#### 🔲 Phase 4: 最適化
+- [ ] gzip効率のための宣言順最適化
+- [ ] クリティカルCSS抽出
+- [ ] Tree-shaking（未使用スタイル警告）

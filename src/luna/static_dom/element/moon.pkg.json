@@ -1,6 +1,7 @@
 {
   "import": [
-    { "path": "mizchi/luna/luna", "alias": "luna" }
+    { "path": "mizchi/luna/luna", "alias": "luna" },
+    { "path": "mizchi/luna/luna/css", "alias": "css" }
   ],
   "link": {
     "js": {
@@ -43,7 +44,18 @@
         "sol_link",
         "outlet",
         "template_outlet",
-        "template_title"
+        "template_title",
+        "ucss",
+        "ustyles",
+        "ucombine",
+        "uhover",
+        "ufocus",
+        "uactive",
+        "uon",
+        "uat_md",
+        "uat_lg",
+        "udark",
+        "generate_utility_css"
       ],
       "format": "esm"
     }
