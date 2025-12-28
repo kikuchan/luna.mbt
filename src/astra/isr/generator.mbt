@@ -1,7 +1,7 @@
 // Astra ISR Metadata Generator
 //
 // Generates ISR manifest at build time.
-// Uses shared types from src/core/isr/.
+// Uses shared types from sol/isr.
 
 // =============================================================================
 // Manifest Generation
@@ -9,8 +9,8 @@
 
 ///|
 /// Build ISR manifest from pages
-pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
-  let manifest = @core_isr.ISRManifest::new()
+pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @sol_isr.ISRManifest {
+  let manifest = @sol_isr.ISRManifest::new()
   for page in pages {
     // Only include pages with revalidate set
     match page.frontmatter.revalidate {
@@ -24,7 +24,7 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
             @ssg.ClientOnlyRenderer => "client"
             @ssg.MdxRenderer => "mdx"
           }
-          let entry : @core_isr.ISRPageEntry = {
+          let entry : @sol_isr.ISRPageMeta = {
             revalidate,
             renderer,
             source: page.source_path,
@@ -40,7 +40,7 @@ pub fn build_manifest(pages : Array[@astra.PageMeta]) -> @core_isr.ISRManifest {
 ///|
 /// Write ISR manifest to file
 pub fn write_manifest(
-  manifest : @core_isr.ISRManifest,
+  manifest : @sol_isr.ISRManifest,
   output_dir : String,
 ) -> Unit {
   // Only write if there are ISR pages

@@ -15,69 +15,58 @@
 - `luna/routes` (ルートマッチングのコア型)
 - `luna/signal` (リアクティブ状態管理)
 
-## 不確定事項
+### 2. core/isr を sol/isr にマージ
 
-### 1. Routes モジュールの統合
+```
+削除: src/core/isr/
+統合先: src/sol/isr/
+```
 
-現状、3つの routes モジュールが存在:
+変更内容:
+- `ISRPageEntry` → `ISRPageMeta` に統一（sol/isr/handler.mbt の型を採用）
+- `ISRManifest` を `pub(all)` に変更（astra から構築可能に）
+- parser.mbt は handler.mbt の `parse_manifest()` と重複のため削除
+- utils.mbt は cache.mbt と重複のため削除
+- serializer.mbt は sol/isr に移動（astra がビルド時に使用）
 
-| モジュール | ターゲット | 責務 |
-|-----------|-----------|------|
-| `luna/routes` | js, wasm-gc, native | RouteMatch, CompiledRoutes (コアマッチング) |
-| `core/routes` | all | SSG メタデータ、パターンコンパイル |
-| `astra/routes` | js | ファイルベースルーティング |
+astra/isr の変更:
+- `@core_isr` → `@sol_isr` に変更
+- `ISRPageEntry` → `ISRPageMeta` に変更
 
-**選択肢:**
-- A) luna/routes をそのまま保持（ターゲット非依存性が重要）
-- B) luna/routes を sol/routes に移動し、luna は sol から借用
-- C) core/routes を sol/routes にマージ
+## 決定事項
 
-**推奨:** A（luna/routes は native ターゲットでも使える汎用性がある）
+### 1. Routes モジュール
+
+**決定: パターン A を採用**
+- `luna/routes` をそのまま保持（ターゲット非依存: js, wasm-gc, native）
+- ルートマッチングのコア型として維持
 
 ### 2. Astra/Sol 間のルーティング統合
 
-現状:
-- `astra/routes`: ファイルベースルーティング（マークダウンファイルからルート生成）
-- `sol/router`: Hono 統合のサーバールーター
+**方針:**
+- `astra/routes` のファイルスキャン部分を sol の基本機能として移動
+- markdown 処理は astra が sol のルート定義に「注入」する形
+- `sol/router` は routes 定義にハンドラをアタッチ可能にする
 
-**選択肢:**
-- A) sol/router が astra/routes を使うように依存追加
-- B) astra/routes のファイルスキャン部分を sol に移動
-- C) 共通インターフェースを core/routes に定義
+### 3. ISR
 
-**懸念:** sol → astra の依存は逆方向なので避けたい
+**決定: sol/isr を正とし、astra は利用者となる**
+- ISR は sol の責務
+- astra/isr は sol/isr の型を使用してマニフェストを生成
 
-### 3. ISR 実装の統合
-
-現状、3つの ISR モジュールが存在:
-
-| モジュール | 依存 | 用途 |
-|-----------|------|------|
-| `core/isr` | なし | 基本型定義 |
-| `sol/isr` | hono | SSR ランタイム用 |
-| `astra/isr` | core_isr, astra, fs | SSG ビルド時用 |
-
-**判断:** 異なる用途なので現状のまま維持が妥当
-
-### 4. Cache 実装
-
-現状:
-- `core/cache`: 基本型定義
-- `astra/cache`: SSG 用キャッシュ（ファイルシステム）
-
-**判断:** 異なる用途なので現状のまま維持が妥当
-
-## 今後の移動候補
-
-単純なディレクトリ移動で済むものは完了。
-残りは設計判断が必要なもののみ。
+## 今後の作業
 
 ### 優先度: 高
-- `core/routes` → `sol/routes` へのマージ検討
-  - `ssg` メタデータ型は sol に統合すべきか
+- `astra/routes` のファイルスキャン機能を sol に移動
+  - ファイルスキャン: sol へ
+  - markdown パーサー: astra のまま
+  - ルート定義への注入メカニズムを設計
 
 ### 優先度: 中
-- `astra/routes` のファイルスキャン機能を sol で利用可能にする方法
+- `core/routes` の整理
+  - sol/routes へのマージを検討
+  - SSG メタデータ型の配置を決定
 
 ### 優先度: 低
-- `sol/cli` と `astra/cli` の統合
+- `sol/cli` と `astra/cli` の統合検討
+- `core/cache` の sol への移動検討

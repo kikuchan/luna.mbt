@@ -1,13 +1,13 @@
 // Astra ISR Types
 //
-// Types are now defined in src/core/isr/ for sharing between Astra and Sol.
-// This file is kept for backwards compatibility but delegates to core types.
+// Types are now defined in sol/isr for sharing between Astra and Sol.
+// This file is kept for backwards compatibility but delegates to sol types.
 
-// Re-export core manifest with additional builder function
+// Re-export sol manifest with additional builder function
 
 ///|
-pub fn new_manifest() -> @core_isr.ISRManifest {
-  @core_isr.ISRManifest::new()
+pub fn new_manifest() -> @sol_isr.ISRManifest {
+  @sol_isr.ISRManifest::new()
 }
 
 ///|
@@ -15,6 +15,6 @@ pub fn new_entry(
   revalidate : Int,
   renderer : String,
   source : String,
-) -> @core_isr.ISRPageEntry {
+) -> @sol_isr.ISRPageMeta {
   { revalidate, renderer, source }
 }
