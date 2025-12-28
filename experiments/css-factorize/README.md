@@ -555,7 +555,12 @@ build output:
 - [x] StyleRegistry (使用スタイル追跡)
 - [x] ビルド時CSS生成 (`generate_full_css()`)
 
-### Phase 3: 高度な機能
+### Phase 3: 静的CSS抽出 ✅
+- [x] 静的解析による全CSS宣言の抽出 (`src/luna/css/extract.js`)
+- [x] ビルドパイプライン統合 (`just extract-css`)
+- [x] JSON形式出力（マッピング情報付き）
+
+### Phase 4: 高度な機能
 - [x] 疑似クラス対応 (`on()`, `hover()`, `focus()`, `active()`)
 - [x] メディアクエリ対応 (`media()`, `at_sm()`, `at_md()`, `at_lg()`, `at_xl()`)
 - [x] ダークモード対応 (`dark()`)
@@ -563,7 +568,7 @@ build output:
 - [ ] 動的スタイルの自動判別
 - [ ] Shadow DOM対応 (Adoptable Stylesheets)
 
-### Phase 4: 最適化
+### Phase 5: 最適化
 - [ ] 宣言の出現順最適化 (gzip効率)
 - [ ] クリティカルCSS抽出
 - [ ] 未使用スタイルの警告
@@ -801,12 +806,39 @@ div(class=ucss("display", "flex"), [...])
 
 詳細: [src/luna/css/README.md](../../src/luna/css/README.md)
 
-#### 🔲 Phase 3: 高度な機能
+#### ✅ Phase 3: 静的CSS抽出 (完了)
+
+ビルド時に全`.mbt`ファイルから静的解析でCSS宣言を抽出:
+
+```bash
+# 基本使用
+just extract-css src
+
+# ファイル出力
+just extract-css src output=dist/styles.css
+
+# JSON形式（マッピング情報付き）
+just extract-css-json src
+```
+
+抽出対象パターン:
+- `css("property", "value")`
+- `styles([("property", "value"), ...])`
+- `hover/focus/active("property", "value")`
+- `on(":pseudo", "property", "value")`
+- `media("condition", "property", "value")`
+- `at_sm/md/lg/xl("property", "value")`
+- `dark("property", "value")`
+- `u*` プレフィックス版（static_dom re-exports）
+
+実装: `src/luna/css/extract.js`
+
+#### 🔲 Phase 4: 高度な機能
 - [ ] CSS変数連携
 - [ ] 動的スタイルの自動判別
 - [ ] Shadow DOM対応（StyleMode実装）
 
-#### 🔲 Phase 4: 最適化
+#### 🔲 Phase 5: 最適化
 - [ ] gzip効率のための宣言順最適化
 - [ ] クリティカルCSS抽出
 - [ ] Tree-shaking（未使用スタイル警告）

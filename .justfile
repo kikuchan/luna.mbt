@@ -57,6 +57,37 @@ build-astra:
 build: build-moon build-loader build-luna build-astra
     pnpm vite build
 
+# CSS 静的抽出（全.mbtファイルからCSS宣言を抽出）
+extract-css dir="src" output="":
+    #!/usr/bin/env bash
+    if [ -z "{{output}}" ]; then
+        node src/luna/css/extract.js {{dir}} --pretty
+    else
+        node src/luna/css/extract.js {{dir}} --output {{output}} --pretty --verbose
+    fi
+
+# CSS 静的抽出（JSON形式 - マッピング情報付き）
+extract-css-json dir="src" output="":
+    #!/usr/bin/env bash
+    if [ -z "{{output}}" ]; then
+        node src/luna/css/extract.js {{dir}} --json --pretty
+    else
+        node src/luna/css/extract.js {{dir}} --json --output {{output}} --pretty --verbose
+    fi
+
+# CSS 静的抽出（警告なし）
+extract-css-quiet dir="src" output="":
+    #!/usr/bin/env bash
+    if [ -z "{{output}}" ]; then
+        node src/luna/css/extract.js {{dir}} --pretty --no-warn
+    else
+        node src/luna/css/extract.js {{dir}} --output {{output}} --pretty --verbose --no-warn
+    fi
+
+# CSS 静的抽出（strict - 警告があればエラー終了）
+extract-css-strict dir="src":
+    node src/luna/css/extract.js {{dir}} --strict --pretty
+
 # =============================================================================
 # テスト（ピラミッド構造）
 # =============================================================================

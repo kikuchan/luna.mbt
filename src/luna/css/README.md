@@ -81,6 +81,45 @@ let full_css = generate_full_css()
 // @media(min-width:768px){._m0{padding:2rem}}
 ```
 
+## Static CSS Extraction (Build-time)
+
+For complete CSS coverage including unexecuted code paths, use static extraction:
+
+```bash
+# Extract CSS from all .mbt files
+just extract-css src
+
+# Output to file
+just extract-css src output=dist/styles.css
+
+# JSON format with mapping
+just extract-css-json src
+
+# Quiet mode (no warnings)
+just extract-css-quiet src
+
+# Strict mode (error if non-literal arguments found)
+just extract-css-strict src
+```
+
+This parses source files to find all `css()`, `hover()`, `media()` etc. calls.
+
+### Non-literal Argument Warnings
+
+The extractor warns when CSS function arguments are not string literals:
+
+```moonbit
+let prop = "display"
+
+// ⚠ Warning: cannot be statically extracted
+css(prop, "flex")
+
+// ✓ OK: string literals can be extracted
+css("display", "flex")
+```
+
+Use `--no-warn` to suppress warnings, or `--strict` to fail the build.
+
 ## Full Example
 
 ```moonbit
