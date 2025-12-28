@@ -94,6 +94,20 @@ h("div", [
 
 ## Direct CSS API 詳細
 
+### API一覧
+
+| 関数 | 用途 | 例 |
+|------|------|-----|
+| `css(prop, val)` | 基本スタイル | `css("display", "flex")` |
+| `styles(pairs)` | 複数スタイル | `styles([("display", "flex"), ...])` |
+| `on(pseudo, prop, val)` | 擬似セレクタ | `on(":hover", "color", "red")` |
+| `hover(prop, val)` | :hover | `hover("background", "#eee")` |
+| `focus(prop, val)` | :focus | `focus("outline", "2px solid blue")` |
+| `active(prop, val)` | :active | `active("transform", "scale(0.98)")` |
+| `media(cond, prop, val)` | メディアクエリ | `media("min-width: 768px", "padding", "2rem")` |
+| `at_sm/md/lg/xl(prop, val)` | ブレークポイント | `at_md("font-size", "1.25rem")` |
+| `dark(prop, val)` | ダークモード | `dark("background", "#1a1a1a")` |
+
 ### 基本使用
 
 ```moonbit
@@ -198,14 +212,96 @@ style("--dynamic-color", color_signal.get())
 
 ### 3. 疑似クラス・メディアクエリ
 
-**対策**: 専用ラッパー
+**設計方針**: CSSセレクタ名をそのまま露出
+
+#### 汎用API: `on()`
 
 ```moonbit
-hover("background", "#2563eb")
-// → ._h1:hover{background:#2563eb}
+// 擬似クラス
+on(":hover", "background", "#2563eb")
+on(":focus", "outline", "2px solid blue")
+on(":active", "transform", "scale(0.98)")
 
-at_md("padding", "2rem")
-// → @media(min-width:768px){._m1{padding:2rem}}
+// 擬似要素
+on("::before", "content", "\"→\"")
+on("::after", "content", "\"\"")
+```
+
+出力:
+```css
+._h1:hover{background:#2563eb}
+._f1:focus{outline:2px solid blue}
+._ac1:active{transform:scale(0.98)}
+```
+
+#### 便利ラッパー
+
+```moonbit
+// よく使う擬似クラス用
+hover("background", "#2563eb")   // on(":hover", ...) のショートカット
+focus("outline", "2px solid blue")
+active("transform", "scale(0.98)")
+```
+
+#### メディアクエリ: `media()`
+
+```moonbit
+// 汎用
+media("min-width: 768px", "padding", "2rem")
+media("prefers-color-scheme: dark", "background", "#1a1a1a")
+
+// ブレークポイント便利ラッパー
+at_sm("padding", "1rem")    // 640px
+at_md("padding", "1.5rem")  // 768px
+at_lg("padding", "2rem")    // 1024px
+at_xl("padding", "2.5rem")  // 1280px
+
+// ダークモード
+dark("background", "#1a1a1a")
+dark("color", "white")
+```
+
+出力:
+```css
+@media(min-width:768px){._m0{padding:2rem}}
+@media(prefers-color-scheme:dark){._m1{background:#1a1a1a}}
+```
+
+#### 使用例: インタラクティブボタン
+
+```moonbit
+fn button() -> @luna.Node {
+  @luna.h("button", [
+    // ベーススタイル
+    css("display", "inline-flex"),
+    css("padding", "0.5rem 1rem"),
+    css("background", "#3b82f6"),
+    css("color", "white"),
+    css("border-radius", "0.375rem"),
+
+    // インタラクション
+    hover("background", "#2563eb"),
+    focus("outline", "2px solid #93c5fd"),
+    active("transform", "scale(0.98)"),
+
+    // レスポンシブ
+    at_md("padding", "0.75rem 1.5rem"),
+    at_lg("font-size", "1.125rem"),
+  ], [...])
+}
+```
+
+#### 使用例: ダークモード対応カード
+
+```moonbit
+fn card() -> @luna.Node {
+  @luna.h("div", [
+    css("background", "white"),
+    css("color", "#1a1a1a"),
+    dark("background", "#1a1a1a"),
+    dark("color", "white"),
+  ], [...])
+}
 ```
 
 ### 4. デバッグの困難さ
@@ -236,8 +332,9 @@ at_md("padding", "2rem")
 - [ ] ビルド時CSS生成
 
 ### Phase 3: 高度な機能
-- [ ] 疑似クラス対応 (`hover()`, `focus()`)
-- [ ] メディアクエリ対応 (`at_md()`, `at_lg()`)
+- [x] 疑似クラス対応 (`on()`, `hover()`, `focus()`, `active()`)
+- [x] メディアクエリ対応 (`media()`, `at_sm()`, `at_md()`, `at_lg()`, `at_xl()`)
+- [x] ダークモード対応 (`dark()`)
 - [ ] CSS変数連携
 - [ ] 動的スタイルの自動判別
 

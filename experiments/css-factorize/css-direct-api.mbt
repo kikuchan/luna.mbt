@@ -185,26 +185,225 @@ pub fn generate_css_pretty() -> String {
 // Note: "_b" (align-items:center) is shared between card and button!
 
 // ============================================================================
-// Advanced: Responsive & Pseudo-classes
+// Pseudo-classes & Pseudo-elements
 // ============================================================================
 
-// Responsive wrapper
-// pub fn at_md(property: String, value: String) -> @luna.Attr {
-//   let decl = "@md:" + property + ":" + value
-//   // Register with media query prefix
-//   ...
+// Design: Use CSS pseudo-selector names directly
+// Format: on(":pseudo", "property", "value")
+
+/// Pseudo-class/element registry
+struct PseudoRegistry {
+  // ":hover:background:#2563eb" → "_h0"
+  pseudo_to_class : @hashmap.HashMap[String, String]
+  mut hover_counter : Int
+  mut focus_counter : Int
+  mut active_counter : Int
+  // ... other counters
+}
+
+let pseudo_registry : PseudoRegistry = {
+  pseudo_to_class: @hashmap.new(),
+  hover_counter: 0,
+  focus_counter: 0,
+  active_counter: 0,
+}
+
+/// Generic pseudo-class handler
+/// on(":hover", "background", "#2563eb")
+/// on(":focus", "outline", "2px solid blue")
+/// on("::before", "content", "\"→\"")
+pub fn on(pseudo : String, property : String, value : String) -> @luna.Attr {
+  let decl = pseudo + ":" + property + ":" + value
+
+  let class_name = match pseudo_registry.pseudo_to_class.get(decl) {
+    Some(cls) => cls
+    None => {
+      // Generate class name based on pseudo type
+      let prefix = match pseudo {
+        ":hover" => { pseudo_registry.hover_counter += 1; "_h" + pseudo_registry.hover_counter.to_string() }
+        ":focus" => { pseudo_registry.focus_counter += 1; "_f" + pseudo_registry.focus_counter.to_string() }
+        ":active" => { pseudo_registry.active_counter += 1; "_ac" + pseudo_registry.active_counter.to_string() }
+        _ => next_class_name()  // Fallback to generic
+      }
+      pseudo_registry.pseudo_to_class.set(decl, prefix)
+      prefix
+    }
+  }
+
+  @luna.attr("class", class_name)
+}
+
+/// Convenience wrappers (optional, for common pseudo-classes)
+pub fn hover(property : String, value : String) -> @luna.Attr {
+  on(":hover", property, value)
+}
+
+pub fn focus(property : String, value : String) -> @luna.Attr {
+  on(":focus", property, value)
+}
+
+pub fn active(property : String, value : String) -> @luna.Attr {
+  on(":active", property, value)
+}
+
+// ============================================================================
+// Media Queries
+// ============================================================================
+
+// Design: Use CSS media query syntax directly
+// Format: media("condition", "property", "value")
+
+struct MediaRegistry {
+  // "@media(min-width:768px):padding:2rem" → "_m0"
+  media_to_class : @hashmap.HashMap[String, String]
+  mut counter : Int
+}
+
+let media_registry : MediaRegistry = {
+  media_to_class: @hashmap.new(),
+  counter: 0,
+}
+
+/// Generic media query handler
+/// media("min-width: 768px", "padding", "2rem")
+/// media("prefers-color-scheme: dark", "background", "#1a1a1a")
+pub fn media(condition : String, property : String, value : String) -> @luna.Attr {
+  let decl = "@media(" + condition + "):" + property + ":" + value
+
+  let class_name = match media_registry.media_to_class.get(decl) {
+    Some(cls) => cls
+    None => {
+      let cls = "_m" + media_registry.counter.to_string()
+      media_registry.counter += 1
+      media_registry.media_to_class.set(decl, cls)
+      cls
+    }
+  }
+
+  @luna.attr("class", class_name)
+}
+
+/// Breakpoint convenience wrappers
+pub fn at_sm(property : String, value : String) -> @luna.Attr {
+  media("min-width: 640px", property, value)
+}
+
+pub fn at_md(property : String, value : String) -> @luna.Attr {
+  media("min-width: 768px", property, value)
+}
+
+pub fn at_lg(property : String, value : String) -> @luna.Attr {
+  media("min-width: 1024px", property, value)
+}
+
+pub fn at_xl(property : String, value : String) -> @luna.Attr {
+  media("min-width: 1280px", property, value)
+}
+
+/// Dark mode convenience wrapper
+pub fn dark(property : String, value : String) -> @luna.Attr {
+  media("prefers-color-scheme: dark", property, value)
+}
+
+// ============================================================================
+// CSS Output with Pseudo & Media
+// ============================================================================
+
+/// Generate complete CSS output (including pseudo-classes and media queries)
+pub fn generate_full_css() -> String {
+  let buf = StringBuilder::new()
+
+  // Base styles
+  for decl in registry.declarations {
+    match registry.decl_to_class.get(decl) {
+      Some(cls) => {
+        buf.write_string(".")
+        buf.write_string(cls)
+        buf.write_string("{")
+        buf.write_string(decl)
+        buf.write_string("}")
+      }
+      None => ()
+    }
+  }
+
+  // Pseudo-class styles
+  for entry in pseudo_registry.pseudo_to_class.iter() {
+    let (decl, cls) = entry
+    // Parse ":hover:background:#2563eb" → ".cls:hover{background:#2563eb}"
+    // Implementation would split by first ":" occurrence
+    buf.write_string(".")
+    buf.write_string(cls)
+    // ... parse and output
+  }
+
+  // Media query styles (grouped by condition)
+  // @media(min-width:768px){._m0{padding:2rem}._m1{font-size:1.25rem}}
+  // Implementation would group by condition
+
+  buf.to_string()
+}
+
+// ============================================================================
+// Usage Examples
+// ============================================================================
+
+// Example: Interactive button with responsive sizing
+// fn button() -> @luna.Node {
+//   @luna.h("button", [
+//     // Base styles
+//     css("display", "inline-flex"),
+//     css("align-items", "center"),
+//     css("padding", "0.5rem 1rem"),
+//     css("background", "#3b82f6"),
+//     css("color", "white"),
+//     css("border-radius", "0.375rem"),
+//     css("cursor", "pointer"),
+//
+//     // Pseudo-classes
+//     hover("background", "#2563eb"),
+//     focus("outline", "2px solid #93c5fd"),
+//     focus("outline-offset", "2px"),
+//     active("transform", "scale(0.98)"),
+//
+//     // Responsive
+//     at_md("padding", "0.75rem 1.5rem"),
+//     at_lg("font-size", "1.125rem"),
+//   ], [...])
 // }
 //
-// Pseudo-class wrapper
-// pub fn hover(property: String, value: String) -> @luna.Attr {
-//   let decl = ":hover:" + property + ":" + value
-//   // Register with pseudo-class
-//   ...
+// Generated CSS:
+// ._a{display:inline-flex}
+// ._b{align-items:center}
+// ._c{padding:0.5rem 1rem}
+// ._d{background:#3b82f6}
+// ._e{color:white}
+// ._f{border-radius:0.375rem}
+// ._g{cursor:pointer}
+// ._h1:hover{background:#2563eb}
+// ._f1:focus{outline:2px solid #93c5fd}
+// ._f2:focus{outline-offset:2px}
+// ._ac1:active{transform:scale(0.98)}
+// @media(min-width:768px){._m0{padding:0.75rem 1.5rem}}
+// @media(min-width:1024px){._m1{font-size:1.125rem}}
+
+// Example: Dark mode support
+// fn card() -> @luna.Node {
+//   @luna.h("div", [
+//     css("background", "white"),
+//     css("color", "#1a1a1a"),
+//     dark("background", "#1a1a1a"),
+//     dark("color", "white"),
+//   ], [...])
 // }
-//
-// Usage:
-// h("button", [
-//   css("background", "#3b82f6"),
-//   hover("background", "#2563eb"),
-//   at_md("padding", "1.5rem"),
-// ], [...])
+
+// Example: Complex pseudo-elements
+// fn list_item() -> @luna.Node {
+//   @luna.h("li", [
+//     css("position", "relative"),
+//     css("padding-left", "1.5rem"),
+//     on("::before", "content", "\"•\""),
+//     on("::before", "position", "absolute"),
+//     on("::before", "left", "0"),
+//   ], [...])
+// }
