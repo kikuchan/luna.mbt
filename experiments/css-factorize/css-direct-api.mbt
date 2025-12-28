@@ -407,3 +407,42 @@ pub fn generate_full_css() -> String {
 //     on("::before", "left", "0"),
 //   ], [...])
 // }
+
+// ============================================================================
+// Shadow DOM Support (Adoptable Stylesheets)
+// ============================================================================
+
+// Shadow DOM creates isolated style scopes.
+// Styles from the document don't penetrate into shadow roots.
+//
+// Solution: Use Adoptable Stylesheets to share styles across shadow roots.
+//
+// Usage flow:
+// 1. At app init: create global CSSStyleSheet with all utility styles
+// 2. At hydration: adopt the sheet into each shadow root
+//
+// extern "js" fn create_adoptable_sheet(css : String) -> @js.Any =
+//   #| (css) => {
+//   #|   const sheet = new CSSStyleSheet();
+//   #|   sheet.replaceSync(css);
+//   #|   window.__LUNA_STYLES__ = sheet;
+//   #|   return sheet;
+//   #| }
+//
+// extern "js" fn adopt_styles(shadow_root : @js.Any) -> Unit =
+//   #| (root) => {
+//   #|   if (window.__LUNA_STYLES__) {
+//   #|     root.adoptedStyleSheets = [window.__LUNA_STYLES__];
+//   #|   }
+//   #| }
+//
+// pub fn init_styles() -> Unit {
+//   let css = generate_full_css()
+//   let _ = create_adoptable_sheet(css)
+// }
+//
+// pub fn hydrate_with_styles(element : @js_dom.Element) -> Unit {
+//   let shadow = get_shadow_root(element)
+//   adopt_styles(shadow)
+//   // ... rest of hydration
+// }

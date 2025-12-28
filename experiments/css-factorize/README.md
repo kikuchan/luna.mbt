@@ -304,7 +304,84 @@ fn card() -> @luna.Node {
 }
 ```
 
-### 4. デバッグの困難さ
+### 4. Shadow DOM境界
+
+**問題**: Shadow DOM内では外部CSSが適用されない
+
+```
+Document
+├── <style>._a{display:flex}</style>    ← グローバルCSS
+├── <div class="_a">✓</div>              ← 適用される
+└── <wc-counter>
+    └── #shadow-root
+        └── <div class="_a">✗</div>      ← 適用されない
+```
+
+**対策案**:
+
+#### 案1: コンポーネント単位のスタイル追跡
+
+各コンポーネントで使用するスタイル宣言を追跡し、Shadow Root生成時に注入:
+
+```moonbit
+// ビルド時に収集
+fn counter_styles() -> String {
+  // このコンポーネントで使用される宣言のみ
+  "._a{display:flex}._b{align-items:center}"
+}
+
+fn counter() -> @luna.Node {
+  wc_island("wc-counter", "/counter.js", [
+    // 子要素
+  ], styles=counter_styles())
+}
+```
+
+#### 案2: Adoptable Stylesheets (推奨)
+
+ブラウザのCSSStyleSheet APIを使用して、複数のShadow Rootでスタイルシートを共有:
+
+```javascript
+// グローバルに1つのスタイルシートを作成
+const globalSheet = new CSSStyleSheet();
+globalSheet.replaceSync("._a{display:flex}._b{align-items:center}...");
+
+// 各Shadow Rootで採用
+shadowRoot.adoptedStyleSheets = [globalSheet];
+```
+
+MoonBit側:
+```moonbit
+// 初期化時にグローバルシートを登録
+fn init_global_styles() -> Unit {
+  let css = generate_css()
+  register_adoptable_sheet(css)
+}
+
+// Shadow Root作成時に採用
+fn hydrate_wc(element : @js_dom.Element) -> Unit {
+  let shadow = get_shadow_root(element)
+  adopt_global_styles(shadow)
+}
+```
+
+利点:
+- メモリ効率（シート共有）
+- スタイル更新が全Shadow Rootに反映
+- パースコスト削減
+
+#### 案3: ハイドレーション単位でのスタイル分割
+
+ビルド時にハイドレーション境界を検出し、スタイルを分割:
+
+```
+build output:
+├── global.css        # Document用
+├── counter.css       # wc-counter Shadow Root用
+└── modal.css         # wc-modal Shadow Root用
+```
+
+### 5. デバッグの困難さ
 
 **問題**: `._a ._b ._c` だと何のスタイルか分からない
 
@@ -337,6 +414,7 @@ fn card() -> @luna.Node {
 - [x] ダークモード対応 (`dark()`)
 - [ ] CSS変数連携
 - [ ] 動的スタイルの自動判別
+- [ ] Shadow DOM対応 (Adoptable Stylesheets)
 
 ### Phase 4: 最適化
 - [ ] 宣言の出現順最適化 (gzip効率)
