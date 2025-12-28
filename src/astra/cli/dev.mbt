@@ -154,9 +154,26 @@ async fn run_dev_command(args : Array[String]) -> Unit {
     }
   }
   let ssg_config = parse_config(config_content, config_path)
-  guard ssg_config is Some(config) else {
+  guard ssg_config is Some(parsed_config) else {
     console_error(@colorette.red("Error: Invalid config file format"))
     @process.exit(1)
+  }
+
+  // Resolve docs_dir relative to config file location
+  let config_dir = @path.dirname(config_path)
+  let resolved_docs_dir = if config_dir.is_empty() || config_dir == "." {
+    parsed_config.docs_dir
+  } else {
+    // Config is in a subdirectory, resolve docs_dir relative to it
+    if parsed_config.docs_dir == "." {
+      config_dir
+    } else {
+      @path.join2(config_dir, parsed_config.docs_dir)
+    }
+  }
+  let config = @astra.SsgConfig::{
+    ..parsed_config,
+    docs_dir: resolved_docs_dir,
   }
 
   // Create highlighter once for reuse (before initial build)

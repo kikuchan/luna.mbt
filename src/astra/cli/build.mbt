@@ -125,10 +125,28 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
     @process.exit(1)
   }
 
+  // Resolve docs_dir relative to config file location
+  let config_dir = @path.dirname(config_path)
+  let resolved_docs_dir = if config_dir.is_empty() || config_dir == "." {
+    config.docs_dir
+  } else {
+    // Config is in a subdirectory, resolve docs_dir relative to it
+    if config.docs_dir == "." {
+      config_dir
+    } else {
+      @path.join2(config_dir, config.docs_dir)
+    }
+  }
+  let config_with_resolved_paths = @astra.SsgConfig::{
+    ..config,
+    docs_dir: resolved_docs_dir,
+  }
+
   // Apply output override if provided
   let final_config = match output_override {
-    Some(output) => @astra.SsgConfig::{ ..config, output_dir: output }
-    None => config
+    Some(output) =>
+      @astra.SsgConfig::{ ..config_with_resolved_paths, output_dir: output }
+    None => config_with_resolved_paths
   }
 
   // Check for incremental build skip using provider pattern
@@ -300,13 +318,25 @@ fn[FS : @env.FileSystem] find_config_file_with_fs(
   fs : FS,
   cwd : String,
 ) -> String {
-  // Try astra.json first
-  let astra_path = @path.join2(cwd, "astra.json")
-  if fs.exists_sync(astra_path) {
-    return "astra.json"
+  // Search order:
+  // 1. astra.json (root)
+  // 2. website/astra.json (common docs directory)
+  // 3. docs/astra.json (common docs directory)
+  // 4. sol.config.json (root, fallback)
+  let candidates = [
+    "astra.json",
+    "website/astra.json",
+    "docs/astra.json",
+    "sol.config.json",
+  ]
+  for candidate in candidates {
+    let full_path = @path.join2(cwd, candidate)
+    if fs.exists_sync(full_path) {
+      return candidate
+    }
   }
-  // Fall back to sol.config.json
-  "sol.config.json"
+  // Return default (will fail later with proper error message)
+  "astra.json"
 }
 
 ///|

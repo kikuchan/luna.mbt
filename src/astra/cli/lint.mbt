@@ -82,13 +82,15 @@ pub fn run_lint_command(args : Array[String]) -> Unit {
 /// Validate config file against JSON schema
 fn validate_config_file(cwd : String) -> Array[LintIssue] {
   let issues : Array[LintIssue] = []
-  let config_path = @path.join2(cwd, "astra.json")
+  // Use same search logic as build command
+  let config_rel_path = find_config_file(cwd)
+  let config_path = @path.join2(cwd, config_rel_path)
 
   // Check if config file exists
   if not(@fs.existsSync(config_path)) {
     issues.push(LintIssue::{
       severity: Warning,
-      file: "astra.json",
+      file: config_rel_path,
       line: None,
       message: "Config file not found (using defaults)",
       rule: "missing-config",
@@ -101,7 +103,7 @@ fn validate_config_file(cwd : String) -> Array[LintIssue] {
     err => {
       issues.push(LintIssue::{
         severity: Error,
-        file: "astra.json",
+        file: config_rel_path,
         line: None,
         message: "Failed to read config file: \{err}",
         rule: "config-read-error",
@@ -115,7 +117,7 @@ fn validate_config_file(cwd : String) -> Array[LintIssue] {
     _ => {
       issues.push(LintIssue::{
         severity: Error,
-        file: "astra.json",
+        file: config_rel_path,
         line: None,
         message: "Invalid JSON in config file",
         rule: "config-parse-error",
@@ -159,7 +161,7 @@ fn validate_config_file(cwd : String) -> Array[LintIssue] {
             }
             issues.push(LintIssue::{
               severity: Error,
-              file: "astra.json",
+              file: config_rel_path,
               line: None,
               message: msg,
               rule: "config-schema-error",
@@ -193,12 +195,29 @@ fn find_schema_path(cwd : String) -> String? {
 ///|
 /// Load configuration
 fn load_config(cwd : String) -> @astra.SsgConfig {
-  let config_path = @path.join2(cwd, "astra.json")
-  if @fs.existsSync(config_path) {
-    let content : String = @fs.readFileSync(config_path).to_string() catch {
+  // Use same search logic as build command
+  let config_path = find_config_file(cwd)
+  let full_config_path = @path.join2(cwd, config_path)
+  if @fs.existsSync(full_config_path) {
+    let content : String = @fs.readFileSync(full_config_path).to_string() catch {
       _ => return @astra.SsgConfig::default()
     }
-    @astra.parse_ssg_config(content).unwrap_or(@astra.SsgConfig::default())
+    let parsed_config = parse_config(content, config_path).unwrap_or(
+      @astra.SsgConfig::default(),
+    )
+
+    // Resolve docs_dir relative to config file location
+    let config_dir = @path.dirname(config_path)
+    let resolved_docs_dir = if config_dir.is_empty() || config_dir == "." {
+      parsed_config.docs_dir
+    } else {
+      if parsed_config.docs_dir == "." {
+        config_dir
+      } else {
+        @path.join2(config_dir, parsed_config.docs_dir)
+      }
+    }
+    @astra.SsgConfig::{ ..parsed_config, docs_dir: resolved_docs_dir }
   } else {
     @astra.SsgConfig::default()
   }
