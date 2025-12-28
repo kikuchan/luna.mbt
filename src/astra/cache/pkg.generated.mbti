@@ -8,11 +8,19 @@ import(
 )
 
 // Values
+pub let astra_version : String
+
+pub fn check_local_build_state(@astra.SsgConfig, String, String) -> @mizchi/luna/core/cache.BuildStateCheck
+
 pub fn compute_config_hash(@astra.SsgConfig) -> String
+
+pub fn compute_content_hash(String, String, Array[String]) -> String
 
 pub fn compute_page_hash(String, String, String) -> String
 
-pub fn fnv1a(String) -> String
+pub fn get_current_timestamp() -> String
+
+pub fn save_manifest(String, @astra.SsgConfig, String) -> Unit
 
 // Errors
 
@@ -28,6 +36,15 @@ pub fn CacheManager::save(Self) -> Unit
 pub fn CacheManager::set(Self, String, String, String) -> Unit
 pub fn CacheManager::stats(Self) -> (Int, Int)
 pub fn[F : @env.FileSystem] CacheManager::with_fs(F, String, String, enabled? : Bool) -> @mizchi/luna/core/cache.DiskCache[F]
+
+pub(all) struct LocalFileProvider {
+  docs_dir : String
+  cwd : String
+  exclude : Array[String]
+  mut cached_state : String?
+}
+pub fn LocalFileProvider::new(String, String, Array[String]) -> Self
+pub impl @mizchi/luna/core/cache.BuildStateProvider for LocalFileProvider
 
 // Type aliases
 

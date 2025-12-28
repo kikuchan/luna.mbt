@@ -486,6 +486,7 @@ fn parse_ssg_config_obj(obj : Map[String, Json]) -> @astra.SsgConfig? {
     spa_routes: [],
     components_dir: None,
     css_utilities: None,
+    meta_files: @astra.MetaFilesConfig::default(),
   })
 }
 

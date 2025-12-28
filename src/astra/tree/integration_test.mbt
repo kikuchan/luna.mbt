@@ -28,6 +28,7 @@ fn create_test_config() -> @astra.SsgConfig {
     spa_routes: [],
     components_dir: None,
     css_utilities: None,
+    meta_files: @astra.MetaFilesConfig::default(),
   }
 }
 

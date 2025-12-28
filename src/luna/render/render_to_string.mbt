@@ -248,48 +248,59 @@ fn[E] render_island_close_to(
 // ============================================================
 
 ///|
+/// Write WC opening tag with luna:wc-* attributes
+fn write_wc_open_tag(
+  sb : StringBuilder,
+  name : String,
+  url : String,
+  state : String,
+  trigger : @luna.TriggerType,
+  styles : String,
+) -> Unit {
+  sb.write_char('<')
+  sb.write_string(name)
+  sb.write_string(" luna:wc-url=\"")
+  escape_attr_to(sb, url)
+  sb.write_char('"')
+  sb.write_string(" luna:wc-state=\"")
+  escape_attr_to(sb, state)
+  sb.write_char('"')
+  if not(trigger is Load) {
+    sb.write_string(" luna:wc-trigger=\"")
+    sb.write_string(trigger.to_string())
+    sb.write_char('"')
+  }
+  sb.write_char('>')
+  sb.write_string("<template shadowrootmode=\"open\">")
+  write_style_tag(sb, styles)
+}
+
+///|
+/// Write WC closing tag
+fn write_wc_close_tag(sb : StringBuilder, name : String) -> Unit {
+  sb.write_string("</template></")
+  sb.write_string(name)
+  sb.write_char('>')
+}
+
+///|
 /// Render WcIsland node with Declarative Shadow DOM
 fn[E] render_wc_island_to(
   sb : StringBuilder,
   island : @luna.VWcIsland[E],
 ) -> Unit {
-  // <wc-counter luna:wc-url="..." luna:wc-state="..." luna:wc-trigger="load">
-  sb.write_char('<')
-  sb.write_string(island.name)
-
-  // Hydration script URL
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, island.url)
-  sb.write_char('"')
-
-  // State JSON
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, island.state)
-  sb.write_char('"')
-
-  // Only add trigger attribute if not default (load)
-  if not(island.trigger is Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(island.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-
-  // <template shadowrootmode="open">
-  sb.write_string("<template shadowrootmode=\"open\">")
-
-  // <style id="style-{hash}">...</style>
-  write_style_tag(sb, island.styles)
-
-  // Render children
+  write_wc_open_tag(
+    sb,
+    island.name,
+    island.url,
+    island.state,
+    island.trigger,
+    island.styles,
+  )
   for child in island.children {
     render_to_sb(sb, child)
   }
-
-  // Close template and custom element
-  sb.write_string("</template></")
-  sb.write_string(island.name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, island.name)
 }
 
 ///|
@@ -299,38 +310,21 @@ fn[E] render_wc_island_and_collect_urls(
   island : @luna.VWcIsland[E],
   urls : Array[String],
 ) -> Unit {
-  // Collect URL if not already present
   if island.url.length() > 0 && not(urls.contains(island.url)) {
     urls.push(island.url)
   }
-
-  // <wc-counter luna:wc-url="..." luna:wc-state="..." luna:wc-trigger="load">
-  sb.write_char('<')
-  sb.write_string(island.name)
-
-  // Hydration script URL
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, island.url)
-  sb.write_char('"')
-
-  // State JSON
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, island.state)
-  sb.write_char('"')
-  if not(island.trigger is Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(island.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-  sb.write_string("<template shadowrootmode=\"open\">")
-  write_style_tag(sb, island.styles)
+  write_wc_open_tag(
+    sb,
+    island.name,
+    island.url,
+    island.state,
+    island.trigger,
+    island.styles,
+  )
   for child in island.children {
     render_and_collect_urls(sb, child, urls)
   }
-  sb.write_string("</template></")
-  sb.write_string(island.name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, island.name)
 }
 
 ///|
@@ -342,37 +336,21 @@ fn[E] render_wc_island_with_id_to(
 ) -> Unit {
   let id = id_counter.val
   id_counter.val = id + 1
-
-  // WcIsland comment marker for hydration
   sb.write_string("<!--wc:")
   sb.write_object(id)
   sb.write_string("-->")
-  sb.write_char('<')
-  sb.write_string(island.name)
-
-  // Hydration script URL
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, island.url)
-  sb.write_char('"')
-
-  // State JSON
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, island.state)
-  sb.write_char('"')
-  if not(island.trigger is Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(island.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-  sb.write_string("<template shadowrootmode=\"open\">")
-  write_style_tag(sb, island.styles)
+  write_wc_open_tag(
+    sb,
+    island.name,
+    island.url,
+    island.state,
+    island.trigger,
+    island.styles,
+  )
   for child in island.children {
     render_with_id_to(sb, child, id_counter)
   }
-  sb.write_string("</template></")
-  sb.write_string(island.name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, island.name)
   sb.write_string("<!--/wc-->")
 }
 
@@ -432,30 +410,12 @@ fn[E] render_internal_ref_wc_to(
   sb : StringBuilder,
   iref : @luna.VInternalRef[E],
 ) -> Unit {
-  // Extract custom element name from URL (e.g., /static/wc_counter.js -> wc-counter)
   let name = @utils.extract_wc_name_from_url(iref.url)
-  sb.write_char('<')
-  sb.write_string(name)
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, iref.url)
-  sb.write_char('"')
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, iref.state)
-  sb.write_char('"')
-  if not(iref.trigger is @luna.Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(iref.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-  sb.write_string("<template shadowrootmode=\"open\">")
-  write_style_tag(sb, iref.styles)
+  write_wc_open_tag(sb, name, iref.url, iref.state, iref.trigger, iref.styles)
   for child in iref.children {
     render_to_sb(sb, child)
   }
-  sb.write_string("</template></")
-  sb.write_string(name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, name)
 }
 
 ///|
@@ -517,28 +477,11 @@ fn[E] render_internal_ref_wc_and_collect_urls(
   urls : Array[String],
 ) -> Unit {
   let name = @utils.extract_wc_name_from_url(iref.url)
-  sb.write_char('<')
-  sb.write_string(name)
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, iref.url)
-  sb.write_char('"')
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, iref.state)
-  sb.write_char('"')
-  if not(iref.trigger is @luna.Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(iref.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-  sb.write_string("<template shadowrootmode=\"open\">")
-  write_style_tag(sb, iref.styles)
+  write_wc_open_tag(sb, name, iref.url, iref.state, iref.trigger, iref.styles)
   for child in iref.children {
     render_and_collect_urls(sb, child, urls)
   }
-  sb.write_string("</template></")
-  sb.write_string(name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, name)
 }
 
 ///|
@@ -607,28 +550,11 @@ fn[E] render_internal_ref_wc_with_id_to(
   sb.write_string("<!--wc:")
   sb.write_object(id)
   sb.write_string("-->")
-  sb.write_char('<')
-  sb.write_string(name)
-  sb.write_string(" luna:wc-url=\"")
-  escape_attr_to(sb, iref.url)
-  sb.write_char('"')
-  sb.write_string(" luna:wc-state=\"")
-  escape_attr_to(sb, iref.state)
-  sb.write_char('"')
-  if not(iref.trigger is @luna.Load) {
-    sb.write_string(" luna:wc-trigger=\"")
-    sb.write_string(iref.trigger.to_string())
-    sb.write_char('"')
-  }
-  sb.write_char('>')
-  sb.write_string("<template shadowrootmode=\"open\">")
-  write_style_tag(sb, iref.styles)
+  write_wc_open_tag(sb, name, iref.url, iref.state, iref.trigger, iref.styles)
   for child in iref.children {
     render_with_id_to(sb, child, id_counter)
   }
-  sb.write_string("</template></")
-  sb.write_string(name)
-  sb.write_char('>')
+  write_wc_close_tag(sb, name)
   sb.write_string("<!--/wc-->")
 }
 

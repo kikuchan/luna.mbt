@@ -123,6 +123,9 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
 
   // Parse CSS utilities configuration
   let css_utilities = parse_css_utilities_config(ssg_obj)
+
+  // Parse meta files configuration
+  let meta_files = parse_meta_files_config(ssg_obj)
   Some(SsgConfig::{
     docs_dir,
     output_dir,
@@ -145,6 +148,7 @@ fn parse_ssg_object(ssg_obj : Map[String, Json]) -> SsgConfig? {
     spa_routes,
     components_dir,
     css_utilities,
+    meta_files,
   })
 }
 
@@ -178,9 +182,25 @@ fn parse_css_utilities_config(obj : Map[String, Json]) -> CssUtilitiesConfig? {
   guard obj.get("cssUtilities") is Some(Object(css_obj)) else { return None }
   let enabled = @json_utils.extract_bool(css_obj, "enabled", true)
   let split = @json_utils.extract_bool(css_obj, "split", false)
-  let inline_threshold = @json_utils.extract_int(css_obj, "inlineThreshold", 4096)
+  let inline_threshold = @json_utils.extract_int(
+    css_obj, "inlineThreshold", 4096,
+  )
   let source_dirs = @json_utils.extract_string_array(css_obj, "sourceDirs")
   Some(CssUtilitiesConfig::{ enabled, split, inline_threshold, source_dirs })
+}
+
+///|
+/// Parse meta files configuration
+fn parse_meta_files_config(obj : Map[String, Json]) -> MetaFilesConfig {
+  guard obj.get("metaFiles") is Some(Object(meta_obj)) else {
+    return MetaFilesConfig::default()
+  }
+  let sitemap = @json_utils.extract_bool(meta_obj, "sitemap", true)
+  let feed = @json_utils.extract_bool(meta_obj, "feed", false)
+  let llms_txt = extract_bool_with_fallback(
+    meta_obj, "llmsTxt", "llms_txt", false,
+  )
+  MetaFilesConfig::{ sitemap, feed, llms_txt }
 }
 
 ///|

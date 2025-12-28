@@ -81,6 +81,8 @@ pub(all) struct SsgConfig {
   components_dir : String?
   /// CSS utility extraction configuration
   css_utilities : CssUtilitiesConfig?
+  /// Meta files generation configuration (sitemap, feed, llms.txt)
+  meta_files : MetaFilesConfig
 }
 
 // I18nConfig, LocaleConfig are defined in core/ssg
@@ -117,6 +119,7 @@ pub fn SsgConfig::default() -> SsgConfig {
     spa_routes: [],
     components_dir: None,
     css_utilities: None,
+    meta_files: MetaFilesConfig::default(),
   }
 }
 
@@ -349,6 +352,25 @@ pub(all) struct CssUtilitiesConfig {
 /// Default CSS utilities configuration
 pub fn CssUtilitiesConfig::default() -> CssUtilitiesConfig {
   { enabled: true, split: false, inline_threshold: 4096, source_dirs: ["src"] }
+}
+
+///|
+/// Meta files generation configuration
+/// Controls generation of sitemap.xml, feed.xml (RSS), and llms.txt
+pub(all) struct MetaFilesConfig {
+  /// Generate sitemap.xml for SEO (default: true)
+  sitemap : Bool
+  /// Generate feed.xml (RSS 2.0) for content syndication (default: false)
+  feed : Bool
+  /// Generate llms.txt for LLM crawlers (default: false)
+  llms_txt : Bool
+}
+
+///|
+/// Default meta files configuration
+/// Only sitemap is enabled by default as it's most commonly needed
+pub fn MetaFilesConfig::default() -> MetaFilesConfig {
+  { sitemap: true, feed: false, llms_txt: false }
 }
 
 ///|

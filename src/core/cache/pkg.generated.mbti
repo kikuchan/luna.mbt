@@ -8,6 +8,8 @@ import(
 // Values
 pub let cache_format_version : Int
 
+pub fn[P : BuildStateProvider] check_build_state(P, String, String, (String) -> BuildManifest?) -> BuildStateCheck
+
 pub fn fnv1a(String) -> String
 
 pub fn fnv1a_64(String) -> String
@@ -19,6 +21,24 @@ pub fn hash_strings(Array[String]) -> String
 // Errors
 
 // Types and methods
+pub(all) struct BuildManifest {
+  tool_version : String
+  config_hash : String
+  content_state : String
+  built_at : String
+}
+pub fn BuildManifest::from_json(String) -> Self?
+pub fn BuildManifest::matches(Self, String, String) -> Bool
+pub fn BuildManifest::new(tool_version~ : String, config_hash~ : String, content_state~ : String, built_at~ : String) -> Self
+pub fn BuildManifest::to_json(Self) -> String
+
+pub(all) enum BuildStateCheck {
+  UpToDate(String)
+  NeedsRebuild
+  NoPreviousBuild
+}
+pub fn BuildStateCheck::is_up_to_date(Self) -> Bool
+
 pub(all) struct CacheEntry {
   key : String
   value : String
@@ -67,4 +87,8 @@ pub(all) struct EntryMeta {
 // Type aliases
 
 // Traits
+pub(open) trait BuildStateProvider {
+  get_content_state(Self) -> String
+  describe_state(Self) -> String
+}
 

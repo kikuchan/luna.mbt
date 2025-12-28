@@ -75,11 +75,12 @@ fn register_pseudo(
 ///|
 /// Generic pseudo-class/element handler
 ///
-/// Example:
-/// ```moonbit
-/// on(":hover", "background", "#2563eb")
-/// on(":focus", "outline", "2px solid blue")
-/// on("::before", "content", "\"→\"")
+/// ```mbt check
+/// test {
+///   reset_pseudo_registry()
+///   let cls = on(":hover", "background", "#2563eb")
+///   inspect(cls.has_prefix("_h"), content="true")
+/// }
 /// ```
 pub fn on(pseudo : String, property : String, value : String) -> String {
   register_pseudo(pseudo, property, value)

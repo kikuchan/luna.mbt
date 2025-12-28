@@ -36,7 +36,9 @@ test "demo: card component with CSS utilities" {
     @element.h2(class=@css.css("font-size", "1.25rem"), [
       @element.text("Hello CSS Utilities"),
     ]),
-    @element.p(class=@css.css("color", "#666"), [@element.text("This card uses atomic CSS classes generated at SSR time.")]),
+    @element.p(class=@css.css("color", "#666"), [
+      @element.text("This card uses atomic CSS classes generated at SSR time."),
+    ]),
   ])
 
   // Render component to HTML
@@ -53,7 +55,6 @@ test "demo: card component with CSS utilities" {
     ]),
     @element.body([card]),
   ])
-
   let full_html = render(doc)
 
   // Verify: Card HTML contains generated class names
@@ -94,17 +95,17 @@ test "demo: button with hover states" {
     ("font-weight", "500"),
     ("cursor", "pointer"),
   ])
-
   let btn_hover = @css.hover("background", "#2563eb")
   let btn_focus = @css.focus("outline", "2px solid #93c5fd")
   let btn_active = @css.active("transform", "scale(0.98)")
-
-  let btn_class = btn_base + " " + btn_hover + " " + btn_focus + " " + btn_active
-
-  let button = @element.button(class=btn_class, [
-    @element.text("Click me"),
-  ])
-
+  let btn_class = btn_base +
+    " " +
+    btn_hover +
+    " " +
+    btn_focus +
+    " " +
+    btn_active
+  let button = @element.button(class=btn_class, [@element.text("Click me")])
   let html = render(button)
   let css = @css.generate_full_css()
 
@@ -129,7 +130,6 @@ test "demo: responsive grid layout" {
   // Responsive: 2 columns at md, 3 at lg
   let md_cols = @css.at_md("grid-template-columns", "repeat(2, 1fr)")
   let lg_cols = @css.at_lg("grid-template-columns", "repeat(3, 1fr)")
-
   let grid_class = grid + " " + md_cols + " " + lg_cols
 
   // Build grid items
@@ -141,7 +141,6 @@ test "demo: responsive grid layout" {
       ]),
     )
   }
-
   let _ = @element.div(class=grid_class, items)
   let css = @css.generate_full_css()
 
@@ -187,7 +186,10 @@ test "demo: complete page generation" {
     head_children=[
       @element.title("CSS Utilities Demo"),
       @element.meta(charset="UTF-8"),
-      @element.meta(name="viewport", content="width=device-width, initial-scale=1"),
+      @element.meta(
+        name="viewport",
+        content="width=device-width, initial-scale=1",
+      ),
       @element.style_(@css.generate_full_css()),
     ],
     body_children=[
@@ -199,12 +201,9 @@ test "demo: complete page generation" {
         @element.h2([@element.text("Welcome")]),
         @element.p([@element.text("This page uses CSS utilities for styling.")]),
       ]),
-      @element.footer_(class=footer_class, [
-        @element.text("© 2025 My Site"),
-      ]),
+      @element.footer_(class=footer_class, [@element.text("© 2025 My Site")]),
     ],
   )
-
   let html = render_document(page)
 
   // Verify document structure

@@ -51,6 +51,14 @@ pub(all) enum ContentType {
 pub impl Eq for ContentType
 pub impl Show for ContentType
 
+pub(all) struct CssUtilitiesConfig {
+  enabled : Bool
+  split : Bool
+  inline_threshold : Int
+  source_dirs : Array[String]
+}
+pub fn CssUtilitiesConfig::default() -> Self
+
 pub(all) enum DeployTarget {
   Static
   Cloudflare
@@ -177,9 +185,17 @@ pub(all) enum MdxAttrValue {
 pub impl Eq for MdxAttrValue
 pub impl Show for MdxAttrValue
 
+pub(all) struct MetaFilesConfig {
+  sitemap : Bool
+  feed : Bool
+  llms_txt : Bool
+}
+pub fn MetaFilesConfig::default() -> Self
+
 pub(all) struct NavItem {
   text : String
   link : String
+  icon : String?
   items : Array[NavItem]
 }
 pub fn NavItem::new(String, String) -> Self
@@ -257,6 +273,8 @@ pub(all) struct SsgConfig {
   deploy_target : DeployTarget
   spa_routes : Array[String]
   components_dir : String?
+  css_utilities : CssUtilitiesConfig?
+  meta_files : MetaFilesConfig
 }
 pub fn SsgConfig::default() -> Self
 

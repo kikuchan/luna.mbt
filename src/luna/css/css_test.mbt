@@ -160,7 +160,6 @@ test "edge: CSS values with special characters" {
   let _ = css("background", "linear-gradient(to right, #fff, #000)")
   let _ = css("transform", "translateX(-50%)")
   let output = generate_css()
-
   assert_true(output.contains("box-shadow:0 1px 3px rgba(0,0,0,0.1)"))
   assert_true(output.contains("linear-gradient(to right, #fff, #000)"))
   assert_true(output.contains("translateX(-50%)"))
@@ -262,6 +261,7 @@ test "edge: many declarations do not overflow" {
   // Generate 100 unique declarations
   for i = 0; i < 100; i = i + 1 {
     let _ = css("prop" + i.to_string(), "val" + i.to_string())
+
   }
   let output = generate_css()
   // Should contain all 100 declarations

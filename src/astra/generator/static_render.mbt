@@ -1855,7 +1855,6 @@ pub async fn copy_static_assets_async(ctx : @astra.BuildContext) -> Unit {
   // Determine if CSS should be inlined based on threshold
   let css_size = utility_css.length()
   let should_inline = css_size <= css_config.inline_threshold
-
   if should_inline {
     copy_static_assets_internal(ctx, utility_css)
   } else {
@@ -1896,7 +1895,6 @@ fn copy_static_assets_internal(
     println("  Extracted CSS utilities from source files")
     css + "\n/* === CSS Utilities (auto-extracted) === */\n" + utility_css
   }
-
   let css_path = @path.join2(output_assets, "style.css")
   @fs.writeFileSync(css_path, @js.any(full_css)) catch {
     _ => ()
@@ -2057,35 +2055,43 @@ fn copy_public_dir(ctx : @astra.BuildContext) -> Unit {
 
 ///|
 /// Generate meta files (sitemap.xml, feed.xml, llms.txt) using DocumentTree
+/// Respects MetaFilesConfig settings - only generates enabled files
 pub fn generate_meta_files(
   ctx : @astra.BuildContext,
   doc_tree : @ssg.DocumentTree,
 ) -> Unit {
   let output_dir = @path.join2(ctx.cwd, ctx.config.output_dir)
+  let meta_config = ctx.config.meta_files
 
-  // Generate sitemap.xml
-  let sitemap_content = @tree.generate_sitemap(doc_tree)
-  let sitemap_path = @path.join2(output_dir, "sitemap.xml")
-  @fs.writeFileSync(sitemap_path, @js.any(sitemap_content)) catch {
-    e => println("  Warning: Failed to generate sitemap.xml: \{e}")
+  // Generate sitemap.xml (enabled by default)
+  if meta_config.sitemap {
+    let sitemap_content = @tree.generate_sitemap(doc_tree)
+    let sitemap_path = @path.join2(output_dir, "sitemap.xml")
+    @fs.writeFileSync(sitemap_path, @js.any(sitemap_content)) catch {
+      e => println("  Warning: Failed to generate sitemap.xml: \{e}")
+    }
+    println("  Generated: /sitemap.xml")
   }
-  println("  Generated: /sitemap.xml")
 
-  // Generate feed.xml (RSS)
-  let rss_content = @tree.generate_rss(doc_tree)
-  let rss_path = @path.join2(output_dir, "feed.xml")
-  @fs.writeFileSync(rss_path, @js.any(rss_content)) catch {
-    e => println("  Warning: Failed to generate feed.xml: \{e}")
+  // Generate feed.xml (RSS) - disabled by default
+  if meta_config.feed {
+    let rss_content = @tree.generate_rss(doc_tree)
+    let rss_path = @path.join2(output_dir, "feed.xml")
+    @fs.writeFileSync(rss_path, @js.any(rss_content)) catch {
+      e => println("  Warning: Failed to generate feed.xml: \{e}")
+    }
+    println("  Generated: /feed.xml")
   }
-  println("  Generated: /feed.xml")
 
-  // Generate llms.txt
-  let llms_content = @tree.generate_llms_txt(doc_tree)
-  let llms_path = @path.join2(output_dir, "llms.txt")
-  @fs.writeFileSync(llms_path, @js.any(llms_content)) catch {
-    e => println("  Warning: Failed to generate llms.txt: \{e}")
+  // Generate llms.txt - disabled by default
+  if meta_config.llms_txt {
+    let llms_content = @tree.generate_llms_txt(doc_tree)
+    let llms_path = @path.join2(output_dir, "llms.txt")
+    @fs.writeFileSync(llms_path, @js.any(llms_content)) catch {
+      e => println("  Warning: Failed to generate llms.txt: \{e}")
+    }
+    println("  Generated: /llms.txt")
   }
-  println("  Generated: /llms.txt")
 }
 
 ///|

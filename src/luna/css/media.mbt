@@ -50,10 +50,12 @@ fn register_media(
 ///|
 /// Generic media query handler
 ///
-/// Example:
-/// ```moonbit
-/// media("min-width: 768px", "padding", "2rem")
-/// media("prefers-color-scheme: dark", "background", "#1a1a1a")
+/// ```mbt check
+/// test {
+///   reset_media_registry()
+///   let cls = media("min-width:768px", "padding", "2rem")
+///   inspect(cls.has_prefix("_m"), content="true")
+/// }
 /// ```
 pub fn media(condition : String, property : String, value : String) -> String {
   register_media(condition, property, value)

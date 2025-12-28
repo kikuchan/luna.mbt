@@ -5,10 +5,13 @@ import(
   "mizchi/luna/astra"
   "mizchi/luna/astra/shiki"
   "mizchi/luna/core/ssg"
+  "moonbitlang/core/json"
 )
 
 // Values
 pub fn copy_static_assets(@astra.BuildContext) -> Unit
+
+pub async fn copy_static_assets_async(@astra.BuildContext) -> Unit
 
 pub fn extract_dynamic_route_patterns(Array[@astra.PageMeta]) -> Array[String]
 
@@ -33,6 +36,20 @@ pub fn write_routes_json(@astra.BuildContext) -> Unit
 // Errors
 
 // Types and methods
+pub(all) struct CssManifestEntry {
+  css : String
+  size : Int
+}
+pub impl ToJson for CssManifestEntry
+pub impl @json.FromJson for CssManifestEntry
+
+pub(all) struct CssSplitManifest {
+  entries : Map[String, CssManifestEntry]
+  shared_css : String
+  shared_size : Int
+}
+pub impl ToJson for CssSplitManifest
+pub impl @json.FromJson for CssSplitManifest
 
 // Type aliases
 
