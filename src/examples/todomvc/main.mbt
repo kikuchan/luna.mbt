@@ -27,7 +27,7 @@ using @element {
 }
 
 ///|
-using @signal { type Signal, signal, effect, memo }
+using @signal {type Signal, signal, effect, memo}
 
 // =============================================================================
 // Data Structures

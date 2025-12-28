@@ -209,10 +209,7 @@ fn resolve_component(
 // =============================================================================
 
 ///|
-fn render_wiki(
-  router : @router.BrowserRouter,
-  container : DomElement,
-) -> Unit {
+fn render_wiki(router : @router.BrowserRouter, container : DomElement) -> Unit {
   let _ = @signal.effect(fn() {
     let match_result = router.match_signal().get()
 

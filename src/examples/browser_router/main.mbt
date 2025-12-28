@@ -271,9 +271,7 @@ fn user_detail_component(
 
 ///|
 /// Settings index
-fn settings_index_component(
-  router : @router.BrowserRouter,
-) -> DomNode {
+fn settings_index_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
   let profile_path = base + "/settings/profile"
   div(class="settings-index", [
@@ -295,9 +293,7 @@ fn settings_index_component(
 
 ///|
 /// Profile settings
-fn settings_profile_component(
-  router : @router.BrowserRouter,
-) -> DomNode {
+fn settings_profile_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
   div(class="settings-profile", [
     h1([text("Profile Settings")]),
@@ -369,10 +365,7 @@ fn resolve_component(
 
 ///|
 /// Render route
-fn render_route(
-  router : @router.BrowserRouter,
-  container : DomElement,
-) -> Unit {
+fn render_route(router : @router.BrowserRouter, container : DomElement) -> Unit {
   let _ = @signal.effect(fn() {
     // Track only the match_signal for re-rendering
     let match_result = router.match_signal().get()

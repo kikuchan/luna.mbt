@@ -140,7 +140,10 @@ fn register_wc_counter() -> Unit {
           "button",
           [
             ("class", attr_static("dec")),
-            ("onclick", attr_handler(handler(fn(_) { count.update(fn(n) { n - 1 }) }))),
+            (
+              "onclick",
+              attr_handler(handler(fn(_) { count.update(fn(n) { n - 1 }) })),
+            ),
           ],
           [text("-")],
         ),
@@ -148,7 +151,10 @@ fn register_wc_counter() -> Unit {
           "button",
           [
             ("class", attr_static("inc")),
-            ("onclick", attr_handler(handler(fn(_) { count.update(fn(n) { n + 1 }) }))),
+            (
+              "onclick",
+              attr_handler(handler(fn(_) { count.update(fn(n) { n + 1 }) })),
+            ),
           ],
           [text("+")],
         ),
@@ -185,10 +191,12 @@ fn register_wc_input() -> Unit {
           ("placeholder", attr_static("Type something...")),
           (
             "oninput",
-            attr_handler(handler(fn(e : @js.Any) {
-              let value : String = e._get("target")._get("value").cast()
-              text_signal.set(value)
-            })),
+            attr_handler(
+              handler(fn(e : @js.Any) {
+                let value : String = e._get("target")._get("value").cast()
+                text_signal.set(value)
+              }),
+            ),
           ),
         ],
         [],
@@ -228,7 +236,10 @@ fn register_wc_effect() -> Unit {
         "button",
         [
           ("class", attr_static("toggle")),
-          ("onclick", attr_handler(handler(fn(_) { active.update(fn(b) { not(b) }) }))),
+          (
+            "onclick",
+            attr_handler(handler(fn(_) { active.update(fn(b) { not(b) }) })),
+          ),
         ],
         [text_dyn(fn() { if active.get() { "Stop" } else { "Start" } })],
       ),
@@ -236,7 +247,10 @@ fn register_wc_effect() -> Unit {
         "button",
         [
           ("class", attr_static("tick")),
-          ("onclick", attr_handler(handler(fn(_) { ticks.update(fn(n) { n + 1 }) }))),
+          (
+            "onclick",
+            attr_handler(handler(fn(_) { ticks.update(fn(n) { n + 1 }) })),
+          ),
         ],
         [text("Tick")],
       ),
@@ -259,11 +273,20 @@ fn register_wc_conditional() -> Unit {
         "button",
         [
           ("class", attr_static("toggle")),
-          ("onclick", attr_handler(handler(fn(_) { show_message.update(fn(b) { not(b) }) }))),
+          (
+            "onclick",
+            attr_handler(
+              handler(fn(_) { show_message.update(fn(b) { not(b) }) }),
+            ),
+          ),
         ],
         [
           text_dyn(fn() {
-            if show_message.get() { "Hide Message" } else { "Show Message" }
+            if show_message.get() {
+              "Hide Message"
+            } else {
+              "Show Message"
+            }
           }),
         ],
       ),
@@ -274,7 +297,11 @@ fn register_wc_conditional() -> Unit {
           (
             "style",
             attr_dynamic(fn() {
-              if show_message.get() { "display: block" } else { "display: none" }
+              if show_message.get() {
+                "display: block"
+              } else {
+                "display: none"
+              }
             }),
           ),
         ],
@@ -323,13 +350,15 @@ fn register_wc_style() -> Unit {
             ("max", attr_static("360")),
             (
               "oninput",
-              attr_handler(handler(fn(e : @js.Any) {
-                let value : String = e._get("target")._get("value").cast()
-                match @global.parseInt(value) {
-                  Some(n) => hue.set(n)
-                  None => ()
-                }
-              })),
+              attr_handler(
+                handler(fn(e : @js.Any) {
+                  let value : String = e._get("target")._get("value").cast()
+                  match @global.parseInt(value) {
+                    Some(n) => hue.set(n)
+                    None => ()
+                  }
+                }),
+              ),
             ),
           ],
           [],
@@ -347,13 +376,15 @@ fn register_wc_style() -> Unit {
             ("max", attr_static("200")),
             (
               "oninput",
-              attr_handler(handler(fn(e : @js.Any) {
-                let value : String = e._get("target")._get("value").cast()
-                match @global.parseInt(value) {
-                  Some(n) => size.set(n)
-                  None => ()
-                }
-              })),
+              attr_handler(
+                handler(fn(e : @js.Any) {
+                  let value : String = e._get("target")._get("value").cast()
+                  match @global.parseInt(value) {
+                    Some(n) => size.set(n)
+                    None => ()
+                  }
+                }),
+              ),
             ),
           ],
           [],
@@ -380,7 +411,6 @@ fn register_wc_todo() -> Unit {
     let todos : @signal.Signal[Array[TodoItem]] = @signal.signal([])
     let input_text = @signal.signal("")
     let next_id = @signal.signal(1)
-
     fn add_todo() -> Unit {
       let t = input_text.get()
       if t != "" {
@@ -423,10 +453,12 @@ fn register_wc_todo() -> Unit {
         [
           (
             "onsubmit",
-            attr_handler(handler(fn(e : @js.Any) {
-              e._call("preventDefault", []) |> ignore
-              add_todo()
-            })),
+            attr_handler(
+              handler(fn(e : @js.Any) {
+                e._call("preventDefault", []) |> ignore
+                add_todo()
+              }),
+            ),
           ),
         ],
         [
@@ -439,10 +471,12 @@ fn register_wc_todo() -> Unit {
               ("value", attr_dynamic(fn() { input_text.get() })),
               (
                 "oninput",
-                attr_handler(handler(fn(e : @js.Any) {
-                  let value : String = e._get("target")._get("value").cast()
-                  input_text.set(value)
-                })),
+                attr_handler(
+                  handler(fn(e : @js.Any) {
+                    let value : String = e._get("target")._get("value").cast()
+                    input_text.set(value)
+                  }),
+                ),
               ),
             ],
             [],
@@ -459,7 +493,9 @@ fn register_wc_todo() -> Unit {
       ]),
       h("ul", [("class", attr_static("todo-list"))], [
         for_each(fn() {
-          todos.get().map(fn(item) {
+          todos
+          .get()
+          .map(fn(item) {
             let class_name = if item.completed { "completed" } else { "" }
             let item_id = item.id
             h("li", [("class", attr_static(class_name))], [
@@ -467,7 +503,10 @@ fn register_wc_todo() -> Unit {
                 "span",
                 [
                   ("class", attr_static("todo-text")),
-                  ("onclick", attr_handler(handler(fn(_) { toggle_todo(item_id) }))),
+                  (
+                    "onclick",
+                    attr_handler(handler(fn(_) { toggle_todo(item_id) })),
+                  ),
                 ],
                 [text(item.text)],
               ),
@@ -475,7 +514,10 @@ fn register_wc_todo() -> Unit {
                 "button",
                 [
                   ("class", attr_static("remove")),
-                  ("onclick", attr_handler(handler(fn(_) { remove_todo(item_id) }))),
+                  (
+                    "onclick",
+                    attr_handler(handler(fn(_) { remove_todo(item_id) })),
+                  ),
                 ],
                 [text("×")],
               ),
@@ -503,10 +545,16 @@ fn register_wc_child_button() -> Unit {
           ("class", attr_static("child-btn")),
           (
             "onclick",
-            attr_handler(handler(fn(_) {
-              click_count.update(fn(n) { n + 1 })
-              dispatch_custom_event(host, "child-clicked", int_to_any(click_count.get()))
-            })),
+            attr_handler(
+              handler(fn(_) {
+                click_count.update(fn(n) { n + 1 })
+                dispatch_custom_event(
+                  host,
+                  "child-clicked",
+                  int_to_any(click_count.get()),
+                )
+              }),
+            ),
           ),
         ],
         [text("Child Button")],

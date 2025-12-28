@@ -22,6 +22,7 @@ using @element {
 // Configuration
 // =============================================================================
 
+///|
 const GRID_SIZE : Int = 100
 
 ///|
@@ -598,7 +599,9 @@ fn main {
       let app = div(class="container", [
         h1([text("Luna Benchmark Game")]),
         render_stats(state_sig),
-        render_controls(running_sig, fn() { state_sig.set(create_initial_state()) }),
+        render_controls(running_sig, fn() {
+          state_sig.set(create_initial_state())
+        }),
         div(class="grid-wrapper", [render_grid(state_sig)]),
         div(class="legend", [
           text(

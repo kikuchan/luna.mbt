@@ -6,6 +6,33 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- **luna**: Require function children for control flow components
+- **luna**: Add cross-platform support for queue_microtask
+
+### Documentation
+
+- Update examples and changelog for lifecycle hooks
+- Translate code comments and READMEs to English
+
+### Features
+
+- **luna**: Align effect semantics with Solid.js
+
+### Miscellaneous
+
+- V0.2.7
+- Format code and update CHANGELOG
+- Doc
+
+### Refactor
+
+- **docs**: Use `using` statement in astra_app SSR component
+- **examples**: Use `using` statements for cleaner imports
+
+## [Unreleased]
+
+### Bug Fixes
+
 - **luna**: Add cross-platform support for queue_microtask
 
 ### Documentation

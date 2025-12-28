@@ -20,21 +20,17 @@ using @element {
 }
 
 ///|
-using @signal { signal, on_mount, on_cleanup }
+using @signal {signal, on_mount, on_cleanup}
 
 ///|
 fn counter() -> DomNode {
   let count = signal(0)
   div([
     p([text_dyn(fn() { "Count: " + count.get().to_string() })]),
-    button(
-      on=events().click(fn(_) { count.update(fn(n) { n + 1 }) }),
-      [text("Increment")],
-    ),
-    show(
-      fn() { count.get() % 2 == 0 },
-      fn() { even_message() },
-    ),
+    button(on=events().click(fn(_) { count.update(fn(n) { n + 1 }) }), [
+      text("Increment"),
+    ]),
+    show(fn() { count.get() % 2 == 0 }, fn() { even_message() }),
   ])
 }
 
