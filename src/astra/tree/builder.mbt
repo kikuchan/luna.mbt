@@ -1,7 +1,7 @@
 ///|
 /// DocumentTree Builder
-/// PageMeta と SsgConfig から DocumentTree を構築する
-/// SsgConfig と PageMeta 配列から DocumentTree を構築（実ファイルシステムを使用）
+/// Build DocumentTree from PageMeta and SsgConfig
+/// Build DocumentTree from SsgConfig and PageMeta array (using real filesystem)
 pub fn build_document_tree(
   config : @astra.SsgConfig,
   pages : Array[@astra.PageMeta],
@@ -12,7 +12,7 @@ pub fn build_document_tree(
 }
 
 ///|
-/// SsgConfig と PageMeta 配列から DocumentTree を構築（FileSystem trait を使用）
+/// Build DocumentTree from SsgConfig and PageMeta array (using FileSystem trait)
 pub fn[F : @env.FileSystem] build_document_tree_with_fs(
   fs : F,
   config : @astra.SsgConfig,
@@ -22,17 +22,17 @@ pub fn[F : @env.FileSystem] build_document_tree_with_fs(
   // fs and cwd are kept for API compatibility and future use
   // when async file I/O issues in MoonBit coroutine scheduler are resolved
   let _ = (fs, cwd)
-  // SiteInfo の構築
+  // Build SiteInfo
   let site = @ssg.SiteInfo::new(
     title=config.title,
-    description=config.title, // TODO: config に description を追加
+    description=config.title, // TODO: add description to config
     base_url=config.base_url,
     language=config.i18n.default_locale,
     updated_at=get_latest_update(pages),
   )
-  // PageInfo 配列の構築 (using metadata only to avoid async issue with file reads)
+  // Build PageInfo array (using metadata only to avoid async issue with file reads)
   let page_infos = build_page_infos_from_meta(pages)
-  // TreeNode の構築
+  // Build TreeNode
   let root = build_tree_node(page_infos, config.i18n.default_locale)
   @ssg.DocumentTree::new(site~, pages=page_infos, root~)
 }
@@ -100,27 +100,27 @@ fn url_to_id(url_path : String) -> String {
 }
 
 ///|
-/// PageInfo 配列から TreeNode を構築
+/// Build TreeNode from PageInfo array
 fn build_tree_node(
   pages : Array[@ssg.PageInfo],
   default_locale : String,
 ) -> @ssg.TreeNode {
-  // デフォルトロケールのページのみでツリーを構築
+  // Build tree only with default locale pages
   let filtered : Array[@ssg.PageInfo] = []
   for page in pages {
     if page.locale == default_locale {
       filtered.push(page)
     }
   }
-  // パスでソート
+  // Sort by path
   filtered.sort_by(fn(a, b) { a.sort_key.compare(b.sort_key) })
-  // ツリー構築
+  // Build tree
   let children = build_tree_children(filtered, "")
   @ssg.TreeNode::Section(name="", path="/", children~)
 }
 
 ///|
-/// 再帰的にツリーを構築
+/// Build tree recursively
 fn build_tree_children(
   pages : Array[@ssg.PageInfo],
   parent_path : String,
@@ -130,7 +130,7 @@ fn build_tree_children(
   for page in pages {
     let rel_path = if parent_path == "" {
       page.url_path
-      // parent_path からの相対パス
+      // Relative path from parent_path
     } else if page.url_path.has_prefix(parent_path) {
       page.url_path[parent_path.length():].to_string() catch {
         _ => continue
@@ -138,7 +138,7 @@ fn build_tree_children(
     } else {
       continue
     }
-    // 先頭の "/" を除去
+    // Remove leading "/"
     let rel_path = if rel_path.has_prefix("/") {
       rel_path[1:].to_string() catch {
         _ => rel_path
@@ -146,7 +146,7 @@ fn build_tree_children(
     } else {
       rel_path
     }
-    // 末尾の "/" を除去
+    // Remove trailing "/"
     let rel_path = if rel_path.has_suffix("/") {
       rel_path[:rel_path.length() - 1].to_string() catch {
         _ => rel_path
@@ -155,17 +155,17 @@ fn build_tree_children(
       rel_path
     }
     if rel_path == "" {
-      // 親ディレクトリの index
+      // Parent directory index
       children.push(
         @ssg.TreeNode::Page(page_id=page.id, renderer=page.renderer_type),
       )
     } else if not(rel_path.contains("/")) {
-      // 直接の子ページ
+      // Direct child page
       children.push(
         @ssg.TreeNode::Page(page_id=page.id, renderer=page.renderer_type),
       )
     } else {
-      // サブディレクトリ
+      // Subdirectory
       let segments = rel_path.split("/").collect()
       let first_segment = segments[0].to_string()
       if not(seen_dirs.contains(first_segment)) {

@@ -2,7 +2,7 @@
 //
 
 ///|
-/// パスを正規化（重複スラッシュ除去、末尾スラッシュ除去）
+/// Normalize path (remove duplicate slashes, remove trailing slash)
 fn normalize_path(path : String) -> String {
   if path == "" || path == "/" {
     return "/"
@@ -21,7 +21,7 @@ fn normalize_path(path : String) -> String {
       prev_slash = false
     }
   }
-  // 末尾スラッシュを除去（ルート以外）
+  // Remove trailing slash (except root)
   let len = result.length()
   if len > 1 && result[len - 1] == '/' {
     let _ = result.pop()
@@ -31,9 +31,9 @@ fn normalize_path(path : String) -> String {
 }
 
 ///|
-/// パスパターンからパラメータ名を抽出
-/// 例: "/user/:id/posts/:postId" -> ["id", "postId"]
-/// キャッチオールパラメータ ([...slug], [[...slug]]) は含まない
+/// Extract parameter names from path pattern
+/// Example: "/user/:id/posts/:postId" -> ["id", "postId"]
+/// Does not include catch-all parameters ([...slug], [[...slug]])
 fn extract_param_names(path : String) -> Array[String] {
   let result : Array[String] = []
   let segments = @utils.split_by(path, '/')
@@ -59,9 +59,9 @@ fn extract_param_names(path : String) -> Array[String] {
 }
 
 ///|
-/// パスパターンからキャッチオール情報を抽出
-/// 例: "/docs/[...slug]" -> Some({ name: "slug", optional: false })
-///     "/docs/[[...slug]]" -> Some({ name: "slug", optional: true })
+/// Extract catch-all info from path pattern
+/// Example: "/docs/[...slug]" -> Some({ name: "slug", optional: false })
+///          "/docs/[[...slug]]" -> Some({ name: "slug", optional: true })
 fn extract_catch_all(path : String) -> CatchAllInfo? {
   let segments = @utils.split_by(path, '/')
   if segments.is_empty() {
@@ -82,7 +82,7 @@ fn extract_catch_all(path : String) -> CatchAllInfo? {
 }
 
 ///|
-/// Routes を CompiledRoutes にコンパイル
+/// Compile Routes to CompiledRoutes
 pub fn compile(
   routes : Array[Routes],
   base? : String = "",

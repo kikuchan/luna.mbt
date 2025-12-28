@@ -2,7 +2,7 @@
 //
 
 ///|
-/// URLをルートにマッチング
+/// Match URL to routes
 pub fn match_url(url : String, routes : Array[CompiledRoutes]) -> RoutesMatch? {
   let (path, query) = parse_url_parts(url)
   for route in routes {
@@ -55,25 +55,25 @@ fn try_match_pattern(
   let pattern_segments = split_path_segments(route.pattern)
   let path_segments = split_path_segments(path)
 
-  // キャッチオールルートの処理
+  // Handle catch-all routes
   match route.catch_all {
     Some(catch_all_info) => {
-      // キャッチオールセグメントを除いたパターンセグメント数
+      // Pattern segment count excluding catch-all segment
       let base_pattern_len = pattern_segments.length() - 1
       let path_len = path_segments.length()
 
-      // 必須キャッチオール: 少なくとも1つのセグメントが必要
-      // オプショナルキャッチオール: 0個でもOK
+      // Required catch-all: needs at least one segment
+      // Optional catch-all: zero segments is OK
       if catch_all_info.optional {
         if path_len < base_pattern_len {
           return None
         }
-        // 必須: path_len >= base_pattern_len + 1
+        // Required: path_len >= base_pattern_len + 1
       } else if path_len <= base_pattern_len {
         return None
       }
 
-      // ベースパターンのマッチング
+      // Base pattern matching
       let params : Array[(String, String)] = []
       let mut param_idx = 0
       for i = 0; i < base_pattern_len; i = i + 1 {
@@ -91,7 +91,7 @@ fn try_match_pattern(
         }
       }
 
-      // 残りのセグメントをキャッチオールパラメータに
+      // Collect remaining segments as catch-all parameter
       let catch_all_segments : Array[String] = []
       for i = base_pattern_len; i < path_len; i = i + 1 {
         catch_all_segments.push(path_segments[i])
@@ -101,7 +101,7 @@ fn try_match_pattern(
       return Some(params)
     }
     None => {
-      // 通常のマッチング（キャッチオールなし）
+      // Normal matching (no catch-all)
       if pattern_segments.length() != path_segments.length() {
         return None
       }
@@ -131,7 +131,7 @@ fn starts_with_char(s : String, c : Char) -> Bool {
 }
 
 ///|
-/// [id] 形式のパラメータかどうか（キャッチオールは除く）
+/// Check if segment is a [id] style parameter (excluding catch-all)
 fn is_bracket_param(s : String) -> Bool {
   s.has_prefix("[") &&
   s.has_suffix("]") &&
@@ -140,7 +140,7 @@ fn is_bracket_param(s : String) -> Bool {
 }
 
 ///|
-/// セグメントを "/" で結合
+/// Join segments with "/"
 fn join_segments(segments : Array[String]) -> String {
   if segments.is_empty() {
     return ""

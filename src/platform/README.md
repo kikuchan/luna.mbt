@@ -1,59 +1,59 @@
 # Platform
 
-プラットフォーム固有の実装。
+Platform-specific implementations.
 
-## モジュール構成
+## Module Structure
 
-| サブモジュール | 責務 |
-|---------------|------|
-| `dom/` | ブラウザDOM操作 |
-| `js/` | JS固有API |
-| `server_dom/` | サーバーサイドDOM (イベントなし) |
+| Submodule | Responsibility |
+|-----------|----------------|
+| `dom/` | Browser DOM operations |
+| `js/` | JS-specific APIs |
+| `server_dom/` | Server-side DOM (no events) |
 
 ## dom/
 
-ブラウザ環境向けのDOM操作。
+DOM operations for browser environment.
 
-| パス | 責務 |
-|-----|------|
-| `element/` | 低レベルDOM操作 (render, diff, reconcile) |
-| `client/` | クライアント側Hydration |
-| `router/` | クライアントサイドルーティング |
-| `portal/` | Portalコンポーネント |
+| Path | Responsibility |
+|------|----------------|
+| `element/` | Low-level DOM operations (render, diff, reconcile) |
+| `client/` | Client-side Hydration |
+| `router/` | Client-side routing |
+| `portal/` | Portal component |
 | `island.mbt` | Island Hydration |
 | `wc_island.mbt` | Web Components Island (Declarative Shadow DOM) |
 
 ## js/
 
-JavaScript固有の機能。
+JavaScript-specific functionality.
 
-| パス | 責務 |
-|-----|------|
-| `api/` | JS向け公開API (`@luna_ui/luna`) |
-| `stream_renderer/` | ストリーミングSSR |
-| `cache/` | ファイルキャッシュ (mtime ベース) |
-| `fs_adapter/` | FileSystem アダプター (Node.js, memfs) |
+| Path | Responsibility |
+|------|----------------|
+| `api/` | Public API for JS (`@luna_ui/luna`) |
+| `stream_renderer/` | Streaming SSR |
+| `cache/` | File cache (mtime-based) |
+| `fs_adapter/` | FileSystem adapter (Node.js, memfs) |
 
 ## server_dom/
 
-サーバーサイドDOM生成。イベントハンドラなし。
+Server-side DOM generation. No event handlers.
 
-| パス | 責務 |
-|-----|------|
-| `element/` | HTML要素ファクトリ (html, head, body等) |
-| `island.mbt` | Islandヘルパー |
+| Path | Responsibility |
+|------|----------------|
+| `element/` | HTML element factory (html, head, body, etc.) |
+| `island.mbt` | Island helper |
 | `wc_island.mbt` | Web Components Island |
-| `render.mbt` | レンダリング関数 |
+| `render.mbt` | Rendering functions |
 
-## 使い分け
+## Usage Guide
 
 ```
-ブラウザ実行時 → dom/
-サーバー実行時 → server_dom/
-JS固有機能    → js/
+Browser runtime → dom/
+Server runtime  → server_dom/
+JS-specific     → js/
 ```
 
-## 参照
+## References
 
-- [Luna Core](../luna/README.md) - VNode定義
-- [Stella](../stella/README.md) - Shard生成
+- [Luna Core](../luna/README.md) - VNode definitions
+- [Stella](../stella/README.md) - Shard generation

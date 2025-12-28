@@ -1,6 +1,6 @@
 // SSR Test Component - locally defined component for SSR demo
-// TODO: @element DSL は DomNode を返すため SSR では使えない
-// SSR用のDSL (@luna.div, @luna.p 等) を検討する
+// TODO: @element DSL returns DomNode, so it cannot be used for SSR
+// Consider DSL for SSR (@luna.div, @luna.p, etc.)
 
 ///|
 fn h(

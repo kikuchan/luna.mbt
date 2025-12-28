@@ -5,65 +5,65 @@
 //
 
 ///|
-/// Route定義 - フラットな構造（URLPattern 構文をサポート）
+/// Route definition - flat structure (supports URLPattern syntax)
 pub(all) enum Routes {
-  /// サーバーコンポーネントページ
-  /// - path: パス (e.g., "/", "/about", "/user/:id")
-  ///   URLPattern 構文で動的パラメータを定義可能
-  /// - component: コンポーネントID (resolver で解決)
-  /// - title: ページタイトル
-  /// - meta: メタ情報
+  /// Server component page
+  /// - path: path (e.g., "/", "/about", "/user/:id")
+  ///   Dynamic parameters can be defined using URLPattern syntax
+  /// - component: component ID (resolved by resolver)
+  /// - title: page title
+  /// - meta: meta information
   Page(
     path~ : String,
     component~ : String,
     title~ : String,
     meta~ : Array[(String, String)]
   )
-  /// パスグループ (共通プレフィックス + レイアウト)
-  /// - segment: パスセグメント (e.g., "/user", "/api")
-  /// - children: 子ルート
-  /// - layout: レイアウトコンポーネントID
+  /// Path group (common prefix + layout)
+  /// - segment: path segment (e.g., "/user", "/api")
+  /// - children: child routes
+  /// - layout: layout component ID
   Layout(segment~ : String, children~ : Array[Routes], layout~ : String)
-  /// APIルート (GET)
+  /// API route (GET)
   Get(path~ : String, handler~ : String)
-  /// APIルート (POST)
+  /// API route (POST)
   Post(path~ : String, handler~ : String)
 }
 
 ///|
-/// コンパイル済みルート (マッチング用)
+/// Compiled route (for matching)
 pub struct CompiledRoutes {
-  /// フルパスパターン
+  /// Full path pattern
   pattern : String
-  /// パラメータ名のリスト (順序付き)
+  /// List of parameter names (ordered)
   param_names : Array[String]
-  /// コンポーネントID
+  /// Component ID
   component : String
-  /// 適用されるレイアウトID (ネストした順)
+  /// Applied layout IDs (in nested order)
   layouts : Array[String]
-  /// ルートの種類
+  /// Route kind
   kind : RoutesKind
-  /// タイトル
+  /// Title
   title : String
-  /// メタ情報
+  /// Meta information
   meta : Array[(String, String)]
-  /// キャッチオールパラメータ情報 (末尾の [...slug] or [[...slug]])
+  /// Catch-all parameter info (trailing [...slug] or [[...slug]])
   catch_all : CatchAllInfo?
 }
 
 ///|
-/// キャッチオールパラメータ情報
+/// Catch-all parameter info
 pub(all) struct CatchAllInfo {
-  /// パラメータ名 (e.g., "slug")
+  /// Parameter name (e.g., "slug")
   name : String
-  /// オプショナルかどうか ([[...slug]] の場合 true)
+  /// Whether optional ([[...slug]] is true)
   optional : Bool
 }
 
 ///|
-/// ルートの種類
+/// Route kind
 pub enum RoutesKind {
-  /// サーバーコンポーネントページ
+  /// Server component page
   Page
   /// GET API
   GetApi
@@ -72,7 +72,7 @@ pub enum RoutesKind {
 } derive(Eq, Show)
 
 ///|
-/// マッチ結果
+/// Match result
 pub struct RoutesMatch {
   route : CompiledRoutes
   params : Array[(String, String)]

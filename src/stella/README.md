@@ -1,44 +1,44 @@
 # Stella
 
-Island埋め込み用のShard生成モジュール。
+Shard generation module for Island embedding.
 
-## 概要
+## Overview
 
-Shard は Island Architecture における hydration 可能なHTML断片。
-`luna:*` 属性でマークアップされ、ローダーがクライアントで検知・hydrate する。
+A Shard is a hydratable HTML fragment in Island Architecture.
+Marked with `luna:*` attributes, the loader detects and hydrates them on the client.
 
-## ファイル構成
+## File Structure
 
-| ファイル | 責務 |
-|---------|------|
-| `types.mbt` | Shard設定・出力の型定義 |
-| `html_builder.mbt` | HTML生成ユーティリティ |
-| `serializer.mbt` | JSON/HTMLエスケープ処理 |
+| File | Responsibility |
+|------|----------------|
+| `types.mbt` | Shard config and output type definitions |
+| `html_builder.mbt` | HTML generation utilities |
+| `serializer.mbt` | JSON/HTML escape processing |
 
-## Shard出力例
+## Shard Output Example
 
 ```html
 <div luna:id="counter"
      luna:url="/static/counter.js"
      luna:state='{"count":0}'
      luna:client-trigger="load">
-  <!-- SSR済みコンテンツ -->
+  <!-- SSR content -->
 </div>
 ```
 
-## 主要な型
+## Main Types
 
 ### ShardConfig
 
 ```moonbit
 pub struct ShardConfig {
-  id : String              // コンポーネントID (luna:id)
-  script_url : String      // Hydrationスクリプト (luna:url)
-  trigger : TriggerType    // トリガー (luna:client-trigger)
-  state : StateConfig      // 状態設定
-  ssr_content : String?    // SSR済みHTML
-  include_loader : Bool    // ローダー埋め込み
-  loader_url : String      // ローダーURL
+  id : String              // Component ID (luna:id)
+  script_url : String      // Hydration script (luna:url)
+  trigger : TriggerType    // Trigger (luna:client-trigger)
+  state : StateConfig      // State config
+  ssr_content : String?    // SSR HTML
+  include_loader : Bool    // Embed loader
+  loader_url : String      // Loader URL
 }
 ```
 
@@ -46,20 +46,20 @@ pub struct ShardConfig {
 
 ```moonbit
 pub enum StateConfig {
-  Empty                  // 状態なし
-  Inline(String)         // luna:state属性に埋め込み
-  ScriptRef(String)      // <script id="...">への参照
-  Url(String)            // 外部URLからフェッチ
+  Empty                  // No state
+  Inline(String)         // Embed in luna:state attribute
+  ScriptRef(String)      // Reference to <script id="...">
+  Url(String)            // Fetch from external URL
 }
 ```
 
-## セキュリティ
+## Security
 
-- `serializer.mbt` でXSSエスケープ処理
-- JSON内の `</script>` はエスケープ済み
-- HTML属性値は適切にクォート
+- XSS escape processing in `serializer.mbt`
+- `</script>` in JSON is escaped
+- HTML attribute values are properly quoted
 
-## 参照
+## References
 
-- [Luna Core](../luna/README.md) - TriggerType の定義
-- [Sol](../sol/README.md) - Island統合の実装
+- [Luna Core](../luna/README.md) - TriggerType definition
+- [Sol](../sol/README.md) - Island integration implementation

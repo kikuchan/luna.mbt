@@ -2,10 +2,10 @@
 
 ///|
 /// Browser App Example
-/// BrowserRouter を使った新しいルーティングシステムのデモ
-/// - Routes enum によるルート定義
-/// - component ID ベースのコンポーネント解決
-/// - Layout によるネストしたレイアウト
+/// Demo of new routing system using BrowserRouter
+/// - Route definition with Routes enum
+/// - Component resolution based on component ID
+/// - Nested layouts with Layout
 
 // =============================================================================
 // Helpers
@@ -40,22 +40,22 @@ fn console_log(msg : String) -> Unit {
 // =============================================================================
 
 ///|
-/// ルート定義
-/// ベースパスは BrowserRouter::new の base~ パラメータで指定
+/// Route definitions
+/// Base path is specified via base~ parameter of BrowserRouter::new
 fn create_routes() -> Array[@routes.Routes] {
   [
-    // ホームページ
+    // Home page
     Page(path="", component="home", title="Home", meta=[]),
-    // About ページ
+    // About page
     Page(path="/about", component="about", title="About", meta=[]),
-    // ユーザー関連ページ (レイアウト付き)
+    // User-related pages (with layout)
     Layout(segment="/users", layout="users_layout", children=[
-      // ユーザー一覧
+      // User list
       Page(path="", component="users_list", title="Users", meta=[]),
-      // ユーザー詳細 (動的パラメータ - パスに直接埋め込み)
+      // User detail (dynamic parameter - embedded directly in path)
       Page(path="/:id", component="user_detail", title="User Detail", meta=[]),
     ]),
-    // 設定ページ (レイアウトなしでも Layout で代用)
+    // Settings page (Layout can substitute even without layout)
     Layout(segment="/settings", layout="settings_layout", children=[
       Page(path="", component="settings_index", title="Settings", meta=[]),
       Page(
@@ -73,7 +73,7 @@ fn create_routes() -> Array[@routes.Routes] {
 // =============================================================================
 
 ///|
-/// ナビゲーションコンポーネント
+/// Navigation component
 fn nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
   let base = router.get_base()
   fn nav_link(href : String, label : String) -> @luna_dom.DomNode {
@@ -102,7 +102,7 @@ fn nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 }
 
 ///|
-/// カウンターコンポーネント（動的要素のテスト用）
+/// Counter component (for testing dynamic elements)
 fn counter_component() -> @luna_dom.DomNode {
   let count = @signal.signal(0)
   console_log(
@@ -145,12 +145,12 @@ fn counter_component() -> @luna_dom.DomNode {
 }
 
 ///|
-/// ホームページ
+/// Home page
 fn home_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
   div(class="page home", attrs=[("data-page", AttrString("home"))], [
     h1([text("Welcome to Browser App")]),
     p([text("This is an example of the new Routes-based routing system.")]),
-    // カウンターを追加（動的要素のテスト）
+    // Add counter (for testing dynamic elements)
     counter_component(),
     hr(),
     h2([text("Features")]),
@@ -169,7 +169,7 @@ fn home_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 }
 
 ///|
-/// About ページ
+/// About page
 fn about_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
   div(class="page about", attrs=[("data-page", AttrString("about"))], [
     h1([text("About")]),
@@ -183,7 +183,7 @@ fn about_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
 }
 
 ///|
-/// ユーザーレイアウト
+/// Users layout
 fn users_layout_component(
   router : @router.BrowserRouter,
   children : @luna_dom.DomNode,
@@ -229,7 +229,7 @@ fn users_layout_component(
 }
 
 ///|
-/// ユーザー一覧
+/// User list
 fn users_list_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
   div(class="users-list", [
     h3([text("User List")]),
@@ -242,7 +242,7 @@ fn users_list_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
 }
 
 ///|
-/// ユーザー詳細
+/// User detail
 fn user_detail_component(
   _router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
@@ -265,7 +265,7 @@ fn user_detail_component(
 }
 
 ///|
-/// 設定インデックス
+/// Settings index
 fn settings_index_component(
   router : @router.BrowserRouter,
 ) -> @luna_dom.DomNode {
@@ -289,7 +289,7 @@ fn settings_index_component(
 }
 
 ///|
-/// プロファイル設定
+/// Profile settings
 fn settings_profile_component(
   router : @router.BrowserRouter,
 ) -> @luna_dom.DomNode {
@@ -304,7 +304,7 @@ fn settings_profile_component(
 }
 
 ///|
-/// 404 ページ
+/// 404 page
 fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
   let base = router.get_base()
   div(class="not-found", [
@@ -319,7 +319,7 @@ fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 // =============================================================================
 
 ///|
-/// コンポーネントIDからコンポーネントを解決
+/// Resolve component from component ID
 fn resolve_component(
   router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
@@ -333,7 +333,7 @@ fn resolve_component(
     layouts.length().to_string(),
   )
 
-  // コンポーネントを解決
+  // Resolve component
   let content : @luna_dom.DomNode = match component_id {
     "home" => home_component(router)
     "about" => about_component(router)
@@ -344,7 +344,7 @@ fn resolve_component(
     _ => not_found_component(router)
   }
 
-  // レイアウトを適用（内側から外側へ）
+  // Apply layouts (from inside to outside)
   let mut result = content
   let mut i = layouts.length() - 1
   while i >= 0 {
@@ -363,7 +363,7 @@ fn resolve_component(
 // =============================================================================
 
 ///|
-/// ルートをレンダリング
+/// Render route
 fn render_route(
   router : @router.BrowserRouter,
   container : @luna_dom.DomElement,
@@ -374,7 +374,7 @@ fn render_route(
     let path = router.path_signal().peek() // Use peek to avoid double subscription
     console_log("Route changed (effect triggered): " + path)
 
-    // コンテナをクリア
+    // Clear container
     @luna_dom.clear(container)
 
     // Create components untracked to avoid subscribing to their internal signals
@@ -388,7 +388,7 @@ fn render_route(
       (nav, page)
     })
 
-    // レイアウト - also untracked since it creates elements
+    // Layout - also untracked since it creates elements
     let app = @signal.untracked(fn() {
       div(
         class="app",
@@ -412,7 +412,7 @@ fn main {
   let container = doc.getElementById("app")
   match container {
     Some(el) => {
-      // ルーターを作成（ベースパスを指定）
+      // Create router (specify base path)
       let base = "/demo/browser_router"
       let routes = create_routes()
       let router = @router.BrowserRouter::new(routes, base~)
@@ -428,7 +428,7 @@ fn main {
       }
       console_log("Router created with path: " + router.get_path())
 
-      // レンダリング開始
+      // Start rendering
       let dom_container = el |> @luna_dom.DomElement::from_dom
       render_route(router, dom_container)
       console_log("App rendered!")

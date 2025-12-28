@@ -4,7 +4,9 @@
 >
 > このプロジェクトは実験的であり、活発に開発中です。APIは予告なく変更される可能性があります。本番環境での使用は推奨しません。
 
-[Solid.js](https://www.solidjs.com/) と [Qwik](https://qwik.dev/) にインスパイアされた Fine-Grained Reactivity と **Island Architecture** を備えた [MoonBit](https://www.moonbitlang.com/) 用 UI ライブラリです。
+**ドキュメント**: https://luna.mizchi.workers.dev/
+
+[Solid.js](https://www.solidjs.com/) と [Qwik](https://qwik.dev/) にインスパイアされた Fine-Grained Reactivity と **Island Architecture** を備えた [MoonBit](https://www.moonbitlang.com/) 用リアクティブ UI ライブラリです。
 
 - **クライアントサイド**: ブラウザ DOM レンダリングとハイドレーション用に JavaScript にコンパイル
 - **サーバーサイド**: 高性能 SSR のためにネイティブバックエンドで実行
@@ -27,7 +29,7 @@
 // moon.mod.json
 {
   "deps": {
-    "mizchi/luna": "0.1.0"
+    "mizchi/luna": "0.2.6"
   }
 }
 ```
@@ -52,7 +54,7 @@ npm install @luna_ui/luna
 
 ## 使い方
 
-### MoonBit - Signal
+### Signal - リアクティブプリミティブ
 
 ```moonbit
 // Signal を作成
@@ -68,11 +70,11 @@ let _ = @signal.effect(fn() {
 })
 
 // 更新すると effect が発火
-count.set(1)  // 出力: Count: 1
+count.set(1)       // 出力: Count: 1
 count.update(fn(n) { n + 1 })  // 出力: Count: 2
 ```
 
-### MoonBit - DOM レンダリング
+### DOM レンダリング (JavaScript ターゲット)
 
 ```moonbit
 fn counter_component() -> @luna_dom.DomNode {
@@ -81,6 +83,7 @@ fn counter_component() -> @luna_dom.DomNode {
 
   @luna_dom.div(class="counter", [
     @luna_dom.h2([@luna_dom.text("Counter")]),
+    // 動的テキストは自動的に更新される
     @luna_dom.p([@luna_dom.text_dyn(fn() { "Count: " + count.get().to_string() })]),
     @luna_dom.p([@luna_dom.text_dyn(fn() { "Doubled: " + doubled().to_string() })]),
     @luna_dom.div(class="buttons", [
@@ -112,36 +115,36 @@ fn main {
 }
 ```
 
-### TypeScript/JSX
+### 条件付きレンダリング
 
-```tsx
-// tsconfig.json
-{
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "@luna_ui/luna"
-  }
+```moonbit
+fn conditional_example() -> @luna_dom.DomNode {
+  let show = @signal.signal(true)
+
+  @luna_dom.div([
+    @luna_dom.button(
+      on=@luna_dom.events().click(fn(_) { show.update(fn(b) { not(b) }) }),
+      [@luna_dom.text_dyn(fn() { if show.get() { "Hide" } else { "Show" } })],
+    ),
+    @luna_dom.show(fn() { show.get() }, fn() {
+      @luna_dom.div([@luna_dom.text("条件付きでレンダリングされるコンテンツ")])
+    }),
+  ])
 }
 ```
 
-```tsx
-import { createSignal, get, set } from "@luna_ui/luna";
-import { render } from "@luna_ui/luna";
+### リストレンダリング
 
-function Counter() {
-  const count = createSignal(0);
-  return (
-    <div>
-      <p>Count: {() => get(count)}</p>
-      <button onClick={() => set(count, get(count) + 1)}>
-        Increment
-      </button>
-    </div>
-  );
+```moonbit
+fn list_example() -> @luna_dom.DomNode {
+  let items : @signal.Signal[Array[String]] = @signal.signal(["A", "B", "C"])
+
+  @luna_dom.ul([
+    @luna_dom.for_each(fn() { items.get() }, fn(item, index) {
+      @luna_dom.li([@luna_dom.text(item)])
+    }),
+  ])
 }
-
-const container = document.getElementById("app")!;
-render(container, <Counter />);
 ```
 
 ## 開発
@@ -187,7 +190,7 @@ just watch
 
 ```
 src/
-├── core/                      # ターゲット非依存
+├── luna/                      # Luna コア (ターゲット非依存)
 │   ├── signal/                # Signal プリミティブ
 │   ├── vnode.mbt              # VNode 定義
 │   ├── render/                # HTML 文字列レンダリング
@@ -202,6 +205,7 @@ src/
 │   └── server_dom/            # サーバーサイド SSR ヘルパー
 ├── stella/                    # Shard/Island 埋め込み
 ├── sol/                       # SSR フレームワーク (CLI + ランタイム)
+├── astra/                     # SSG (静的サイトジェネレーター)
 ├── examples/                  # サンプルアプリケーション
 └── tests/                     # テストフィクスチャ
 

@@ -1,13 +1,13 @@
 // Web Component Context API
-// MoonBit側でsetup関数が受け取るコンテキスト
+// Context received by setup function on MoonBit side
 
-/// Props の各フィールドは Signal として渡される
+/// Each Props field is passed as a Signal
 ///
-/// 例: Props = { initial: Int, label: String }
-/// → ctx.props.initial は Signal[Int] として扱う
+/// Example: Props = { initial: Int, label: String }
+/// → ctx.props.initial is treated as Signal[Int]
 ///
-/// JS側で Signal 化されているため、MoonBit側では
-/// @js.Any として受け取り、FFI経由で操作する
+/// Since they are Signal-ized on JS side, MoonBit side
+/// receives them as @js.Any and operates via FFI
 
 /// Context passed to setup function
 ///

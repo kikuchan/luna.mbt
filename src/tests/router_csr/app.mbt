@@ -103,7 +103,7 @@ fn not_found_page() -> @dom.DomNode {
 // =============================================================================
 
 ///|
-/// 現在のマッチに基づいてページをレンダリング
+/// Render page based on current match
 fn render_page_for_match(
   router : @browser_router.BrowserRouter,
 ) -> @dom.DomNode {
@@ -117,7 +117,7 @@ fn render_page_for_match(
       } else if component == "contact" {
         contact_page()
       } else if component == "post" {
-        // /csr-router/posts/:id の場合
+        // /csr-router/posts/:id case
         match m.get_param("id") {
           Some(id) => post_page(id)
           None => not_found_page()

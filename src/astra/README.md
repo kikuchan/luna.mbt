@@ -1,25 +1,25 @@
 # Astra
 
-静的サイトジェネレーター (SSG)。Markdown → HTML 変換。
+Static Site Generator (SSG). Markdown → HTML conversion.
 
-## 概要
+## Overview
 
-ドキュメントサイト生成に特化したSSG。
-Markdownファイルから多言語対応の静的サイトを生成する。
+An SSG specialized for documentation site generation.
+Generates multi-language static sites from Markdown files.
 
-## モジュール構成
+## Module Structure
 
-| サブモジュール | 責務 |
-|---------------|------|
-| `cli/` | CLIエントリポイント |
-| `generator/` | HTML生成ロジック |
-| `markdown/` | Markdown解析 |
-| `routes/` | ルート生成 |
-| `shiki/` | シンタックスハイライト (Shiki統合) |
-| `config.mbt` | 設定パーサー |
-| `types.mbt` | 型定義 |
+| Submodule | Responsibility |
+|-----------|----------------|
+| `cli/` | CLI entry point |
+| `generator/` | HTML generation logic |
+| `markdown/` | Markdown parsing |
+| `routes/` | Route generation |
+| `shiki/` | Syntax highlighting (Shiki integration) |
+| `config.mbt` | Config parser |
+| `types.mbt` | Type definitions |
 
-## 設定ファイル (astra.json)
+## Config File (astra.json)
 
 ```json
 {
@@ -40,39 +40,39 @@ Markdownファイルから多言語対応の静的サイトを生成する。
 }
 ```
 
-## 主要な型
+## Main Types
 
 ### SsgConfig
 
 ```moonbit
 pub struct SsgConfig {
-  docs_dir : String       // ソースディレクトリ
-  output_dir : String     // 出力ディレクトリ
-  title : String          // サイトタイトル
-  base_url : String       // ベースURL
-  nav : Array[NavItem]    // ナビゲーション
-  sidebar : SidebarConfig // サイドバー設定
-  i18n : I18nConfig       // 多言語設定
+  docs_dir : String       // Source directory
+  output_dir : String     // Output directory
+  title : String          // Site title
+  base_url : String       // Base URL
+  nav : Array[NavItem]    // Navigation
+  sidebar : SidebarConfig // Sidebar config
+  i18n : I18nConfig       // Multi-language config
   // ...
 }
 ```
 
-## 機能
+## Features
 
-- Markdownからの静的HTML生成
-- 多言語サポート (i18n)
-- 自動サイドバー生成
-- シンタックスハイライト (Shiki)
-- OGP対応
+- Static HTML generation from Markdown
+- Multi-language support (i18n)
+- Auto sidebar generation
+- Syntax highlighting (Shiki)
+- OGP support
 
-## 使用方法
+## Usage
 
 ```bash
-# CLIから実行
+# Run from CLI
 moon run src/astra/cli -- build
 ```
 
-## 参照
+## References
 
-- [Luna Core](../core/README.md) - VNode生成
-- [Sol](../sol/README.md) - SSRフレームワーク
+- [Luna Core](../core/README.md) - VNode generation
+- [Sol](../sol/README.md) - SSR framework

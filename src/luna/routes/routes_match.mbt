@@ -2,19 +2,19 @@
 //
 
 ///|
-/// コンポーネントIDを取得
+/// Get component ID
 pub fn RoutesMatch::component(self : RoutesMatch) -> String {
   self.route.component
 }
 
 ///|
-/// レイアウトIDリストを取得
+/// Get layout ID list
 pub fn RoutesMatch::layouts(self : RoutesMatch) -> Array[String] {
   self.route.layouts
 }
 
 ///|
-/// パラメータを取得
+/// Get parameter
 pub fn RoutesMatch::get_param(self : RoutesMatch, key : String) -> String? {
   for pair in self.params {
     if pair.0 == key {
@@ -25,7 +25,7 @@ pub fn RoutesMatch::get_param(self : RoutesMatch, key : String) -> String? {
 }
 
 ///|
-/// クエリパラメータを取得
+/// Get query parameter
 pub fn RoutesMatch::get_query(self : RoutesMatch, key : String) -> String? {
   for pair in self.query {
     if pair.0 == key {
@@ -36,19 +36,19 @@ pub fn RoutesMatch::get_query(self : RoutesMatch, key : String) -> String? {
 }
 
 ///|
-/// ルートの種類を取得
+/// Get route kind
 pub fn RoutesMatch::kind(self : RoutesMatch) -> RoutesKind {
   self.route.kind
 }
 
 ///|
-/// タイトルを取得
+/// Get title
 pub fn RoutesMatch::title(self : RoutesMatch) -> String {
   self.route.title
 }
 
 ///|
-/// メタ情報を取得
+/// Get meta information
 pub fn RoutesMatch::meta(self : RoutesMatch) -> Array[(String, String)] {
   self.route.meta
 }

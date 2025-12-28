@@ -30,7 +30,7 @@ extern "js" fn add_popstate_listener(callback : () -> Unit) -> Unit =
   #| (callback) => window.addEventListener('popstate', () => callback())
 
 ///|
-/// 現在のURLを取得（pathname + search）
+/// Get current URL (pathname + search)
 fn get_current_url() -> String {
   let pathname = get_pathname()
   let search = get_search()
@@ -46,8 +46,8 @@ fn get_current_url() -> String {
 // =============================================================================
 
 ///|
-/// ブラウザルーター
-/// History API と Signal を使ったSPAナビゲーション
+/// Browser router
+/// SPA navigation using History API and Signals
 pub struct BrowserRouter {
   routes : Array[@routes.CompiledRoutes]
   base : String
@@ -56,8 +56,8 @@ pub struct BrowserRouter {
 }
 
 ///|
-/// Routes定義から BrowserRouter を作成
-/// base~ : ベースパス（例: "/demo/browser_router"）
+/// Create BrowserRouter from route definitions
+/// base~: base path (e.g., "/demo/browser_router")
 pub fn BrowserRouter::new(
   routes : Array[@routes.Routes],
   base? : String = "",
@@ -76,7 +76,7 @@ pub fn BrowserRouter::new(
 }
 
 ///|
-/// コンパイル済みルートから BrowserRouter を作成
+/// Create BrowserRouter from compiled routes
 pub fn BrowserRouter::from_compiled(
   routes : Array[@routes.CompiledRoutes],
   base? : String = "",
@@ -94,13 +94,13 @@ pub fn BrowserRouter::from_compiled(
 }
 
 ///|
-/// ベースパスを取得
+/// Get base path
 pub fn BrowserRouter::get_base(self : BrowserRouter) -> String {
   self.base
 }
 
 ///|
-/// URLからSignal状態を同期
+/// Sync Signal state from URL
 fn BrowserRouter::sync_from_url(self : BrowserRouter) -> Unit {
   let path = get_current_url()
   self.current_path.set(path)
@@ -108,52 +108,52 @@ fn BrowserRouter::sync_from_url(self : BrowserRouter) -> Unit {
 }
 
 ///|
-/// 指定パスでSignal状態を更新
+/// Update Signal state with specified path
 fn BrowserRouter::update_state(self : BrowserRouter, path : String) -> Unit {
   self.current_path.set(path)
   self.current_match.set(@routes.match_url(path, self.routes))
 }
 
 ///|
-/// プログラマティックナビゲーション（履歴に追加）
+/// Programmatic navigation (adds to history)
 pub fn BrowserRouter::navigate(self : BrowserRouter, path : String) -> Unit {
   push_state(path)
   self.update_state(path)
 }
 
 ///|
-/// 履歴を置換するナビゲーション（戻るボタンに残らない）
+/// Replace navigation (not added to back button history)
 pub fn BrowserRouter::replace(self : BrowserRouter, path : String) -> Unit {
   replace_state(path)
   self.update_state(path)
 }
 
 ///|
-/// 現在のパスを取得
+/// Get current path
 pub fn BrowserRouter::get_path(self : BrowserRouter) -> String {
   self.current_path.get()
 }
 
 ///|
-/// 現在のマッチ結果を取得
+/// Get current match result
 pub fn BrowserRouter::get_match(self : BrowserRouter) -> @routes.RoutesMatch? {
   self.current_match.get()
 }
 
 ///|
-/// 現在のコンポーネントIDを取得
+/// Get current component ID
 pub fn BrowserRouter::get_component(self : BrowserRouter) -> String? {
   self.current_match.get().map(m => m.component())
 }
 
 ///|
-/// ナビゲーション関数を取得（コンポーネントに渡す用）
+/// Get navigate function (for passing to components)
 pub fn BrowserRouter::get_navigate(self : BrowserRouter) -> (String) -> Unit {
   path => self.navigate(path)
 }
 
 ///|
-/// パスSignalを取得（リアクティブUI用）
+/// Get path Signal (for reactive UI)
 pub fn BrowserRouter::path_signal(
   self : BrowserRouter,
 ) -> @signal.Signal[String] {
@@ -161,7 +161,7 @@ pub fn BrowserRouter::path_signal(
 }
 
 ///|
-/// マッチ結果Signalを取得（リアクティブUI用）
+/// Get match result Signal (for reactive UI)
 pub fn BrowserRouter::match_signal(
   self : BrowserRouter,
 ) -> @signal.Signal[@routes.RoutesMatch?] {

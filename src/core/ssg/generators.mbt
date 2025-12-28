@@ -31,7 +31,7 @@ fn generate_sitemap_url(page : PageInfo, base_url : String) -> String {
 }
 
 ///|
-/// ISO 8601 日時を日付のみに変換
+/// Convert ISO 8601 datetime to date only
 /// "2024-12-22T12:00:00.000Z" -> "2024-12-22"
 fn iso_to_date(iso_date : String) -> String {
   if iso_date.length() >= 10 {
@@ -91,14 +91,14 @@ fn generate_rss_item(page : PageInfo, base_url : String) -> String {
 }
 
 ///|
-/// ISO 8601 日時を RFC 822 形式に変換
+/// Convert ISO 8601 datetime to RFC 822 format
 /// "2024-12-22T12:00:00.000Z" -> "Sun, 22 Dec 2024 12:00:00 GMT"
 fn iso_to_rfc822(iso_date : String) -> String {
   if iso_date == "" {
     return ""
   }
-  // 簡易的な変換（完全な実装ではない）
-  // フォーマット: YYYY-MM-DDTHH:MM:SS
+  // Simple conversion (not a complete implementation)
+  // Format: YYYY-MM-DDTHH:MM:SS
   if iso_date.length() < 10 {
     return iso_date
   }
@@ -145,16 +145,16 @@ fn month_to_name(month : String) -> String {
 /// Reference: https://llmstxt.org/
 pub fn generate_llms_txt(tree : DocumentTree) -> String {
   let mut result = ""
-  // ヘッダー
+  // Header
   result = result + "# " + tree.site.title + "\n\n"
   if tree.site.description != "" {
     result = result + "> " + tree.site.description + "\n\n"
   }
-  // 目次
+  // Table of contents
   result = result + "## Table of Contents\n\n"
   result = result + generate_toc(tree)
   result = result + "\n---\n\n"
-  // 各ページのコンテンツ
+  // Content for each page
   for page in tree.pages {
     if page.locale == tree.site.language {
       result = result + generate_page_content(page)
@@ -164,7 +164,7 @@ pub fn generate_llms_txt(tree : DocumentTree) -> String {
 }
 
 ///|
-/// 目次を生成
+/// Generate table of contents
 fn generate_toc(tree : DocumentTree) -> String {
   let mut result = ""
   result = result + generate_toc_node(tree.root, tree, 0)
@@ -198,18 +198,18 @@ fn generate_toc_node(
 }
 
 ///|
-/// ページコンテンツを生成
+/// Generate page content
 fn generate_page_content(page : PageInfo) -> String {
   let mut result = ""
-  // ページタイトル
+  // Page title
   result = result + "# " + page.title + "\n\n"
   // URL
   result = result + "URL: " + page.url_path + "\n\n"
-  // 説明
+  // Description
   if page.description != "" {
     result = result + "> " + page.description + "\n\n"
   }
-  // 見出し構造
+  // Heading structure
   if page.headings.length() > 0 {
     result = result + "## Outline\n\n"
     for heading in page.headings {
@@ -218,7 +218,7 @@ fn generate_page_content(page : PageInfo) -> String {
     }
     result = result + "\n"
   }
-  // Markdownコンテンツ（frontmatter を除去）
+  // Markdown content (strip frontmatter)
   let content = strip_frontmatter(page.content_md)
   if content != "" {
     result = result + "## Content\n\n"
@@ -229,12 +229,12 @@ fn generate_page_content(page : PageInfo) -> String {
 }
 
 ///|
-/// frontmatter を除去
+/// Strip frontmatter
 fn strip_frontmatter(content : String) -> String {
   if not(content.has_prefix("---")) {
     return content
   }
-  // 2つ目の "---" を探す
+  // Find the second "---"
   let after_first = content[3:].to_string() catch { _ => return content }
   match find_substring(after_first, "---") {
     Some(idx) =>
@@ -246,7 +246,7 @@ fn strip_frontmatter(content : String) -> String {
 }
 
 ///|
-/// 部分文字列を検索
+/// Find substring
 fn find_substring(haystack : String, needle : String) -> Int? {
   let needle_chars = needle.to_array()
   let haystack_chars = haystack.to_array()
@@ -275,7 +275,7 @@ fn find_substring(haystack : String, needle : String) -> Int? {
 // =============================================================================
 
 ///|
-/// XML特殊文字をエスケープ
+/// Escape XML special characters
 fn escape_xml(s : String) -> String {
   let mut result = ""
   for c in s {

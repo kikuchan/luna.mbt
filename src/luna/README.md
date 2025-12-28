@@ -1,50 +1,50 @@
 # Luna Core
 
-Luna UIライブラリのコア機能。プラットフォーム非依存。
+Core functionality of the Luna UI library. Platform-independent.
 
-## モジュール構成
+## Module Structure
 
-| サブモジュール | 責務 |
-|---------------|------|
-| `signal/` | リアクティブプリミティブ (Signal, Effect, Computed) |
-| `render/` | VNode → HTML文字列レンダリング |
-| `routes/` | 型安全ルーティング |
-| `serialize/` | 状態のシリアライズ/デシリアライズ |
-| `vnode.mbt` | VNode型定義 |
+| Submodule | Responsibility |
+|-----------|----------------|
+| `signal/` | Reactive primitives (Signal, Effect, Computed) |
+| `render/` | VNode → HTML string rendering |
+| `routes/` | Type-safe routing |
+| `serialize/` | State serialization/deserialization |
+| `vnode.mbt` | VNode type definitions |
 
 ## VNode
 
-仮想DOMノード。型パラメータ `E` はイベント型を表す。
+Virtual DOM node. Type parameter `E` represents the event type.
 
 ```moonbit
 pub enum Node[E] {
-  Element(VElement[E])      // HTML要素
-  Text(String)              // 静的テキスト
-  DynamicText(() -> String) // 動的テキスト
-  Fragment(Array[Node[E]])  // フラグメント
-  Show(...)                 // 条件付きレンダリング
-  For(...)                  // リストレンダリング
-  Island(VIsland[E])        // Hydration境界
+  Element(VElement[E])      // HTML element
+  Text(String)              // Static text
+  DynamicText(() -> String) // Dynamic text
+  Fragment(Array[Node[E]])  // Fragment
+  Show(...)                 // Conditional rendering
+  For(...)                  // List rendering
+  Island(VIsland[E])        // Hydration boundary
   WcIsland(VWcIsland[E])    // Web Components Island
-  Async(VAsync[E])          // 非同期ノード
+  Async(VAsync[E])          // Async node
   // ...
 }
 ```
 
 ## Signal
 
-リアクティブな値コンテナ。
+Reactive value container.
 
 ```moonbit
 let count = @signal.signal(0)
 count.get()        // 0
-count.set(1)       // 値を設定
-count.update(fn(n) { n + 1 })  // 更新関数
+count.set(1)       // Set value
+count.update(fn(n) { n + 1 })  // Update function
 
-// 派生値
+// Derived value
 let doubled = @signal.computed(fn() { count.get() * 2 })
 
-// 副作用
+// Side effects
 @signal.effect(fn() {
   println(count.get())
 })
@@ -52,32 +52,32 @@ let doubled = @signal.computed(fn() { count.get() * 2 })
 
 ## Attr
 
-属性値。静的/動的/イベントハンドラをサポート。
+Attribute values. Supports static/dynamic/event handlers.
 
 ```moonbit
 pub enum Attr[E] {
-  VStatic(String)           // 静的値
-  VDynamic(() -> String)    // Signal連動
-  VHandler(EventHandler[E]) // イベントハンドラ
-  VAction(String)           // 宣言的アクション
+  VStatic(String)           // Static value
+  VDynamic(() -> String)    // Signal-linked
+  VHandler(EventHandler[E]) // Event handler
+  VAction(String)           // Declarative action
 }
 ```
 
 ## TriggerType
 
-Hydrationトリガー。
+Hydration triggers.
 
 ```moonbit
 pub enum TriggerType {
-  Load      // ページロード時
-  Idle      // requestIdleCallback時
-  Visible   // IntersectionObserver検知時
-  Media(String)  // メディアクエリマッチ時
-  None      // 手動トリガー
+  Load      // On page load
+  Idle      // On requestIdleCallback
+  Visible   // On IntersectionObserver detection
+  Media(String)  // On media query match
+  None      // Manual trigger
 }
 ```
 
-## 参照
+## References
 
-- [Signal実装](./signal/) - リアクティブシステムの詳細
-- [Routes実装](./routes/) - ルーティングの詳細
+- [Signal Implementation](./signal/) - Reactive system details
+- [Routes Implementation](./routes/) - Routing details

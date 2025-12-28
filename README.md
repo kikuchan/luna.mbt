@@ -2,8 +2,6 @@
 >
 > This project is experimental and under active development. APIs may change without notice. Not recommended for production use.
 
-Most internal documents are Japanese. We will translate at `v0.2.0`
-
 # Luna UI
 
 **Docs**: https://luna.mizchi.workers.dev/
