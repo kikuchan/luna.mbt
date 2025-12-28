@@ -924,10 +924,10 @@ html.dark .stat-value {
 .sidebar-collapse .sidebar-chevron {
   transition: transform 0.2s ease;
 }
-.sidebar-collapse[open] .sidebar-chevron {
+.sidebar-collapse[open] > summary > .sidebar-chevron {
   transform: rotate(90deg);
 }
-.sidebar-collapse.closing .sidebar-chevron {
+.sidebar-collapse.closing > summary > .sidebar-chevron {
   transform: rotate(0deg);
 }
 .sidebar-collapse .sidebar-items {
@@ -935,10 +935,10 @@ html.dark .stat-value {
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.2s ease;
 }
-.sidebar-collapse[open] .sidebar-items {
+.sidebar-collapse[open] > .sidebar-items {
   grid-template-rows: 1fr;
 }
-.sidebar-collapse.closing .sidebar-items {
+.sidebar-collapse.closing > .sidebar-items {
   grid-template-rows: 0fr;
 }
 .sidebar-collapse .sidebar-items-inner {
