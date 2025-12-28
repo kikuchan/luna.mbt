@@ -129,13 +129,11 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   let config_dir = @path.dirname(config_path)
   let resolved_docs_dir = if config_dir.is_empty() || config_dir == "." {
     config.docs_dir
-  } else {
     // Config is in a subdirectory, resolve docs_dir relative to it
-    if config.docs_dir == "." {
-      config_dir
-    } else {
-      @path.join2(config_dir, config.docs_dir)
-    }
+  } else if config.docs_dir == "." {
+    config_dir
+  } else {
+    @path.join2(config_dir, config.docs_dir)
   }
   let config_with_resolved_paths = @astra.SsgConfig::{
     ..config,
@@ -324,10 +322,7 @@ fn[FS : @env.FileSystem] find_config_file_with_fs(
   // 3. docs/astra.json (common docs directory)
   // 4. sol.config.json (root, fallback)
   let candidates = [
-    "astra.json",
-    "website/astra.json",
-    "docs/astra.json",
-    "sol.config.json",
+    "astra.json", "website/astra.json", "docs/astra.json", "sol.config.json",
   ]
   for candidate in candidates {
     let full_path = @path.join2(cwd, candidate)

@@ -210,12 +210,10 @@ fn load_config(cwd : String) -> @astra.SsgConfig {
     let config_dir = @path.dirname(config_path)
     let resolved_docs_dir = if config_dir.is_empty() || config_dir == "." {
       parsed_config.docs_dir
+    } else if parsed_config.docs_dir == "." {
+      config_dir
     } else {
-      if parsed_config.docs_dir == "." {
-        config_dir
-      } else {
-        @path.join2(config_dir, parsed_config.docs_dir)
-      }
+      @path.join2(config_dir, parsed_config.docs_dir)
     }
     @astra.SsgConfig::{ ..parsed_config, docs_dir: resolved_docs_dir }
   } else {
