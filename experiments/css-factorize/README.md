@@ -337,7 +337,7 @@ fn counter() -> @luna.Node {
 }
 ```
 
-#### 案2: Adoptable Stylesheets (推奨)
+#### 案2: Adoptable Stylesheets
 
 ブラウザのCSSStyleSheet APIを使用して、複数のShadow Rootでスタイルシートを共有:
 
@@ -350,6 +350,34 @@ globalSheet.replaceSync("._a{display:flex}._b{align-items:center}...");
 shadowRoot.adoptedStyleSheets = [globalSheet];
 ```
 
+**SSRとの整合性問題**:
+
+```
+SSR出力:
+<template shadowrootmode="open">
+  <style>._a{display:flex}</style>  ← Declarative Shadow DOM用
+  <div class="_a">...</div>
+</template>
+
+Hydration後:
+#shadow-root
+  <style>._a{...}</style>           ← SSRのスタイル (残存)
+  adoptedStyleSheets: [sheet]       ← 追加 → 二重適用！
+```
+
+**対策: Hydration時に置換**
+
+```javascript
+// Hydration時にSSRの<style>を削除してAdoptable Stylesheetsに切り替え
+function hydrateWithStyles(shadowRoot) {
+  // 1. SSRで注入されたユーティリティスタイルを削除
+  shadowRoot.querySelectorAll('style[data-utility]').forEach(s => s.remove());
+
+  // 2. グローバルシートを採用
+  shadowRoot.adoptedStyleSheets = [window.__LUNA_STYLES__];
+}
+```
+
 MoonBit側:
 ```moonbit
 // 初期化時にグローバルシートを登録
@@ -358,19 +386,58 @@ fn init_global_styles() -> Unit {
   register_adoptable_sheet(css)
 }
 
-// Shadow Root作成時に採用
+// Hydration時: SSRスタイル削除 + Adoptable採用
 fn hydrate_wc(element : @js_dom.Element) -> Unit {
   let shadow = get_shadow_root(element)
+  remove_utility_styles(shadow)  // data-utility属性のstyleを削除
   adopt_global_styles(shadow)
 }
+```
+
+**SSR時のマーキング**:
+```html
+<style data-utility>._a{display:flex}...</style>  <!-- 削除対象 -->
+<style>:host{display:block;}</style>              <!-- コンポーネント固有、保持 -->
 ```
 
 利点:
 - メモリ効率（シート共有）
 - スタイル更新が全Shadow Rootに反映
 - パースコスト削減
+- SSR時はFOUC防止、Hydration後は効率化
 
-#### 案3: ハイドレーション単位でのスタイル分割
+#### 案3: SSRスタイルをそのまま使用 (最もシンプル)
+
+Adoptable Stylesheetsを使わず、SSRで注入した`<style>`をそのまま維持:
+
+```
+SSR:
+<template shadowrootmode="open">
+  <style>._a{display:flex}._b{...}</style>
+  <div class="_a _b">...</div>
+</template>
+
+Hydration後:
+#shadow-root
+  <style>._a{display:flex}._b{...}</style>  ← そのまま
+  <div class="_a _b">...</div>
+```
+
+現在のLunaの`extract_style_elements()`がこれを実現。
+
+利点:
+- 実装がシンプル
+- SSR/Hydrationで一貫性
+
+欠点:
+- 同じCSSが各Shadow Rootで重複
+- メモリ効率が悪い（多数のコンポーネントで顕著）
+
+**判断基準**:
+- コンポーネント数が少ない → 案3（シンプル）
+- コンポーネント数が多い → 案2（Adoptable Stylesheets）
+
+#### 案4: ハイドレーション単位でのスタイル分割
 
 ビルド時にハイドレーション境界を検出し、スタイルを分割:
 
