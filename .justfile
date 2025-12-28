@@ -391,6 +391,10 @@ bench-server: build-moon
     echo ""
     echo "✓ Benchmark completed"
 
+# CSS ユーティリティベンチマーク
+bench-css scale="all":
+    node src/luna/css/benchmark.js --scale {{scale}}
+
 # =============================================================================
 # リンクチェック（Chaos Crawler）
 # =============================================================================
