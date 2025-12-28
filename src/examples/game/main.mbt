@@ -3,6 +3,21 @@
 ///|
 /// Benchmark Game - Heavy DOM rendering stress test for Luna UI
 
+///|
+using @element {
+  div,
+  span,
+  h1,
+  button,
+  text,
+  text_dyn,
+  for_each,
+  render,
+  events,
+  type DomNode,
+  type DomElement,
+}
+
 // =============================================================================
 // Configuration
 // =============================================================================
@@ -428,7 +443,7 @@ fn init_prev_cell_types() -> Unit {
 }
 
 ///|
-fn render_grid(state_sig : @signal.Signal[GameState]) -> @luna_dom.DomNode {
+fn render_grid(state_sig : @signal.Signal[GameState]) -> DomNode {
   let indices = make_indices()
   init_prev_cell_types()
   // Single effect with dirty tracking - only update changed cells
@@ -445,29 +460,25 @@ fn render_grid(state_sig : @signal.Signal[GameState]) -> @luna_dom.DomNode {
       }
     }
   })
-  @luna_dom.div(class="grid", [
-    @luna_dom.for_each(fn() { indices }, fn(_, _) {
-      @luna_dom.div(class="cell c0", ref_=el => cell_elements.push(el), [])
+  div(class="grid", [
+    for_each(fn() { indices }, fn(_, _) {
+      div(class="cell c0", ref_=el => cell_elements.push(el), [])
     }),
   ])
 }
 
 ///|
-fn render_stats(state_sig : @signal.Signal[GameState]) -> @luna_dom.DomNode {
-  @luna_dom.div(class="stats", [
-    @luna_dom.span([
-      @luna_dom.text_dyn(fn() { "FPS: " + state_sig.get().fps.to_string() }),
-    ]),
-    @luna_dom.span([
-      @luna_dom.text_dyn(fn() { "Score: " + state_sig.get().score.to_string() }),
-    ]),
-    @luna_dom.span([
-      @luna_dom.text_dyn(fn() {
+fn render_stats(state_sig : @signal.Signal[GameState]) -> DomNode {
+  div(class="stats", [
+    span([text_dyn(fn() { "FPS: " + state_sig.get().fps.to_string() })]),
+    span([text_dyn(fn() { "Score: " + state_sig.get().score.to_string() })]),
+    span([
+      text_dyn(fn() {
         "Enemies: " + state_sig.get().enemies.length().to_string()
       }),
     ]),
-    @luna_dom.span([
-      @luna_dom.text_dyn(fn() {
+    span([
+      text_dyn(fn() {
         "Bullets: " + state_sig.get().bullets.length().to_string()
       }),
     ]),
@@ -478,23 +489,12 @@ fn render_stats(state_sig : @signal.Signal[GameState]) -> @luna_dom.DomNode {
 fn render_controls(
   running_sig : @signal.Signal[Bool],
   on_reset : () -> Unit,
-) -> @luna_dom.DomNode {
-  @luna_dom.div(class="controls", [
-    @luna_dom.button(
-      on=@luna_dom.events().click(_ => running_sig.update(r => not(r))),
-      [
-        @luna_dom.text_dyn(fn() {
-          if running_sig.get() {
-            "Pause"
-          } else {
-            "Run"
-          }
-        }),
-      ],
-    ),
-    @luna_dom.button(on=@luna_dom.events().click(_ => on_reset()), [
-      @luna_dom.text("Reset"),
+) -> DomNode {
+  div(class="controls", [
+    button(on=events().click(_ => running_sig.update(r => not(r))), [
+      text_dyn(fn() { if running_sig.get() { "Pause" } else { "Run" } }),
     ]),
+    button(on=events().click(_ => on_reset()), [text("Reset")]),
   ])
 }
 
@@ -595,20 +595,18 @@ fn main {
         fn() { if running_sig.get() { state_sig.update(game_tick) } },
         1000 / TARGET_FPS,
       )
-      let app = @luna_dom.div(class="container", [
-        @luna_dom.h1([@luna_dom.text("Luna Benchmark Game")]),
+      let app = div(class="container", [
+        h1([text("Luna Benchmark Game")]),
         render_stats(state_sig),
-        render_controls(running_sig, fn() {
-          state_sig.set(create_initial_state())
-        }),
-        @luna_dom.div(class="grid-wrapper", [render_grid(state_sig)]),
-        @luna_dom.div(class="legend", [
-          @luna_dom.text(
+        render_controls(running_sig, fn() { state_sig.set(create_initial_state()) }),
+        div(class="grid-wrapper", [render_grid(state_sig)]),
+        div(class="legend", [
+          text(
             "Arrow keys to move | White=Player | Green=Player Bullets | Yellow=Enemy Bullets | Red=Enemies",
           ),
         ]),
       ])
-      @luna_dom.render(el |> @luna_dom.DomElement::from_dom, app)
+      render(el |> DomElement::from_dom, app)
       console_log("Game initialized!")
     }
     None => console_log("ERROR: Could not find #app")

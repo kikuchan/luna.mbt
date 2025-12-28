@@ -27,7 +27,7 @@ using @element {
 }
 
 ///|
-using @luna {type Signal, effect, memo}
+using @signal { type Signal, signal, effect, memo }
 
 // =============================================================================
 // Data Structures
@@ -112,12 +112,12 @@ fn app() -> DomNode {
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
-  let todos : Signal[Array[Todo]] = @luna.signal(load_todos())
-  let filter = @luna.signal(get_current_filter())
-  let editing_id : Signal[Int?] = @luna.signal(None)
-  let new_todo_text = @luna.signal("")
-  let is_composing = @luna.signal(false)
-  let next_id = @luna.signal(
+  let todos : Signal[Array[Todo]] = signal(load_todos())
+  let filter = signal(get_current_filter())
+  let editing_id : Signal[Int?] = signal(None)
+  let new_todo_text = signal("")
+  let is_composing = signal(false)
+  let next_id = signal(
     todos.peek().iter().map(t => t.id).maximum().unwrap_or(0) + 1,
   )
 

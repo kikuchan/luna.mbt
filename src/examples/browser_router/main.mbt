@@ -11,7 +11,7 @@
 // Helpers
 // =============================================================================
 
-using @luna_dom {
+using @element {
   a,
   events,
   div,
@@ -27,6 +27,11 @@ using @luna_dom {
   li,
   hr,
   text_dyn,
+  clear,
+  mount,
+  type DomNode,
+  type DomElement,
+  type Attr,
 }
 
 ///|
@@ -74,9 +79,9 @@ fn create_routes() -> Array[@routes.Routes] {
 
 ///|
 /// Navigation component
-fn nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn nav_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
-  fn nav_link(href : String, label : String) -> @luna_dom.DomNode {
+  fn nav_link(href : String, label : String) -> DomNode {
     a(
       href~,
       on=events().click(fn(e) {
@@ -103,19 +108,19 @@ fn nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 
 ///|
 /// Counter component (for testing dynamic elements)
-fn counter_component() -> @luna_dom.DomNode {
+fn counter_component() -> DomNode {
   let count = @signal.signal(0)
   console_log(
     "Creating counter component, initial count: " + count.get().to_string(),
   )
-  div(class="counter", attrs=[("data-testid", AttrString("counter"))], [
+  div(class="counter", attrs=[("data-testid", Attr::AttrString("counter"))], [
     h3([text("Interactive Counter")]),
-    p(attrs=[("data-testid", AttrString("count-display"))], [
+    p(attrs=[("data-testid", Attr::AttrString("count-display"))], [
       text_dyn(fn() { "Count: " + count.get().to_string() }),
     ]),
     div(class="counter-buttons", [
       button(
-        attrs=[("data-testid", AttrString("decrement-btn"))],
+        attrs=[("data-testid", Attr::AttrString("decrement-btn"))],
         on=events().click(fn(_) {
           console_log("Decrement clicked, current: " + count.get().to_string())
           count.update(n => n - 1)
@@ -124,7 +129,7 @@ fn counter_component() -> @luna_dom.DomNode {
         [text("-")],
       ),
       button(
-        attrs=[("data-testid", AttrString("increment-btn"))],
+        attrs=[("data-testid", Attr::AttrString("increment-btn"))],
         on=events().click(fn(_) {
           console_log("Increment clicked, current: " + count.get().to_string())
           count.update(n => n + 1)
@@ -133,7 +138,7 @@ fn counter_component() -> @luna_dom.DomNode {
         [text("+")],
       ),
       button(
-        attrs=[("data-testid", AttrString("reset-btn"))],
+        attrs=[("data-testid", Attr::AttrString("reset-btn"))],
         on=events().click(fn(_) {
           console_log("Reset clicked")
           count.set(0)
@@ -146,8 +151,8 @@ fn counter_component() -> @luna_dom.DomNode {
 
 ///|
 /// Home page
-fn home_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
-  div(class="page home", attrs=[("data-page", AttrString("home"))], [
+fn home_component(router : @router.BrowserRouter) -> DomNode {
+  div(class="page home", attrs=[("data-page", Attr::AttrString("home"))], [
     h1([text("Welcome to Browser App")]),
     p([text("This is an example of the new Routes-based routing system.")]),
     // Add counter (for testing dynamic elements)
@@ -161,7 +166,7 @@ fn home_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
       li([text("Dynamic parameters with :id syntax")]),
       li([text("URLPattern API for matching")]),
     ]),
-    p(attrs=[("data-testid", AttrString("current-path"))], [
+    p(attrs=[("data-testid", Attr::AttrString("current-path"))], [
       text("Current path: "),
       text_dyn(fn() { router.get_path() }),
     ]),
@@ -170,8 +175,8 @@ fn home_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 
 ///|
 /// About page
-fn about_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
-  div(class="page about", attrs=[("data-page", AttrString("about"))], [
+fn about_component(_router : @router.BrowserRouter) -> DomNode {
+  div(class="page about", attrs=[("data-page", Attr::AttrString("about"))], [
     h1([text("About")]),
     p([text("This app demonstrates the new routing architecture:")]),
     ul([
@@ -186,8 +191,8 @@ fn about_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
 /// Users layout
 fn users_layout_component(
   router : @router.BrowserRouter,
-  children : @luna_dom.DomNode,
-) -> @luna_dom.DomNode {
+  children : DomNode,
+) -> DomNode {
   let base = router.get_base()
   div(
     class="users-layout",
@@ -230,7 +235,7 @@ fn users_layout_component(
 
 ///|
 /// User list
-fn users_list_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn users_list_component(_router : @router.BrowserRouter) -> DomNode {
   div(class="users-list", [
     h3([text("User List")]),
     ul([
@@ -246,7 +251,7 @@ fn users_list_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
 fn user_detail_component(
   _router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let user_id = m.get_param("id").unwrap_or("unknown")
   let user_name = match user_id {
     "1" => "Alice"
@@ -268,7 +273,7 @@ fn user_detail_component(
 /// Settings index
 fn settings_index_component(
   router : @router.BrowserRouter,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let base = router.get_base()
   let profile_path = base + "/settings/profile"
   div(class="settings-index", [
@@ -292,7 +297,7 @@ fn settings_index_component(
 /// Profile settings
 fn settings_profile_component(
   router : @router.BrowserRouter,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let base = router.get_base()
   div(class="settings-profile", [
     h1([text("Profile Settings")]),
@@ -305,7 +310,7 @@ fn settings_profile_component(
 
 ///|
 /// 404 page
-fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn not_found_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
   div(class="not-found", [
     h1([text("404 - Not Found")]),
@@ -323,7 +328,7 @@ fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 fn resolve_component(
   router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let component_id = m.component()
   let layouts = m.layouts()
   console_log(
@@ -334,7 +339,7 @@ fn resolve_component(
   )
 
   // Resolve component
-  let content : @luna_dom.DomNode = match component_id {
+  let content : DomNode = match component_id {
     "home" => home_component(router)
     "about" => about_component(router)
     "users_list" => users_list_component(router)
@@ -366,7 +371,7 @@ fn resolve_component(
 /// Render route
 fn render_route(
   router : @router.BrowserRouter,
-  container : @luna_dom.DomElement,
+  container : DomElement,
 ) -> Unit {
   let _ = @signal.effect(fn() {
     // Track only the match_signal for re-rendering
@@ -375,7 +380,7 @@ fn render_route(
     console_log("Route changed (effect triggered): " + path)
 
     // Clear container
-    @luna_dom.clear(container)
+    clear(container)
 
     // Create components untracked to avoid subscribing to their internal signals
     // This ensures counter's signal changes don't re-trigger the route effect
@@ -396,7 +401,7 @@ fn render_route(
         [nav, div(style="padding: 20px;", [page])],
       )
     })
-    @luna_dom.mount(container, app)
+    mount(container, app)
   })
 
 }
@@ -429,7 +434,7 @@ fn main {
       console_log("Router created with path: " + router.get_path())
 
       // Start rendering
-      let dom_container = el |> @luna_dom.DomElement::from_dom
+      let dom_container = el |> DomElement::from_dom
       render_route(router, dom_container)
       console_log("App rendered!")
     }

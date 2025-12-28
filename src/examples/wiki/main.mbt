@@ -10,7 +10,7 @@
 // - Signal-based reactive updates
 
 ///|
-using @luna_dom {
+using @element {
   a,
   events,
   div,
@@ -23,6 +23,10 @@ using @luna_dom {
   article,
   nav,
   text_dyn,
+  clear,
+  mount,
+  type DomNode,
+  type DomElement,
 }
 
 // =============================================================================
@@ -97,10 +101,10 @@ fn create_routes() -> Array[@routes.Routes] {
 // =============================================================================
 
 ///|
-fn header_nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn header_nav_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
   let pages = get_wiki_pages()
-  fn nav_link(href : String, label : String) -> @luna_dom.DomNode {
+  fn nav_link(href : String, label : String) -> DomNode {
     a(
       href~,
       class="wiki-nav-link",
@@ -128,7 +132,7 @@ fn header_nav_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 }
 
 ///|
-fn wiki_index_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn wiki_index_component(_router : @router.BrowserRouter) -> DomNode {
   let pages = get_wiki_pages()
   article(class="wiki-page", [
     h1([text("Wiki Home")]),
@@ -148,7 +152,7 @@ fn wiki_index_component(_router : @router.BrowserRouter) -> @luna_dom.DomNode {
 fn wiki_page_component(
   _router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let slug = m.get_param("slug").unwrap_or("index")
   match find_page(slug) {
     Some(page) =>
@@ -165,7 +169,7 @@ fn wiki_page_component(
 }
 
 ///|
-fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
+fn not_found_component(router : @router.BrowserRouter) -> DomNode {
   let base = router.get_base()
   article(class="wiki-page wiki-not-found", [
     h1([text("404 - Not Found")]),
@@ -191,7 +195,7 @@ fn not_found_component(router : @router.BrowserRouter) -> @luna_dom.DomNode {
 fn resolve_component(
   router : @router.BrowserRouter,
   m : @routes.RoutesMatch,
-) -> @luna_dom.DomNode {
+) -> DomNode {
   let component_id = m.component()
   match component_id {
     "wiki_index" => wiki_index_component(router)
@@ -207,13 +211,13 @@ fn resolve_component(
 ///|
 fn render_wiki(
   router : @router.BrowserRouter,
-  container : @luna_dom.DomElement,
+  container : DomElement,
 ) -> Unit {
   let _ = @signal.effect(fn() {
     let match_result = router.match_signal().get()
 
     // Clear container
-    @luna_dom.clear(container)
+    clear(container)
 
     // Create components untracked
     let (header, content) = @signal.untracked(fn() {
@@ -233,7 +237,7 @@ fn render_wiki(
         [header, content],
       )
     })
-    @luna_dom.mount(container, app)
+    mount(container, app)
   })
 
 }
@@ -252,7 +256,7 @@ pub fn hydrate(el : @dom.Element, _state : @js.Any) -> Unit {
   let router = @router.BrowserRouter::new(routes, base~)
 
   // Start rendering
-  let dom_container = el |> @luna_dom.DomElement::from_dom
+  let dom_container = el |> DomElement::from_dom
   render_wiki(router, dom_container)
 
   // Remove cloak after hydration - show the content
@@ -277,7 +281,7 @@ fn main {
       let router = @router.BrowserRouter::new(routes, base~)
 
       // Start rendering
-      let dom_container = el |> @luna_dom.DomElement::from_dom
+      let dom_container = el |> DomElement::from_dom
       render_wiki(router, dom_container)
     }
     None => ()
