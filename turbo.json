@@ -25,6 +25,50 @@
       "dependsOn": ["^build", "//#build:moon", "//#build:loader"],
       "outputs": ["dist/**"]
     },
+    "//#test:moonbit": {
+      "dependsOn": ["//#build:moon"],
+      "inputs": [
+        "src/**/*.mbt",
+        "moon.mod.json",
+        "**/moon.pkg.json"
+      ],
+      "outputs": []
+    },
+    "//#test:ts": {
+      "inputs": [
+        "js/**/*.ts",
+        "tsconfig.json"
+      ],
+      "outputs": []
+    },
+    "//#test:vitest": {
+      "dependsOn": ["//#build:moon", "//#build:loader"],
+      "inputs": [
+        "js/**/*.ts",
+        "js/**/*.test.ts",
+        "vitest.config.ts"
+      ],
+      "outputs": []
+    },
+    "//#test:browser": {
+      "dependsOn": ["//#build:moon", "//#build:loader"],
+      "inputs": [
+        "js/**/*.ts",
+        "js/**/*.test.ts",
+        "vitest.browser.config.ts"
+      ],
+      "outputs": []
+    },
+    "//#test:e2e": {
+      "dependsOn": ["//#build:moon", "//#build:loader"],
+      "inputs": [
+        "e2e/**/*.ts",
+        "e2e/**/*.mts",
+        "src/**/*.mbt"
+      ],
+      "outputs": [],
+      "cache": false
+    },
     "test": {
       "dependsOn": ["build"],
       "cache": false

@@ -8,6 +8,11 @@
     "build:loader": "rolldown -c rolldown.config.mjs",
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:moonbit": "mkdir -p target/js/debug/test && echo '{\"type\": \"commonjs\"}' > target/js/debug/test/package.json && moon test --target js",
+    "test:ts": "tsc -p .",
+    "test:vitest": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test:e2e": "playwright test --config e2e/playwright.config.mts",
     "doc:dev": "just dev-doc"
   },
   "devDependencies": {
