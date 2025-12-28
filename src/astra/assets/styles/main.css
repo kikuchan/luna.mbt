@@ -736,7 +736,7 @@ html.dark .stat-value {
   font-weight: 700;
   font-family: ui-monospace, monospace;
   margin-bottom: 1rem;
-  background: var(--primary-color);
+  background: #4338ca; /* Indigo 700 - contrast ratio ~7:1 with white */
   color: white;
 }
 
