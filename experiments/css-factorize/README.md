@@ -597,9 +597,193 @@ node factorize.js input.css --mapping
 node factorize.js input.css --runtime
 ```
 
-## 結論
+## 設計決定まとめ
 
-1. **既存CSS最適化**: factorize.jsで50-80%削減可能
-2. **新規開発**: Direct CSS API (`css("property", "value")`) を推奨
-3. **動的スタイル**: inline styleまたはCSS変数で分離
-4. **外部CSS**: `_`プレフィックスで衝突回避
+### 全体アーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  MoonBit Component                                          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ css("display", "flex")                              │   │
+│  │ hover("background", "#2563eb")                      │   │
+│  │ at_md("padding", "2rem")                            │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  StyleRegistry (ビルド時)                                    │
+│  - 宣言 → クラス名マッピング                                  │
+│  - 重複排除                                                  │
+│  - 使用スタイル追跡                                          │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  SSR Output                                                 │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
+│  │ Document        │  │ Shadow Root (WC Island)         │  │
+│  │ <style>         │  │ <style data-luna-utility>       │  │
+│  │ ._a{...}        │  │ ._a{...}                        │  │
+│  │ </style>        │  │ </style>                        │  │
+│  └─────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Hydration (StyleMode による分岐)                            │
+│  ┌────────────────────┐  ┌────────────────────────────┐    │
+│  │ Inline (default)   │  │ Adoptable                  │    │
+│  │ SSRスタイル維持     │  │ SSR削除 → 共有シート採用    │    │
+│  └────────────────────┘  └────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 設計決定一覧
+
+| 項目 | 決定 | 理由 |
+|------|------|------|
+| **API形式** | Direct CSS (`css("prop", "val")`) | CSS知識をそのまま活用、学習コスト低 |
+| **クラス名** | `_` プレフィックス (`._a`, `._b`) | 外部CSSとの衝突回避 |
+| **擬似セレクタ** | `on(":hover", ...)` + 便利ラッパー | CSS構文を露出しつつ利便性確保 |
+| **メディアクエリ** | `media("condition", ...)` + `at_md()` 等 | 汎用性と利便性のバランス |
+| **動的スタイル** | inline style または CSS変数 | 静的最適化スコープから分離 |
+| **Shadow DOM** | `StyleMode` で選択可能 | 規模に応じた最適化 |
+| **SSR整合性** | `data-luna-utility` マーカー | Hydration時の安全な置換 |
+
+### コア型定義
+
+```moonbit
+/// スタイル宣言レジストリ
+struct StyleRegistry {
+  decl_to_class : HashMap[String, String]  // "display:flex" → "_a"
+  declarations : Array[String]              // 出現順
+  mut counter : Int
+}
+
+/// 擬似セレクタレジストリ
+struct PseudoRegistry {
+  pseudo_to_class : HashMap[String, String]  // ":hover:bg:#fff" → "_h1"
+  mut hover_counter : Int
+  mut focus_counter : Int
+  mut active_counter : Int
+}
+
+/// メディアクエリレジストリ
+struct MediaRegistry {
+  media_to_class : HashMap[String, String]  // "@media(...):..." → "_m0"
+  mut counter : Int
+}
+
+/// スタイルモード（Shadow DOM対応）
+pub enum StyleMode {
+  Inline      // SSRスタイル維持（シンプル）
+  Adoptable   // 共有シート（効率的）
+}
+
+/// 設定
+pub struct StyleConfig {
+  mode : StyleMode
+  preload_sheet : Bool
+}
+```
+
+### API一覧（完全版）
+
+```moonbit
+// ─── 基本スタイル ───
+css(property: String, value: String) -> Attr
+styles(pairs: Array[(String, String)]) -> Attr
+
+// ─── 擬似セレクタ ───
+on(pseudo: String, property: String, value: String) -> Attr  // 汎用
+hover(property: String, value: String) -> Attr
+focus(property: String, value: String) -> Attr
+active(property: String, value: String) -> Attr
+
+// ─── メディアクエリ ───
+media(condition: String, property: String, value: String) -> Attr  // 汎用
+at_sm(property: String, value: String) -> Attr  // min-width: 640px
+at_md(property: String, value: String) -> Attr  // min-width: 768px
+at_lg(property: String, value: String) -> Attr  // min-width: 1024px
+at_xl(property: String, value: String) -> Attr  // min-width: 1280px
+dark(property: String, value: String) -> Attr   // prefers-color-scheme: dark
+
+// ─── 動的スタイル ───
+dynamic_css(property: String, signal: Signal[String]) -> Attr  // inline style
+css_var(name: String, signal: Signal[String]) -> Attr          // CSS変数
+
+// ─── CSS生成 ───
+generate_css() -> String           // 基本スタイルのみ
+generate_full_css() -> String      // 擬似 + メディア含む
+
+// ─── Shadow DOM ───
+init_styles(config: StyleConfig) -> Unit
+hydrate_styles(shadow: Any, config: StyleConfig) -> Unit
+```
+
+### 使用例（完全版）
+
+```moonbit
+fn interactive_card() -> @luna.Node {
+  @luna.h("div", [
+    // ベーススタイル
+    styles([
+      ("display", "flex"),
+      ("flex-direction", "column"),
+      ("padding", "1.5rem"),
+      ("border-radius", "0.5rem"),
+      ("background", "white"),
+      ("box-shadow", "0 1px 3px rgba(0,0,0,0.1)"),
+    ]),
+
+    // ダークモード
+    dark("background", "#1e1e1e"),
+    dark("color", "#e5e5e5"),
+
+    // ホバーエフェクト
+    hover("box-shadow", "0 4px 12px rgba(0,0,0,0.15)"),
+    hover("transform", "translateY(-2px)"),
+
+    // レスポンシブ
+    at_md("padding", "2rem"),
+    at_lg("flex-direction", "row"),
+  ], [
+    @luna.text("Card content")
+  ])
+}
+```
+
+出力CSS:
+```css
+/* 基本 */
+._a{display:flex}._b{flex-direction:column}._c{padding:1.5rem}
+._d{border-radius:0.5rem}._e{background:white}
+._f{box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+
+/* ダークモード */
+@media(prefers-color-scheme:dark){._m0{background:#1e1e1e}._m1{color:#e5e5e5}}
+
+/* ホバー */
+._h1:hover{box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+._h2:hover{transform:translateY(-2px)}
+
+/* レスポンシブ */
+@media(min-width:768px){._m2{padding:2rem}}
+@media(min-width:1024px){._m3{flex-direction:row}}
+```
+
+### 次のステップ
+
+1. **Phase 2: Luna統合**
+   - `@luna.css()` 関数の実装
+   - StyleRegistryのビルド時統合
+   - SSR時のCSS出力
+
+2. **Phase 3: 高度な機能**
+   - CSS変数連携
+   - 動的スタイルの自動判別
+   - Shadow DOM対応（StyleMode実装）
+
+3. **Phase 4: 最適化**
+   - gzip効率のための宣言順最適化
+   - クリティカルCSS抽出
+   - Tree-shaking（未使用スタイル警告）
