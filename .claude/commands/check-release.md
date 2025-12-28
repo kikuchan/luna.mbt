@@ -8,7 +8,7 @@
 - `moon publish` - MoonBit パッケージの公開
 - `npm publish` - NPM パッケージの公開
 
-これらは人間が手動で実行する必要があります。
+publish は人間が手動で実行する必要があります。
 
 ## チェックリスト
 
@@ -17,6 +17,7 @@
 ### 1. フォーマットチェック
 
 ```bash
+moon info
 moon fmt
 ```
 

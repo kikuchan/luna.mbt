@@ -1,6 +1,6 @@
 {
   "name": "sol-app-example",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "scripts": {
     "dev": "node ../../target/js/release/build/sol/cli/cli.js dev",

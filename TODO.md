@@ -12,6 +12,11 @@
 - 最小限の CSS Reset 導入
 - PageFind https://pagefind.app/
 - loader のレビュー・軽量化
+- ドキュメントサイト
+  - Favicon
+  - OGP画像
+  - AI用にluna doc コマンドを提供する
+- playground の作成
 
 ## TODO
 
