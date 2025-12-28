@@ -26,3 +26,4 @@ dist-docs
 .test-output
 .astra-cache/
 *.db
+website/public/demo/

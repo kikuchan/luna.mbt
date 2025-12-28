@@ -250,4 +250,34 @@ describe("TSX Syntax with jsxImportSource", () => {
       dispose();
     });
   });
+
+  test("Switch/Match with direct multiple children (no function wrapper)", () => {
+    const container = document.createElement("div");
+
+    createRoot((dispose) => {
+      const [isEven, setIsEven] = createSignal(true);
+
+      const node = (
+        <div id="direct-children-test">
+          <Switch fallback={<span>Odd</span>}>
+            <Match when={() => isEven()}>
+              <div>A</div>
+              <div>B</div>
+            </Match>
+          </Switch>
+        </div>
+      );
+
+      render(container, node);
+      expect(container.textContent).toContain("A");
+      expect(container.textContent).toContain("B");
+
+      setIsEven(false);
+      expect(container.textContent).toContain("Odd");
+      expect(container.textContent).not.toContain("A");
+      expect(container.textContent).not.toContain("B");
+
+      dispose();
+    });
+  });
 });

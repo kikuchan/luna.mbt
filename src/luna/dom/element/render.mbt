@@ -226,6 +226,24 @@ pub fn render_to(container : @js_dom.Element, n : DomNode) -> Unit {
 }
 
 ///|
+/// Helper to collect child nodes from a DomNode.
+/// If it's a DocumentFragment, collects all children; otherwise returns single node.
+fn collect_child_nodes(node : @js_dom.Node) -> Array[@js_dom.Node] {
+  // Check if node is a DocumentFragment by nodeType (11 = DocumentFragment)
+  if node.nodeType() == 11 {
+    // DocumentFragment: collect all children before they are moved
+    let children : Array[@js_dom.Node] = []
+    while node.firstChild() is Some(child) {
+      children.push(child)
+      node.removeChild(child) |> ignore
+    }
+    children
+  } else {
+    [node]
+  }
+}
+
+///|
 /// Conditional rendering - shows content when condition is true
 pub fn show(when : () -> Bool, render_fn : () -> DomNode) -> DomNode {
   let doc = @js_dom.document()
@@ -235,45 +253,59 @@ pub fn show(when : () -> Bool, render_fn : () -> DomNode) -> DomNode {
 
   // Evaluate initial state immediately
   let initial_show = when()
-  let initial_node : @js_dom.Node? = if initial_show {
+  let initial_nodes : Array[@js_dom.Node] = if initial_show {
     let n = match captured_owner {
       Some(owner) => @signal.run_with_owner(owner, render_fn)
       None => render_fn()
     }
-    Some(n.to_dom())
+    collect_child_nodes(n.to_dom())
   } else {
-    None
+    []
   }
-  let current_node : Ref[@js_dom.Node?] = { val: initial_node }
+  // Track all child nodes (may be multiple if fragment was used)
+  let current_nodes : Ref[Array[@js_dom.Node]] = { val: initial_nodes }
 
   // Effect handles subsequent updates only
   let _ = @signal.effect(fn() {
     let should_show = when()
-    match (should_show, current_node.val) {
-      (true, None) =>
-        // Need to show - create and insert node
+    let has_nodes = current_nodes.val.length() > 0
+    match (should_show, has_nodes) {
+      (true, false) =>
+        // Need to show - create and insert nodes
         if placeholder.parentNode() is Some(parent) {
           let n = match captured_owner {
             Some(owner) => @signal.run_with_owner(owner, render_fn)
             None => render_fn()
           }
-          parent.insertBefore(n.to_dom(), Some(placeholder)) |> ignore
-          current_node.val = Some(n.to_dom())
+          let nodes = collect_child_nodes(n.to_dom())
+          for node in nodes {
+            parent.insertBefore(node, Some(placeholder)) |> ignore
+          }
+          current_nodes.val = nodes
         }
-      (false, Some(n)) =>
-        // Need to hide - remove node
-        if n.parentNode() is Some(parent) {
-          parent.removeChild(n) |> ignore
-          current_node.val = None
+      (false, true) => {
+        // Need to hide - remove all nodes
+        for node in current_nodes.val {
+          if node.parentNode() is Some(parent) {
+            parent.removeChild(node) |> ignore
+          }
         }
+        current_nodes.val = ([] : Array[@js_dom.Node])
+      }
       _ => () // No change needed
     }
   })
 
-  // Return fragment containing initial node (if any) and placeholder
-  match initial_node {
-    Some(node) => fragment([Raw(node), Raw(placeholder)])
-    None => Raw(placeholder)
+  // Return fragment containing initial nodes (if any) and placeholder
+  if initial_nodes.length() > 0 {
+    let all_nodes : Array[DomNode] = []
+    for node in initial_nodes {
+      all_nodes.push(Raw(node))
+    }
+    all_nodes.push(Raw(placeholder))
+    fragment(all_nodes)
+  } else {
+    Raw(placeholder)
   }
 }
 

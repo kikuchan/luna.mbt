@@ -1416,3 +1416,63 @@ test "hydrate nested component in for" {
   assert_true(get_inner_html(container).contains("Item: X"))
   assert_true(get_inner_html(container).contains("Item: Y"))
 }
+
+// =============================================================================
+// Show with multiple children (Fragment) - Hydration and Reactivity Tests
+// =============================================================================
+
+///|
+test "hydrate show with fragment (multiple children)" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let visible = @signal.signal(true)
+  let vnode = @luna.show(fn() { visible.get() }, fn() {
+    @luna.fragment([
+      @luna.h("div", [], [@luna.text("A")]),
+      @luna.h("div", [], [@luna.text("B")]),
+    ])
+  })
+  let html = @render.render_to_string_with_hydration(vnode)
+  set_inner_html(container, html)
+  let result = hydrate(container, vnode)
+  // Hydration should succeed
+  assert_true(result.is_success() || result.is_recovered())
+  assert_true(get_inner_html(container).contains("<div>A</div>"))
+  assert_true(get_inner_html(container).contains("<div>B</div>"))
+}
+
+///|
+test "show with fragment toggles correctly" {
+  @global_jsdom.register()
+  defer cleanup()
+  let container = create_container()
+  let visible = @signal.signal(true)
+
+  // Render directly (not hydration, just client render)
+  let dom_node = @element.show(fn() { visible.get() }, fn() {
+    @element.fragment([
+      @element.div([@element.text("A")]),
+      @element.div([@element.text("B")]),
+    ])
+  })
+  @element.mount_to(container, dom_node)
+
+  // Initially visible - both A and B should be present
+  assert_true(get_inner_html(container).contains("<div>A</div>"))
+  assert_true(get_inner_html(container).contains("<div>B</div>"))
+
+  // Toggle to hidden
+  visible.set(false)
+
+  // A and B should be removed
+  assert_false(get_inner_html(container).contains("<div>A</div>"))
+  assert_false(get_inner_html(container).contains("<div>B</div>"))
+
+  // Toggle back to visible
+  visible.set(true)
+
+  // A and B should reappear
+  assert_true(get_inner_html(container).contains("<div>A</div>"))
+  assert_true(get_inner_html(container).contains("<div>B</div>"))
+}

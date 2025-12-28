@@ -358,8 +358,8 @@ fn[FS : @env.FileSystem] scan_recursive_with_fs(
             join_path_simple(dir_path, "page.json")
           }
           let page_json_path = if @env.FileSystem::exists_sync(
-            filesystem, localized_page_json,
-          ) {
+              filesystem, localized_page_json,
+            ) {
             localized_page_json
           } else {
             join_path_simple(dir_path, "page.json")

@@ -2,6 +2,7 @@
 // Tests for locale detection from file paths
 
 // Helper to create i18n config for tests
+///|
 fn test_i18n_config() -> I18nConfig {
   I18nConfig::{
     default_locale: "en",
@@ -21,10 +22,7 @@ fn test_i18n_config() -> I18nConfig {
 test "detect_locale_from_path - suffix-based markdown" {
   let config = test_i18n_config()
   // Japanese locale detected from .ja.md suffix
-  let (locale, canonical) = detect_locale_from_path(
-    "guide/intro.ja.md",
-    config,
-  )
+  let (locale, canonical) = detect_locale_from_path("guide/intro.ja.md", config)
   inspect(locale, content="ja")
   inspect(canonical, content="/guide/intro/")
 }
@@ -34,8 +32,7 @@ test "detect_locale_from_path - suffix-based html" {
   let config = test_i18n_config()
   // Japanese locale detected from .ja.html suffix
   let (locale, canonical) = detect_locale_from_path(
-    "search/index.ja.html",
-    config,
+    "search/index.ja.html", config,
   )
   inspect(locale, content="ja")
   inspect(canonical, content="/search/")
@@ -55,8 +52,7 @@ test "detect_locale_from_path - index files" {
   let config = test_i18n_config()
   // index.ja.md -> locale "ja", canonical "/folder/"
   let (locale, canonical) = detect_locale_from_path(
-    "introduction/index.ja.md",
-    config,
+    "introduction/index.ja.md", config,
   )
   inspect(locale, content="ja")
   inspect(canonical, content="/introduction/")
@@ -75,8 +71,7 @@ test "detect_locale_from_path - multiple dots in filename" {
   let config = test_i18n_config()
   // file.name.ja.md -> should detect ja
   let (locale, canonical) = detect_locale_from_path(
-    "docs/file.name.ja.md",
-    config,
+    "docs/file.name.ja.md", config,
   )
   inspect(locale, content="ja")
   inspect(canonical, content="/docs/file.name/")
@@ -107,14 +102,20 @@ test "detect_locale_from_path - unknown locale suffix" {
 test "build_localized_url - default locale" {
   let config = test_i18n_config()
   // Default locale (en) has empty path, so URL stays as-is
-  inspect(build_localized_url("/guide/intro/", "en", config), content="/guide/intro/")
+  inspect(
+    build_localized_url("/guide/intro/", "en", config),
+    content="/guide/intro/",
+  )
 }
 
 ///|
 test "build_localized_url - non-default locale" {
   let config = test_i18n_config()
   // Japanese locale has path "ja", so URL gets /ja/ prefix
-  inspect(build_localized_url("/guide/intro/", "ja", config), content="/ja/guide/intro/")
+  inspect(
+    build_localized_url("/guide/intro/", "ja", config),
+    content="/ja/guide/intro/",
+  )
 }
 
 ///|
@@ -127,7 +128,10 @@ test "build_localized_url - root path" {
 ///|
 test "build_localized_url - french locale" {
   let config = test_i18n_config()
-  inspect(build_localized_url("/docs/api/", "fr", config), content="/fr/docs/api/")
+  inspect(
+    build_localized_url("/docs/api/", "fr", config),
+    content="/fr/docs/api/",
+  )
 }
 
 // =============================================================================

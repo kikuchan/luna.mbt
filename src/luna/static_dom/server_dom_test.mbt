@@ -291,3 +291,76 @@ test "render_with_preloads error_boundary collects island URLs" {
   assert_true(result.preload_urls.contains("/a.js"))
   assert_true(result.preload_urls.contains("/b.js"))
 }
+
+// =============================================================================
+// Show with multiple children tests (Fragment inside Show)
+// =============================================================================
+
+///|
+test "render show with fragment (multiple children) - visible" {
+  let visible = true
+  let node : @luna.Node[Unit] = @luna.show(fn() { visible }, fn() {
+    @element.fragment([
+      @element.div([@element.text("A")]),
+      @element.div([@element.text("B")]),
+    ])
+  })
+  let html = render(node)
+  assert_true(html.contains("<div>A</div>"))
+  assert_true(html.contains("<div>B</div>"))
+}
+
+///|
+test "render show with fragment (multiple children) - hidden" {
+  let visible = false
+  let node : @luna.Node[Unit] = @luna.show(fn() { visible }, fn() {
+    @element.fragment([
+      @element.div([@element.text("A")]),
+      @element.div([@element.text("B")]),
+    ])
+  })
+  let html = render(node)
+  // Should not contain the content
+  assert_false(html.contains("<div>A</div>"))
+  assert_false(html.contains("<div>B</div>"))
+  // Should contain placeholder comment
+  assert_true(html.contains("<!--show-->"))
+}
+
+///|
+test "render switch with match containing multiple children" {
+  let node : @luna.Node[Unit] = @luna.switch_(
+    cases=[
+      @luna.match_case(when=fn() { true }, render=fn() {
+        @element.fragment([
+          @element.span([@element.text("First")]),
+          @element.span([@element.text("Second")]),
+        ])
+      }),
+    ],
+    fallback=Some(fn() { @element.text("Fallback") }),
+  )
+  let html = render(node)
+  assert_true(html.contains("<span>First</span>"))
+  assert_true(html.contains("<span>Second</span>"))
+  assert_false(html.contains("Fallback"))
+}
+
+///|
+test "render switch with match fallback" {
+  let node : @luna.Node[Unit] = @luna.switch_(
+    cases=[
+      @luna.match_case(when=fn() { false }, render=fn() {
+        @element.fragment([
+          @element.span([@element.text("First")]),
+          @element.span([@element.text("Second")]),
+        ])
+      }),
+    ],
+    fallback=Some(fn() { @element.text("Fallback") }),
+  )
+  let html = render(node)
+  assert_false(html.contains("<span>First</span>"))
+  assert_false(html.contains("<span>Second</span>"))
+  assert_true(html.contains("Fallback"))
+}
