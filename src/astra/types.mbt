@@ -124,6 +124,8 @@ pub(all) struct NavItem {
   text : String
   /// Link URL
   link : String
+  /// Icon name (luna, sol, astra, etc.)
+  icon : String?
   /// Dropdown items (optional)
   items : Array[NavItem]
 } derive(ToJson, FromJson)
@@ -131,7 +133,7 @@ pub(all) struct NavItem {
 ///|
 /// Default empty NavItem
 pub fn NavItem::new(text : String, link : String) -> NavItem {
-  { text, link, items: [] }
+  { text, link, icon: None, items: [] }
 }
 
 ///|

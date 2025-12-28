@@ -117,13 +117,104 @@ fn build_nav_links(ctx : @astra.BuildContext) -> @luna.Node[Unit] {
 }
 
 ///|
+/// Build SVG icon for navigation item
+fn build_nav_icon(icon : String) -> @luna.Node[Unit] {
+  match icon {
+    "luna" =>
+      // Crescent moon icon
+      h(
+        "svg",
+        [
+          attr("class", "nav-icon"),
+          attr("viewBox", "0 0 24 24"),
+          attr("width", "18"),
+          attr("height", "18"),
+          attr("fill", "none"),
+          attr("stroke", "currentColor"),
+          attr("stroke-width", "1.5"),
+          attr("stroke-linecap", "round"),
+          attr("stroke-linejoin", "round"),
+        ],
+        [
+          h(
+            "path",
+            [attr("d", "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z")],
+            [],
+          ),
+        ],
+      )
+    "sol" =>
+      // Sun icon with rays
+      h(
+        "svg",
+        [
+          attr("class", "nav-icon"),
+          attr("viewBox", "0 0 24 24"),
+          attr("width", "18"),
+          attr("height", "18"),
+          attr("fill", "none"),
+          attr("stroke", "currentColor"),
+          attr("stroke-width", "1.5"),
+          attr("stroke-linecap", "round"),
+          attr("stroke-linejoin", "round"),
+        ],
+        [
+          h("circle", [attr("cx", "12"), attr("cy", "12"), attr("r", "5")], []),
+          h(
+            "path",
+            [
+              attr(
+                "d", "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42",
+              ),
+            ],
+            [],
+          ),
+        ],
+      )
+    "astra" =>
+      // Stars/sparkles icon
+      h(
+        "svg",
+        [
+          attr("class", "nav-icon"),
+          attr("viewBox", "0 0 24 24"),
+          attr("width", "18"),
+          attr("height", "18"),
+          attr("fill", "none"),
+          attr("stroke", "currentColor"),
+          attr("stroke-width", "1.5"),
+          attr("stroke-linecap", "round"),
+          attr("stroke-linejoin", "round"),
+        ],
+        [
+          // Main star
+          h(
+            "path",
+            [
+              attr(
+                "d", "M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z",
+              ),
+            ],
+            [],
+          ),
+        ],
+      )
+    _ => empty()
+  }
+}
+
+///|
 /// Build single nav item
 pub fn build_nav_item(item : @astra.NavItem) -> @luna.Node[Unit] {
   if item.items.is_empty() {
-    // Simple link
-    h("a", [attr("href", item.link), attr("class", "nav-link")], [
-      @luna.text(item.text),
-    ])
+    // Simple link with optional icon
+    let children : Array[@luna.Node[Unit]] = []
+    match item.icon {
+      Some(icon) => children.push(build_nav_icon(icon))
+      None => ()
+    }
+    children.push(@luna.text(item.text))
+    h("a", [attr("href", item.link), attr("class", "nav-link")], children)
   } else {
     // Dropdown (simplified - actual dropdown needs JS)
     let dropdown_items = item.items.map(fn(sub) {

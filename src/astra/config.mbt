@@ -193,6 +193,7 @@ fn parse_nav_item(json : Json) -> NavItem? {
     return None
   }
   let link = @json_utils.extract_string(obj, "link", "")
+  let icon = @json_utils.extract_string_opt(obj, "icon")
   let items = match obj.get("items") {
     Some(Array(arr)) => {
       let result : Array[NavItem] = []
@@ -205,7 +206,7 @@ fn parse_nav_item(json : Json) -> NavItem? {
     }
     _ => []
   }
-  Some(NavItem::{ text, link, items })
+  Some(NavItem::{ text, link, icon, items })
 }
 
 ///|

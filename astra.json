@@ -13,9 +13,9 @@
     ]
   },
   "nav": [
-    { "text": "🌙 Luna", "link": "/luna/" },
-    { "text": "☀️ Sol", "link": "/sol/" },
-    { "text": "✨ Astra", "link": "/astra/" }
+    { "text": "Luna", "link": "/luna/", "icon": "luna" },
+    { "text": "Sol", "link": "/sol/", "icon": "sol" },
+    { "text": "Astra", "link": "/astra/", "icon": "astra" }
   ],
   "sidebar": "auto",
   "navigation": {

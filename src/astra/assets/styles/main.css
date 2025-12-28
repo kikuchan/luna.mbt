@@ -188,6 +188,19 @@ body {
 }
 .nav-link:hover { color: var(--text-color); }
 
+/* Nav Icons */
+.nav-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+  opacity: 0.85;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.nav-link:hover .nav-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
 /* Language Switcher */
 .lang-switcher {
   position: relative;

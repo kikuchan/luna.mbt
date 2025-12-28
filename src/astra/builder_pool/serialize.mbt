@@ -501,11 +501,15 @@ fn parse_nav_items(arr : Array[Json]) -> Array[@astra.NavItem] {
         Some(String(s)) => s
         _ => ""
       }
+      let icon : String? = match obj.get("icon") {
+        Some(String(s)) => Some(s)
+        _ => None
+      }
       let items = match obj.get("items") {
         Some(Array(arr)) => parse_nav_items(arr)
         _ => []
       }
-      result.push(@astra.NavItem::{ text, link, items })
+      result.push(@astra.NavItem::{ text, link, icon, items })
     }
   }
   result
