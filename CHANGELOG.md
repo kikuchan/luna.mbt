@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Miscellaneous
+
+- V0.3.2
+
+### Testing
+
+- **luna**: Add exact reproduction tests for issue #5
+
+## [Unreleased]
+
 ### Bug Fixes
 
 - **luna**: Prevent infinite loop in nested Show/For components
