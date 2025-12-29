@@ -4,7 +4,7 @@
 ///|
 /// Get worker script path from globalThis (set by npm package)
 extern "js" fn ffi_get_worker_script() -> String =
-  #| () => globalThis.__astra_worker_script || ""
+  #| () => globalThis.__sol_worker_script || ""
 
 ///|
 /// Check if SSG mode is enabled in config

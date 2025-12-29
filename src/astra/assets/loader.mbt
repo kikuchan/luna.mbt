@@ -3,9 +3,9 @@
 /// Loads CSS and JavaScript files from external files at build time
 
 ///|
-/// Get assets directory from globalThis.__astra_assets_dir (set by JS wrapper)
-extern "js" fn ffi_get_astra_assets_dir() -> String? =
-  #| () => globalThis.__astra_assets_dir
+/// Get assets directory from globalThis.__sol_assets_dir (set by JS wrapper)
+extern "js" fn ffi_get_sol_assets_dir() -> String? =
+  #| () => globalThis.__sol_assets_dir
 
 // Cache for loaded assets
 
@@ -38,16 +38,16 @@ fn load_asset(relative_path : String) -> String {
   // Build list of paths to try
   let paths : Array[String] = []
 
-  // First priority: globalThis.__astra_assets_dir (set by JS wrapper)
-  match ffi_get_astra_assets_dir() {
+  // First priority: globalThis.__sol_assets_dir (set by JS wrapper)
+  match ffi_get_sol_assets_dir() {
     Some(dir) => paths.push(dir + "/" + relative_path)
     None => ()
   }
 
   // Development: running from luna.mbt repo root
   paths.push("src/astra/assets/" + relative_path)
-  // npm package: @mizchi/astra installed via npm (relative to cwd)
-  paths.push("node_modules/@mizchi/astra/assets/" + relative_path)
+  // npm package: @luna_ui/sol installed via npm (relative to cwd)
+  paths.push("node_modules/@luna_ui/sol/assets/" + relative_path)
   // Examples/subprojects: path dependency to parent luna.mbt
   paths.push("../../src/astra/assets/" + relative_path)
   for p in paths {

@@ -1,8 +1,8 @@
 {
-  "name": "@luna_ui/astra",
+  "name": "@luna_ui/sol",
   "version": "0.3.0",
   "type": "module",
-  "description": "MoonBit Island Architecture SSG Framework",
+  "description": "MoonBit SSR/SSG Framework CLI",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "astra": "./bin/astra.mjs"
+    "sol": "./bin/sol.mjs"
   },
   "scripts": {
     "prepublishOnly": "pnpm build",
@@ -27,13 +27,14 @@
     "luna",
     "moonbit",
     "island",
+    "ssr",
     "ssg",
-    "astra"
+    "sol"
   ],
   "author": "mizchi",
   "license": "MIT",
   "repository": {
-    "directory": "js/astra",
+    "directory": "js/sol",
     "url": "https://github.com/mizchi/luna.mbt"
   },
   "dependencies": {
