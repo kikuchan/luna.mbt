@@ -74,7 +74,7 @@ async fn main {
       @process.exit(0)
     }
     _ => {
-      console_error(@colorette.red("Error: Unknown command '\{command}'"))
+      @cli_common.console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")
       show_help()
       @process.exit(1)

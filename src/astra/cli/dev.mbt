@@ -1,68 +1,11 @@
 // Astra dev command - Development server with watch mode
 //
+// Uses shared HMR infrastructure from sol/hmr module.
 
 // HMR WebSocket port
 
 ///|
 let hmr_port : Int = 24679
-
-///|
-/// HMR WebSocket server handle
-struct HmrServer {
-  inner : @js.Any
-}
-
-///|
-extern "js" fn import_ws() -> @js.Promise[@js.Any] =
-  #| () => import("ws")
-
-///|
-fn HmrServer::start(wss_class : @js.Any, port : Int) -> HmrServer {
-  let inner = create_wss_instance(wss_class, port)
-  let server = HmrServer::{ inner, }
-  inner._call("on", [
-    @js.any("connection"),
-    @js.any(fn(_ws : @js.Any) {
-      println(@colorette.gray("[HMR] Client connected"))
-    }),
-  ])
-  |> ignore
-  inner._call("on", [
-    @js.any("error"),
-    @js.any(fn(err : @js.Any) {
-      console_error(@colorette.red("[HMR] Server error: \{err}"))
-    }),
-  ])
-  |> ignore
-  println(@colorette.cyan("[HMR] WebSocket server on port \{port}"))
-  server
-}
-
-///|
-extern "js" fn create_wss_instance(wss_class : @js.Any, port : Int) -> @js.Any =
-  #| (WSSClass, port) => new WSSClass({ port })
-
-///|
-fn HmrServer::broadcast(self : HmrServer, message : String) -> Unit {
-  // clients is a property (Set), not a method
-  let clients = self.inner["clients"]
-  clients._call("forEach", [
-    @js.any(fn(client : @js.Any) {
-      let ready_state : Int = client["readyState"].cast()
-      if ready_state == 1 {
-        // WebSocket.OPEN
-        client._call("send", [@js.any(message)]) |> ignore
-      }
-    }),
-  ])
-  |> ignore
-}
-
-///|
-fn HmrServer::notify_reload(self : HmrServer) -> Unit {
-  self.broadcast("{\"type\":\"reload\"}")
-  println(@colorette.green("[HMR] Sent reload"))
-}
 
 ///|
 /// HMR client script to inject into HTML
@@ -102,7 +45,7 @@ fn show_dev_help() -> Unit {
 ///|
 async fn run_dev_command(args : Array[String]) -> Unit {
   // Keep Node.js event loop alive first
-  keep_alive()
+  @cli_common.keep_alive()
   let result = @util.parseArgs(
     args~,
     options=[
@@ -138,24 +81,24 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   }
   let full_config_path = @path.join2(cwd, config_path)
   if not(@fs.existsSync(full_config_path)) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Config file not found: \{config_path}"),
     )
-    console_error(
+    @cli_common.console_error(
       @colorette.gray("  Create astra.json or sol.config.json with ssg config"),
     )
     @process.exit(1)
   }
   let config_content : String = @fs.readFileSync(full_config_path).to_string() catch {
     e => {
-      console_error(@colorette.red("Error reading config: \{e}"))
+      @cli_common.console_error(@colorette.red("Error reading config: \{e}"))
       @process.exit(1)
       ""
     }
   }
   let ssg_config = parse_config(config_content, config_path)
   guard ssg_config is Some(parsed_config) else {
-    console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_common.console_error(@colorette.red("Error: Invalid config file format"))
     @process.exit(1)
   }
 
@@ -183,9 +126,7 @@ async fn run_dev_command(args : Array[String]) -> Unit {
   run_initial_build(config, cwd, highlighter)
 
   // Start HMR WebSocket server
-  let ws_module = import_ws().wait()
-  let wss_class = ws_module["WebSocketServer"]
-  let hmr_server = HmrServer::start(wss_class, hmr_port)
+  let hmr_server = @hmr.HmrServer::start(hmr_port)
 
   // Start HTTP server
   let output_dir = @path.join2(cwd, config.output_dir)
@@ -293,10 +234,6 @@ async fn run_dev_command(args : Array[String]) -> Unit {
 }
 
 ///|
-extern "js" fn keep_alive() -> Unit =
-  #| () => { setInterval(() => {}, 1000 * 60 * 60) }
-
-///|
 /// Rebuild using highlighter (sync call with pre-created highlighter)
 fn run_build_sync(
   config : @astra.SsgConfig,
@@ -311,7 +248,7 @@ fn run_build_sync(
       println(@colorette.green("✓ Rebuild complete"))
       println("")
     }
-    Err(e) => console_error(@colorette.red("Build failed: \{e}"))
+    Err(e) => @cli_common.console_error(@colorette.red("Build failed: \{e}"))
   }
 }
 
@@ -337,7 +274,7 @@ fn rebuild_single_page(
       println(@colorette.green("✓ Page rebuilt: \{page_meta.url_path}"))
       println("")
     }
-    Err(e) => console_error(@colorette.red("Build failed: \{e}"))
+    Err(e) => @cli_common.console_error(@colorette.red("Build failed: \{e}"))
   }
 }
 
@@ -391,7 +328,7 @@ fn run_initial_build(
   // Check for incremental build skip using provider pattern
   let cache_dir = @path.join2(cwd, ".astra-cache")
   match @astra_cache.check_local_build_state(config, cwd, cache_dir) {
-    @core_cache.BuildStateCheck::UpToDate(built_at) => {
+    @astra_cache.BuildStateCheck::UpToDate(built_at) => {
       println(
         @colorette.green("✓ Build skipped (no changes since \{built_at})"),
       )
@@ -407,7 +344,7 @@ fn run_initial_build(
       @astra_cache.save_manifest(cache_dir, config, cwd)
       println(@colorette.green("✓ Build complete: \{config.output_dir}"))
     }
-    Err(e) => console_error(@colorette.red("Build failed: \{e}"))
+    Err(e) => @cli_common.console_error(@colorette.red("Build failed: \{e}"))
     // Don't exit in dev mode, just report the error
   }
 }
@@ -495,7 +432,7 @@ fn serve_with_hmr_injection(
       return
     }
   }
-  let content_type = get_content_type(file_path)
+  let content_type = @cli_common.get_content_type(file_path)
   res.setHeader("Content-Type", content_type)
   res.setHeader("Cache-Control", "no-cache")
   res.writeHead(200) |> ignore
@@ -510,41 +447,3 @@ fn serve_with_hmr_injection(
   }
 }
 
-///|
-fn get_content_type(file_path : String) -> String {
-  if file_path.ends_with(".html") {
-    "text/html; charset=utf-8"
-  } else if file_path.ends_with(".css") {
-    "text/css; charset=utf-8"
-  } else if file_path.ends_with(".js") {
-    "application/javascript; charset=utf-8"
-  } else if file_path.ends_with(".json") {
-    "application/json; charset=utf-8"
-  } else if file_path.ends_with(".svg") {
-    "image/svg+xml"
-  } else if file_path.ends_with(".png") {
-    "image/png"
-  } else if file_path.ends_with(".jpg") || file_path.ends_with(".jpeg") {
-    "image/jpeg"
-  } else if file_path.ends_with(".gif") {
-    "image/gif"
-  } else if file_path.ends_with(".ico") {
-    "image/x-icon"
-  } else if file_path.ends_with(".woff") {
-    "font/woff"
-  } else if file_path.ends_with(".woff2") {
-    "font/woff2"
-  } else if file_path.ends_with(".ttf") {
-    "font/ttf"
-  } else if file_path.ends_with(".xml") {
-    "application/xml"
-  } else if file_path.ends_with(".txt") {
-    "text/plain; charset=utf-8"
-  } else if file_path.ends_with(".wasm") {
-    "application/wasm"
-  } else if file_path.ends_with(".pf_meta") || file_path.ends_with(".pf_index") {
-    "application/octet-stream"
-  } else {
-    "application/octet-stream"
-  }
-}

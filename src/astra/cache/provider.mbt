@@ -28,7 +28,7 @@ pub fn LocalFileProvider::new(
 
 ///|
 /// Implement BuildStateProvider for LocalFileProvider
-pub impl @core_cache.BuildStateProvider for LocalFileProvider with get_content_state(
+pub impl BuildStateProvider for LocalFileProvider with get_content_state(
   self,
 ) {
   match self.cached_state {
@@ -42,7 +42,7 @@ pub impl @core_cache.BuildStateProvider for LocalFileProvider with get_content_s
 }
 
 ///|
-pub impl @core_cache.BuildStateProvider for LocalFileProvider with describe_state(
+pub impl BuildStateProvider for LocalFileProvider with describe_state(
   self,
 ) {
   let state = self.get_content_state()
@@ -59,21 +59,21 @@ pub fn check_local_build_state(
   config : @astra.SsgConfig,
   cwd : String,
   cache_dir : String,
-) -> @core_cache.BuildStateCheck {
+) -> BuildStateCheck {
   let provider = LocalFileProvider::new(config.docs_dir, cwd, config.exclude)
   let config_hash = compute_config_hash(config)
-  @core_cache.check_build_state(provider, config_hash, cache_dir, load_manifest)
+  check_build_state(provider, config_hash, cache_dir, load_manifest)
 }
 
 ///|
 /// Load manifest from cache directory (wrapper for core function)
-fn load_manifest(cache_dir : String) -> @core_cache.BuildManifest? {
+fn load_manifest(cache_dir : String) -> BuildManifest? {
   let path = @path.join2(cache_dir, "build-manifest.json")
   guard @fs.existsSync(path) else { return None }
   let content : String = @fs.readFileSync(path).to_string() catch {
     _ => return None
   }
-  @core_cache.BuildManifest::from_json(content)
+  BuildManifest::from_json(content)
 }
 
 ///|
@@ -84,7 +84,7 @@ pub fn save_manifest(
   cwd : String,
 ) -> Unit {
   let provider = LocalFileProvider::new(config.docs_dir, cwd, config.exclude)
-  let manifest = @core_cache.BuildManifest::new(
+  let manifest = BuildManifest::new(
     tool_version=astra_version,
     config_hash=compute_config_hash(config),
     content_state=provider.get_content_state(),

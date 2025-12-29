@@ -96,6 +96,119 @@ astra/isr の変更:
   - `file_scanner.mbt` (汎用スキャン) + `scanner.mbt` (ページスキャン) の構成
   - 全ての `@core_routes` 参照を `@sol_routes` に更新
 
-### 優先度: 低
-- `sol/cli` と `astra/cli` の統合検討
-- `core/cache` の sol への移動検討
+### 4. core/routes を sol/routes にマージ
+
+```
+削除: src/core/routes/
+統合先: src/sol/routes/
+```
+
+変更内容:
+- `RouteManifest`, `RouteEntry`, `StaticRouteEntry`, `DynamicRouteEntry` を sol/routes に移動
+- `RenderMode`, `HttpMethod`, `FileType`, `FallbackConfig` を sol/routes に移動
+- `PageConfig`, パターンユーティリティを sol/routes に移動
+- `file_scanner.mbt` と `scanner.mbt` の重複関数を整理
+- 全ての `@core_routes` 参照を `@sol_routes` に更新
+
+影響モジュール:
+- sol/router, sol/cli
+- astra/routes, astra/isr, astra/cli, astra/generator, astra/builder_pool
+
+### 5. core/cache を astra/cache にマージ
+
+```
+削除: src/core/cache/
+統合先: src/astra/cache/
+```
+
+変更内容:
+- `CacheEntry`, `CacheStatus` 型を astra/cache に移動
+- `DiskCache` 実装を astra/cache に移動
+- FNV-1a ハッシュ関数 (`fnv1a`, `fnv1a_64`, `hash_strings`, `hash_content`) を astra/cache に移動
+- `BuildStateProvider` trait と `BuildStateCheck` を astra/cache に移動
+- 全ての `@core_cache` 参照を `@astra_cache` に更新
+
+理由: キャッシュ機能は astra (SSG) 固有の機能であり、sol では使用していない。
+
+### 6. core/ssg は共有インフラとして維持
+
+**決定: core/ssg はそのまま保持**
+
+理由:
+- `I18nConfig`, `LocaleConfig`, `NavigationConfig` など共有型定義
+- sol と astra の両方から参照（11モジュール）
+- どちらにも偏らない純粋な型定義
+- 移動のコストに対してメリットが少ない
+
+### 7. HMR インフラを sol/hmr に抽出
+
+```
+新規作成: src/sol/hmr/
+削除: src/sol/cli/hmr_server.mbt (内容を sol/hmr に移動)
+削除: src/astra/cli/dev.mbt 内の HmrServer 実装
+```
+
+変更内容:
+- `sol/hmr/hmr_server.mbt` - 共有 HMR WebSocket サーバー
+  - `HmrServer::start(port)` - async でサーバー起動
+  - `HmrServer::notify_reload()` - フルリロード通知
+  - `HmrServer::notify_update(islands)` - 島別更新通知 (sol用)
+  - `HmrServer::notify_error(error)` - エラー通知
+  - `HmrServer::broadcast(message)` - 汎用ブロードキャスト
+- sol/cli と astra/cli の両方が `@hmr.HmrServer` を使用
+- 重複コードを削減
+
+### 8. CLI 共通ユーティリティを sol/cli_common に抽出
+
+```
+新規作成: src/sol/cli_common/
+削除: src/sol/cli/cli_utils.mbt
+削除: src/astra/cli/cli_utils.mbt
+```
+
+変更内容:
+- `sol/cli_common/utils.mbt` - 共通 CLI ユーティリティ
+  - `console_error(msg)` - エラー出力
+  - `keep_alive()` - Node.js イベントループ維持
+  - `date_now()` - タイムスタンプ取得
+- sol/cli と astra/cli の両方が `@cli_common` を使用
+- 重複コードを削減
+
+### 9. 設定ファイル探索を sol/cli_common に追加
+
+変更内容:
+- `sol/cli_common/utils.mbt` に追加:
+  - `find_config(fs, cwd, candidates, default)` - 汎用設定ファイル探索
+  - `astra_config_candidates` - Astra 用候補リスト
+  - `sol_config_candidates` - Sol 用候補リスト
+- astra/cli/build.mbt の `find_config_file_with_fs` を簡略化
+
+探索順序 (Astra):
+1. `astra.json` (ルート)
+2. `website/astra.json`
+3. `docs/astra.json`
+4. `sol.config.json` (フォールバック)
+
+### 10. ファイルシステムユーティリティを sol/cli_common に追加
+
+変更内容:
+- `sol/cli_common/utils.mbt` に追加:
+  - `rm_rf_sync(fs, path)` - ディレクトリ再帰削除
+- sol/cli/clean.mbt, dev.mbt, build.mbt で使用
+
+### 11. MIME タイプ検出を sol/cli_common に追加
+
+変更内容:
+- `sol/cli_common/utils.mbt` に追加:
+  - `get_content_type(file_path)` - ファイル拡張子からMIMEタイプを取得
+- astra/cli/dev.mbt から移動
+- 静的ファイル配信の開発サーバーで使用
+
+対応フォーマット:
+- HTML, CSS, JS, JSON, SVG
+- 画像 (PNG, JPG, GIF, ICO)
+- フォント (WOFF, WOFF2, TTF)
+- その他 (XML, TXT, WASM, Pagefind index)
+
+### 優先度: 低（将来検討）
+- `sol/cli` と `astra/cli` のさらなる統合 (共通コマンドパーサー等)

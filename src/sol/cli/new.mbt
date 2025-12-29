@@ -48,7 +48,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
   }
   // Require project name
   if result.positionals.is_empty() {
-    console_error(@colorette.red("Error: Project name is required"))
+    @cli_common.console_error(@colorette.red("Error: Project name is required"))
     println("")
     show_new_help()
     @process.exit(1)
@@ -56,14 +56,14 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
   let project_name = result.positionals[0]
   // Require --user option
   guard result.values.contains("user") else {
-    console_error(@colorette.red("Error: --user option is required"))
+    @cli_common.console_error(@colorette.red("Error: --user option is required"))
     println("")
     show_new_help()
     @process.exit(1)
   }
   let user_ns : String = result.values["user"].cast()
   if user_ns.is_empty() {
-    console_error(@colorette.red("Error: --user option value is required"))
+    @cli_common.console_error(@colorette.red("Error: --user option value is required"))
     @process.exit(1)
   }
   let dev_mode : Bool = if result.values.contains("dev") {
@@ -89,7 +89,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
   let project_dir = @path.join2(cwd, project_name)
   // Check if project directory already exists
   if fs.exists_sync(project_dir) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Directory '\{project_name}' already exists"),
     )
     @process.exit(1)
@@ -110,7 +110,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
       fs.write_file_sync(file_path, tmpl.content)
     } catch {
       e => {
-        console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
+        @cli_common.console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
         @process.exit(1)
       }
     }

@@ -1,7 +1,7 @@
 ///|
 /// Astra-specific Hash Utilities
 ///
-/// Uses core/cache/hash.mbt for underlying hash functions.
+/// Uses fnv_hash.mbt for underlying hash functions.
 
 ///|
 /// Compute hash for a page's cache key
@@ -10,7 +10,7 @@ pub fn compute_page_hash(
   frontmatter_json : String,
   config_hash : String,
 ) -> String {
-  @core_cache.hash_strings([source_content, frontmatter_json, config_hash])
+  hash_strings([source_content, frontmatter_json, config_hash])
 }
 
 ///|
@@ -27,7 +27,7 @@ pub fn compute_config_hash(config : @astra.SsgConfig) -> String {
     },
     config.theme.primary_color.unwrap_or(""),
   ]
-  @core_cache.fnv1a(parts.join("\u0000"))
+  fnv1a(parts.join("\u0000"))
 }
 
 ///|
@@ -43,7 +43,7 @@ pub fn compute_content_hash(
   collect_file_hashes(full_docs_dir, full_docs_dir, exclude, hashes)
   // Sort for deterministic hash
   hashes.sort_by(fn(a, b) { a.compare(b) })
-  @core_cache.fnv1a_64(hashes.join("\u0000"))
+  fnv1a_64(hashes.join("\u0000"))
 }
 
 ///|
@@ -72,7 +72,7 @@ fn collect_file_hashes(
       let content : String = @fs.readFileSync(full_path).to_string() catch {
         _ => continue
       }
-      let file_hash = @core_cache.hash_content(content, rel_path)
+      let file_hash = hash_content(content, rel_path)
       hashes.push(file_hash)
     }
   }

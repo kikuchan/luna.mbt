@@ -102,10 +102,10 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   }
   let full_config_path = @path.join2(cwd, config_path)
   if not(fs.exists_sync(full_config_path)) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Config file not found: \{config_path}"),
     )
-    console_error(
+    @cli_common.console_error(
       @colorette.gray("  Create astra.json or sol.config.json with ssg config"),
     )
     @process.exit(1)
@@ -114,14 +114,14 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   // Read and parse config
   let config_content : String = fs.read_file_sync(full_config_path) catch {
     e => {
-      console_error(@colorette.red("Error reading config: \{e}"))
+      @cli_common.console_error(@colorette.red("Error reading config: \{e}"))
       @process.exit(1)
       "" // unreachable
     }
   }
   let ssg_config = parse_config(config_content, config_path)
   guard ssg_config is Some(config) else {
-    console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_common.console_error(@colorette.red("Error: Invalid config file format"))
     @process.exit(1)
   }
 
@@ -151,7 +151,7 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
   let cache_dir = @path.join2(cwd, ".astra-cache")
   if not(force_build) {
     match @astra_cache.check_local_build_state(final_config, cwd, cache_dir) {
-      @core_cache.BuildStateCheck::UpToDate(built_at) => {
+      @astra_cache.BuildStateCheck::UpToDate(built_at) => {
         println(
           @colorette.green(
             "✓ Build skipped (no changes detected since \{built_at})",
@@ -182,7 +182,7 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
         )
       }
       Err(e) => {
-        console_error(@colorette.red("Build failed: \{e}"))
+        @cli_common.console_error(@colorette.red("Build failed: \{e}"))
         @process.exit(1)
       }
     }
@@ -197,7 +197,7 @@ async fn[FS : @env.FileSystem] run_build_command_with_fs(
         )
       }
       Err(e) => {
-        console_error(@colorette.red("Build failed: \{e}"))
+        @cli_common.console_error(@colorette.red("Build failed: \{e}"))
         @process.exit(1)
       }
     }
@@ -316,22 +316,12 @@ fn[FS : @env.FileSystem] find_config_file_with_fs(
   fs : FS,
   cwd : String,
 ) -> String {
-  // Search order:
-  // 1. astra.json (root)
-  // 2. website/astra.json (common docs directory)
-  // 3. docs/astra.json (common docs directory)
-  // 4. sol.config.json (root, fallback)
-  let candidates = [
-    "astra.json", "website/astra.json", "docs/astra.json", "sol.config.json",
-  ]
-  for candidate in candidates {
-    let full_path = @path.join2(cwd, candidate)
-    if fs.exists_sync(full_path) {
-      return candidate
-    }
-  }
-  // Return default (will fail later with proper error message)
-  "astra.json"
+  @cli_common.find_config(
+    fs,
+    cwd,
+    @cli_common.astra_config_candidates,
+    "astra.json",
+  )
 }
 
 ///|

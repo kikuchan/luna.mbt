@@ -52,7 +52,7 @@ fn[FS : @env.FileSystem] run_clean_command_with_fs(
     let dir_path = @path.join2(cwd, dir)
     if fs.exists_sync(dir_path) {
       println(@colorette.gray("Removing \{dir}/..."))
-      rm_rf_sync_with_fs(fs, dir_path)
+      @cli_common.rm_rf_sync(fs, dir_path)
       cleaned = cleaned + 1
     }
   }
@@ -61,7 +61,7 @@ fn[FS : @env.FileSystem] run_clean_command_with_fs(
     let target_path = @path.join2(cwd, "target")
     if fs.exists_sync(target_path) {
       println(@colorette.gray("Removing target/..."))
-      rm_rf_sync_with_fs(fs, target_path)
+      @cli_common.rm_rf_sync(fs, target_path)
       cleaned = cleaned + 1
     }
   }
@@ -72,9 +72,3 @@ fn[FS : @env.FileSystem] run_clean_command_with_fs(
   }
 }
 
-///|
-fn[FS : @env.FileSystem] rm_rf_sync_with_fs(fs : FS, path : String) -> Unit {
-  fs.rmdir_sync(path, true) catch {
-    _ => ()
-  }
-}

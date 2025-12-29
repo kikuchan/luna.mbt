@@ -4,14 +4,6 @@
     "js"
   ],
   "import": [
-    {
-      "path": "mizchi/js/core",
-      "alias": "js"
-    },
-    {
-      "path": "mizchi/js/web/console",
-      "alias": "console"
-    },
     "moonbitlang/async",
     {
       "path": "mizchi/js/node/process",
@@ -98,8 +90,12 @@
       "alias": "astra_cache"
     },
     {
-      "path": "mizchi/luna/core/cache",
-      "alias": "core_cache"
+      "path": "mizchi/luna/sol/hmr",
+      "alias": "hmr"
+    },
+    {
+      "path": "mizchi/luna/sol/cli_common",
+      "alias": "cli_common"
     }
   ],
   "warn-list": "-27-20",

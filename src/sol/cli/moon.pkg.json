@@ -6,10 +6,6 @@
   "import": [
     "moonbitlang/async",
     {
-      "path": "mizchi/js/web/console",
-      "alias": "console"
-    },
-    {
       "path": "mizchi/luna/internal/json_utils",
       "alias": "json_utils"
     },
@@ -64,6 +60,14 @@
     {
       "path": "mizchi/luna/core/parser",
       "alias": "parser"
+    },
+    {
+      "path": "mizchi/luna/sol/hmr",
+      "alias": "hmr"
+    },
+    {
+      "path": "mizchi/luna/sol/cli_common",
+      "alias": "cli_common"
     }
   ],
   "warn-list": "-27-20"

@@ -64,7 +64,7 @@ async fn main {
     "dev" => run_dev_command(command_args)
     "lint" => run_lint_command(command_args)
     _ => {
-      console_error(@colorette.red("Error: Unknown command '\{command}'"))
+      @cli_common.console_error(@colorette.red("Error: Unknown command '\{command}'"))
       println("")
       show_help()
       @process.exit(1)

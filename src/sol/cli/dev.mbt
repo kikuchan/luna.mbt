@@ -67,7 +67,7 @@ async fn[FS : @env.FileSystem] run_dev_command_with_fs(
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
   if not(fs.exists_sync(moon_mod_path)) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
     @process.exit(1)
@@ -80,13 +80,13 @@ async fn[FS : @env.FileSystem] run_dev_command_with_fs(
     let target_dir = @path.join2(cwd, "target")
     println(@colorette.gray("Cleaning generated files..."))
     if fs.exists_sync(sol_dir) {
-      rm_rf_sync_with_fs(fs, sol_dir)
+      @cli_common.rm_rf_sync(fs, sol_dir)
     }
     if fs.exists_sync(gen_dir) {
-      rm_rf_sync_with_fs(fs, gen_dir)
+      @cli_common.rm_rf_sync(fs, gen_dir)
     }
     if fs.exists_sync(target_dir) {
-      rm_rf_sync_with_fs(fs, target_dir)
+      @cli_common.rm_rf_sync(fs, target_dir)
     }
     println(@colorette.green("✓ Clean complete"))
   }
@@ -118,12 +118,12 @@ fn[FS : @env.FileSystem] run_initial_build_dev_with_fs(
   // Clean stale static files before rebuild to avoid hash conflicts
   let static_dir = @path.join2(cwd, ".sol/dev/static")
   if fs.exists_sync(static_dir) {
-    rm_rf_sync_with_fs(fs, static_dir)
+    @cli_common.rm_rf_sync(fs, static_dir)
   }
   // Also remove .sol/prod to avoid serve_static priority issues
   let prod_dir = @path.join2(cwd, ".sol/prod")
   if fs.exists_sync(prod_dir) {
-    rm_rf_sync_with_fs(fs, prod_dir)
+    @cli_common.rm_rf_sync(fs, prod_dir)
   }
   // Run generate if sol.config.json exists (only at startup)
   let sol_config_path = @path.join2(cwd, "sol.config.json")
@@ -153,7 +153,7 @@ fn[FS : @env.FileSystem] run_incremental_build_dev_with_fs(
   // Clean stale static files before rebuild to avoid hash conflicts
   let static_dir = @path.join2(cwd, ".sol/dev/static")
   if fs.exists_sync(static_dir) {
-    rm_rf_sync_with_fs(fs, static_dir)
+    @cli_common.rm_rf_sync(fs, static_dir)
   }
   // Build MoonBit project
   println(@colorette.gray("Building MoonBit project..."))
@@ -164,12 +164,12 @@ fn[FS : @env.FileSystem] run_incremental_build_dev_with_fs(
       stdio="inherit",
     )
     if build_result.status() != Some(0) {
-      console_error(@colorette.red("Build failed"))
+      @cli_common.console_error(@colorette.red("Build failed"))
       return false
     }
   } catch {
     e => {
-      console_error(@colorette.red("Build error: \{e}"))
+      @cli_common.console_error(@colorette.red("Build error: \{e}"))
       return false
     }
   }
@@ -189,13 +189,13 @@ fn[FS : @env.FileSystem] run_incremental_build_dev_with_fs(
         cwd~,
       )
       if bundle_result.status() != Some(0) {
-        console_error(@colorette.red("Rolldown bundle failed"))
+        @cli_common.console_error(@colorette.red("Rolldown bundle failed"))
         return false
       }
       println(@colorette.green("✓ Client bundle complete"))
     } catch {
       e => {
-        console_error(@colorette.red("Bundle error: \{e}"))
+        @cli_common.console_error(@colorette.red("Bundle error: \{e}"))
         return false
       }
     }
@@ -215,7 +215,7 @@ async fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
   let entry = find_server_entry_with_fs(fs, cwd, "dev")
   match entry {
     None => {
-      console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_common.console_error(@colorette.red("Error: Could not find server entry point"))
       @process.exit(1)
     }
     Some(entry_path) => {
@@ -223,7 +223,7 @@ async fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
       set_env("PORT", port)
       set_env("SOL_DEV", "1") // Enable HMR script injection
       // Start HMR WebSocket server
-      let hmr_server = HmrServer::start(hmr_port)
+      let hmr_server = @hmr.HmrServer::start(hmr_port)
       // Start server process (non-blocking)
       let server_proc : Ref[@child_process.ChildProcess?] = { val: None }
       fn start_server() -> Unit {
@@ -292,7 +292,7 @@ async fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
             if filename.ends_with(".mbt") &&
               event == "change" &&
               not(is_generated) {
-              let now = date_now()
+              let now = @cli_common.date_now()
               // Debounce rapid changes
               if now - last_rebuild.val > debounce_ms {
                 last_rebuild.val = now
@@ -339,7 +339,7 @@ async fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
         }
       }
       // Keep process alive
-      keep_alive()
+      @cli_common.keep_alive()
     }
   }
 }
@@ -366,14 +366,6 @@ fn[FS : @env.FileSystem] find_server_entry_with_fs(
   }
   None
 }
-
-///|
-extern "js" fn date_now() -> Double =
-  #| () => Date.now()
-
-///|
-extern "js" fn keep_alive() -> Unit =
-  #| () => { setInterval(() => {}, 1000 * 60 * 60) }
 
 ///|
 fn run_server(cwd : String, port : String, mode : String) -> Unit {
@@ -407,7 +399,7 @@ fn[FS : @env.FileSystem] run_server_with_fs(
   }
   match entry_point {
     None => {
-      console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_common.console_error(@colorette.red("Error: Could not find server entry point"))
       println(@colorette.gray("Expected one of:"))
       for entry in possible_entries {
         println(@colorette.gray("  - \{entry}"))
@@ -430,7 +422,7 @@ fn[FS : @env.FileSystem] run_server_with_fs(
         @process.exit(exit_code)
       } catch {
         e => {
-          console_error(@colorette.red("Server error: \{e}"))
+          @cli_common.console_error(@colorette.red("Server error: \{e}"))
           @process.exit(1)
         }
       }

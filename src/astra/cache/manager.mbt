@@ -2,7 +2,7 @@
 /// Cache Manager for Disk-based Build Cache
 ///
 /// Manages cached rendered HTML to skip unchanged pages.
-/// Uses core/cache/DiskCache for the underlying storage.
+/// Uses disk_cache.mbt for the underlying storage.
 
 ///|
 /// Default cache directory name
@@ -11,7 +11,7 @@ let default_cache_dir : String = ".astra-cache"
 ///|
 /// Cache manager wrapping core DiskCache
 pub(all) struct CacheManager {
-  cache : @core_cache.DiskCache[@fs_adapter.NodeFsAdapter]
+  cache : DiskCache[@fs_adapter.NodeFsAdapter]
   enabled : Bool
 }
 
@@ -25,7 +25,7 @@ pub fn CacheManager::new(
   let cache_dir = @path.join2(cwd, default_cache_dir)
   let config_hash = compute_config_hash(config)
   let fs = @fs_adapter.NodeFsAdapter::new()
-  let cache = @core_cache.DiskCache::new(fs, cache_dir~, config_hash~, enabled~)
+  let cache = DiskCache::new(fs, cache_dir~, config_hash~, enabled~)
   CacheManager::{ cache, enabled }
 }
 
@@ -36,8 +36,8 @@ pub fn[F : @env.FileSystem] CacheManager::with_fs(
   cache_dir : String,
   config_hash : String,
   enabled? : Bool = true,
-) -> @core_cache.DiskCache[F] {
-  @core_cache.DiskCache::new(fs, cache_dir~, config_hash~, enabled~)
+) -> DiskCache[F] {
+  DiskCache::new(fs, cache_dir~, config_hash~, enabled~)
 }
 
 ///|
@@ -51,7 +51,7 @@ pub fn CacheManager::get(
     return None
   }
   match self.cache.get_with_hash(url_path, source_hash) {
-    @core_cache.Hit(content) => Some(content)
+    Hit(content) => Some(content)
     _ => None
   }
 }

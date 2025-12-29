@@ -46,7 +46,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
   }
   // Require project name
   if result.positionals.is_empty() {
-    console_error(@colorette.red("Error: Project name is required"))
+    @cli_common.console_error(@colorette.red("Error: Project name is required"))
     println("")
     show_new_help()
     @process.exit(1)
@@ -62,7 +62,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
   let project_dir = @path.join2(cwd, project_name)
   // Check if project directory already exists
   if fs.exists_sync(project_dir) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Directory '\{project_name}' already exists"),
     )
     @process.exit(1)
@@ -80,7 +80,7 @@ fn[FS : @env.FileSystem] run_new_command_with_fs(
       fs.write_file_sync(file_path, tmpl.content)
     } catch {
       e => {
-        console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
+        @cli_common.console_error(@colorette.red("Error creating file \{tmpl.path}: \{e}"))
         @process.exit(1)
       }
     }

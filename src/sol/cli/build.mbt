@@ -85,7 +85,7 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
   // Check if this is a MoonBit project
   let moon_mod_path = @path.join2(cwd, "moon.mod.json")
   if not(fs.exists_sync(moon_mod_path)) {
-    console_error(
+    @cli_common.console_error(
       @colorette.red("Error: Not a MoonBit project (moon.mod.json not found)"),
     )
     @process.exit(1)
@@ -97,13 +97,13 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
     let gen_dir = @path.join2(cwd, "app/__gen__")
     let target_dir = @path.join2(cwd, "target")
     if fs.exists_sync(sol_dir) {
-      rm_rf_sync_with_fs(fs, sol_dir)
+      @cli_common.rm_rf_sync(fs, sol_dir)
     }
     if fs.exists_sync(gen_dir) {
-      rm_rf_sync_with_fs(fs, gen_dir)
+      @cli_common.rm_rf_sync(fs, gen_dir)
     }
     if fs.exists_sync(target_dir) {
-      rm_rf_sync_with_fs(fs, target_dir)
+      @cli_common.rm_rf_sync(fs, target_dir)
     }
     println(@colorette.green("✓ Clean complete"))
   }
@@ -122,12 +122,12 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
       stdio="inherit",
     )
     if build_result.status() != Some(0) {
-      console_error(@colorette.red("Moon build failed"))
+      @cli_common.console_error(@colorette.red("Moon build failed"))
       @process.exit(1)
     }
   } catch {
     e => {
-      console_error(@colorette.red("Build error: \{e}"))
+      @cli_common.console_error(@colorette.red("Build error: \{e}"))
       @process.exit(1)
     }
   }
@@ -153,12 +153,12 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
         cwd~,
       )
       if bundle_result.status() != Some(0) {
-        console_error(@colorette.red("Rolldown bundle failed"))
+        @cli_common.console_error(@colorette.red("Rolldown bundle failed"))
         @process.exit(1)
       }
     } catch {
       e => {
-        console_error(@colorette.red("Bundle error: \{e}"))
+        @cli_common.console_error(@colorette.red("Bundle error: \{e}"))
         @process.exit(1)
       }
     }

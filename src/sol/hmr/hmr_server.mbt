@@ -1,6 +1,9 @@
+// HMR WebSocket Server
+//
+// Shared module for Hot Module Replacement WebSocket functionality.
+// Used by both sol/cli and astra/cli for development servers.
+
 ///|
-/// HMR WebSocket Server
-/// Provides WebSocket server functionality for Hot Module Replacement
 /// WebSocket server handle (opaque type wrapping Node.js WebSocketServer)
 pub struct HmrServer {
   priv inner : @js.Any
@@ -24,7 +27,7 @@ pub async fn HmrServer::start(port : Int) -> HmrServer {
   inner._call("on", [
     @js.any("error"),
     @js.any(fn(err : @js.Any) {
-      console_error(@colorette.red("[HMR] Server error: \{err}"))
+      @console.error(@js.any("[HMR] Server error: \{err}"))
     }),
   ])
   |> ignore
@@ -39,12 +42,12 @@ pub fn HmrServer::broadcast(self : HmrServer, message : String) -> Unit {
 }
 
 ///|
-/// Send update notification for specific islands
+/// Send update notification for specific islands (sol-style granular HMR)
 pub fn HmrServer::notify_update(
   self : HmrServer,
   islands : Array[String],
 ) -> Unit {
-  let timestamp = date_now().to_int()
+  let timestamp = @cli_common.date_now().to_int()
   let q = "\""
   let islands_json = islands.map(fn(s) { q + s + q }).join(",")
   let msg = "{" +
@@ -74,7 +77,14 @@ pub fn HmrServer::notify_update(
 }
 
 ///|
-/// Send full reload request
+/// Send full reload request (used by both sol and astra)
+pub fn HmrServer::notify_reload(self : HmrServer) -> Unit {
+  self.broadcast("{\"type\":\"reload\"}")
+  println(@colorette.green("[HMR] Sent reload"))
+}
+
+///|
+/// Send full reload request (alias for notify_reload)
 pub fn HmrServer::notify_full_reload(self : HmrServer) -> Unit {
   self.broadcast("{\"type\":\"full-reload\"}")
   println(@colorette.yellow("[HMR] Sent full-reload"))
@@ -137,6 +147,16 @@ pub fn HmrServer::client_count(self : HmrServer) -> Int {
 }
 
 ///|
+/// Get the port this server is listening on
+pub fn HmrServer::get_port(self : HmrServer) -> Int {
+  self.port
+}
+
+// =============================================================================
+// Utilities
+// =============================================================================
+
+///|
 fn escape_json_string(s : String) -> String {
   s
   .replace(old="\\", new="\\\\")
@@ -146,7 +166,9 @@ fn escape_json_string(s : String) -> String {
   .replace(old="\t", new="\\t")
 }
 
-// FFI functions
+// =============================================================================
+// FFI Functions
+// =============================================================================
 
 ///|
 /// Create WebSocket server using 'ws' package (async for ESM compatibility)

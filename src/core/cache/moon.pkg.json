@@ -1,5 +1,0 @@
-{
-  "import": [
-    { "path": "mizchi/luna/core/env", "alias": "env" }
-  ]
-}
