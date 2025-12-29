@@ -1,33 +1,7 @@
 // Astra Builder Pool - Worker Entry Point
 //
-// This module is the entry point for worker processes spawned by the BuilderPool.
-// It receives IPC messages from the parent process and generates pages.
-
-// =============================================================================
-// FFI for IPC Communication
-// =============================================================================
-
-///|
-/// Listen for IPC messages from parent process
-/// Callback receives the message object
-extern "js" fn ffi_on_message(callback : (@core.Any) -> Unit) -> Unit =
-  #| (callback) => {
-  #|   process.on("message", (msg) => callback(msg));
-  #| }
-
-///|
-/// Send IPC message to parent process
-extern "js" fn ffi_send_message(message : @core.Any) -> Bool =
-  #| (message) => {
-  #|   return process.send(message);
-  #| }
-
-///|
-/// Exit the worker process
-extern "js" fn ffi_exit(code : Int) -> Unit =
-  #| (code) => {
-  #|   process.exit(code);
-  #| }
+// This module is the entry point for worker processes spawned by the WorkerPool.
+// Uses sol/builder for IPC infrastructure.
 
 // =============================================================================
 // Worker State
@@ -57,35 +31,19 @@ let worker_ctx : Ref[WorkerContext?] = Ref::new(None)
 // =============================================================================
 
 ///|
-/// Send ready message to parent
-fn send_ready() -> Unit {
-  let obj = @core.new_object()
-  obj["type"] = @core.any("ready")
-  ffi_send_message(obj) |> ignore
-}
-
-///|
-/// Send done message to parent
-fn send_done(result : JobResult) -> Unit {
-  ffi_send_message(result.to_json()) |> ignore
-}
-
-///|
-/// Send error message to parent
-fn send_error(message : String) -> Unit {
-  let obj = @core.new_object()
-  obj["type"] = @core.any("error")
-  obj["message"] = @core.any(message)
-  ffi_send_message(obj) |> ignore
-}
-
-///|
 /// Handle Init message
-async fn handle_init(data : WorkerInitData) -> Unit {
+async fn handle_init(data_json : String) -> Unit {
+  // Parse init data JSON
+  let obj = parse_json_string(data_json)
+  guard WorkerInitData::from_json(obj) is Some(data) else {
+    @builder.send_error("Failed to parse init data JSON")
+    return
+  }
+
   // Parse config JSON
   let config = ssg_config_from_json(data.config_json)
   guard config is Some(cfg) else {
-    send_error("Failed to parse config JSON")
+    @builder.send_error("Failed to parse config JSON")
     return
   }
 
@@ -108,22 +66,25 @@ async fn handle_init(data : WorkerInitData) -> Unit {
   })
 
   // Notify parent we're ready
-  send_ready()
+  @builder.send_ready()
 }
 
 ///|
 /// Handle Job message
-fn handle_job(page_index : Int) -> Unit {
+fn handle_job(job_id : Int) -> Unit {
   guard worker_ctx.val is Some(ctx) else {
-    send_error("Worker not initialized")
+    @builder.send_error("Worker not initialized")
     return
   }
 
+  // job_id is the page index
+  let page_index = job_id
+
   // Validate page index
   if page_index < 0 || page_index >= ctx.pages.length() {
-    send_done(JobResult::{
-      page_index,
-      url_path: "",
+    @builder.send_done(@builder.JobResult::{
+      job_id,
+      output_path: "",
       success: false,
       error: Some("Invalid page index: \{page_index}"),
     })
@@ -143,16 +104,16 @@ fn handle_job(page_index : Int) -> Unit {
   // Generate the page
   match @generator.generate_single_page(build_ctx, page, ctx.highlighter) {
     Ok(_) =>
-      send_done(JobResult::{
-        page_index,
-        url_path: page.url_path,
+      @builder.send_done(@builder.JobResult::{
+        job_id,
+        output_path: page.url_path,
         success: true,
         error: None,
       })
     Err(e) =>
-      send_done(JobResult::{
-        page_index,
-        url_path: page.url_path,
+      @builder.send_done(@builder.JobResult::{
+        job_id,
+        output_path: page.url_path,
         success: false,
         error: Some(e),
       })
@@ -162,7 +123,7 @@ fn handle_job(page_index : Int) -> Unit {
 ///|
 /// Handle Shutdown message
 fn handle_shutdown() -> Unit {
-  ffi_exit(0)
+  @builder.exit(0)
 }
 
 // =============================================================================
@@ -175,24 +136,15 @@ async fn handle_message_async(msg : @core.Any) -> Unit {
   let msg_type : String = msg["type"].cast()
   match msg_type {
     "init" => {
-      let config_json : String = msg["configJson"].cast()
-      let pages_json : String = msg["pagesJson"].cast()
-      let sidebar_json : String = msg["sidebarJson"].cast()
-      let cwd : String = msg["cwd"].cast()
-      let init_data = WorkerInitData::{
-        config_json,
-        pages_json,
-        sidebar_json,
-        cwd,
-      }
-      handle_init(init_data)
+      let data_json : String = msg["data"].cast()
+      handle_init(data_json)
     }
     "job" => {
-      let page_index : Int = msg["pageIndex"].cast()
-      handle_job(page_index)
+      let job_id : Int = msg["jobId"].cast()
+      handle_job(job_id)
     }
     "shutdown" => handle_shutdown()
-    _ => send_error("Unknown message type: \{msg_type}")
+    _ => @builder.send_error("Unknown message type: \{msg_type}")
   }
 }
 
@@ -203,10 +155,19 @@ async fn handle_message_async(msg : @core.Any) -> Unit {
 ///|
 /// Start the worker and listen for IPC messages
 pub fn start_worker() -> Unit {
-  // Set up message handler
-  ffi_on_message(fn(msg) {
+  // Set up message handler using sol/builder IPC
+  @builder.on_message(fn(msg) {
     // Handle message - spawn async task using Promise
     let _ = @core.from_async(async fn() { handle_message_async(msg) })
 
   })
 }
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+///|
+/// Parse JSON string to Any object
+extern "js" fn parse_json_string(json : String) -> @core.Any =
+  #| (json) => JSON.parse(json)

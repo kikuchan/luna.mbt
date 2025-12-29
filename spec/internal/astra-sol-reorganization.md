@@ -210,5 +210,40 @@ astra/isr の変更:
 - フォント (WOFF, WOFF2, TTF)
 - その他 (XML, TXT, WASM, Pagefind index)
 
+### 12. 汎用ワーカープールを sol/builder に抽出
+
+```
+新規作成: src/sol/builder/
+変更: src/astra/builder_pool/
+```
+
+変更内容:
+- `sol/builder` に汎用ワーカープールインフラを作成:
+  - `types.mbt` - PoolConfig, WorkerState, JobResult, IPC messages
+  - `pool.mbt` - WorkerPool (ジョブ管理、ワーカー制御)
+  - `worker_ipc.mbt` - FFI (on_message, send_message, exit) とヘルパー
+- `astra/builder_pool` を sol/builder を使用するように更新:
+  - `types.mbt` - WorkerInitData (astra固有)、PageJobResult (ラッパー)
+  - `pool.mbt` - run_parallel_build (@builder.WorkerPool を使用)
+  - `worker.mbt` - @builder IPC helpers を使用
+
+sol/builder API:
+```moonbit
+// Pool management
+WorkerPool::new(config, init_data_json) -> WorkerPool
+WorkerPool::submit_jobs(job_ids)
+WorkerPool::wait_all() -> Array[JobResult]
+WorkerPool::shutdown()
+
+// Worker IPC (for custom workers)
+on_message(callback)
+send_message(message)
+send_ready()
+send_done(result)
+send_error(message)
+exit(code)
+```
+
 ### 優先度: 低（将来検討）
 - `sol/cli` と `astra/cli` のさらなる統合 (共通コマンドパーサー等)
+- SSR 用 sol/adapters (Node.js, Deno, Cloudflare Workers ランタイム)
