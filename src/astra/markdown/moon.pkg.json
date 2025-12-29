@@ -2,7 +2,7 @@
   "import": [
     { "path": "mizchi/luna/luna", "alias": "luna" },
     { "path": "mizchi/luna/astra", "alias": "astra" },
-    { "path": "mizchi/luna/astra/frontmatter", "alias": "frontmatter" },
+    { "path": "mizchi/luna/sol/content/frontmatter", "alias": "frontmatter" },
     { "path": "mizchi/luna/astra/cst", "alias": "cst" },
     { "path": "mizchi/luna/astra/toc", "alias": "toc" },
     { "path": "mizchi/markdown/slug", "alias": "slug" },

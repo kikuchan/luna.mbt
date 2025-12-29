@@ -6,6 +6,6 @@
     { "path": "mizchi/luna/core/ssg", "alias": "ssg" },
     { "path": "mizchi/luna/astra", "alias": "astra" },
     { "path": "mizchi/luna/astra/generator", "alias": "generator" },
-    { "path": "mizchi/luna/astra/shiki", "alias": "shiki" }
+    { "path": "mizchi/luna/sol/content/shiki", "alias": "shiki" }
   ]
 }
