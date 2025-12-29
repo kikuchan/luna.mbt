@@ -282,7 +282,10 @@ pub fn show(when : () -> Bool, render_fn : () -> DomNode) -> DomNode {
       (true, false) =>
         // Need to show - create and insert nodes
         if placeholder.parentNode() is Some(parent) {
-          let nodes = render_with_scope()
+          // Use untracked to prevent child signals from being registered
+          // as dependencies of this Show's effect. This prevents infinite
+          // loops when nested Show components access signals.
+          let nodes = @signal.untracked(fn() { render_with_scope() })
           for node in nodes {
             parent.insertBefore(node, Some(placeholder)) |> ignore
           }
@@ -367,9 +370,14 @@ pub fn[T] for_each(
       is_first.val = false
       return
     }
-    reconcile_for_each_with_dispose(
-      entries, placeholder, new_items, render_with_scope,
-    )
+    // Use untracked to prevent child signals from being registered
+    // as dependencies of this For's effect. This prevents infinite
+    // loops when nested components access signals.
+    @signal.untracked(fn() {
+      reconcile_for_each_with_dispose(
+        entries, placeholder, new_items, render_with_scope,
+      )
+    })
   })
   Raw(fragment.as_node())
 }
@@ -507,9 +515,11 @@ pub fn[T] index_each(
     }
 
     // Add new nodes for indices beyond old length
+    // Use untracked to prevent child signals from being registered
+    // as dependencies of this Index's effect
     while entries.length() < new_len {
       let i = entries.length()
-      let entry = render_with_scope(i)
+      let entry = @signal.untracked(fn() { render_with_scope(i) })
       entries.push(entry)
       if placeholder.parentNode() is Some(par) {
         par.insertBefore(entry.node, Some(placeholder)) |> ignore

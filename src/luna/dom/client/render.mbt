@@ -49,7 +49,12 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         match (should_show, current_node) {
           (true, None) =>
             if placeholder.parentNode() is Some(par) {
-              let rendered = render_vnode_to_dom(child_fn())
+              // Use untracked to prevent child signals from being registered
+              // as dependencies of this Show's effect. This prevents infinite
+              // loops when nested Show components access signals.
+              let rendered = @signal.untracked(fn() {
+                render_vnode_to_dom(child_fn())
+              })
               par.insertBefore(rendered, Some(placeholder)) |> ignore
               current_node = Some(rendered)
             }
@@ -100,9 +105,11 @@ pub fn render_vnode_to_dom(node : @luna.Node[@js.Any]) -> @js_dom.Node {
         current_nodes.clear()
 
         // Insert new items before the placeholder
+        // Use untracked to prevent child signals from being registered
+        // as dependencies of this For's effect
         if placeholder.parentNode() is Some(parent) {
           for item in new_items {
-            let rendered = render_vnode_to_dom(item)
+            let rendered = @signal.untracked(fn() { render_vnode_to_dom(item) })
             current_nodes.push(rendered)
             parent.insertBefore(rendered, Some(placeholder)) |> ignore
           }
@@ -361,8 +368,12 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
     current_node = None
 
     // Render new content
+    // Use untracked to prevent child signals from being registered
+    // as dependencies of this Switch's effect
     if new_case >= 0 {
-      let node = render_vnode_to_dom((switch_node.cases[new_case].render)())
+      let node = @signal.untracked(fn() {
+        render_vnode_to_dom((switch_node.cases[new_case].render)())
+      })
       current_node = Some(node)
       if placeholder.parentNode() is Some(par) {
         par.insertBefore(node, Some(placeholder)) |> ignore
@@ -370,7 +381,9 @@ fn render_switch_to_dom(switch_node : @luna.VSwitch[@js.Any]) -> @js_dom.Node {
     } else if new_case == -1 {
       match switch_node.fallback {
         Some(fallback_fn) => {
-          let node = render_vnode_to_dom(fallback_fn())
+          let node = @signal.untracked(fn() {
+            render_vnode_to_dom(fallback_fn())
+          })
           current_node = Some(node)
           if placeholder.parentNode() is Some(par) {
             par.insertBefore(node, Some(placeholder)) |> ignore
