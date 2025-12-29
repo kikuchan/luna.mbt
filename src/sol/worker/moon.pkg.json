@@ -2,7 +2,7 @@
   "is-main": true,
   "supported-targets": ["js"],
   "import": [
-    { "path": "mizchi/luna/astra/builder_pool", "alias": "builder_pool" }
+    { "path": "mizchi/luna/sol/builder_pool", "alias": "builder_pool" }
   ],
   "link": {
     "js": {

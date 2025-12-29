@@ -146,9 +146,9 @@ async fn run_parallel_ssg_build(
       let js = @path.join2(target, "js")
       let release = @path.join2(js, "release")
       let build = @path.join2(release, "build")
-      let astra = @path.join2(build, "astra")
-      let worker_dir = @path.join2(astra, "astra_worker")
-      @path.join2(worker_dir, "astra_worker.js")
+      let sol = @path.join2(build, "sol")
+      let worker_dir = @path.join2(sol, "worker")
+      @path.join2(worker_dir, "worker.js")
     } else {
       global_path
     }

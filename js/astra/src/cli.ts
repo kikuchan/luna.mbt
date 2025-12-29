@@ -15,4 +15,4 @@ const __dirname = dirname(__filename);
 (globalThis as any).__astra_worker_script = join(__dirname, "worker.js");
 
 // Import MoonBit CLI (dynamic import to ensure globalThis is set first)
-await import("../../../target/js/release/build/astra/cli/cli");
+await import("../../../target/js/release/build/sol/cli/cli");

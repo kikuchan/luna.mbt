@@ -22,7 +22,7 @@
       "alias": "ssg_routes"
     },
     {
-      "path": "mizchi/luna/astra/builder_pool",
+      "path": "mizchi/luna/sol/builder_pool",
       "alias": "builder_pool"
     },
     {
@@ -34,7 +34,7 @@
       "alias": "tree"
     },
     {
-      "path": "mizchi/luna/astra/adapters",
+      "path": "mizchi/luna/sol/adapters",
       "alias": "adapters"
     },
     {
