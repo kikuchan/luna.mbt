@@ -70,15 +70,15 @@ async fn main {
     "clean" => run_clean_command(command_args)
     "ssg" => {
       // Redirect to sol build with ssg
-      println(
-        @colorette.yellow("Note: 'sol ssg' is now part of 'sol build'."),
-      )
+      println(@colorette.yellow("Note: 'sol ssg' is now part of 'sol build'."))
       println("")
       println("SSG is automatically detected via astra.json or sol.config.json")
       @process.exit(0)
     }
     _ => {
-      @cli_common.console_error(@colorette.red("Error: Unknown command '\{command}'"))
+      @cli_common.console_error(
+        @colorette.red("Error: Unknown command '\{command}'"),
+      )
       println("")
       show_help()
       @process.exit(1)

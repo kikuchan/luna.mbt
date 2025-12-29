@@ -137,7 +137,7 @@ MoonBitからスタンドアロンで配布可能なWeb Componentsを構築：
 | パッケージ | 説明 |
 |-----------|------|
 | `@luna_ui/luna` | コアUIライブラリ + CLI |
-| `@luna_ui/astra` | 静的サイトジェネレーターCLI |
+| `@luna_ui/sol` | SSR/SSGフレームワークCLI（Astra SSG含む） |
 | `@luna_ui/stella` | Web ComponentsジェネレーターCLI |
 | `@luna_ui/wcr` | Web Componentsランタイム（Stella用） |
 
@@ -160,7 +160,7 @@ cd myapp && moon update && npm install && npm run dev
 ### Astra (ドキュメントサイト)
 
 ```bash
-npx @luna_ui/astra new my-docs
+npx @luna_ui/sol new my-docs --ssg
 cd my-docs && npm install && npm run dev
 ```
 

@@ -6,6 +6,51 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- **luna**: Prevent infinite loop in nested Show/For components
+- **luna**: Require function children for control flow components
+- **luna**: Add cross-platform support for queue_microtask
+
+### Documentation
+
+- **spec**: Add analysis of astra_worker and generator extraction
+- Update examples and changelog for lifecycle hooks
+- Translate code comments and READMEs to English
+
+### Features
+
+- **sol**: Add manifest_to_sol_routes for handler injection
+- **luna**: Align effect semantics with Solid.js
+
+### Miscellaneous
+
+- V0.3.0
+- Format code and update CHANGELOG
+- V0.2.7
+- Format code and update CHANGELOG
+- Doc
+
+### Refactor
+
+- **js**: Rename js/astra to js/sol
+- **sol**: Move adapters, builder_pool, worker from astra to sol
+- **cli**: Unify sol and astra CLI, remove astra/cli
+- **content**: Move markdown processor to sol/content/md_render
+- **content**: Move markdown types, toc, cst to sol/content
+- **content**: Move shiki and frontmatter to sol/content
+- **builder**: Extract generic worker pool to sol/builder
+- **cli**: Extract shared utilities to sol/cli_common and sol/hmr
+- **sol**: Merge core/routes into sol/routes
+- **sol**: Extract file scanning infrastructure to sol/routes
+- **sol**: Merge core/isr into sol/isr
+- **sol**: Move browser_router from luna/dom to sol
+- **signal**: Extract with_parent_owner utility for owner context inheritance
+- **docs**: Use `using` statement in astra_app SSR component
+- **examples**: Use `using` statements for cleaner imports
+
+## [Unreleased]
+
+### Bug Fixes
+
 - **luna**: Require function children for control flow components
 - **luna**: Add cross-platform support for queue_microtask
 

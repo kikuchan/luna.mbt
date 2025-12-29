@@ -2,9 +2,9 @@
 package "mizchi/luna/astra"
 
 import(
-  "mizchi/luna/astra/frontmatter"
   "mizchi/luna/core/ssg"
-  "mizchi/luna/luna"
+  "mizchi/luna/sol/content/frontmatter"
+  "mizchi/luna/sol/content/markdown"
   "moonbitlang/core/json"
 )
 
@@ -24,22 +24,6 @@ pub(all) struct BuildContext {
   doc_tree : @ssg.DocumentTree?
 }
 pub fn BuildContext::new(SsgConfig, String) -> Self
-
-pub(all) struct ClsHints {
-  width : String?
-  height : String?
-}
-pub fn ClsHints::new() -> Self
-pub impl Eq for ClsHints
-pub impl Show for ClsHints
-
-pub(all) struct ComponentEmbed {
-  tag : String
-  attrs : Array[(String, String)]
-  content : String
-  trigger : @luna.TriggerType
-}
-pub fn ComponentEmbed::new(String) -> Self
 
 pub(all) enum ContentType {
   Markdown
@@ -133,57 +117,11 @@ pub impl Show for HeaderElement
 pub impl ToJson for HeaderElement
 pub impl @json.FromJson for HeaderElement
 
-pub(all) struct IslandEmbed {
-  name : String
-  props : String
-  trigger : @luna.TriggerType
-  ssr : Bool
-}
-pub fn IslandEmbed::new(String) -> Self
-
 pub(all) struct IslandsConfig {
   dir : String
   base_path : String
 }
 pub fn IslandsConfig::default() -> Self
-
-pub(all) struct JsxComponentEmbed {
-  tag : String
-  attrs : Array[(String, MdxAttrValue)]
-  children : String
-  self_closing : Bool
-  cls_hints : ClsHints?
-}
-pub fn JsxComponentEmbed::new(String) -> Self
-
-pub(all) enum MdNode {
-  Heading(level~ : Int, children~ : Array[MdNode], id~ : String)
-  Paragraph(children~ : Array[MdNode])
-  Text(String)
-  Bold(children~ : Array[MdNode])
-  Italic(children~ : Array[MdNode])
-  Code(String)
-  CodeBlock(lang~ : String, code~ : String)
-  Link(href~ : String, title~ : String, children~ : Array[MdNode])
-  Image(src~ : String, alt~ : String, title~ : String)
-  List(ordered~ : Bool, items~ : Array[Array[MdNode]])
-  Blockquote(children~ : Array[MdNode])
-  Table(headers~ : Array[MdNode], rows~ : Array[Array[MdNode]])
-  Html(String)
-  Island(IslandEmbed)
-  Component(ComponentEmbed)
-  JsxComponent(JsxComponentEmbed)
-  ThematicBreak
-  LineBreak
-}
-
-pub(all) enum MdxAttrValue {
-  StringLiteral(String)
-  Expression(String)
-  Boolean
-}
-pub impl Eq for MdxAttrValue
-pub impl Show for MdxAttrValue
 
 pub(all) struct MetaFilesConfig {
   sitemap : Bool
@@ -288,11 +226,23 @@ pub(all) struct ThemeConfig {
 pub fn ThemeConfig::default() -> Self
 
 // Type aliases
+pub using @markdown {type ClsHints}
+
+pub using @markdown {type ComponentEmbed}
+
 pub using @frontmatter {type Frontmatter}
 
 pub using @ssg {type I18nConfig}
 
+pub using @markdown {type IslandEmbed}
+
+pub using @markdown {type JsxComponentEmbed}
+
 pub using @ssg {type LocaleConfig}
+
+pub using @markdown {type MdNode}
+
+pub using @markdown {type MdxAttrValue}
 
 pub using @frontmatter {type NavLink}
 

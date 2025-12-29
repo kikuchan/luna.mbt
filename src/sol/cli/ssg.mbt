@@ -35,16 +35,16 @@ fn[FS : @env.FileSystem] has_ssg_config_with_fs(fs : FS, cwd : String) -> Bool {
 pub fn find_ssg_config_file(cwd : String) -> String {
   let fs = @fs_adapter.NodeFsAdapter::new()
   @cli_common.find_config(
-    fs,
-    cwd,
-    @cli_common.astra_config_candidates,
-    "astra.json",
+    fs, cwd, @cli_common.astra_config_candidates, "astra.json",
   )
 }
 
 ///|
 /// Parse SSG config from file content
-pub fn parse_ssg_config(content : String, config_path : String) -> @astra.SsgConfig? {
+pub fn parse_ssg_config(
+  content : String,
+  config_path : String,
+) -> @astra.SsgConfig? {
   if config_path.ends_with("astra.json") {
     @astra.parse_ssg_config(content)
   } else {
@@ -78,7 +78,6 @@ pub async fn run_ssg_build(
       _ => ()
     }
   }
-
   println(@colorette.cyan("Building static site..."))
   println(@colorette.gray("  Docs: \{config.docs_dir}"))
   println(@colorette.gray("  Output: \{config.output_dir}"))
@@ -136,7 +135,9 @@ async fn run_parallel_ssg_build(
 
   // Step 3: Create output directory
   let output_dir = @path.join2(cwd, config.output_dir)
-  @fs.mkdirSync(output_dir, recursive=true) catch { _ => () }
+  @fs.mkdirSync(output_dir, recursive=true) catch {
+    _ => ()
+  }
 
   // Step 4: Worker script path
   let worker_script = {
@@ -196,7 +197,6 @@ async fn run_parallel_ssg_build(
 
   // Step 12: Run deploy adapter
   @adapters.run_adapter(ctx)
-
   Ok(())
 }
 
@@ -209,7 +209,6 @@ pub async fn run_ssg_dev(
 ) -> Unit {
   // Keep Node.js event loop alive
   @cli_common.keep_alive()
-
   println(@colorette.cyan("Starting SSG development server..."))
   println("")
 
@@ -268,38 +267,59 @@ pub async fn run_ssg_dev(
   }
 
   // Watch for file changes
-  let _ = @fs.watch(docs_dir, recursive=true, listener=fn(event_type, filename) {
+  let _ = @fs.watch(docs_dir, recursive=true, listener=fn(
+    event_type,
+    filename,
+  ) {
     if filename.ends_with(".md") || filename.ends_with(".mdx") {
       let source_path = filename
       let full_path = @path.join2(docs_dir, filename)
       let file_exists = @fs.existsSync(full_path)
       let is_known = known_pages.contains(source_path)
-
       if file_exists && not(is_known) {
-        println(@colorette.yellow("[\{event_type}] \{filename} - new file, full rebuild..."))
+        println(
+          @colorette.yellow(
+            "[\{event_type}] \{filename} - new file, full rebuild...",
+          ),
+        )
         known_pages[source_path] = true
         run_ssg_build_sync(config, cwd, highlighter)
         hmr_server.notify_reload()
       } else if not(file_exists) && is_known {
-        println(@colorette.yellow("[\{event_type}] \{filename} - deleted, full rebuild..."))
+        println(
+          @colorette.yellow(
+            "[\{event_type}] \{filename} - deleted, full rebuild...",
+          ),
+        )
         let _ = known_pages.remove(source_path)
         run_ssg_build_sync(config, cwd, highlighter)
         hmr_server.notify_reload()
       } else if file_exists && is_known {
-        println(@colorette.yellow("[\{event_type}] \{filename} - incremental rebuild..."))
+        println(
+          @colorette.yellow(
+            "[\{event_type}] \{filename} - incremental rebuild...",
+          ),
+        )
         rebuild_ssg_single_page(build_ctx, source_path, highlighter)
         hmr_server.notify_reload()
       }
     } else if filename.ends_with(".json") {
-      println(@colorette.yellow("[\{event_type}] \{filename} - config change, full rebuild..."))
+      println(
+        @colorette.yellow(
+          "[\{event_type}] \{filename} - config change, full rebuild...",
+        ),
+      )
       run_ssg_build_sync(config, cwd, highlighter)
       hmr_server.notify_reload()
     } else if filename.ends_with(".js") {
-      println(@colorette.yellow("[\{event_type}] \{filename} - copying components..."))
+      println(
+        @colorette.yellow("[\{event_type}] \{filename} - copying components..."),
+      )
       copy_ssg_components(config, cwd)
       hmr_server.notify_reload()
     }
   })
+
 }
 
 ///|
@@ -316,7 +336,6 @@ fn run_ssg_initial_build(
     }
     _ => ()
   }
-
   match @ssg_gen.generate_site_with_highlighter(config, cwd, highlighter) {
     Ok(_) => {
       @astra_cache.save_manifest(cache_dir, config, cwd)
@@ -356,7 +375,6 @@ fn rebuild_ssg_single_page(
     println(@colorette.red("  Page not found: \{source_path}"))
     return
   }
-
   match @ssg_gen.generate_single_page(ctx, page_meta, highlighter) {
     Ok(_) => {
       println(@colorette.green("Page rebuilt: \{page_meta.url_path}"))
@@ -379,7 +397,6 @@ fn copy_ssg_components(config : @astra.SsgConfig, cwd : String) -> Unit {
   if not(@fs.existsSync(src)) {
     return
   }
-
   let output_subdir = if base_path.has_prefix("/") {
     base_path.substring(start=1)
   } else {
@@ -390,7 +407,10 @@ fn copy_ssg_components(config : @astra.SsgConfig, cwd : String) -> Unit {
   } else {
     output_subdir
   }
-  let dest = @path.join2(@path.join2(cwd, config.output_dir), output_subdir_clean)
+  let dest = @path.join2(
+    @path.join2(cwd, config.output_dir),
+    output_subdir_clean,
+  )
   @fs.cpSync(src, dest, recursive=true) catch {
     e => {
       println(@colorette.red("  Failed to copy components: \{e}"))
@@ -430,7 +450,10 @@ fn serve_ssg_file(
   spa_routes : Array[String],
 ) -> Unit {
   let url = req.url.or("/")
-  let parts : Array[String] = url.split("?").map(fn(v) { v.to_string() }).collect()
+  let parts : Array[String] = url
+    .split("?")
+    .map(fn(v) { v.to_string() })
+    .collect()
   let path_part = if parts.length() > 0 { parts[0] } else { "/" }
   let base_path = @path.join2(output_dir, path_part)
 
@@ -446,19 +469,16 @@ fn serve_ssg_file(
     serve_with_hmr(res, base_path, hmr_port)
     return
   }
-
   let index_path = @path.join2(base_path, "index.html")
   if @fs.existsSync(index_path) {
     serve_with_hmr(res, index_path, hmr_port)
     return
   }
-
   let html_path = base_path + ".html"
   if @fs.existsSync(html_path) {
     serve_with_hmr(res, html_path, hmr_port)
     return
   }
-
   if @fs.existsSync(base_path) {
     serve_with_hmr(res, base_path, hmr_port)
     return
@@ -467,14 +487,16 @@ fn serve_ssg_file(
   // SPA fallback
   for spa_route in spa_routes {
     if path_part.starts_with(spa_route) {
-      let spa_index = @path.join2(@path.join2(output_dir, spa_route), "index.html")
+      let spa_index = @path.join2(
+        @path.join2(output_dir, spa_route),
+        "index.html",
+      )
       if @fs.existsSync(spa_index) {
         serve_with_hmr(res, spa_index, hmr_port)
         return
       }
     }
   }
-
   res.writeHead(404) |> ignore
   res.end(data="Not Found: \{path_part}")
 }
@@ -496,7 +518,6 @@ fn serve_with_hmr(
   res.setHeader("Content-Type", content_type)
   res.setHeader("Cache-Control", "no-cache")
   res.writeHead(200) |> ignore
-
   if file_path.ends_with(".html") {
     let hmr_script = hmr_client_script(hmr_port)
     let injected = content.replace(old="</body>", new=hmr_script + "</body>")
@@ -545,7 +566,6 @@ pub fn run_ssg_lint(args : Array[String]) -> Unit {
 
   // Parse args for --fix flag (reserved for future)
   let _ = args
-
   println(@colorette.cyan("Linting SSG documentation..."))
   println("")
 
@@ -737,7 +757,6 @@ fn print_ssg_lint_results(
       None => ()
     }
   }
-
   for file, file_issues in files {
     println(@colorette.cyan(file))
     for issue in file_issues {
@@ -750,23 +769,30 @@ fn print_ssg_lint_results(
         Some(l) => ":\{l}"
         None => ""
       }
-      println("  \{severity_color}\{line_str}: \{issue.message} [\{issue.rule}]")
+      println(
+        "  \{severity_color}\{line_str}: \{issue.message} [\{issue.rule}]",
+      )
     }
     println("")
   }
 
   // Summary
-  println(@colorette.gray("─────────────────────────────────────────────"))
+  println(
+    @colorette.gray(
+      "─────────────────────────────────────────────",
+    ),
+  )
   println(
     "Files checked: \{files_checked}, Errors: \{errors}, Warnings: \{warnings}, Info: \{infos}",
   )
   println("")
-
   if errors == 0 && warnings == 0 {
     println(@colorette.green("✓ No issues found"))
   } else if errors == 0 {
     println(@colorette.yellow("⚠ \{warnings} warning(s) found"))
   } else {
-    println(@colorette.red("✗ \{errors} error(s), \{warnings} warning(s) found"))
+    println(
+      @colorette.red("✗ \{errors} error(s), \{warnings} warning(s) found"),
+    )
   }
 }

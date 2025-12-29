@@ -56,13 +56,18 @@ pub fn[Cache : ISRCache] ISRHandler::handle(Self[Cache], String) -> (String?, Bo
 pub fn[Cache] ISRHandler::new(Cache, ISRManifest, String) -> Self[Cache]
 pub fn[Cache : ISRCache] ISRHandler::update_cache(Self[Cache], String, String) -> Unit
 
-pub struct ISRManifest {
+pub(all) struct ISRManifest {
   version : Int
   pages : Map[String, ISRPageMeta]
 }
+pub fn ISRManifest::add(Self, String, ISRPageMeta) -> Unit
 pub fn ISRManifest::empty() -> Self
 pub fn ISRManifest::get_page(Self, String) -> ISRPageMeta?
+pub fn ISRManifest::is_empty(Self) -> Bool
 pub fn ISRManifest::is_isr_page(Self, String) -> Bool
+pub fn ISRManifest::len(Self) -> Int
+pub fn ISRManifest::new() -> Self
+pub fn ISRManifest::to_json(Self) -> String
 
 pub struct ISRMiddlewareConfig {
   dist_dir : String
@@ -70,7 +75,7 @@ pub struct ISRMiddlewareConfig {
 }
 pub fn ISRMiddlewareConfig::default() -> Self
 
-pub struct ISRPageMeta {
+pub(all) struct ISRPageMeta {
   revalidate : Int
   renderer : String
   source : String

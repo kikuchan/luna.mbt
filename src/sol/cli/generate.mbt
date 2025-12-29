@@ -1578,7 +1578,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
     }
   }
   guard parse_sol_config(config_content) is Some(config) else {
-    @cli_common.console_error(@colorette.red("Error: Invalid config file format"))
+    @cli_common.console_error(
+      @colorette.red("Error: Invalid config file format"),
+    )
     @process.exit(1)
   }
   println(@colorette.cyan("Generating app/__gen__ and .sol directories..."))
@@ -1594,7 +1596,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
   let types_dir = @path.join2(output_dir, "types")
   fs.mkdir_sync(types_dir, true) catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error creating types directory: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error creating types directory: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1621,7 +1625,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
       println(@colorette.gray("  Generated __gen__/types/ from source"))
     } catch {
       e => {
-        @cli_common.console_error(@colorette.red("Error writing types package: \{e}"))
+        @cli_common.console_error(
+          @colorette.red("Error writing types package: \{e}"),
+        )
         @process.exit(1)
       }
     }
@@ -1637,7 +1643,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
         )
       } catch {
         e => {
-          @cli_common.console_error(@colorette.red("Error writing stub types: \{e}"))
+          @cli_common.console_error(
+            @colorette.red("Error writing stub types: \{e}"),
+          )
           @process.exit(1)
         }
       }
@@ -1648,7 +1656,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
   let server_dir = @path.join2(output_dir, "server")
   fs.mkdir_sync(server_dir, true) catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error creating server directory: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error creating server directory: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1657,7 +1667,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
   let server_pkg_path = @path.join2(server_dir, "moon.pkg.json")
   fs.write_file_sync(server_pkg_path, server_pkg) catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error writing server/moon.pkg.json: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error writing server/moon.pkg.json: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1667,7 +1679,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
     stub_main_path, "///| Stub - will be replaced\nfn main { () }\n",
   ) catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error writing stub main.mbt: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error writing stub main.mbt: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1688,7 +1702,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
       }
     } catch {
       e => {
-        @cli_common.console_error(@colorette.red("Error running moon info: \{e}"))
+        @cli_common.console_error(
+          @colorette.red("Error running moon info: \{e}"),
+        )
         @process.exit(1)
       }
     }
@@ -1724,7 +1740,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
     fs.mkdir_sync(sol_server_dir, true)
   } catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error creating directories: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error creating directories: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1835,7 +1853,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
     println(@colorette.gray("  Generated __gen__/server/main.mbt"))
   } catch {
     e => {
-      @cli_common.console_error(@colorette.red("Error writing server/main.mbt: \{e}"))
+      @cli_common.console_error(
+        @colorette.red("Error writing server/main.mbt: \{e}"),
+      )
       @process.exit(1)
     }
   }
@@ -1884,7 +1904,9 @@ fn[FS : @env.FileSystem] run_generate_command_with_fs(
       println(@colorette.gray("  Generated .sol/\{mode}/manifest.json"))
     } catch {
       e => {
-        @cli_common.console_error(@colorette.red("Error writing manifest.json: \{e}"))
+        @cli_common.console_error(
+          @colorette.red("Error writing manifest.json: \{e}"),
+        )
         @process.exit(1)
       }
     }

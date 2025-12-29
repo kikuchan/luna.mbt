@@ -241,7 +241,9 @@ async fn run_dev_watch_mode(cwd : String, port : String) -> Unit {
   let entry = find_server_entry_with_fs(fs, cwd, "dev")
   match entry {
     None => {
-      @cli_common.console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_common.console_error(
+        @colorette.red("Error: Could not find server entry point"),
+      )
       @process.exit(1)
     }
     Some(entry_path) => {
@@ -425,7 +427,9 @@ fn[FS : @env.FileSystem] run_server_with_fs(
   }
   match entry_point {
     None => {
-      @cli_common.console_error(@colorette.red("Error: Could not find server entry point"))
+      @cli_common.console_error(
+        @colorette.red("Error: Could not find server entry point"),
+      )
       println(@colorette.gray("Expected one of:"))
       for entry in possible_entries {
         println(@colorette.gray("  - \{entry}"))

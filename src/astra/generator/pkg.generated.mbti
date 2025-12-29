@@ -3,8 +3,8 @@ package "mizchi/luna/astra/generator"
 
 import(
   "mizchi/luna/astra"
-  "mizchi/luna/astra/shiki"
   "mizchi/luna/core/ssg"
+  "mizchi/luna/sol/content/shiki"
   "moonbitlang/core/json"
 )
 

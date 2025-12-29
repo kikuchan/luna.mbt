@@ -3,9 +3,9 @@ package "mizchi/luna/astra/components"
 
 import(
   "mizchi/luna/astra"
-  "mizchi/luna/astra/toc"
   "mizchi/luna/core/ssg"
   "mizchi/luna/luna"
+  "mizchi/luna/sol/content/toc"
 )
 
 // Values

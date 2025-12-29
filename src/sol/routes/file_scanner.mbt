@@ -141,7 +141,8 @@ pub fn get_extension(filename : String) -> String {
 ///|
 /// Check if file is a content file (md, mdx, html)
 pub fn is_content_file(filename : String) -> Bool {
-  filename.has_suffix(".md") || filename.has_suffix(".mdx") ||
+  filename.has_suffix(".md") ||
+  filename.has_suffix(".mdx") ||
   filename.has_suffix(".html")
 }
 
@@ -201,21 +202,21 @@ fn[FS : @env.FileSystem] scan_directory_recursive(
     }
     let is_dir : Bool = @env.FileSystem::is_directory_sync(
       filesystem, entry_path,
-    ) catch { _ => false }
+    ) catch {
+      _ => false
+    }
     if is_dir {
       // Skip excluded directories
       if is_excluded(entry_name, entry_relative, options.exclude) {
         continue
       }
       // Add directory entry
-      entries.push(
-        FileEntry::{
-          relative_path: entry_relative,
-          absolute_path: entry_path,
-          extension: "",
-          is_directory: true,
-        },
-      )
+      entries.push(FileEntry::{
+        relative_path: entry_relative,
+        absolute_path: entry_path,
+        extension: "",
+        is_directory: true,
+      })
       // Recurse into subdirectory
       scan_directory_recursive(
         filesystem, entry_path, entry_relative, options, entries,
@@ -223,14 +224,12 @@ fn[FS : @env.FileSystem] scan_directory_recursive(
     } else {
       // Add file entry
       let ext = get_extension(entry_name)
-      entries.push(
-        FileEntry::{
-          relative_path: entry_relative,
-          absolute_path: entry_path,
-          extension: ext,
-          is_directory: false,
-        },
-      )
+      entries.push(FileEntry::{
+        relative_path: entry_relative,
+        absolute_path: entry_path,
+        extension: ext,
+        is_directory: false,
+      })
     }
   }
 }

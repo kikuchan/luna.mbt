@@ -71,4 +71,3 @@ fn[FS : @env.FileSystem] run_clean_command_with_fs(
     println(@colorette.gray("Nothing to clean"))
   }
 }
-

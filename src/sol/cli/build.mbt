@@ -195,7 +195,11 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
         println(@colorette.gray("  Output: \{ssg_config.output_dir}"))
         match @ssg_gen.generate_site(ssg_config, cwd) {
           Ok(_) =>
-            println(@colorette.green("✓ SSG build complete: \{ssg_config.output_dir}"))
+            println(
+              @colorette.green(
+                "✓ SSG build complete: \{ssg_config.output_dir}",
+              ),
+            )
           Err(e) => {
             @cli_common.console_error(@colorette.red("SSG build failed: \{e}"))
             @process.exit(1)

@@ -6,13 +6,13 @@ import(
 )
 
 // Values
-pub fn build_manifest(Array[@astra.PageMeta]) -> @mizchi/luna/core/isr.ISRManifest
+pub fn build_manifest(Array[@astra.PageMeta]) -> @mizchi/luna/sol/isr.ISRManifest
 
-pub fn new_entry(Int, String, String) -> @mizchi/luna/core/isr.ISRPageEntry
+pub fn new_entry(Int, String, String) -> @mizchi/luna/sol/isr.ISRPageMeta
 
-pub fn new_manifest() -> @mizchi/luna/core/isr.ISRManifest
+pub fn new_manifest() -> @mizchi/luna/sol/isr.ISRManifest
 
-pub fn write_manifest(@mizchi/luna/core/isr.ISRManifest, String) -> Unit
+pub fn write_manifest(@mizchi/luna/sol/isr.ISRManifest, String) -> Unit
 
 // Errors
 

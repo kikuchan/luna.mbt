@@ -19,6 +19,7 @@ Sol is a full-stack SSR framework built on Luna UI and MoonBit. It provides Isla
 - **Middleware** - Railway Oriented Programming based middleware
 - **Server Actions** - CSRF-protected server-side functions
 - **Nested Layouts** - Hierarchical layout structures
+- **SSG Mode** - Static site generation with Astra (auto-detected from config)
 
 ## Quick Start
 
@@ -374,8 +375,24 @@ Async content streaming:
 })
 ```
 
+## SSG Mode
+
+Sol automatically detects SSG mode when your project has `astra.json` or `sol.config.json` with `ssg` section.
+
+```bash
+# Create SSG project
+sol new my-docs --ssg
+
+# Dev/build commands work the same
+sol dev    # Starts SSG dev server with HMR
+sol build  # Generates static site
+sol lint   # Lints SSG content
+```
+
+For SSG-specific features and configuration, see [Astra SSG](/astra/).
+
 ## See Also
 
 - [Luna UI](/luna/) - Core reactivity concepts
-- [Astra SSG](/astra/) - Static site generation
+- [Astra SSG](/astra/) - Static site generation (runs via Sol CLI)
 - [Stella](/stella/) - Web Components

@@ -2,7 +2,6 @@
 package "mizchi/luna/sol/cli"
 
 import(
-  "mizchi/js/core"
   "mizchi/luna/astra"
   "mizchi/luna/core/ssg"
 )
@@ -16,6 +15,8 @@ pub fn extract_package_path(String) -> String?
 
 pub fn find_matching_paren(String, Int) -> Int?
 
+pub fn find_ssg_config_file(String) -> String
+
 pub fn generate_export_name(String, String, String) -> String
 
 pub fn generate_import_alias(String, String) -> String
@@ -25,6 +26,8 @@ pub fn generate_params_with_names(String) -> (String, String)
 pub fn generate_sol_server_main_js(String, ServerRuntime) -> String
 
 pub fn generate_templates(String, String, String?) -> Array[TemplateFile]
+
+pub fn has_ssg_config(String) -> Bool
 
 pub fn is_web_component(String) -> Bool
 
@@ -36,7 +39,15 @@ pub fn parse_runtime(String) -> ServerRuntime
 
 pub fn parse_sol_config(String) -> SolConfig?
 
+pub fn parse_ssg_config(String, String) -> @astra.SsgConfig?
+
 pub fn rewrite_type_refs(String, Map[String, String]) -> String
+
+pub async fn run_ssg_build(@astra.SsgConfig, String, Bool, Int?, Bool) -> Result[Unit, String]
+
+pub async fn run_ssg_dev(@astra.SsgConfig, String, Int) -> Unit
+
+pub fn run_ssg_lint(Array[String]) -> Unit
 
 pub fn split_params(String) -> Array[String]
 
@@ -97,19 +108,6 @@ pub(all) struct FuncExport {
   source_pattern : String
 }
 
-pub struct HmrServer {
-  port : Int
-  // private fields
-}
-pub fn HmrServer::broadcast(Self, String) -> Unit
-pub fn HmrServer::client_count(Self) -> Int
-pub fn HmrServer::close(Self) -> Unit
-pub fn HmrServer::notify_error(Self, String) -> Unit
-pub fn HmrServer::notify_full_reload(Self) -> Unit
-pub fn HmrServer::notify_update(Self, Array[String]) -> Unit
-pub fn HmrServer::on_connection(Self, (@core.Any) -> Unit) -> Unit
-pub async fn HmrServer::start(Int) -> Self
-
 type RouteInfo
 
 pub enum ServerRuntime {
@@ -128,6 +126,27 @@ pub struct SolConfig {
   client_auto_exports : Bool
   runtime : ServerRuntime
   static_dirs : Array[StaticDirEntry]
+}
+
+pub(all) struct SsgLintIssue {
+  severity : SsgLintSeverity
+  file : String
+  line : Int?
+  message : String
+  rule : String
+}
+
+pub(all) struct SsgLintResult {
+  issues : Array[SsgLintIssue]
+  files_checked : Int
+  errors : Int
+  warnings : Int
+}
+
+pub(all) enum SsgLintSeverity {
+  Error
+  Warning
+  Info
 }
 
 pub struct StaticDirEntry {

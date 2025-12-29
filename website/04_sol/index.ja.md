@@ -19,6 +19,7 @@ SolはLuna UIとMoonBitで構築されたフルスタックSSRフレームワー
 - **ミドルウェア** - Railway Oriented Programmingベースのミドルウェア
 - **Server Actions** - CSRF保護付きのサーバーサイド関数
 - **ネストされたレイアウト** - 階層的なレイアウト構造
+- **SSGモード** - Astraによる静的サイト生成（設定から自動検出）
 
 ## プロジェクト構造
 
@@ -231,8 +232,24 @@ a(href="/about", attrs=[("sol-link", @luna.attr_static(""))], [text("About")])
 })
 ```
 
+## SSGモード
+
+プロジェクトに`astra.json`または`ssg`セクションを持つ`sol.config.json`がある場合、SolはSSGモードを自動検出します。
+
+```bash
+# SSGプロジェクトを作成
+sol new my-docs --ssg
+
+# dev/buildコマンドは同じように動作
+sol dev    # HMR付きSSG開発サーバーを起動
+sol build  # 静的サイトを生成
+sol lint   # SSGコンテンツをリント
+```
+
+SSG固有の機能と設定については、[Astra SSG](/ja/astra/)を参照してください。
+
 ## 関連項目
 
 - [Luna UI](/ja/luna/) - コアリアクティビティの概念
-- [Astra SSG](/ja/astra/) - 静的サイト生成
+- [Astra SSG](/ja/astra/) - 静的サイト生成（Sol CLI経由で実行）
 - [Stella](/ja/stella/) - Web Components

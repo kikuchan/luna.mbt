@@ -29,7 +29,7 @@ AstraはLunaの静的サイトジェネレーターです。Markdownからドキ
 
 ```bash
 # 新規プロジェクト作成
-npx @luna_ui/astra new my-docs
+npx @luna_ui/sol new my-docs --ssg
 cd my-docs
 npm install
 
@@ -41,20 +41,26 @@ http://localhost:3355 でHMR付きプレビューが開きます。
 
 ## CLIリファレンス
 
+Astraは統合された`sol`CLIの一部になりました。プロジェクトに`astra.json`または`ssg`セクションを持つ`sol.config.json`がある場合、SolはSSGモードで自動的に実行されます。
+
 ```bash
-# 新規プロジェクト作成
-astra new <name> [options]
+# 新規SSGプロジェクト作成
+sol new <name> --ssg [options]
   -t, --title <text>  サイトタイトル (デフォルト: プロジェクト名)
 
 # HMR付き開発サーバー起動
-astra dev [options]
+sol dev [options]
   -p, --port <port>    ポート番号 (デフォルト: 3355)
   -c, --config <path>  設定ファイルパス
 
 # 静的サイトをビルド
-astra build [options]
-  -c, --config <path>  設定ファイルパス (デフォルト: astra.json)
+sol build [options]
+  -c, --config <path>  設定ファイルパス (デフォルト: astra.json または sol.config.json)
   -o, --output <dir>   出力ディレクトリ
+
+# SSGコンテンツをリント
+sol lint [options]
+  -c, --config <path>  設定ファイルパス
 ```
 
 ## 設定 (astra.json)

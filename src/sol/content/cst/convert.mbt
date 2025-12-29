@@ -102,7 +102,9 @@ fn convert_block(block : @md_parser.Block) -> @markdown.MdNode? {
         if children.length() == 1 {
           children[0]
         } else {
-          @markdown.MdNode::Text(@md_toc.extract_text_from_inlines(cell.children))
+          @markdown.MdNode::Text(
+            @md_toc.extract_text_from_inlines(cell.children),
+          )
         }
       })
       let md_rows = rows.map(fn(row) {
@@ -138,7 +140,9 @@ fn convert_list_items(
 
 ///|
 /// Convert array of CST Inlines to MdNode array
-fn convert_inlines(inlines : Array[@md_parser.Inline]) -> Array[@markdown.MdNode] {
+fn convert_inlines(
+  inlines : Array[@md_parser.Inline],
+) -> Array[@markdown.MdNode] {
   let nodes : Array[@markdown.MdNode] = []
   for inline in inlines {
     match convert_inline(inline) {
@@ -153,7 +157,8 @@ fn convert_inlines(inlines : Array[@md_parser.Inline]) -> Array[@markdown.MdNode
 /// Convert single CST Inline to MdNode
 fn convert_inline(inline : @md_parser.Inline) -> @markdown.MdNode? {
   match inline {
-    @md_parser.Inline::Text(content~, ..) => Some(@markdown.MdNode::Text(content))
+    @md_parser.Inline::Text(content~, ..) =>
+      Some(@markdown.MdNode::Text(content))
     @md_parser.Inline::SoftBreak(..) => Some(@markdown.MdNode::Text(" "))
     @md_parser.Inline::HardBreak(..) => Some(@markdown.MdNode::LineBreak)
     @md_parser.Inline::Emphasis(children~, ..) => {
@@ -169,7 +174,8 @@ fn convert_inline(inline : @md_parser.Inline) -> @markdown.MdNode? {
       let text = "~~" + @md_toc.extract_text_from_inlines(children) + "~~"
       Some(@markdown.MdNode::Text(text))
     }
-    @md_parser.Inline::Code(content~, ..) => Some(@markdown.MdNode::Code(content))
+    @md_parser.Inline::Code(content~, ..) =>
+      Some(@markdown.MdNode::Code(content))
     @md_parser.Inline::Link(children~, url~, title~, ..) => {
       let md_children = convert_inlines(children)
       Some(@markdown.MdNode::Link(href=url, title~, children=md_children))
@@ -190,7 +196,8 @@ fn convert_inline(inline : @md_parser.Inline) -> @markdown.MdNode? {
     @md_parser.Inline::RefImage(alt~, label~, ..) =>
       // Reference images need resolution - for now, use label as src
       Some(@markdown.MdNode::Image(src="#" + label, alt~, title=""))
-    @md_parser.Inline::HtmlInline(html~, ..) => Some(@markdown.MdNode::Html(html))
+    @md_parser.Inline::HtmlInline(html~, ..) =>
+      Some(@markdown.MdNode::Html(html))
     @md_parser.Inline::FootnoteReference(label~, ..) =>
       // Convert footnote reference to superscript link
       Some(@markdown.MdNode::Text("[^\{label}]"))

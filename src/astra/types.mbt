@@ -486,16 +486,22 @@ pub fn PageMeta::with_frontmatter(
 // Markdown Types (re-exported from sol/content/markdown)
 // =============================================================================
 
+///|
 pub type MdNode = @markdown.MdNode
 
+///|
 pub type IslandEmbed = @markdown.IslandEmbed
 
+///|
 pub type ComponentEmbed = @markdown.ComponentEmbed
 
+///|
 pub type JsxComponentEmbed = @markdown.JsxComponentEmbed
 
+///|
 pub type MdxAttrValue = @markdown.MdxAttrValue
 
+///|
 pub type ClsHints = @markdown.ClsHints
 
 // =============================================================================

@@ -6,9 +6,9 @@ import(
   "mizchi/js/core"
   "mizchi/luna/luna"
   "mizchi/luna/luna/dom/element"
-  "mizchi/luna/luna/dom/router"
   "mizchi/luna/luna/routes"
   "mizchi/luna/luna/signal"
+  "mizchi/luna/sol/browser_router"
 )
 
 // Values
@@ -158,9 +158,9 @@ pub fn use_context(JsContext) -> Any
 #external
 pub type Any
 
-pub struct BrowserRouter(@router.BrowserRouter)
+pub struct BrowserRouter(@browser_router.BrowserRouter)
 #deprecated
-pub fn BrowserRouter::inner(Self) -> @router.BrowserRouter
+pub fn BrowserRouter::inner(Self) -> @browser_router.BrowserRouter
 
 pub struct JsAsyncState(@signal.AsyncState[Any])
 #deprecated

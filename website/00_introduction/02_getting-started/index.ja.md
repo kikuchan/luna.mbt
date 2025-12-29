@@ -34,7 +34,7 @@ npm run dev
 ### Astra (ドキュメントサイト)
 
 ```bash
-npx @luna_ui/astra new my-docs
+npx @luna_ui/sol new my-docs --ssg
 cd my-docs
 npm install
 npm run dev

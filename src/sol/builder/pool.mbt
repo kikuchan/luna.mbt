@@ -74,7 +74,10 @@ fn WorkerPool::spawn_worker(self : WorkerPool) -> Unit {
   )
 
   // Create worker handle (starts as Initializing, becomes Idle when ready)
-  let handle = WorkerHandle::{ process: child, state: WorkerState::Initializing }
+  let handle = WorkerHandle::{
+    process: child,
+    state: WorkerState::Initializing,
+  }
   let worker_id = self.workers.length()
   self.workers.push(handle)
 

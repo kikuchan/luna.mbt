@@ -28,9 +28,7 @@ pub fn LocalFileProvider::new(
 
 ///|
 /// Implement BuildStateProvider for LocalFileProvider
-pub impl BuildStateProvider for LocalFileProvider with get_content_state(
-  self,
-) {
+pub impl BuildStateProvider for LocalFileProvider with get_content_state(self) {
   match self.cached_state {
     Some(state) => state
     None => {
@@ -42,9 +40,7 @@ pub impl BuildStateProvider for LocalFileProvider with get_content_state(
 }
 
 ///|
-pub impl BuildStateProvider for LocalFileProvider with describe_state(
-  self,
-) {
+pub impl BuildStateProvider for LocalFileProvider with describe_state(self) {
   let state = self.get_content_state()
   "Local files (hash: \{state})"
 }

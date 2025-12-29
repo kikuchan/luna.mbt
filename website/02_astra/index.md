@@ -32,7 +32,7 @@ Astra is Luna's static site generator for documentation and content sites.
 ### 1. Create a New Project
 
 ```bash
-npx @luna_ui/astra new my-docs
+npx @luna_ui/sol new my-docs --ssg
 cd my-docs
 npm install
 ```
@@ -55,29 +55,35 @@ Static files are generated in `dist-docs/`.
 
 ## CLI Reference
 
+Astra is now part of the unified `sol` CLI. When your project has an `astra.json` or `sol.config.json` with `ssg` section, Sol automatically runs in SSG mode.
+
 ```bash
-# Create a new project
-astra new <name> [options]
+# Create a new SSG project
+sol new <name> --ssg [options]
   -t, --title <text>  Site title (default: project name)
   -h, --help          Show help
 
 # Start development server with HMR
-astra dev [options]
+sol dev [options]
   -p, --port <port>    Port to listen on (default: 3355)
   -c, --config <path>  Config file path
   -h, --help           Show help
 
 # Build static site
-astra build [options]
-  -c, --config <path>  Config file path (default: astra.json)
+sol build [options]
+  -c, --config <path>  Config file path (default: astra.json or sol.config.json)
   -o, --output <dir>   Output directory (overrides config)
   -h, --help           Show help
 
+# Lint SSG content
+sol lint [options]
+  -c, --config <path>  Config file path
+
 # Show help
-astra --help
+sol --help
 
 # Show version
-astra --version
+sol --version
 ```
 
 ## Configuration

@@ -53,10 +53,7 @@ pub fn[FS : @env.FileSystem] find_config(
 ///|
 /// Astra config file candidates in search order
 pub let astra_config_candidates : Array[String] = [
-  "astra.json",
-  "website/astra.json",
-  "docs/astra.json",
-  "sol.config.json",
+  "astra.json", "website/astra.json", "docs/astra.json", "sol.config.json",
 ]
 
 ///|
@@ -112,7 +109,8 @@ pub fn get_content_type(file_path : String) -> String {
     "text/plain; charset=utf-8"
   } else if file_path.has_suffix(".wasm") {
     "application/wasm"
-  } else if file_path.has_suffix(".pf_meta") || file_path.has_suffix(".pf_index") {
+  } else if file_path.has_suffix(".pf_meta") ||
+    file_path.has_suffix(".pf_index") {
     "application/octet-stream"
   } else {
     "application/octet-stream"

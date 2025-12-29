@@ -165,7 +165,7 @@ Build standalone, distributable Web Components from MoonBit:
 | Package | Description |
 |---------|-------------|
 | `@luna_ui/luna` | Core UI library + CLI for scaffolding |
-| `@luna_ui/astra` | Static site generator CLI |
+| `@luna_ui/sol` | SSR/SSG framework CLI (includes Astra SSG) |
 | `@luna_ui/stella` | Web Components generator CLI |
 | `@luna_ui/wcr` | Web Components runtime (used by Stella) |
 
@@ -188,7 +188,7 @@ cd myapp && moon update && npm install && npm run dev
 ### Astra (Documentation Site)
 
 ```bash
-npx @luna_ui/astra new my-docs
+npx @luna_ui/sol new my-docs --ssg
 cd my-docs && npm install && npm run dev
 ```
 

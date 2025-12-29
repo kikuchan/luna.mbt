@@ -2,12 +2,12 @@
 package "mizchi/luna/astra/mdx"
 
 import(
-  "mizchi/luna/astra"
-  "mizchi/luna/astra/frontmatter"
+  "mizchi/luna/sol/content/frontmatter"
+  "mizchi/luna/sol/content/markdown"
 )
 
 // Values
-pub fn parse_mdx(String) -> (@frontmatter.Frontmatter, Array[@astra.MdNode])
+pub fn parse_mdx(String) -> (@frontmatter.Frontmatter, Array[@markdown.MdNode])
 
 // Errors
 
