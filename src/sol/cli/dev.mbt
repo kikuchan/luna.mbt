@@ -72,6 +72,32 @@ async fn[FS : @env.FileSystem] run_dev_command_with_fs(
     )
     @process.exit(1)
   }
+  // Check if this is an SSG project
+  if has_ssg_config(cwd) {
+    // SSG dev mode
+    println(@colorette.cyan("SSG config detected, running SSG dev server..."))
+    let config_path = find_ssg_config_file(cwd)
+    let full_config_path = @path.join2(cwd, config_path)
+    let config_content = fs.read_file_sync(full_config_path) catch {
+      _ => {
+        @cli_common.console_error(@colorette.red("Failed to read SSG config"))
+        @process.exit(1)
+        ""
+      }
+    }
+    match parse_ssg_config(config_content, config_path) {
+      Some(ssg_config) => {
+        let port_int = @ssg.parse_int_simple(port)
+        run_ssg_dev(ssg_config, cwd, port_int)
+        return
+      }
+      None => {
+        @cli_common.console_error(@colorette.red("Failed to parse SSG config"))
+        @process.exit(1)
+      }
+    }
+    return
+  }
   println(@colorette.cyan("Starting Sol development server..."))
   // Step 1: Clean generated files if requested
   if clean {

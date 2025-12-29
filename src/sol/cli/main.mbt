@@ -4,23 +4,26 @@
 ///|
 fn show_help() -> Unit {
   let help =
-    #|Sol CLI - MoonBit SSR Framework
+    #|Sol CLI - MoonBit SSR/SSG Framework
     #|
     #|Usage: sol <command> [options]
     #|
     #|Commands:
     #|  new <name>     Create a new Sol project
-    #|  dev            Start development server (no minify)
-    #|  build          Build for production (with minify)
+    #|  dev            Start development server (SSR or SSG mode)
+    #|  build          Build for production (SSR + SSG if configured)
     #|  serve          Serve production build
     #|  generate       Generate _sol directory from config
+    #|  lint           Lint SSG documentation (requires ssg config)
     #|  clean          Remove generated files and caches
     #|
     #|Options:
     #|  -h, --help     Show help
     #|  -v, --version  Show version
     #|
-    #|For static site generation, use: astra build
+    #|SSG Mode:
+    #|  If astra.json or sol.config.json with "ssg" section exists,
+    #|  dev and build commands will include static site generation.
   println(help)
 }
 
@@ -63,14 +66,15 @@ async fn main {
     "build" => run_build_command(command_args)
     "serve" => run_serve_command(command_args)
     "generate" => run_generate_command(command_args)
+    "lint" => run_ssg_lint(command_args)
     "clean" => run_clean_command(command_args)
     "ssg" => {
-      // Redirect to astra CLI
+      // Redirect to sol build with ssg
       println(
-        @colorette.yellow("Note: 'sol ssg' is deprecated. Use 'astra' instead."),
+        @colorette.yellow("Note: 'sol ssg' is now part of 'sol build'."),
       )
       println("")
-      println("Run: astra build")
+      println("SSG is automatically detected via astra.json or sol.config.json")
       @process.exit(0)
     }
     _ => {

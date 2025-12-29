@@ -164,7 +164,7 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
     }
     println(@colorette.green("✓ Client bundle complete"))
   }
-  // Build static directories (SSG) if configured
+  // Build static directories (SSG) if configured via static_dirs
   if fs.exists_sync(sol_config_path) {
     let config_content = fs.read_file_sync(sol_config_path) catch { _ => "" }
     if not(config_content.is_empty()) {
@@ -174,6 +174,37 @@ fn[FS : @env.FileSystem] run_build_command_with_fs(
             build_static_dirs(config.static_dirs, cwd)
           }
         None => ()
+      }
+    }
+  }
+  // Full SSG build if ssg section exists in config or astra.json
+  if has_ssg_config(cwd) {
+    let config_path = find_ssg_config_file(cwd)
+    let full_config_path = @path.join2(cwd, config_path)
+    let config_content = fs.read_file_sync(full_config_path) catch {
+      _ => {
+        @cli_common.console_error(@colorette.red("Failed to read SSG config"))
+        @process.exit(1)
+        "" // unreachable
+      }
+    }
+    match parse_ssg_config(config_content, config_path) {
+      Some(ssg_config) => {
+        println(@colorette.cyan("Running SSG build..."))
+        println(@colorette.gray("  Docs: \{ssg_config.docs_dir}"))
+        println(@colorette.gray("  Output: \{ssg_config.output_dir}"))
+        match @ssg_gen.generate_site(ssg_config, cwd) {
+          Ok(_) =>
+            println(@colorette.green("✓ SSG build complete: \{ssg_config.output_dir}"))
+          Err(e) => {
+            @cli_common.console_error(@colorette.red("SSG build failed: \{e}"))
+            @process.exit(1)
+          }
+        }
+      }
+      None => {
+        @cli_common.console_error(@colorette.red("Failed to parse SSG config"))
+        @process.exit(1)
       }
     }
   }

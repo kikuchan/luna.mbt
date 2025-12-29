@@ -18,6 +18,30 @@
       "alias": "ssg_gen"
     },
     {
+      "path": "mizchi/luna/astra/routes",
+      "alias": "ssg_routes"
+    },
+    {
+      "path": "mizchi/luna/astra/builder_pool",
+      "alias": "builder_pool"
+    },
+    {
+      "path": "mizchi/luna/astra/cache",
+      "alias": "astra_cache"
+    },
+    {
+      "path": "mizchi/luna/astra/tree",
+      "alias": "tree"
+    },
+    {
+      "path": "mizchi/luna/astra/adapters",
+      "alias": "adapters"
+    },
+    {
+      "path": "mizchi/luna/sol/content/shiki",
+      "alias": "shiki"
+    },
+    {
       "path": "mizchi/luna/core/ssg",
       "alias": "ssg"
     },
@@ -52,6 +76,10 @@
     {
       "path": "mizchi/js/node/util",
       "alias": "util"
+    },
+    {
+      "path": "mizchi/js/node/http",
+      "alias": "http"
     },
     {
       "path": "mizchi/npm_typed/colorette",
